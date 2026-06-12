@@ -19,10 +19,10 @@ class PurchaseReportController extends Controller
         $totalAmount = PurchaseOrder::sum('total');
         $totalPaid = SupplierPayment::sum('amount');
 
-        // Monthly data for charts - SQLite compatible
+        // Monthly data for charts - MySQL compatible
         $monthlyOrders = PurchaseOrder::selectRaw(
-                "strftime('%Y', created_at) as year, 
-                 strftime('%m', created_at) as month, 
+                "YEAR(created_at) as year, 
+                 MONTH(created_at) as month, 
                  COUNT(*) as count, 
                  SUM(total) as total"
             )
@@ -34,8 +34,8 @@ class PurchaseReportController extends Controller
             ->reverse();
 
         $monthlyPayments = SupplierPayment::selectRaw(
-                "strftime('%Y', created_at) as year, 
-                 strftime('%m', created_at) as month, 
+                "YEAR(created_at) as year, 
+                 MONTH(created_at) as month, 
                  COUNT(*) as count, 
                  SUM(amount) as total"
             )
