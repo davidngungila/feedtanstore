@@ -93,8 +93,8 @@
         </div>
     </div>
 
-    <!-- Charts Row 1: Sales Line & Payment Pie -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+    <!-- Charts Row 1: Sales Line & Payment Pie & Target Gauge -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <!-- Sales Trend Chart (Line) -->
         <div class="card rounded-2xl p-5">
             <h3 class="font-bold text-sm mb-4" :class="darkMode?'text-white':'text-primary-900'">📈 Sales Trend (Last 7 Days)</h3>
@@ -105,6 +105,25 @@
         <div class="card rounded-2xl p-5">
             <h3 class="font-bold text-sm mb-4" :class="darkMode?'text-white':'text-primary-900'">🥧 Payment Methods</h3>
             <canvas id="paymentChart" height="200"></canvas>
+        </div>
+
+        <!-- Target Achievement (Gauge Chart) -->
+        <div class="card rounded-2xl p-5">
+            <h3 class="font-bold text-sm mb-4" :class="darkMode?'text-white':'text-primary-900'">🎯 Monthly Target</h3>
+            <div class="flex flex-col items-center justify-center">
+                <div class="relative w-48 h-24 overflow-hidden">
+                    <div class="absolute bottom-0 w-full h-48 border-8 border-gray-200 rounded-t-full" style="border-bottom: none;"></div>
+                    <div id="gaugeFill" class="absolute bottom-0 w-full h-48 rounded-t-full transition-all duration-1000" style="border: none; transform-origin: bottom center;"></div>
+                    <div class="absolute inset-0 flex items-end justify-center">
+                        <div class="bg-white dark:bg-gray-800 w-40 h-20 rounded-t-full flex items-center justify-center mb-1">
+                            <div class="text-center">
+                                <div class="text-2xl font-bold text-primary-600">{{ $targetPercentage }}%</div>
+                                <div class="text-xs text-gray-500">TZS {{ number_format($thisMonthRevenue, 0, ',', '.') }} / {{ number_format($monthlyTarget, 0, ',', '.') }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -135,6 +154,28 @@
         <div class="card rounded-2xl p-5">
             <h3 class="font-bold text-sm mb-4" :class="darkMode?'text-white':'text-primary-900'">🎯 Cashier Performance (This Month)</h3>
             <canvas id="cashierChart" height="200"></canvas>
+        </div>
+    </div>
+
+    <!-- Charts Row 4: Combo Chart & Treemap -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <!-- Combo Chart: Sales & Items (Combo) -->
+        <div class="card rounded-2xl p-5">
+            <h3 class="font-bold text-sm mb-4" :class="darkMode?'text-white':'text-primary-900'">📊 Sales & Items Sold (Last 7 Days)</h3>
+            <canvas id="comboChart" height="200"></canvas>
+        </div>
+
+        <!-- Treemap: Category Treemap -->
+        <div class="card rounded-2xl p-5">
+            <h3 class="font-bold text-sm mb-4" :class="darkMode?'text-white':'text-primary-900'">📦 Category Sales Distribution</h3>
+            <div id="categoryTreemap" class="grid grid-cols-1 gap-2">
+                @foreach($salesByCategory as $category)
+                <div class="flex items-center justify-between p-3 rounded-lg" style="background: rgba(139, 92, 246, {{ ($category->total / $salesByCategory->sum('total') * 0.8 + 0.2 }});">
+                    <span class="font-semibold text-white">{{ $category->name }}</span>
+                    <span class="text-white font-mono text-sm">TZS {{ number_format($category->total, 0) }}</span>
+                </div>
+                @endforeach
+            </div>
         </div>
     </div>
 
@@ -225,6 +266,15 @@
 <!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
 <script>
+    // Gauge Chart Animation
+    const targetPercentage = {{ $targetPercentage }};
+    const gaugeFill = document.getElementById('gaugeFill');
+    const rotation = (targetPercentage / 100) * 180 - 90;
+    const color = targetPercentage < 30 ? '#ef4444' : targetPercentage < 70 ? '#f59e0b' : '#10b981';
+    gaugeFill.style.border = '8px solid ' + color;
+    gaugeFill.style.borderBottom = 'none';
+    gaugeFill.style.transform = `rotate(${rotation}deg)`;
+
     // Sales Trend (Line Chart)
     const salesCtx = document.getElementById('salesChart').getContext('2d');
     const salesChart = new Chart(salesCtx, {
@@ -448,6 +498,67 @@
                     beginAtZero: true,
                     grid: {
                         color: 'rgba(0,0,0,0.05)'
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    }
+                }
+            }
+        }
+    });
+
+    // Combo Chart: Sales & Items
+    const comboCtx = document.getElementById('comboChart').getContext('2d');
+    const comboChart = new Chart(comboCtx, {
+        type: 'bar',
+        data: {
+            labels: @json($labels),
+            datasets: [{
+                type: 'line',
+                label: 'Sales (TZS)',
+                data: @json($salesData),
+                borderColor: '#22c55e',
+                backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                tension: 0.4,
+                fill: true,
+                yAxisID: 'y'
+            }, {
+                type: 'bar',
+                label: 'Items Sold',
+                data: @json($itemsSoldData),
+                backgroundColor: 'rgba(59, 130, 246, 0.6)',
+                borderColor: '#3b82f6',
+                borderWidth: 2,
+                borderRadius: 5,
+                yAxisID: 'y1'
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            },
+            scales: {
+                y: {
+                    type: 'linear',
+                    display: true,
+                    position: 'left',
+                    beginAtZero: true,
+                    grid: {
+                        color: 'rgba(0,0,0,0.05)'
+                    }
+                },
+                y1: {
+                    type: 'linear',
+                    display: true,
+                    position: 'right',
+                    beginAtZero: true,
+                    grid: {
+                        drawOnChartArea: false
                     }
                 },
                 x: {
