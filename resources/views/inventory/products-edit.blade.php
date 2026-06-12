@@ -101,6 +101,10 @@
                         <input type="checkbox" name="is_active" value="1" {{ old('is_active', $product->is_active) ? 'checked' : '' }} class="rounded border-gray-300 text-primary-600 focus:ring-primary-500">
                         <span class="text-sm font-medium text-gray-700">Active</span>
                     </label>
+                    <label class="flex items-center gap-2 mt-3">
+                        <input type="checkbox" name="is_available_online" value="1" {{ old('is_available_online', $product->is_available_online ?? true) ? 'checked' : '' }} class="rounded border-gray-300 text-primary-600 focus:ring-primary-500">
+                        <span class="text-sm font-medium text-gray-700">Available Online</span>
+                    </label>
                 </div>
             </div>
 

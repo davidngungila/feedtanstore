@@ -52,10 +52,11 @@ class ProductController extends Controller
             'reorder_level' => 'required|numeric|min:0',
             'expiry_date' => 'nullable|date',
             'image' => 'nullable|string',
-            'is_active' => 'boolean'
+            'is_active' => 'boolean',
+            'is_available_online' => 'boolean'
         ]);
 
-        Product::create($request->all());
+        Product::create($request->all() + ['is_available_online' => $request->has('is_available_online')]);
 
         return redirect()->route('inventory.products')->with('success', 'Product created successfully!');
     }
@@ -84,10 +85,11 @@ class ProductController extends Controller
             'reorder_level' => 'required|numeric|min:0',
             'expiry_date' => 'nullable|date',
             'image' => 'nullable|string',
-            'is_active' => 'boolean'
+            'is_active' => 'boolean',
+            'is_available_online' => 'boolean'
         ]);
 
-        $product->update($request->all());
+        $product->update($request->all() + ['is_available_online' => $request->has('is_available_online')]);
 
         return redirect()->route('inventory.products')->with('success', 'Product updated successfully!');
     }

@@ -169,22 +169,61 @@ Route::middleware('auth')->group(function () {
     // Finance
     Route::prefix('finance')->name('finance.')->group(function () {
         Route::get('/payments', function () { return view('finance.payments'); })->name('payments');
-        Route::get('/expenses', function () { return view('finance.expenses'); })->name('expenses');
-        Route::get('/income', function () { return view('finance.income'); })->name('income');
-        Route::get('/cash', function () { return view('finance.cash'); })->name('cash');
-        Route::get('/bank', function () { return view('finance.bank'); })->name('bank');
-        Route::get('/mobile-money', function () { return view('finance.mobile-money'); })->name('mobile-money');
-        Route::get('/reports', function () { return view('finance.reports'); })->name('reports');
+        
+        Route::get('/expenses', [\App\Http\Controllers\ExpenseController::class, 'index'])->name('expenses');
+        Route::get('/expenses/create', [\App\Http\Controllers\ExpenseController::class, 'create'])->name('expenses.create');
+        Route::post('/expenses', [\App\Http\Controllers\ExpenseController::class, 'store'])->name('expenses.store');
+        
+        Route::get('/income', [\App\Http\Controllers\IncomeController::class, 'index'])->name('income');
+        Route::get('/income/create', [\App\Http\Controllers\IncomeController::class, 'create'])->name('income.create');
+        Route::post('/income', [\App\Http\Controllers\IncomeController::class, 'store'])->name('income.store');
+        
+        Route::get('/cash', [\App\Http\Controllers\CashManagementController::class, 'index'])->name('cash');
+        Route::get('/cash/create', [\App\Http\Controllers\CashManagementController::class, 'create'])->name('cash.create');
+        Route::post('/cash', [\App\Http\Controllers\CashManagementController::class, 'store'])->name('cash.store');
+        
+        Route::get('/bank', [\App\Http\Controllers\BankAccountController::class, 'index'])->name('bank');
+        Route::get('/bank/create', [\App\Http\Controllers\BankAccountController::class, 'create'])->name('bank.create');
+        Route::post('/bank', [\App\Http\Controllers\BankAccountController::class, 'store'])->name('bank.store');
+        Route::get('/bank/{bankAccount}/edit', [\App\Http\Controllers\BankAccountController::class, 'edit'])->name('bank.edit');
+        Route::put('/bank/{bankAccount}', [\App\Http\Controllers\BankAccountController::class, 'update'])->name('bank.update');
+        Route::delete('/bank/{bankAccount}', [\App\Http\Controllers\BankAccountController::class, 'destroy'])->name('bank.destroy');
+        
+        Route::get('/mobile-money', [\App\Http\Controllers\MobileMoneyAccountController::class, 'index'])->name('mobile-money');
+        Route::get('/mobile-money/create', [\App\Http\Controllers\MobileMoneyAccountController::class, 'create'])->name('mobile-money.create');
+        Route::post('/mobile-money', [\App\Http\Controllers\MobileMoneyAccountController::class, 'store'])->name('mobile-money.store');
+        Route::get('/mobile-money/{mobileMoneyAccount}/edit', [\App\Http\Controllers\MobileMoneyAccountController::class, 'edit'])->name('mobile-money.edit');
+        Route::put('/mobile-money/{mobileMoneyAccount}', [\App\Http\Controllers\MobileMoneyAccountController::class, 'update'])->name('mobile-money.update');
+        Route::delete('/mobile-money/{mobileMoneyAccount}', [\App\Http\Controllers\MobileMoneyAccountController::class, 'destroy'])->name('mobile-money.destroy');
+        
+        Route::get('/reports', [\App\Http\Controllers\FinancialReportController::class, 'index'])->name('reports');
     });
 
     // Online Sales
     Route::prefix('online')->name('online.')->group(function () {
-        Route::get('/orders', function () { return view('online.orders'); })->name('orders');
-        Route::get('/catalog', function () { return view('online.catalog'); })->name('catalog');
-        Route::get('/delivery', function () { return view('online.delivery'); })->name('delivery');
-        Route::get('/riders', function () { return view('online.riders'); })->name('riders');
+        Route::get('/orders', [\App\Http\Controllers\OnlineOrderController::class, 'index'])->name('orders');
+        Route::get('/orders/create', [\App\Http\Controllers\OnlineOrderController::class, 'create'])->name('orders.create');
+        Route::post('/orders', [\App\Http\Controllers\OnlineOrderController::class, 'store'])->name('orders.store');
+        Route::get('/orders/{order}', [\App\Http\Controllers\OnlineOrderController::class, 'show'])->name('orders.show');
+        Route::put('/orders/{order}/status', [\App\Http\Controllers\OnlineOrderController::class, 'updateStatus'])->name('orders.status');
+        Route::post('/orders/{order}/assign-rider', [\App\Http\Controllers\OnlineOrderController::class, 'assignRider'])->name('orders.assign-rider');
+        
+        Route::get('/catalog', [\App\Http\Controllers\ProductCatalogController::class, 'index'])->name('catalog');
+        Route::post('/catalog/{product}/toggle', [\App\Http\Controllers\ProductCatalogController::class, 'toggleOnlineStatus'])->name('catalog.toggle');
+        
+        Route::get('/delivery', [\App\Http\Controllers\DeliveryManagementController::class, 'index'])->name('delivery');
+        
+        Route::get('/riders', [\App\Http\Controllers\DeliveryRiderController::class, 'index'])->name('riders');
+        Route::get('/riders/create', [\App\Http\Controllers\DeliveryRiderController::class, 'create'])->name('riders.create');
+        Route::post('/riders', [\App\Http\Controllers\DeliveryRiderController::class, 'store'])->name('riders.store');
+        Route::get('/riders/{rider}/edit', [\App\Http\Controllers\DeliveryRiderController::class, 'edit'])->name('riders.edit');
+        Route::put('/riders/{rider}', [\App\Http\Controllers\DeliveryRiderController::class, 'update'])->name('riders.update');
+        Route::delete('/riders/{rider}', [\App\Http\Controllers\DeliveryRiderController::class, 'destroy'])->name('riders.destroy');
+        
         Route::get('/payments', function () { return view('online.payments'); })->name('payments');
-        Route::get('/tracking', function () { return view('online.tracking'); })->name('tracking');
+        
+        Route::get('/tracking', [\App\Http\Controllers\OrderTrackingController::class, 'index'])->name('tracking');
+        Route::get('/tracking/{orderNumber}', [\App\Http\Controllers\OrderTrackingController::class, 'show'])->name('tracking.show');
     });
 
     // Store Management

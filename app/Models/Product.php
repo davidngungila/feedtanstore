@@ -23,6 +23,7 @@ class Product extends Model
         'expiry_date',
         'image',
         'is_active',
+        'is_available_online',
     ];
 
     public function category(): BelongsTo
