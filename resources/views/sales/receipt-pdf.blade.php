@@ -5,8 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Receipt {{ $sale->invoice_number }}</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap');
-        
         * {
             margin: 0;
             padding: 0;
@@ -14,7 +12,7 @@
         }
         
         body {
-            font-family: 'Manrope', 'Courier New', Courier, monospace;
+            font-family: 'Courier New', Courier, monospace;
             font-size: 14px;
             line-height: 1.6;
             color: #1a3d1a;
