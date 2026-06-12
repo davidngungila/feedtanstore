@@ -8,6 +8,7 @@ use App\Models\Product;
 use App\Models\Customer;
 use App\Models\Shift;
 use App\Models\AccountingEntry;
+use App\Models\Discount;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -21,12 +22,21 @@ class SaleController extends Controller {
         $products = Product::where('is_active', true)->get();
         $customers = Customer::all();
         $currentShift = Shift::where('user_id', Auth::id())->whereNull('closed_at')->first();
-        return view('sales.new', compact('products', 'customers', 'currentShift'));
+        $discounts = Discount::where('is_active', true)
+            ->where(function($q) {
+                $q->whereNull('start_date')->orWhere('start_date', '<=', now());
+            })
+            ->where(function($q) {
+                $q->whereNull('end_date')->orWhere('end_date', '>=', now());
+            })
+            ->get();
+        return view('sales.new', compact('products', 'customers', 'currentShift', 'discounts'));
     }
 
     public function store(Request $request) {
         $request->validate([
             'customer_id' => 'nullable|exists:customers,id',
+            'discount_id' => 'nullable|exists:discounts,id',
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
             'items.*.quantity' => 'required|integer|min:1',
@@ -54,7 +64,26 @@ class SaleController extends Controller {
             $subtotal += $item['quantity'] * $item['unit_price'];
         }
         $tax = $subtotal * 0; // 0% tax for now
-        $discount = $request->discount ?? 0;
+        
+        // Calculate discount
+        $discount = 0;
+        $discountId = null;
+        if ($request->discount_id) {
+            $selectedDiscount = Discount::find($request->discount_id);
+            if ($selectedDiscount) {
+                // Check min/max amount
+                if ((!$selectedDiscount->min_amount || $subtotal >= $selectedDiscount->min_amount) &&
+                    (!$selectedDiscount->max_amount || $subtotal <= $selectedDiscount->max_amount)) {
+                    if ($selectedDiscount->type == 'percentage') {
+                        $discount = $subtotal * ($selectedDiscount->value / 100);
+                    } else {
+                        $discount = $selectedDiscount->value;
+                    }
+                    $discountId = $selectedDiscount->id;
+                }
+            }
+        }
+        
         $total = $subtotal + $tax - $discount;
         $paid = $request->paid;
         $change = max(0, $paid - $total);
@@ -75,6 +104,7 @@ class SaleController extends Controller {
             'customer_id' => $request->customer_id,
             'user_id' => Auth::id(),
             'shift_id' => $currentShift->id ?? null,
+            'discount_id' => $discountId,
             'subtotal' => $subtotal,
             'tax' => $tax,
             'discount' => $discount,
@@ -122,7 +152,7 @@ class SaleController extends Controller {
     }
 
     public function show(Sale $sale) {
-        $sale->load(['customer', 'user', 'items.product']);
+        $sale->load(['customer', 'user', 'items.product', 'discount']);
         return view('sales.show', compact('sale'));
     }
 

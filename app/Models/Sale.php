@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 
 class Sale extends Model {
-    protected $fillable = ['invoice_number', 'customer_id', 'user_id', 'shift_id', 'subtotal', 'tax', 'discount', 'total', 'paid', 'change', 'payment_method', 'type', 'status', 'notes'];
+    protected $fillable = ['invoice_number', 'customer_id', 'user_id', 'shift_id', 'discount_id', 'subtotal', 'tax', 'discount', 'total', 'paid', 'change', 'payment_method', 'type', 'status', 'notes'];
 
     public function customer() {
         return $this->belongsTo(Customer::class);
@@ -17,6 +17,10 @@ class Sale extends Model {
 
     public function shift() {
         return $this->belongsTo(Shift::class);
+    }
+
+    public function discount() {
+        return $this->belongsTo(Discount::class);
     }
 
     public function items() {

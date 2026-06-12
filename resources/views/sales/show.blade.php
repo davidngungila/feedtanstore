@@ -45,6 +45,12 @@
                 <p class="text-sm text-gray-500 mb-1">Status</p>
                 <span class="badge {{ $sale->status == 'completed' ? 'badge-green' : 'badge-red' }}">{{ ucfirst($sale->status) }}</span>
             </div>
+            @if($sale->discount_id && $sale->discount)
+            <div>
+                <p class="text-sm text-gray-500 mb-1">Discount Applied</p>
+                <p class="font-medium text-primary-600">{{ $sale->discount->name }}</p>
+            </div>
+            @endif
         </div>
 
         <div class="border-t pt-4 mb-6">
@@ -81,8 +87,8 @@
                 <span class="text-gray-600">Tax:</span>
                 <span>TZS {{ number_format($sale->tax, 2) }}</span>
             </div>
-            <div class="flex justify-between w-64">
-                <span class="text-gray-600">Discount:</span>
+            <div class="flex justify-between w-64 text-red-600">
+                <span>Discount:</span>
                 <span>-TZS {{ number_format($sale->discount, 2) }}</span>
             </div>
             <div class="flex justify-between w-64 text-lg font-bold border-t pt-2">

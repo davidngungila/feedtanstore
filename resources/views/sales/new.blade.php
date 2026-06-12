@@ -52,6 +52,18 @@
                         </select>
                     </div>
 
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Discount</label>
+                        <select name="discount_id" id="discountSelect" class="w-full px-4 py-2 border border-gray-300 rounded-lg" onchange="handleDiscountChange()">
+                            <option value="">No Discount</option>
+                            @foreach($discounts as $discount)
+                            <option value="{{ $discount->id }}" data-type="{{ $discount->type }}" data-value="{{ $discount->value }}" data-min="{{ $discount->min_amount }}" data-max="{{ $discount->max_amount }}">
+                                {{ $discount->name }} ({{ $discount->type == 'percentage' ? $discount->value . '%' : 'TZS ' . number_format($discount->value, 2) }})
+                            </option>
+                            @endforeach
+                        </select>
+                    </div>
+
                     <div id="cartItems" class="mb-4 max-h-96 overflow-y-auto">
                         <!-- Cart items will be added here -->
                     </div>
@@ -63,7 +75,7 @@
                         </div>
                         <div class="flex justify-between mb-2">
                             <span class="text-gray-600">Discount:</span>
-                            <input type="number" name="discount" id="discount" value="0" min="0" class="w-32 px-2 py-1 border border-gray-300 rounded text-right" onchange="updateTotals()">
+                            <span id="discountAmount" class="font-semibold text-red-600">-TZS 0.00</span>
                         </div>
                         <div class="flex justify-between mb-2 text-lg font-bold">
                             <span>Total:</span>
@@ -118,6 +130,7 @@
 let cart = [];
 let originalPaidAmount = 0;
 let lastCalculatedTotal = 0;
+let currentDiscount = null;
 
 // Product Search
 document.getElementById('productSearch').addEventListener('input', function(e) {
@@ -187,13 +200,48 @@ function renderCart() {
     `).join('');
 }
 
+function handleDiscountChange() {
+    const select = document.getElementById('discountSelect');
+    const selectedOption = select.options[select.selectedIndex];
+    
+    if (selectedOption.value) {
+        currentDiscount = {
+            type: selectedOption.dataset.type,
+            value: parseFloat(selectedOption.dataset.value),
+            minAmount: selectedOption.dataset.min ? parseFloat(selectedOption.dataset.min) : null,
+            maxAmount: selectedOption.dataset.max ? parseFloat(selectedOption.dataset.max) : null
+        };
+    } else {
+        currentDiscount = null;
+    }
+    
+    updateTotals();
+}
+
+function calculateDiscount(subtotal) {
+    if (!currentDiscount) {
+        return 0;
+    }
+    
+    if ((currentDiscount.minAmount && subtotal < currentDiscount.minAmount) ||
+        (currentDiscount.maxAmount && subtotal > currentDiscount.maxAmount)) {
+        return 0;
+    }
+    
+    if (currentDiscount.type === 'percentage') {
+        return subtotal * (currentDiscount.value / 100);
+    } else {
+        return currentDiscount.value;
+    }
+}
+
 function updateTotals() {
     let subtotal = 0;
     cart.forEach(item => {
         subtotal += item.quantity * item.unit_price;
     });
     
-    const discount = parseFloat(document.getElementById('discount').value) || 0;
+    const discount = calculateDiscount(subtotal);
     lastCalculatedTotal = subtotal - discount;
     
     // Auto-fill paid amount for cash sales
@@ -210,6 +258,7 @@ function updateTotals() {
     const change = Math.max(0, paid - lastCalculatedTotal);
     
     document.getElementById('subtotal').textContent = 'TZS ' + subtotal.toFixed(2);
+    document.getElementById('discountAmount').textContent = '-TZS ' + discount.toFixed(2);
     document.getElementById('total').textContent = 'TZS ' + lastCalculatedTotal.toFixed(2);
     document.getElementById('change').textContent = 'TZS ' + change.toFixed(2);
 }
