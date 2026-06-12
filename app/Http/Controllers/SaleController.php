@@ -68,19 +68,47 @@ class SaleController extends Controller {
         // Calculate discount
         $discount = 0;
         $discountId = null;
+        
+        // If a discount is selected via request, use it (but verify it's valid)
+        // Otherwise, automatically find and apply the best applicable active discount
+        $selectedDiscount = null;
         if ($request->discount_id) {
             $selectedDiscount = Discount::find($request->discount_id);
-            if ($selectedDiscount) {
-                // Check min/max amount
-                if ((!$selectedDiscount->min_amount || $subtotal >= $selectedDiscount->min_amount) &&
-                    (!$selectedDiscount->max_amount || $subtotal <= $selectedDiscount->max_amount)) {
-                    if ($selectedDiscount->type == 'percentage') {
-                        $discount = $subtotal * ($selectedDiscount->value / 100);
-                    } else {
-                        $discount = $selectedDiscount->value;
+        } else {
+            // Find all active discounts that are within date range
+            $activeDiscounts = Discount::where('is_active', true)
+                ->where(function($q) {
+                    $q->whereNull('start_date')->orWhere('start_date', '<=', now());
+                })
+                ->where(function($q) {
+                    $q->whereNull('end_date')->orWhere('end_date', '>=', now());
+                })
+                ->get();
+            
+            // Find the discount that gives the maximum discount amount
+            $maxDiscount = 0;
+            foreach ($activeDiscounts as $d) {
+                if ((!$d->min_amount || $subtotal >= $d->min_amount) &&
+                    (!$d->max_amount || $subtotal <= $d->max_amount)) {
+                    $calcDiscount = $d->type == 'percentage' ? $subtotal * ($d->value / 100) : $d->value;
+                    if ($calcDiscount > $maxDiscount) {
+                        $maxDiscount = $calcDiscount;
+                        $selectedDiscount = $d;
                     }
-                    $discountId = $selectedDiscount->id;
                 }
+            }
+        }
+        
+        if ($selectedDiscount) {
+            // Check min/max amount
+            if ((!$selectedDiscount->min_amount || $subtotal >= $selectedDiscount->min_amount) &&
+                (!$selectedDiscount->max_amount || $subtotal <= $selectedDiscount->max_amount)) {
+                if ($selectedDiscount->type == 'percentage') {
+                    $discount = $subtotal * ($selectedDiscount->value / 100);
+                } else {
+                    $discount = $selectedDiscount->value;
+                }
+                $discountId = $selectedDiscount->id;
             }
         }
         
@@ -152,7 +180,7 @@ class SaleController extends Controller {
     }
 
     public function show(Sale $sale) {
-        $sale->load(['customer', 'user', 'items.product', 'discount']);
+        $sale->load(['customer', 'user', 'items.product', 'discountApplied']);
         return view('sales.show', compact('sale'));
     }
 

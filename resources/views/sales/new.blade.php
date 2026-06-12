@@ -241,6 +241,41 @@ function updateTotals() {
         subtotal += item.quantity * item.unit_price;
     });
     
+    // If no discount selected, find the best applicable one
+    if (!currentDiscount) {
+        let bestDiscount = null;
+        let maxDiscountValue = 0;
+        const discountSelect = document.getElementById('discountSelect');
+        
+        // Iterate all discount options
+        for (let i = 1; i < discountSelect.options.length; i++) {
+            const option = discountSelect.options[i];
+            const type = option.dataset.type;
+            const value = parseFloat(option.dataset.value);
+            const minAmount = option.dataset.min ? parseFloat(option.dataset.min) : null;
+            const maxAmount = option.dataset.max ? parseFloat(option.dataset.max) : null;
+            
+            // Check if this discount is applicable
+            if ((!minAmount || subtotal >= minAmount) && (!maxAmount || subtotal <= maxAmount)) {
+                let thisDiscount = type === 'percentage' ? subtotal * (value / 100) : value;
+                if (thisDiscount > maxDiscountValue) {
+                    maxDiscountValue = thisDiscount;
+                    bestDiscount = option;
+                }
+            }
+        }
+        
+        if (bestDiscount) {
+            discountSelect.value = bestDiscount.value;
+            currentDiscount = {
+                type: bestDiscount.dataset.type,
+                value: parseFloat(bestDiscount.dataset.value),
+                minAmount: bestDiscount.dataset.min ? parseFloat(bestDiscount.dataset.min) : null,
+                maxAmount: bestDiscount.dataset.max ? parseFloat(bestDiscount.dataset.max) : null
+            };
+        }
+    }
+    
     const discount = calculateDiscount(subtotal);
     lastCalculatedTotal = subtotal - discount;
     

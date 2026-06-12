@@ -45,10 +45,10 @@
                 <p class="text-sm text-gray-500 mb-1">Status</p>
                 <span class="badge {{ $sale->status == 'completed' ? 'badge-green' : 'badge-red' }}">{{ ucfirst($sale->status) }}</span>
             </div>
-            @if($sale->discount_id && $sale->discount)
+            @if($sale->discount_id && $sale->discountApplied)
             <div>
                 <p class="text-sm text-gray-500 mb-1">Discount Applied</p>
-                <p class="font-medium text-primary-600">{{ $sale->discount->name }}</p>
+                <p class="font-medium text-primary-600">{{ $sale->discountApplied->name }}</p>
             </div>
             @endif
         </div>

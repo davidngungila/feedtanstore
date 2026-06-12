@@ -19,8 +19,8 @@ class Sale extends Model {
         return $this->belongsTo(Shift::class);
     }
 
-    public function discount() {
-        return $this->belongsTo(Discount::class);
+    public function discountApplied() {
+        return $this->belongsTo(Discount::class, 'discount_id');
     }
 
     public function items() {

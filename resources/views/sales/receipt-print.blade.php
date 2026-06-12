@@ -187,18 +187,18 @@
         </div>
         
         <div class="totals">
-            <p><span>Subtotal</span><span>{{ number_format($sale->subtotal, 2) }}</span></p>
+            <p><span>Subtotal :</span><span>{{ number_format($sale->subtotal, 2) }}</span></p>
             @if($sale->discount > 0)
-                <p><span>Discount</span><span>-{{ number_format($sale->discount, 2) }}</span></p>
+                <p><span>Discount :</span><span>-{{ number_format($sale->discount, 2) }}</span></p>
             @endif
-            <p class="total-amount"><span>TOTAL</span><span>{{ number_format($sale->total, 2) }}</span></p>
+            <p class="total-amount"><span>TOTAL :</span><span>{{ number_format($sale->total, 2) }}</span></p>
             <div style="border-top: 1px dashed #86efac; margin: 8px 0;"></div>
-            <p><span>Paid</span><span>{{ number_format($sale->paid, 2) }}</span></p>
-            <p><span>Change</span><span>{{ number_format($sale->change, 2) }}</span></p>
+            <p><span>Paid :</span><span>{{ number_format($sale->paid, 2) }}</span></p>
+            <p><span>Change :</span><span>{{ number_format($sale->change, 2) }}</span></p>
         </div>
         
         <div class="qr-code">
-            {!! $qrCode !!}
+            <img src="{{ $qrCodeBase64 }}" alt="QR Code" style="max-width: 100px; height: auto;">
             <p style="font-size: 11px; margin-top: 4px; color: #166534;">Scan to verify</p>
         </div>
         
