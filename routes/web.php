@@ -148,10 +148,22 @@ Route::middleware('auth')->group(function () {
         Route::get('/{customer}/edit', [\App\Http\Controllers\CustomerController::class, 'edit'])->name('edit');
         Route::put('/{customer}', [\App\Http\Controllers\CustomerController::class, 'update'])->name('update');
         Route::delete('/{customer}', [\App\Http\Controllers\CustomerController::class, 'destroy'])->name('destroy');
-        Route::get('/groups', function () { return view('customers.groups'); })->name('groups');
-        Route::get('/loyalty', function () { return view('customers.loyalty'); })->name('loyalty');
-        Route::get('/credit', function () { return view('customers.credit'); })->name('credit');
-        Route::get('/history', function () { return view('customers.history'); })->name('history');
+        Route::post('/{customer}/payments', [\App\Http\Controllers\CustomerController::class, 'addPayment'])->name('add-payment');
+        Route::post('/{customer}/loyalty', [\App\Http\Controllers\CustomerController::class, 'addLoyaltyPoints'])->name('add-loyalty');
+        
+        Route::prefix('groups')->name('groups.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\CustomerGroupController::class, 'index'])->name('index');
+            Route::get('/create', [\App\Http\Controllers\CustomerGroupController::class, 'create'])->name('create');
+            Route::post('/', [\App\Http\Controllers\CustomerGroupController::class, 'store'])->name('store');
+            Route::get('/{group}/edit', [\App\Http\Controllers\CustomerGroupController::class, 'edit'])->name('edit');
+            Route::put('/{group}', [\App\Http\Controllers\CustomerGroupController::class, 'update'])->name('update');
+            Route::delete('/{group}', [\App\Http\Controllers\CustomerGroupController::class, 'destroy'])->name('destroy');
+        });
+        
+        Route::get('/groups', [\App\Http\Controllers\CustomerGroupController::class, 'index'])->name('groups');
+        Route::get('/loyalty', [\App\Http\Controllers\CustomerController::class, 'loyalty'])->name('loyalty');
+        Route::get('/credit', [\App\Http\Controllers\CustomerController::class, 'credit'])->name('credit');
+        Route::get('/history', [\App\Http\Controllers\CustomerController::class, 'history'])->name('history');
     });
 
     // Finance
