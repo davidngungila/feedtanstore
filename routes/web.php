@@ -144,12 +144,6 @@ Route::middleware('auth')->group(function () {
         Route::get('/list', [\App\Http\Controllers\CustomerController::class, 'index'])->name('list');
         Route::get('/create', [\App\Http\Controllers\CustomerController::class, 'create'])->name('create');
         Route::post('/', [\App\Http\Controllers\CustomerController::class, 'store'])->name('store');
-        Route::get('/{customer}', [\App\Http\Controllers\CustomerController::class, 'show'])->name('show');
-        Route::get('/{customer}/edit', [\App\Http\Controllers\CustomerController::class, 'edit'])->name('edit');
-        Route::put('/{customer}', [\App\Http\Controllers\CustomerController::class, 'update'])->name('update');
-        Route::delete('/{customer}', [\App\Http\Controllers\CustomerController::class, 'destroy'])->name('destroy');
-        Route::post('/{customer}/payments', [\App\Http\Controllers\CustomerController::class, 'addPayment'])->name('add-payment');
-        Route::post('/{customer}/loyalty', [\App\Http\Controllers\CustomerController::class, 'addLoyaltyPoints'])->name('add-loyalty');
         
         Route::prefix('groups')->name('groups.')->group(function () {
             Route::get('/', [\App\Http\Controllers\CustomerGroupController::class, 'index'])->name('index');
@@ -164,6 +158,13 @@ Route::middleware('auth')->group(function () {
         Route::get('/loyalty', [\App\Http\Controllers\CustomerController::class, 'loyalty'])->name('loyalty');
         Route::get('/credit', [\App\Http\Controllers\CustomerController::class, 'credit'])->name('credit');
         Route::get('/history', [\App\Http\Controllers\CustomerController::class, 'history'])->name('history');
+        
+        Route::get('/{customer}', [\App\Http\Controllers\CustomerController::class, 'show'])->name('show');
+        Route::get('/{customer}/edit', [\App\Http\Controllers\CustomerController::class, 'edit'])->name('edit');
+        Route::put('/{customer}', [\App\Http\Controllers\CustomerController::class, 'update'])->name('update');
+        Route::delete('/{customer}', [\App\Http\Controllers\CustomerController::class, 'destroy'])->name('destroy');
+        Route::post('/{customer}/payments', [\App\Http\Controllers\CustomerController::class, 'addPayment'])->name('add-payment');
+        Route::post('/{customer}/loyalty', [\App\Http\Controllers\CustomerController::class, 'addLoyaltyPoints'])->name('add-loyalty');
     });
 
     // Finance
