@@ -774,9 +774,15 @@
         <!-- User Profile -->
         <div class="relative" x-data="{open:false}">
           <button @click="open=!open" class="flex items-center gap-2 p-1.5 rounded-xl transition-colors hover:bg-primary-50">
-            <div class="w-8 h-8 rounded-full bg-gradient-to-br from-primary-400 to-primary-700 flex items-center justify-center text-white font-bold text-sm">
-              {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
-            </div>
+            @if(Auth::user()->profile_image)
+              <img src="{{ Storage::url(Auth::user()->profile_image) }}" 
+                   alt="Profile" 
+                   class="w-8 h-8 rounded-full object-cover border-2 border-primary-200">
+            @else
+              <div class="w-8 h-8 rounded-full bg-gradient-to-br from-primary-400 to-primary-700 flex items-center justify-center text-white font-bold text-sm">
+                {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
+              </div>
+            @endif
             <div class="hidden lg:block text-left">
               <p class="text-xs font-semibold leading-tight text-primary-900">{{ Auth::user()->name }}</p>
               <p class="text-[10px] text-primary-500">{{ Auth::user()->email }}</p>
@@ -789,12 +795,9 @@
               <p class="text-xs font-bold text-primary-900">{{ Auth::user()->name }}</p>
               <p class="text-[11px] text-gray-500">{{ Auth::user()->email }}</p>
             </div>
-            <button class="w-full flex items-center gap-3 px-4 py-2.5 text-xs hover:bg-primary-50 transition-colors text-left text-gray-700">
-              <i class="fa-solid fa-gear w-4"></i> Settings
-            </button>
-            <button class="w-full flex items-center gap-3 px-4 py-2.5 text-xs hover:bg-primary-50 transition-colors text-left text-gray-700">
+            <a href="{{ route('profile.show') }}" class="w-full flex items-center gap-3 px-4 py-2.5 text-xs hover:bg-primary-50 transition-colors text-left text-gray-700">
               <i class="fa-solid fa-user w-4"></i> My Profile
-            </button>
+            </a>
             <div class="border-t my-1 border-primary-100"></div>
             <form method="POST" action="{{ route('logout') }}">
               @csrf
