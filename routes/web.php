@@ -220,7 +220,7 @@ Route::middleware('auth')->group(function () {
         Route::put('/riders/{rider}', [\App\Http\Controllers\DeliveryRiderController::class, 'update'])->name('riders.update');
         Route::delete('/riders/{rider}', [\App\Http\Controllers\DeliveryRiderController::class, 'destroy'])->name('riders.destroy');
         
-        Route::get('/payments', function () { return view('online.payments'); })->name('payments');
+        Route::get('/payments', [\App\Http\Controllers\OnlinePaymentController::class, 'index'])->name('payments');
         
         Route::get('/tracking', [\App\Http\Controllers\OrderTrackingController::class, 'index'])->name('tracking');
         Route::get('/tracking/{orderNumber}', [\App\Http\Controllers\OrderTrackingController::class, 'show'])->name('tracking.show');

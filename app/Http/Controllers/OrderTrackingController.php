@@ -9,7 +9,7 @@ class OrderTrackingController extends Controller
 {
     public function index()
     {
-        $orders = OnlineOrder::with(['items', 'rider'])->latest()->get();
+        $orders = OnlineOrder::with(['items', 'rider', 'user'])->latest()->get();
         return view('online.tracking', compact('orders'));
     }
 

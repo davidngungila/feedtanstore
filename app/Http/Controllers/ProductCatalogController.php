@@ -10,7 +10,7 @@ class ProductCatalogController extends Controller
 {
     public function index()
     {
-        $products = Product::with(['category', 'brand', 'unit'])->where('is_available_online', true)->get();
+        $products = Product::with(['category', 'brand', 'unit'])->get();
         $categories = Category::all();
         return view('online.catalog', compact('products', 'categories'));
     }
