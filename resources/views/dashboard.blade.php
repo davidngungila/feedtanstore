@@ -170,7 +170,8 @@
             <h3 class="font-bold text-sm mb-4" :class="darkMode?'text-white':'text-primary-900'">📦 Category Sales Distribution</h3>
             <div id="categoryTreemap" class="grid grid-cols-1 gap-2">
                 @foreach($salesByCategory as $category)
-                <div class="flex items-center justify-between p-3 rounded-lg" style="background: rgba(139, 92, 246, {{ ($category->total / $salesByCategory->sum('total') * 0.8 + 0.2 }});">
+                @php $opacity = $categoryTotalSales > 0 ? ($category->total / $categoryTotalSales) * 0.8 + 0.2 : 1; @endphp
+                <div class="flex items-center justify-between p-3 rounded-lg" style="background: rgba(139, 92, 246, {{ $opacity }});">
                     <span class="font-semibold text-white">{{ $category->name }}</span>
                     <span class="text-white font-mono text-sm">TZS {{ number_format($category->total, 0) }}</span>
                 </div>

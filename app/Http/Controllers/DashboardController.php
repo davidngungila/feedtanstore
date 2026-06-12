@@ -96,6 +96,7 @@ class DashboardController extends Controller
             ->select('categories.name', DB::raw('SUM(sale_items.total) as total'))
             ->groupBy('categories.id', 'categories.name')
             ->get();
+        $categoryTotalSales = $salesByCategory->sum('total');
 
         // Get stock status
         $stockStatus = [
@@ -125,6 +126,7 @@ class DashboardController extends Controller
             'paymentMethods',
             'cashierPerformance',
             'salesByCategory',
+            'categoryTotalSales',
             'stockStatus',
             'monthlyTarget',
             'targetPercentage'
