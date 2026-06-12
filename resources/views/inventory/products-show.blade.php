@@ -67,7 +67,7 @@
         </div>
     </div>
 
-    <div class="card rounded-2xl p-6">
+    <div class="card rounded-2xl p-6 mb-6">
         <h3 class="text-lg font-bold text-primary-900 mb-6">Purchase History (GRNs)</h3>
         @if($product->grnItems->count() > 0)
             <div class="overflow-x-auto">
@@ -98,6 +98,44 @@
             </div>
         @else
             <p class="text-gray-500 text-center py-8">No purchase history available for this product.</p>
+        @endif
+    </div>
+
+    <div class="card rounded-2xl p-6">
+        <h3 class="text-lg font-bold text-primary-900 mb-6">Sales History</h3>
+        @if($product->saleItems->count() > 0)
+            <div class="overflow-x-auto">
+                <table class="data-table w-full">
+                    <thead>
+                        <tr>
+                            <th class="text-left">Invoice Number</th>
+                            <th class="text-left">Customer</th>
+                            <th class="text-left">Date</th>
+                            <th class="text-left">Quantity</th>
+                            <th class="text-left">Unit Price</th>
+                            <th class="text-left">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($product->saleItems as $item)
+                            <tr>
+                                <td class="font-medium">
+                                    <a href="{{ route('sales.show', $item->sale) }}" class="text-primary-600 hover:text-primary-800">
+                                        {{ $item->sale->invoice_number }}
+                                    </a>
+                                </td>
+                                <td>{{ $item->sale->customer->name ?? 'Walk-in Customer' }}</td>
+                                <td>{{ $item->sale->created_at ? date('M d, Y H:i', strtotime($item->sale->created_at)) : '-' }}</td>
+                                <td>{{ $item->quantity }}</td>
+                                <td>TZS {{ number_format($item->unit_price, 2) }}</td>
+                                <td>TZS {{ number_format($item->total, 2) }}</td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        @else
+            <p class="text-gray-500 text-center py-8">No sales history available for this product.</p>
         @endif
     </div>
 </div>

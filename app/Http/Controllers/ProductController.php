@@ -18,7 +18,13 @@ class ProductController extends Controller
 
     public function show(Product $product)
     {
-        $product->load(['grnItems.goodsReceivedNote.supplier', 'category', 'brand', 'unit']);
+        $product->load([
+            'grnItems.goodsReceivedNote.supplier',
+            'category',
+            'brand',
+            'unit',
+            'saleItems.sale.customer'
+        ]);
         return view('inventory.products-show', compact('product'));
     }
 
