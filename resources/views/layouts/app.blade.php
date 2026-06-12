@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FEEDTAN STORE – Store Management System</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"/>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: { 50:'#ecfdf5',100:'#d1fae5',200:'#a7f3d0',300:'#6ee7b7',400:'#34d399',500:'#10b981',600:'#059669',700:'#047857',800:'#065f46',900:'#064e3b',950:'#022c22' },
+                    },
+                    fontFamily: { sans:['Plus Jakarta Sans','sans-serif'], mono:['JetBrains Mono','monospace'] },
+                    animation: { 'fade-in':'fadeIn 0.4s ease','slide-in':'slideIn 0.3s ease','count-up':'countUp 1.5s ease','pulse-slow':'pulse 3s infinite','spin-slow':'spin 4s linear infinite','bounce-subtle':'bounceSubtle 2s infinite' },
+                    keyframes: { fadeIn:{from:{opacity:0,transform:'translateY(10px)'},to:{opacity:1,transform:'translateY(0)'}}, slideIn:{from:{opacity:0,transform:'translateX(-20px)'},to:{opacity:1,transform:'translateX(0)'}}, bounceSubtle:{from:{transform:'translateY(0)'},'50%':{transform:'translateY(-4px)'},to:{transform:'translateY(0)'}} }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* ============================================================
+           GLOBAL STYLES
+           ============================================================ */
+        *, *::before, *::after { box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; margin: 0; overflow: hidden; }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 5px; height: 5px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #10b981; border-radius: 10px; }
+
+        /* ============================================================
+           MAIN THEME
+           ============================================================ */
+        body { background: #f0fdf4; color: #064e3b; }
+        .main-bg { background: #f0fdf4; }
+        .card { background: #ffffff; border: 1px solid #d1fae5; box-shadow: 0 2px 12px rgba(6,78,59,0.08); }
+        .sidebar-bg { background: #064e3b; }
+        .navbar-bg { background: #ffffff; border-bottom: 1px solid #d1fae5; }
+        .text-main { color: #064e3b; }
+        .text-sub { color: #6b7280; }
+        .input-field { background: #f9fafb; border: 1px solid #d1fae5; color: #064e3b; }
+        .table-row:hover { background: #ecfdf5; }
+        .sidebar-item:hover { background: rgba(255,255,255,0.1); }
+
+        /* Sidebar */
+        .sidebar { transition: width 0.3s cubic-bezier(0.4,0,0.2,1), transform 0.3s cubic-bezier(0.4,0,0.2,1); }
+        .sidebar-collapsed { width: 64px; }
+        .sidebar-expanded { width: 260px; }
+
+        /* Dropdown menus in sidebar */
+        .sidebar-dropdown { max-height: 0; overflow: hidden; transition: max-height 0.35s ease; }
+        .sidebar-dropdown.open { max-height: 1000px; }
+
+        /* Page transitions */
+        .page { display: none; animation: fadeIn 0.35s ease; }
+        .page.active { display: block; }
+
+        @keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+        @keyframes countUp { from { transform:translateY(8px); opacity:0; } to { transform:translateY(0); opacity:1; } }
+        @keyframes slideInLeft { from { transform:translateX(-100%); } to { transform:translateX(0); } }
+        @keyframes slideOutLeft { from { transform:translateX(0); } to { transform:translateX(-100%); } }
+
+        /* Glassmorphism cards */
+        .glass { backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+        .glass { background: rgba(255,255,255,0.85); border: 1px solid rgba(209,250,229,0.8); }
+
+        /* Status badges */
+        .badge { display:inline-flex; align-items:center; padding:2px 10px; border-radius:999px; font-size:11px; font-weight:700; letter-spacing:0.4px; }
+        .badge-green { background:#d1fae5; color:#065f46; }
+        .badge-red { background:#fee2e2; color:#991b1b; }
+        .badge-yellow { background:#fef9c3; color:#854d0e; }
+        .badge-blue { background:#dbeafe; color:#1e40af; }
+        .badge-gray { background:#f3f4f6; color:#4b5563; }
+
+        /* Animated counter */
+        .counter { display:inline-block; }
+
+        /* Tables */
+        .data-table { width:100%; border-collapse:collapse; }
+        .data-table th { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.8px; padding:10px 14px; }
+        .data-table td { padding:10px 14px; font-size:13px; }
+        .data-table tbody tr { transition:background 0.15s; border-bottom:1px solid transparent; }
+        .data-table th { color:#065f46; background:#ecfdf5; border-bottom:1px solid #d1fae5; }
+        .data-table tbody tr { border-bottom-color:#f0fdf4; }
+        .data-table tbody tr:hover { background:#f0fdf4; }
+
+        /* Forms */
+        .form-input {
+            width:100%; padding:9px 14px; border-radius:8px; font-size:13px;
+            outline:none; transition:border-color 0.2s, box-shadow 0.2s;
+            font-family:'Plus Jakarta Sans',sans-serif;
+        }
+        .form-input:focus { border-color:#10b981; box-shadow:0 0 0 3px rgba(16,185,129,0.15); }
+        .form-label { font-size:12px; font-weight:600; margin-bottom:4px; display:block; }
+
+        /* Notification dot */
+        .notif-dot { width:8px;height:8px;border-radius:50%;background:#ef4444;position:absolute;top:2px;right:2px;animation:pulse 1.5s infinite; }
+
+        /* Loader */
+        .skeleton { animation:skeleton-loading 1.2s linear infinite alternate; }
+        .skeleton { background:linear-gradient(90deg,#f0fdf4 0%,#d1fae5 50%,#f0fdf4 100%); }
+        @keyframes skeleton-loading { from{background-position:0 0;} to{background-position:100% 0;} }
+
+        /* ============================================================
+           STAT CARDS
+           ============================================================ */
+        .stat-card {
+            border-radius:16px; padding:20px 22px;
+            transition:transform 0.2s, box-shadow 0.2s;
+            position:relative; overflow:hidden;
+        }
+        .stat-card:hover { transform:translateY(-3px); box-shadow:0 12px 32px rgba(16,185,129,0.18); }
+        .stat-card .icon-wrap { width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px; }
+        .stat-card .bg-blob { position:absolute;right:-20px;top:-20px;width:100px;height:100px;border-radius:50%;opacity:0.08; }
+
+        /* Modal */
+        .modal-overlay {
+            position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:999;
+            display:flex;align-items:center;justify-content:center;
+            backdrop-filter:blur(4px);animation:fadeIn 0.2s ease;
+        }
+        .modal-box {
+            border-radius:16px;width:90%;max-width:600px;max-height:90vh;overflow-y:auto;
+            animation:fadeIn 0.3s ease;
+        }
+
+        /* ============================================================
+           CHART WRAPPERS
+           ============================================================ */
+        .chart-wrapper { position:relative; }
+
+        /* Toast */
+        .toast-container { position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:10px; }
+        .toast {
+            display:flex;align-items:center;gap:10px;padding:12px 18px;border-radius:12px;
+            font-size:13px;font-weight:500;box-shadow:0 8px 24px rgba(0,0,0,0.2);
+            animation:fadeIn 0.3s ease;
+            min-width:240px;
+        }
+        .toast-success { background:#064e3b;color:#6ee7b7;border:1px solid #065f46; }
+        .toast-error { background:#450a0a;color:#fca5a5;border:1px solid #991b1b; }
+        .toast-info { background:#172554;color:#93c5fd;border:1px solid #1e40af; }
+
+        /* Progress bars */
+        .progress-bar { height:6px;border-radius:99px;background:#d1fae5;overflow:hidden; }
+        .progress-fill { height:100%;border-radius:99px;background:linear-gradient(90deg,#10b981,#34d399);transition:width 1s ease; }
+
+        /* Mobile overlay */
+        .mobile-overlay { display:none; }
+        @media(max-width:768px) {
+            .mobile-overlay { display:block; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:40; }
+            .sidebar { position:fixed!important; z-index:50; height:100vh; top:0; left:0; transform:translateX(-100%); }
+            .sidebar.mobile-open { transform:translateX(0)!important; }
+            .sidebar-expanded { width:260px!important; }
+            .main-content { margin-left:0!important; }
+        }
+        @media(max-width:1024px) {
+            .sidebar { position:fixed!important; z-index:50; height:100vh; top:0; left:0; transform:translateX(-100%); }
+            .sidebar.mobile-open { transform:translateX(0)!important; width:260px!important; }
+            .main-content { margin-left:0!important; }
+        }
+
+        /* Role badge */
+        .role-tag { padding:3px 10px;border-radius:999px;font-size:10px;font-weight:700;letter-spacing:0.5px; }
+        .role-admin { background:#059669;color:#fff; }
+        .role-manager { background:#3b82f6;color:#fff; }
+        .role-teller { background:#f59e0b;color:#fff; }
+        .role-member { background:#6366f1;color:#fff; }
+        .role-auditor { background:#ef4444;color:#fff; }
+    </style>
+</head>
+<body class="h-full bg-[#f0fdf4]">
+
+<!-- ============================================================
+     TOAST CONTAINER
+     ============================================================ -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- ============================================================
+     MAIN APP
+     ============================================================ -->
+<div x-data="{
+    sidebarOpen: false,
+    sidebarCollapsed: false,
+    loading: false,
+    currentUser: {
+        name: 'Admin User',
+        email: 'admin@feedtan.co.tz',
+        role: 'admin',
+        roleLabel: 'Administrator',
+        branch: 'Main Store'
+    }
+}" class="flex h-screen overflow-hidden">
+
+  <!-- Loading Overlay -->
+  <div x-show="loading" x-transition:enter="transition-opacity duration-300"
+       x-transition:enter-start="opacity-0"
+       x-transition:enter-end="opacity-100"
+       x-transition:leave="transition-opacity duration-300"
+       x-transition:leave-start="opacity-100"
+       x-transition:leave-end="opacity-0"
+       class="fixed inset-0 z-[9999] bg-white/80 backdrop-blur-sm flex items-center justify-center">
+    <div class="text-center">
+      <div class="w-16 h-16 border-4 border-primary-200 border-t-primary-600 rounded-full animate-spin mx-auto mb-4"></div>
+      <p class="text-primary-700 font-semibold">Loading...</p>
+    </div>
+  </div>
+
+  <!-- Mobile Overlay -->
+  <div x-show="sidebarOpen" @click="sidebarOpen=false"
+       class="fixed inset-0 bg-black/60 z-40 lg:hidden backdrop-blur-sm" x-transition></div>
+
+  <!-- ============================================================
+       SIDEBAR
+       ============================================================ -->
+  <aside :class="[sidebarOpen?'translate-x-0':'lg:translate-x-0 -translate-x-full','sidebar sidebar-bg fixed lg:relative h-screen z-50 flex flex-col transition-all duration-300',sidebarCollapsed&&window.innerWidth>=1024?'w-16':'w-[260px]']"
+         class="sidebar-bg">
+
+    <!-- Sidebar Header -->
+    <div class="flex items-center justify-between p-4 border-b border-white/20 flex-shrink-0">
+      <div class="flex items-center gap-3" x-show="!sidebarCollapsed || window.innerWidth<1024">
+        <div class="w-8 h-8 rounded-lg bg-primary-400 flex items-center justify-center flex-shrink-0">
+          <i class="fa-solid fa-leaf text-primary-900 text-sm"></i>
+        </div>
+        <div x-show="!sidebarCollapsed">
+          <p class="text-white font-bold text-sm leading-tight">FEEDTAN</p>
+          <p class="text-primary-300 text-[10px]">STORE</p>
+        </div>
+      </div>
+      <div x-show="sidebarCollapsed && window.innerWidth>=1024" class="w-8 h-8 rounded-lg bg-primary-400 flex items-center justify-center mx-auto">
+        <i class="fa-solid fa-leaf text-primary-900 text-sm"></i>
+      </div>
+      <button @click="sidebarCollapsed=!sidebarCollapsed" class="text-primary-300 hover:text-white transition-colors hidden lg:block">
+        <i :class="sidebarCollapsed?'fa-solid fa-chevron-right':'fa-solid fa-chevron-left'" class="text-xs"></i>
+      </button>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="flex-1 overflow-y-auto py-3 px-2 space-y-0.5">
+
+      <!-- Dashboard -->
+      <a href="{{ route('dashboard') }}" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-150 group {{ request()->routeIs('dashboard') ? 'bg-primary-600 text-white' : 'text-primary-200 hover:bg-white/10 hover:text-white' }}">
+        <i class="fa-solid fa-gauge-high w-4 text-center flex-shrink-0"></i>
+        <span x-show="!sidebarCollapsed" class="font-medium">Dashboard</span>
+      </a>
+
+      <!-- Sales Management -->
+      <div x-data="{ open: {{ request()->routeIs('sales.*') ? 'true' : 'false' }} }">
+        <button @click="open = !open" class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-all duration-150 {{ request()->routeIs('sales.*') ? 'bg-white/10 text-white' : 'text-primary-200 hover:bg-white/10 hover:text-white' }}">
+          <div class="flex items-center gap-3">
+            <i class="fa-solid fa-cash-register w-4 text-center flex-shrink-0"></i>
+            <span x-show="!sidebarCollapsed" class="font-medium">Sales Management</span>
+          </div>
+          <i x-show="!sidebarCollapsed" :class="open?'fa-solid fa-chevron-up':'fa-solid fa-chevron-down'" class="text-[10px] text-primary-400"></i>
+        </button>
+        <div :class="open?'max-h-[500px]':'max-h-0'" class="overflow-hidden transition-all duration-300 ml-3" x-show="!sidebarCollapsed">
+          <a href="{{ route('sales.new') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('sales.new') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+            <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
+            New Sale (POS)
+          </a>
+          <a href="{{ route('sales.history') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('sales.history') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+            <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
+            Sales History
+          </a>
+          <a href="{{ route('sales.returns') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('sales.returns') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+            <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
+            Sales Returns
+          </a>
+          <a href="{{ route('sales.cancelled') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('sales.cancelled') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+            <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
+            Cancelled Sales
+          </a>
+          <a href="{{ route('sales.discounts') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('sales.discounts') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+            <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
+            Discounts Approval
+          </a>
+          <a href="{{ route('sales.credit') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('sales.credit') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+            <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
+            Credit Sales
+          </a>
+          <a href="{{ route('sales.receipts') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('sales.receipts') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+            <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
+            Customer Receipts
+          </a>
+          <a href="{{ route('sales.shifts') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('sales.shifts') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+            <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
+            Shift Management
+          </a>
+        </div>
+      </div>
+
+      <!-- Inventory Management -->
+      <div x-data="{ open: {{ request()->routeIs('inventory.*') ? 'true' : 'false' }} }">
+        <button @click="open = !open" class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-all duration-150 {{ request()->routeIs('inventory.*') ? 'bg-white/10 text-white' : 'text-primary-200 hover:bg-white/10 hover:text-white' }}">
+          <div class="flex items-center gap-3">
+            <i class="fa-solid fa-boxes-stacked w-4 text-center flex-shrink-0"></i>
+            <span x-show="!sidebarCollapsed" class="font-medium">Inventory Management</span>
+          </div>
+          <i x-show="!sidebarCollapsed" :class="open?'fa-solid fa-chevron-up':'fa-solid fa-chevron-down'" class="text-[10px] text-primary-400"></i>
+        </button>
+        <div :class="open?'max-h-[500px]':'max-h-0'" class="overflow-hidden transition-all duration-300 ml-3" x-show="!sidebarCollapsed">
+          <a href="{{ route('inventory.products') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('inventory.products') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+            <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
+            Products
+          </a>
+          <a href="{{ route('inventory.categories') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('inventory.categories') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+            <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
+            Categories
+          </a>
+          <a href="{{ route('inventory.brands') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('inventory.brands') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+            <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
+            Brands
+          </a>
+          <a href="{{ route('inventory.units') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('inventory.units') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+            <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
+            Units of Measure
+          </a>
+          <a href="{{ route('inventory.receiving') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('inventory.receiving') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+            <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
+            Stock Receiving
+          </a>
+          <a href="{{ route('inventory.adjustments') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('inventory.adjustments') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+            <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
+            Stock Adjustment
+          </a>
+          <a href="{{ route('inventory.transfers') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('inventory.transfers') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+            <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
+            Stock Transfer
+          </a>
+          <a href="{{ route('inventory.count') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('inventory.count') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+            <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
+            Stock Count
+          </a>
+          <a href="{{ route('inventory.low-stock') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('inventory.low-stock') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+            <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
+            Low Stock Alert
+          </a>
+          <a href="{{ route('inventory.expiry') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('inventory.expiry') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+            <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
+            Expiry Management
+          </a>
+          <a href="{{ route('inventory.damaged') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('inventory.damaged') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+            <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
+            Damaged Goods
+          </a>
+          <a href="{{ route('inventory.reports') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('inventory.reports') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+            <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
+            Inventory Reports
+          </a>
+        </div>
+      </div>
+
+      <!-- Purchasing & Suppliers -->
+      <div x-data="{ open: {{ request()->routeIs('purchasing.*') ? 'true' : 'false' }} }">
+        <button @click="open = !open" class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-all duration-150 {{ request()->routeIs('purchasing.*') ? 'bg-white/10 text-white' : 'text-primary-200 hover:bg-white/10 hover:text-white' }}">
+          <div class="flex items-center gap-3">
+            <i class="fa-solid fa-truck-fast w-4 text-center flex-shrink-0"></i>
+            <span x-show="!sidebarCollapsed" class="font-medium">Purchasing & Suppliers</span>
+          </div>
+          <i x-show="!sidebarCollapsed" :class="open?'fa-solid fa-chevron-up':'fa-solid fa-chevron-down'" class="text-[10px] text-primary-400"></i>
+        </button>
+        <div :class="open?'max-h-[500px]':'max-h-0'" class="overflow-hidden transition-all duration-300 ml-3" x-show="!sidebarCollapsed">
+          <a href="{{ route('purchasing.suppliers') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('purchasing.suppliers') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+            <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
+            Suppliers
+          </a>
+          <a href="{{ route('purchasing.orders') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('purchasing.orders') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+            <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
+            Purchase Orders
+          </a>
+          <a href="{{ route('purchasing.grn') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('purchasing.grn') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+            <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
+            Goods Received (GRN)
+          </a>
+          <a href="{{ route('purchasing.payments') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('purchasing.payments') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+            <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
+            Supplier Payments
+          </a>
+          <a href="{{ route('purchasing.reports') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('purchasing.reports') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+            <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
+            Purchase Reports
+          </a>
+        </div>
+      </div>
+
+      <!-- Customers -->
+      <div x-data="{ open: {{ request()->routeIs('customers.*') ? 'true' : 'false' }} }">
+        <button @click="open = !open" class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-all duration-150 {{ request()->routeIs('customers.*') ? 'bg-white/10 text-white' : 'text-primary-200 hover:bg-white/10 hover:text-white' }}">
+          <div class="flex items-center gap-3">
+            <i class="fa-solid fa-users w-4 text-center flex-shrink-0"></i>
+            <span x-show="!sidebarCollapsed" class="font-medium">Customers</span>
+          </div>
+          <i x-show="!sidebarCollapsed" :class="open?'fa-solid fa-chevron-up':'fa-solid fa-chevron-down'" class="text-[10px] text-primary-400"></i>
+        </button>
+        <div :class="open?'max-h-[500px]':'max-h-0'" class="overflow-hidden transition-all duration-300 ml-3" x-show="!sidebarCollapsed">
+          <a href="{{ route('customers.list') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('customers.list') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+            <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
+            Customer List
+          </a>
+          <a href="{{ route('customers.groups') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('customers.groups') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+            <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
+            Customer Groups
+          </a>
+          <a href="{{ route('customers.loyalty') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('customers.loyalty') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+            <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
+            Loyalty Program
+          </a>
+          <a href="{{ route('customers.credit') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('customers.credit') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+            <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
+            Customer Credit
+          </a>
+          <a href="{{ route('customers.history') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('customers.history') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+            <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
+            Customer History
+          </a>
+        </div>
+      </div>
+
+      <!-- Finance -->
+      <div x-data="{ open: {{ request()->routeIs('finance.*') ? 'true' : 'false' }} }">
+        <button @click="open = !open" class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-all duration-150 {{ request()->routeIs('finance.*') ? 'bg-white/10 text-white' : 'text-primary-200 hover:bg-white/10 hover:text-white' }}">
+          <div class="flex items-center gap-3">
+            <i class="fa-solid fa-sack-dollar w-4 text-center flex-shrink-0"></i>
+            <span x-show="!sidebarCollapsed" class="font-medium">Finance</span>
+          </div>
+          <i x-show="!sidebarCollapsed" :class="open?'fa-solid fa-chevron-up':'fa-solid fa-chevron-down'" class="text-[10px] text-primary-400"></i>
+        </button>
+        <div :class="open?'max-h-[500px]':'max-h-0'" class="overflow-hidden transition-all duration-300 ml-3" x-show="!sidebarCollapsed">
+          <a href="{{ route('finance.payments') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('finance.payments') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+            <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
+            Payments
+          </a>
+          <a href="{{ route('finance.expenses') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('finance.expenses') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+            <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
+            Expenses
+          </a>
+          <a href="{{ route('finance.income') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('finance.income') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+            <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
+            Income
+          </a>
+          <a href="{{ route('finance.cash') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('finance.cash') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+            <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
+            Cash Management
+          </a>
+          <a href="{{ route('finance.bank') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('finance.bank') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+            <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
+            Bank Accounts
+          </a>
+          <a href="{{ route('finance.mobile-money') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('finance.mobile-money') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+            <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
+            Mobile Money Reconciliation
+          </a>
+          <a href="{{ route('finance.reports') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('finance.reports') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+            <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
+            Financial Reports
+          </a>
+        </div>
+      </div>
+
+      <!-- Online Sales -->
+      <div x-data="{ open: {{ request()->routeIs('online.*') ? 'true' : 'false' }} }">
+        <button @click="open = !open" class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-all duration-150 {{ request()->routeIs('online.*') ? 'bg-white/10 text-white' : 'text-primary-200 hover:bg-white/10 hover:text-white' }}">
+          <div class="flex items-center gap-3">
+            <i class="fa-solid fa-globe w-4 text-center flex-shrink-0"></i>
+            <span x-show="!sidebarCollapsed" class="font-medium">Online Sales</span>
+          </div>
+          <i x-show="!sidebarCollapsed" :class="open?'fa-solid fa-chevron-up':'fa-solid fa-chevron-down'" class="text-[10px] text-primary-400"></i>
+        </button>
+        <div :class="open?'max-h-[500px]':'max-h-0'" class="overflow-hidden transition-all duration-300 ml-3" x-show="!sidebarCollapsed">
+          <a href="{{ route('online.orders') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('online.orders') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+            <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
+            Online Orders
+          </a>
+          <a href="{{ route('online.catalog') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('online.catalog') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+            <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
+            Product Catalog
+          </a>
+          <a href="{{ route('online.delivery') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('online.delivery') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+            <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
+            Delivery Management
+          </a>
+          <a href="{{ route('online.riders') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('online.riders') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+            <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
+            Delivery Riders
+          </a>
+          <a href="{{ route('online.payments') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('online.payments') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+            <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
+            Online Payments
+          </a>
+          <a href="{{ route('online.tracking') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('online.tracking') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+            <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
+            Order Tracking
+          </a>
+        </div>
+      </div>
+
+      <!-- Store Management -->
+      <div x-data="{ open: {{ request()->routeIs('store.*') ? 'true' : 'false' }} }">
+        <button @click="open = !open" class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-all duration-150 {{ request()->routeIs('store.*') ? 'bg-white/10 text-white' : 'text-primary-200 hover:bg-white/10 hover:text-white' }}">
+          <div class="flex items-center gap-3">
+            <i class="fa-solid fa-store w-4 text-center flex-shrink-0"></i>
+            <span x-show="!sidebarCollapsed" class="font-medium">Store Management</span>
+          </div>
+          <i x-show="!sidebarCollapsed" :class="open?'fa-solid fa-chevron-up':'fa-solid fa-chevron-down'" class="text-[10px] text-primary-400"></i>
+        </button>
+        <div :class="open?'max-h-[500px]':'max-h-0'" class="overflow-hidden transition-all duration-300 ml-3" x-show="!sidebarCollapsed">
+          <a href="{{ route('store.profile') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('store.profile') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+            <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
+            Store Profile
+          </a>
+          <a href="{{ route('store.branches') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('store.branches') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+            <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
+            Branches
+          </a>
+          <a href="{{ route('store.locations') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('store.locations') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+            <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
+            Store Locations
+          </a>
+          <a href="{{ route('store.warehouses') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('store.warehouses') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+            <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
+            Warehouses
+          </a>
+          <a href="{{ route('store.settings') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('store.settings') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+            <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
+            Store Settings
+          </a>
+        </div>
+      </div>
+
+      <!-- Employees & HR -->
+      <div x-data="{ open: {{ request()->routeIs('hr.*') ? 'true' : 'false' }} }">
+        <button @click="open = !open" class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-all duration-150 {{ request()->routeIs('hr.*') ? 'bg-white/10 text-white' : 'text-primary-200 hover:bg-white/10 hover:text-white' }}">
+          <div class="flex items-center gap-3">
+            <i class="fa-solid fa-user-tie w-4 text-center flex-shrink-0"></i>
+            <span x-show="!sidebarCollapsed" class="font-medium">Employees & HR</span>
+          </div>
+          <i x-show="!sidebarCollapsed" :class="open?'fa-solid fa-chevron-up':'fa-solid fa-chevron-down'" class="text-[10px] text-primary-400"></i>
+        </button>
+        <div :class="open?'max-h-[500px]':'max-h-0'" class="overflow-hidden transition-all duration-300 ml-3" x-show="!sidebarCollapsed">
+          <a href="{{ route('hr.employees') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('hr.employees') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+            <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
+            Employees
+          </a>
+          <a href="{{ route('hr.roles') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('hr.roles') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+            <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
+            Roles & Permissions
+          </a>
+          <a href="{{ route('hr.attendance') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('hr.attendance') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+            <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
+            Attendance
+          </a>
+          <a href="{{ route('hr.shifts') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('hr.shifts') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+            <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
+            Shifts
+          </a>
+          <a href="{{ route('hr.activity') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('hr.activity') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+            <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
+            Activity Logs
+          </a>
+        </div>
+      </div>
+
+      <!-- Security & Control -->
+      <div x-data="{ open: {{ request()->routeIs('security.*') ? 'true' : 'false' }} }">
+        <button @click="open = !open" class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-all duration-150 {{ request()->routeIs('security.*') ? 'bg-white/10 text-white' : 'text-primary-200 hover:bg-white/10 hover:text-white' }}">
+          <div class="flex items-center gap-3">
+            <i class="fa-solid fa-shield-halved w-4 text-center flex-shrink-0"></i>
+            <span x-show="!sidebarCollapsed" class="font-medium">Security & Control</span>
+          </div>
+          <i x-show="!sidebarCollapsed" :class="open?'fa-solid fa-chevron-up':'fa-solid fa-chevron-down'" class="text-[10px] text-primary-400"></i>
+        </button>
+        <div :class="open?'max-h-[500px]':'max-h-0'" class="overflow-hidden transition-all duration-300 ml-3" x-show="!sidebarCollapsed">
+          <a href="{{ route('security.users') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('security.users') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+            <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
+            User Accounts
+          </a>
+          <a href="{{ route('security.access') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('security.access') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+            <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
+            Access Control
+          </a>
+          <a href="{{ route('security.audit') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('security.audit') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+            <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
+            Audit Logs
+          </a>
+          <a href="{{ route('security.logins') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('security.logins') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+            <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
+            Login History
+          </a>
+          <a href="{{ route('security.devices') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('security.devices') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+            <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
+            Device Management
+          </a>
+          <a href="{{ route('security.settings') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('security.settings') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+            <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
+            Security Settings
+          </a>
+        </div>
+      </div>
+
+      <!-- Marketing -->
+      <div x-data="{ open: {{ request()->routeIs('marketing.*') ? 'true' : 'false' }} }">
+        <button @click="open = !open" class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-all duration-150 {{ request()->routeIs('marketing.*') ? 'bg-white/10 text-white' : 'text-primary-200 hover:bg-white/10 hover:text-white' }}">
+          <div class="flex items-center gap-3">
+            <i class="fa-solid fa-bullhorn w-4 text-center flex-shrink-0"></i>
+            <span x-show="!sidebarCollapsed" class="font-medium">Marketing</span>
+          </div>
+          <i x-show="!sidebarCollapsed" :class="open?'fa-solid fa-chevron-up':'fa-solid fa-chevron-down'" class="text-[10px] text-primary-400"></i>
+        </button>
+        <div :class="open?'max-h-[500px]':'max-h-0'" class="overflow-hidden transition-all duration-300 ml-3" x-show="!sidebarCollapsed">
+          <a href="{{ route('marketing.promotions') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('marketing.promotions') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+            <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
+            Promotions
+          </a>
+          <a href="{{ route('marketing.discounts') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('marketing.discounts') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+            <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
+            Discounts
+          </a>
+          <a href="{{ route('marketing.ads') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('marketing.ads') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+            <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
+            Advertisements
+          </a>
+          <a href="{{ route('marketing.campaigns') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('marketing.campaigns') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+            <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
+            Campaigns
+          </a>
+          <a href="{{ route('marketing.notifications') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('marketing.notifications') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+            <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
+            Notifications
+          </a>
+        </div>
+      </div>
+
+      <!-- Analytics & Reports -->
+      <a href="{{ route('analytics') }}" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-150 group {{ request()->routeIs('analytics') ? 'bg-primary-600 text-white' : 'text-primary-200 hover:bg-white/10 hover:text-white' }}">
+        <i class="fa-solid fa-chart-line w-4 text-center flex-shrink-0"></i>
+        <span x-show="!sidebarCollapsed" class="font-medium">Analytics & Reports</span>
+      </a>
+
+      <!-- System Administration -->
+      <div x-data="{ open: {{ request()->routeIs('system.*') ? 'true' : 'false' }} }">
+        <button @click="open = !open" class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-all duration-150 {{ request()->routeIs('system.*') ? 'bg-white/10 text-white' : 'text-primary-200 hover:bg-white/10 hover:text-white' }}">
+          <div class="flex items-center gap-3">
+            <i class="fa-solid fa-gear w-4 text-center flex-shrink-0"></i>
+            <span x-show="!sidebarCollapsed" class="font-medium">System Administration</span>
+          </div>
+          <i x-show="!sidebarCollapsed" :class="open?'fa-solid fa-chevron-up':'fa-solid fa-chevron-down'" class="text-[10px] text-primary-400"></i>
+        </button>
+        <div :class="open?'max-h-[500px]':'max-h-0'" class="overflow-hidden transition-all duration-300 ml-3" x-show="!sidebarCollapsed">
+          <a href="{{ route('system.general') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('system.general') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+            <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
+            General Settings
+          </a>
+          <a href="{{ route('system.tax') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('system.tax') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+            <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
+            Tax Settings
+          </a>
+          <a href="{{ route('system.receipt') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('system.receipt') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+            <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
+            Receipt Settings
+          </a>
+          <a href="{{ route('system.barcode') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('system.barcode') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+            <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
+            Barcode Settings
+          </a>
+          <a href="{{ route('system.backup') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('system.backup') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+            <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
+            Backup & Restore
+          </a>
+          <a href="{{ route('system.database') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('system.database') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+            <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
+            Database
+          </a>
+          <a href="{{ route('system.logs') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('system.logs') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+            <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
+            System Logs
+          </a>
+        </div>
+      </div>
+
+      <!-- Logout -->
+      <div class="pt-2">
+        <form method="POST" action="{{ route('logout') }}">
+          @csrf
+          <button type="submit" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-primary-200 hover:bg-red-900/20 hover:text-red-300 transition-all duration-150">
+            <i class="fa-solid fa-right-from-bracket w-4 text-center flex-shrink-0"></i>
+            <span x-show="!sidebarCollapsed" class="font-medium">Logout</span>
+          </button>
+        </form>
+      </div>
+    </nav>
+  </aside>
+
+  <!-- ============================================================
+       MAIN CONTENT AREA
+       ============================================================ -->
+  <div class="flex-1 flex flex-col overflow-hidden main-content">
+
+    <!-- TOP NAVBAR -->
+    <header class="navbar-bg flex items-center justify-between px-4 h-14 flex-shrink-0 relative z-30">
+      <!-- Left: Hamburger + Breadcrumb -->
+      <div class="flex items-center gap-3">
+        <button @click="sidebarOpen=!sidebarOpen" class="p-2 rounded-lg transition-colors lg:hidden text-primary-700 hover:bg-primary-50">
+          <i class="fa-solid fa-bars text-sm"></i>
+        </button>
+        <button @click="sidebarCollapsed=!sidebarCollapsed" class="p-2 rounded-lg transition-colors hidden lg:block text-primary-700 hover:bg-primary-50">
+          <i class="fa-solid fa-bars text-sm"></i>
+        </button>
+        <div class="hidden sm:flex items-center gap-2">
+          <span class="text-xs font-medium text-primary-500">FEEDTAN STORE</span>
+          <i class="fa-solid fa-chevron-right text-[10px] text-primary-300"></i>
+          <span class="text-xs font-semibold text-primary-800">@yield('page-title')</span>
+        </div>
+      </div>
+
+      <!-- Center: Search -->
+      <div class="hidden md:flex flex-1 max-w-xs mx-4">
+        <div class="relative w-full">
+          <i class="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-xs text-primary-400"></i>
+          <input type="text" placeholder="Search..."
+                 class="form-input input-field pl-8 text-xs py-2 bg-primary-50 border-primary-200 text-primary-900">
+        </div>
+      </div>
+
+      <!-- Right: Actions -->
+      <div class="flex items-center gap-2">
+        <!-- Notifications -->
+        <div class="relative" x-data="{open:false}">
+          <button @click="open=!open" class="relative p-2 rounded-lg transition-colors text-primary-700 hover:bg-primary-50">
+            <i class="fa-solid fa-bell text-sm"></i>
+            <span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
+          </button>
+          <div x-show="open" @click.away="open=false" x-transition
+               class="absolute right-0 top-10 w-80 rounded-2xl shadow-2xl z-50 overflow-hidden bg-white border border-primary-100">
+            <div class="p-4 border-b border-primary-100">
+              <div class="flex justify-between items-center">
+                <h3 class="font-bold text-sm text-primary-900">Notifications</h3>
+                <span class="badge badge-green text-[10px]">8 New</span>
+              </div>
+            </div>
+            <div class="max-h-72 overflow-y-auto">
+              <div class="p-3 border-b border-primary-50 transition-colors cursor-pointer hover:bg-primary-50">
+                <div class="flex items-start gap-3">
+                  <div class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-xs bg-green-900/40 text-green-400">
+                    <i class="fa-solid fa-check"></i>
+                  </div>
+                  <div class="flex-1 min-w-0">
+                    <p class="text-xs font-semibold truncate text-primary-900">New sale recorded</p>
+                    <p class="text-[11px] mt-0.5 text-gray-500">Sale #1234 has been completed</p>
+                    <p class="text-[10px] mt-1 text-primary-500">2 minutes ago</p>
+                  </div>
+                  <div class="w-2 h-2 rounded-full bg-primary-500 flex-shrink-0 mt-1"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- User Profile -->
+        <div class="relative" x-data="{open:false}">
+          <button @click="open=!open" class="flex items-center gap-2 p-1.5 rounded-xl transition-colors hover:bg-primary-50">
+            <div class="w-8 h-8 rounded-full bg-gradient-to-br from-primary-400 to-primary-700 flex items-center justify-center text-white font-bold text-sm">
+              {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
+            </div>
+            <div class="hidden lg:block text-left">
+              <p class="text-xs font-semibold leading-tight text-primary-900">{{ Auth::user()->name }}</p>
+              <p class="text-[10px] text-primary-500">{{ Auth::user()->email }}</p>
+            </div>
+            <i class="fa-solid fa-chevron-down text-[10px] hidden lg:block text-primary-400"></i>
+          </button>
+          <div x-show="open" @click.away="open=false" x-transition
+               class="absolute right-0 top-11 w-56 rounded-2xl shadow-2xl z-50 py-2 bg-white border border-primary-100">
+            <div class="px-4 py-2 border-b border-primary-100">
+              <p class="text-xs font-bold text-primary-900">{{ Auth::user()->name }}</p>
+              <p class="text-[11px] text-gray-500">{{ Auth::user()->email }}</p>
+            </div>
+            <button class="w-full flex items-center gap-3 px-4 py-2.5 text-xs hover:bg-primary-50 transition-colors text-left text-gray-700">
+              <i class="fa-solid fa-gear w-4"></i> Settings
+            </button>
+            <button class="w-full flex items-center gap-3 px-4 py-2.5 text-xs hover:bg-primary-50 transition-colors text-left text-gray-700">
+              <i class="fa-solid fa-user w-4"></i> My Profile
+            </button>
+            <div class="border-t my-1 border-primary-100"></div>
+            <form method="POST" action="{{ route('logout') }}">
+              @csrf
+              <button type="submit" class="w-full flex items-center gap-3 px-4 py-2.5 text-xs text-red-500 hover:bg-red-50 transition-colors text-left">
+                <i class="fa-solid fa-right-from-bracket w-4"></i> Logout
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- PAGES CONTAINER -->
+    <main class="flex-1 overflow-y-auto p-4 lg:p-6 main-bg">
+      @yield('content')
+    </main>
+  </div>
+</div>
+</body>
+</html>

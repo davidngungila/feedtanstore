@@ -1,0 +1,77 @@
+@extends('layouts.app')
+
+@section('page-title', 'Products')
+
+@section('content')
+<div class="animate-[fadeIn_0.4s_ease]">
+    <div class="card rounded-2xl p-6">
+        <div class="flex items-center justify-between mb-6">
+            <h2 class="text-xl font-bold text-primary-900">Products</h2>
+            <a href="{{ route('inventory.products.create') }}" class="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                <i class="fas fa-plus mr-2"></i>Add Product
+            </a>
+        </div>
+
+        @if(session('success'))
+            <div class="mb-4 p-3 bg-green-100 border border-green-400 text-green-800 rounded-lg">
+                {{ session('success') }}
+            </div>
+        @endif
+
+        <div class="overflow-x-auto">
+            <table class="data-table w-full">
+                <thead>
+                    <tr>
+                        <th class="text-left">Name</th>
+                        <th class="text-left">SKU</th>
+                        <th class="text-left">Category</th>
+                        <th class="text-left">Brand</th>
+                        <th class="text-left">Quantity</th>
+                        <th class="text-left">Cost Price</th>
+                        <th class="text-left">Selling Price</th>
+                        <th class="text-left">Status</th>
+                        <th class="text-left">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($products as $product)
+                    <tr>
+                        <td class="font-medium text-primary-900">
+                            <a href="{{ route('inventory.products.show', $product) }}" class="hover:underline">{{ $product->name }}</a>
+                        </td>
+                        <td class="text-gray-600">{{ $product->sku ?? '-' }}</td>
+                        <td class="text-gray-600">{{ $product->category->name ?? '-' }}</td>
+                        <td class="text-gray-600">{{ $product->brand->name ?? '-' }}</td>
+                        <td class="font-semibold {{ $product->quantity <= $product->reorder_level ? 'text-red-600' : 'text-primary-900' }}">
+                            {{ $product->quantity }} {{ $product->unit->short_name ?? '' }}
+                        </td>
+                        <td class="text-gray-600">TZS {{ number_format($product->cost_price, 2) }}</td>
+                        <td class="text-gray-600">TZS {{ number_format($product->selling_price, 2) }}</td>
+                        <td>
+                            <span class="badge {{ $product->is_active ? 'badge-green' : 'badge-gray' }}">
+                                {{ $product->is_active ? 'Active' : 'Inactive' }}
+                            </span>
+                        </td>
+                        <td class="flex items-center gap-2">
+                            <a href="{{ route('inventory.products.show', $product) }}" class="text-primary-600 hover:text-primary-800 p-1" title="View">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <a href="{{ route('inventory.products.edit', $product) }}" class="text-primary-600 hover:text-primary-800 p-1" title="Edit">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <form action="{{ route('inventory.products.destroy', $product) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this product?')">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="text-red-600 hover:text-red-800 p-1" title="Delete">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+@endsection
