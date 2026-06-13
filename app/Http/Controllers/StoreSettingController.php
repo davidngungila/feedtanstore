@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\StoreSetting;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class StoreSettingController extends Controller
 {
@@ -23,13 +24,26 @@ class StoreSettingController extends Controller
             'store_email' => 'nullable|email|max:255',
             'store_phone' => 'nullable|string|max:255',
             'store_address' => 'nullable|string',
+            'store_logo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'currency' => 'required|string|max:10',
             'tax_rate' => 'nullable|numeric|min:0|max:100',
             'receipt_footer' => 'nullable|string',
             'enable_loyalty' => 'boolean'
         ]);
 
-        $settings->update($request->all());
+        $data = $request->all();
+        
+        // Handle logo upload
+        if ($request->hasFile('store_logo')) {
+            // Delete old logo if exists
+            if ($settings->store_logo && Storage::exists('public/' . $settings->store_logo)) {
+                Storage::delete('public/' . $settings->store_logo);
+            }
+            $path = $request->file('store_logo')->store('store-logos', 'public');
+            $data['store_logo'] = $path;
+        }
+
+        $settings->update($data);
 
         return back()->with('success', 'Store settings updated successfully!');
     }
