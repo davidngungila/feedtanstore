@@ -14,8 +14,12 @@ Route::middleware('auth')->group(function () {
         return redirect()->route('dashboard');
     });
 
-    // Dashboard
+    // Dashboards
     Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/dashboard/sales', [\App\Http\Controllers\SalesDashboardController::class, 'index'])->name('dashboard.sales');
+    Route::get('/dashboard/online-orders', [\App\Http\Controllers\OnlineOrdersDashboardController::class, 'index'])->name('dashboard.online-orders');
+    Route::get('/dashboard/purchases', [\App\Http\Controllers\PurchasesDashboardController::class, 'index'])->name('dashboard.purchases');
+    Route::get('/dashboard/inventory', [\App\Http\Controllers\InventoryDashboardController::class, 'index'])->name('dashboard.inventory');
     
     // Profile
     Route::get('/profile', [\App\Http\Controllers\ProfileController::class, 'show'])->name('profile.show');
