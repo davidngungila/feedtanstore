@@ -43,6 +43,10 @@ class AppServiceProvider extends ServiceProvider
                 'expiringCount' => $expiringCount,
                 'expiredCount' => $expiredCount,
                 'totalNotifications' => $totalNotifications,
+                'hasOutOfStock' => $outOfStockCount > 0,
+                'hasLowStock' => $lowStockCount > 0,
+                'hasExpiring' => $expiringCount > 0,
+                'hasExpired' => $expiredCount > 0,
             ]);
         });
     }

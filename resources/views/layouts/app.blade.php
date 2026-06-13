@@ -774,7 +774,7 @@
             </div>
             <div class="max-h-72 overflow-y-auto">
               <!-- Out of Stock -->
-              @foreach($outOfStockCount > 0 ? Product::where('quantity', 0)->limit(3)->get() : [])
+              @if($hasOutOfStock)
                 <a href="{{ route('inventory.products') }}" class="block p-3 border-b border-primary-50 transition-colors hover:bg-primary-50">
                   <div class="flex items-start gap-3">
                     <div class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-xs bg-red-900/40 text-red-400">
@@ -787,10 +787,10 @@
                     <div class="w-2 h-2 rounded-full bg-red-500 flex-shrink-0 mt-1"></div>
                   </div>
                 </a>
-              @endforeach
+              @endif
 
               <!-- Low Stock -->
-              @foreach($lowStockCount > 0 ? Product::whereColumn('quantity', '<=', 'reorder_level')->where('quantity', '>', 0)->limit(3)->get() : [])
+              @if($hasLowStock)
                 <a href="{{ route('inventory.low-stock') }}" class="block p-3 border-b border-primary-50 transition-colors hover:bg-primary-50">
                   <div class="flex items-start gap-3">
                     <div class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-xs bg-yellow-900/40 text-yellow-400">
@@ -803,10 +803,10 @@
                     <div class="w-2 h-2 rounded-full bg-yellow-500 flex-shrink-0 mt-1"></div>
                   </div>
                 </a>
-              @endforeach
+              @endif
 
               <!-- Expiring Soon -->
-              @foreach($expiringCount > 0 ? Product::whereNotNull('expiry_date')->where('expiry_date', '<=', now()->addDays(30))->where('expiry_date', '>=', now())->limit(3)->get() : [])
+              @if($hasExpiring)
                 <a href="{{ route('inventory.expiry') }}" class="block p-3 border-b border-primary-50 transition-colors hover:bg-primary-50">
                   <div class="flex items-start gap-3">
                     <div class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-xs bg-orange-900/40 text-orange-400">
@@ -819,10 +819,10 @@
                     <div class="w-2 h-2 rounded-full bg-orange-500 flex-shrink-0 mt-1"></div>
                   </div>
                 </a>
-              @endforeach
+              @endif
 
               <!-- Expired Products -->
-              @foreach($expiredCount > 0 ? Product::whereNotNull('expiry_date')->where('expiry_date', '<', now())->limit(3)->get() : [])
+              @if($hasExpired)
                 <a href="{{ route('inventory.expiry') }}" class="block p-3 border-b border-primary-50 transition-colors hover:bg-primary-50">
                   <div class="flex items-start gap-3">
                     <div class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-xs bg-red-900/40 text-red-400">
@@ -835,7 +835,7 @@
                     <div class="w-2 h-2 rounded-full bg-red-500 flex-shrink-0 mt-1"></div>
                   </div>
                 </a>
-              @endforeach
+              @endif
 
               @if($totalNotifications == 0)
                 <div class="p-8 text-center">
