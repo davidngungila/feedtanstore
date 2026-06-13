@@ -278,7 +278,7 @@
                             </div>
                             <div>
                                 <p class="text-xs font-semibold text-red-900">{{ $product->name }}</p>
-                                <p class="text-[10px] text-red-700">Expired: {{ $product->expiry_date->format('M d, Y') }}</p>
+                                <p class="text-[10px] text-red-700">Expired: {{ \Illuminate\Support\Carbon::parse($product->expiry_date)->format('M d, Y') }}</p>
                             </div>
                         </div>
                         <a href="{{ route('inventory.products.show', $product) }}" class="text-xs text-red-700 hover:text-red-900">
