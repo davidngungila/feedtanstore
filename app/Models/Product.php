@@ -26,6 +26,8 @@ class Product extends Model
         'is_available_online',
     ];
 
+    protected $dates = ['expiry_date'];
+
     public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class);
