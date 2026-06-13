@@ -15,11 +15,22 @@ class PurchaseOrderController extends Controller
         return view('purchasing.orders', compact('purchaseOrders'));
     }
 
-    public function create()
+    public function create(Request $request)
     {
         $suppliers = Supplier::all();
         $products = Product::all();
-        return view('purchasing.orders-create', compact('suppliers', 'products'));
+        $preselectedProduct = null;
+        $preselectedQuantity = null;
+
+        if ($request->has('product')) {
+            $preselectedProduct = Product::find($request->product);
+            if ($preselectedProduct) {
+                // Calculate how much to reorder to get to (at least) reorder level
+                $preselectedQuantity = max(1, $preselectedProduct->reorder_level - $preselectedProduct->quantity);
+            }
+        }
+
+        return view('purchasing.orders-create', compact('suppliers', 'products', 'preselectedProduct', 'preselectedQuantity'));
     }
 
     public function store(Request $request)

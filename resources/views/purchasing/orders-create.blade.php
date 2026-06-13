@@ -65,17 +65,27 @@
                             <select name="products[0][product_id]" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 product-select">
                                 <option value="">Select Product</option>
                                 @foreach($products as $product)
-                                    <option value="{{ $product->id }}" data-price="{{ $product->cost_price }}">{{ $product->name }}</option>
+                                    <option value="{{ $product->id }}" 
+                                            data-price="{{ $product->cost_price }}" 
+                                            {{ (old('products.0.product_id', $preselectedProduct?->id) == $product->id) ? 'selected' : '' }}>
+                                        {{ $product->name }}
+                                    </option>
                                 @endforeach
                             </select>
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Quantity *</label>
-                            <input type="number" name="products[0][quantity]" value="1" min="1" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 product-quantity">
+                            <input type="number" name="products[0][quantity]" 
+                                   value="{{ old('products.0.quantity', $preselectedQuantity ?? 1) }}" 
+                                   min="1" required 
+                                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 product-quantity">
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Unit Price *</label>
-                            <input type="number" step="0.01" name="products[0][unit_price]" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 product-price">
+                            <input type="number" step="0.01" name="products[0][unit_price]" 
+                                   value="{{ old('products.0.unit_price', $preselectedProduct?->cost_price ?? '') }}" 
+                                   required 
+                                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 product-price">
                         </div>
                         <div class="flex items-end">
                             <button type="button" class="remove-product text-red-600 hover:text-red-800 px-4 py-2 border border-red-300 rounded-lg">Remove</button>

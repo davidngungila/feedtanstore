@@ -18,6 +18,7 @@
                             <th class="text-left">Current Stock</th>
                             <th class="text-left">Reorder Level</th>
                             <th class="text-left">Status</th>
+                            <th class="text-left">Action</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -31,6 +32,11 @@
                             <td class="text-gray-600">{{ $product->reorder_level }}</td>
                             <td>
                                 <span class="badge badge-red">Low Stock</span>
+                            </td>
+                            <td>
+                                <a href="{{ route('purchasing.orders.create', ['product' => $product->id]) }}" class="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-medium rounded-lg bg-primary-600 text-white hover:bg-primary-700 transition-colors">
+                                    <i class="fa-solid fa-cart-plus"></i> Reorder
+                                </a>
                             </td>
                         </tr>
                         @endforeach
