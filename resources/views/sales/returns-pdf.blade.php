@@ -2,7 +2,7 @@
  <html>
  <head>
      <meta charset="utf-8">
-     <title>Return Receipt - {{ $paymentData['orderReference'] ?? 'N/A' }}</title>
+     <title>Return Receipt - {{ $return->return_number ?? 'N/A' }}</title>
      <style>
           body {
               font-family: 'Helvetica', 'Arial', sans-serif;
@@ -172,30 +172,27 @@
   <body>
       @php
          $isSuccessful = true;
-         $customerName = $paymentData['customer_name'] ?? 'Anonymous';
-         $payerName = $customerName;
-         $isPayerDifferent = false;
+         $customerName = $return->sale->customer->name ?? 'Walk-in Customer';
       @endphp
       <div class="watermark">{{ $isSuccessful ? 'OFFICIAL' : 'PROVISIONAL' }}</div>
 
       <div class="container">
           <div class="header">
-              <div class="logo" style="font-size: 18px;">FeedTan Community Microfinance Group</div>
-              <div class="sub-header" style="font-size: 10px; margin-top: 4px;">P.O.Box 7744, Ushirika Sokoine Road, Moshi, Kilimanjaro, Tanzania</div>
-              <div class="sub-header">DIGITAL PAYMENT SYSTEM</div>
+              <div class="logo" style="font-size: 18px;">FeedTan Store</div>
+              <div class="sub-header" style="font-size: 10px; margin-top: 4px;">Inventory & Sales Management System</div>
               <div class="receipt-title">OFFICIAL RETURN RECEIPT</div>
           </div>
 
           <table style="width: 100%; margin-bottom: 15px;">
               <tr>
                   <td>
-                      <div class="label">Return Reference:</div>
-                      <div class="value" style="font-size: 16px; color: #16a34a;">#{{ $paymentData['orderReference'] ?? 'N/A' }}</div>
+                      <div class="label">Return Number:</div>
+                      <div class="value" style="font-size: 16px; color: #16a34a;">{{ $return->return_number ?? 'N/A' }}</div>
                   </td>
                   <td style="text-align: right;">
                       <div class="label">Date Issued:</div>
-                      <div class="value">{{ isset($paymentData['createdAt']) ? \Carbon\Carbon::parse($paymentData['createdAt'])->format('l, d F Y') : date('l, d F Y') }}</div>
-                      <div class="value" style="font-size: 10px; color: #6b7280; font-weight: normal;">Time: {{ isset($paymentData['createdAt']) ? \Carbon\Carbon::parse($paymentData['createdAt'])->format('H:i:s') : date('H:i:s') }}</div>
+                      <div class="value">{{ $return->created_at->format('l, d F Y') }}</div>
+                      <div class="value" style="font-size: 10px; color: #6b7280; font-weight: normal;">Time: {{ $return->created_at->format('H:i:s') }}</div>
                   </td>
               </tr>
           </table>
@@ -203,18 +200,18 @@
           <div class="info-card">
               <table class="details-table">
                   <tr>
-                      <td class="label">Returned From (Member):</td>
+                      <td class="label">Customer:</td>
                       <td class="value" style="font-size: 14px;">{{ strtoupper($customerName) }}</td>
                       <td rowspan="4" class="qr-code-box">
                       </td>
                   </tr>
                   <tr>
-                      <td class="label">Invoice #:</td>
+                      <td class="label">Original Invoice #:</td>
                       <td class="value">{{ $return->sale->invoice_number ?? 'N/A' }}</td>
                   </tr>
                   <tr>
                       <td class="label">Return ID:</td>
-                      <td class="value">{{ $paymentData['id'] ?? $return->id }}</td>
+                      <td class="value">{{ $return->id }}</td>
                   </tr>
                   <tr>
                       <td class="label">Reason:</td>
@@ -256,17 +253,17 @@
 
           <div class="amount-section">
               <div class="amount-label">Total Return Amount</div>
-              <div class="amount-value">{{ $paymentData['collectedCurrency'] ?? 'TZS' }} {{ number_format($paymentData['collectedAmount'] ?? 0, 2) }}</div>
+              <div class="amount-value">TZS {{ number_format($return->total, 2) }}</div>
               @php
-                  $amount = $paymentData['collectedAmount'] ?? 0;
+                  $amount = $return->total;
                   $f = new NumberFormatter("en", NumberFormatter::SPELLOUT);
                   $words = $f->format($amount);
               @endphp
-              <div class="amount-words">Amount in words: {{ $words }} {{ $paymentData['collectedCurrency'] ?? 'Tanzanian Shillings' }} Only</div>
+              <div class="amount-words">Amount in words: {{ $words }} Tanzanian Shillings Only</div>
           </div>
 
           <div style="font-size: 10px; color: #4b5563; padding: 10px; background: #f9fafb; border-radius: 6px; border-left: 3px solid #16a34a;">
-              <strong>Transaction Reference:</strong> {{ $paymentData['orderReference'] ?? 'N/A' }}<br>
+              <strong>Transaction Reference:</strong> {{ $return->return_number ?? 'N/A' }}<br>
               <strong>System Remarks:</strong> Products returned successfully
           </div>
 
@@ -274,22 +271,21 @@
               <tr>
                   <td style="text-align: center; width: 50%;">
                       <div class="sig-line"></div>
-                      <div class="sig-text">TREASURER / SECRETARY</div>
+                      <div class="sig-text">STORE MANAGER / CASHIER</div>
                       <div style="font-size: 8px; color: #9ca3af;">(Digital Seal Applied)</div>
                   </td>
                   <td style="text-align: center; width: 50%;">
                       <div class="sig-line"></div>
-                      <div class="sig-text">MEMBER'S ACKNOWLEDGMENT</div>
+                      <div class="sig-text">CUSTOMER'S ACKNOWLEDGMENT</div>
                   </td>
               </tr>
           </table>
 
           <div class="footer">
-             <strong>FEEDTAN DIGITAL PAYMENT SYSTEM</strong><br>
+             <strong>FEEDTAN STORE INVENTORY SYSTEM</strong><br>
              Powered by FeedTan Team<br>
-             <span style="color: #16a34a;">www.feedtancmg.org • service@feedtancmg.org</span><br>
              <div style="margin-top: 10px; font-size: 8px; color: #9ca3af;">
-                 This document is electronically generated and verified by FEEDTAN DIGITAL PAYMENT SYSTEM.
+                 This document is electronically generated and verified by FEEDTAN STORE INVENTORY SYSTEM.
              </div>
          </div>
       </div>
