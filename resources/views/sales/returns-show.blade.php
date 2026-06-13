@@ -77,136 +77,109 @@
 function downloadPDF() {
     console.log('Download PDF clicked');
     try {
-        var doc = new jsPDF('p', 'mm', 'a4');
+        var doc = new jsPDF();
         
-        // Colors
-        var primaryColor = [22, 163, 74]; // Green-600
-        var darkColor = [31, 41, 55]; // Gray-800
-        var lightColor = [156, 163, 175]; // Gray-400
-        var bgColor = [248, 250, 252]; // Gray-50
-        
-        // Header - Full width green banner
-        doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-        doc.rect(0, 0, 210, 40, 'F');
-        
-        doc.setTextColor(255, 255, 255);
+        // Header
         doc.setFontSize(24);
         doc.setFontType('bold');
         doc.text('RETURN RECEIPT', 105, 25, 'center');
         
         // Receipt Body
-        var y = 55;
+        var y = 40;
         
         // Business Info
-        doc.setFillColor(bgColor[0], bgColor[1], bgColor[2]);
-        doc.rect(15, y-10, 180, 40, 'F');
-        
-        doc.setTextColor(darkColor[0], darkColor[1], darkColor[2]);
-        doc.setFontSize(18);
-        doc.setFontType('bold');
-        doc.text('FEEDTAN STORE', 105, y+5, 'center');
-        
-        doc.setFontSize(12);
-        doc.setFontType('normal');
-        doc.setTextColor(lightColor[0], lightColor[1], lightColor[2]);
-        doc.text('Your Trusted Store | Quality Products', 105, y+15, 'center');
-        doc.text('www.feedtanstore.com', 105, y+22, 'center');
-        
-        y += 45;
-        
-        // Return Details Card
-        doc.setFillColor(255, 255, 255);
-        doc.rect(15, y-5, 180, 75, 'F');
-        doc.setDrawColor(229, 231, 235);
-        doc.setLineWidth(0.5);
-        doc.rect(15, y-5, 180, 75, 'D');
-        
-        doc.setTextColor(darkColor[0], darkColor[1], darkColor[2]);
         doc.setFontSize(16);
         doc.setFontType('bold');
-        doc.text('Return Details', 25, y+10);
+        doc.text('FEEDTAN STORE', 105, y, 'center');
         
-        doc.setFontSize(12);
-        doc.setFontType('bold');
-        doc.text('Return Number:', 25, y+25);
+        y += 7;
+        doc.setFontSize(11);
         doc.setFontType('normal');
-        doc.text('{{ $return->return_number }}', 80, y+25);
+        doc.text('Your Trusted Store | Quality Products', 105, y, 'center');
         
-        doc.setFontType('bold');
-        doc.text('Date:', 25, y+35);
-        doc.setFontType('normal');
-        doc.text('{{ $return->created_at->format("F d, Y H:i:s") }}', 80, y+35);
-        
-        doc.setFontType('bold');
-        doc.text('Invoice:', 25, y+45);
-        doc.setFontType('normal');
-        doc.text('{{ $return->sale->invoice_number }}', 80, y+45);
-        
-        doc.setFontType('bold');
-        doc.text('Processed By:', 25, y+55);
-        doc.setFontType('normal');
-        var processedBy = '{{ addslashes($return->user->name ?? "N/A") }}';
-        doc.text(processedBy, 80, y+55);
-        
-        y += 85;
-        
-        // Reason Section
-        doc.setFillColor(255, 255, 255);
-        doc.rect(15, y-5, 180, 50, 'F');
-        doc.rect(15, y-5, 180, 50, 'D');
-        
-        doc.setTextColor(darkColor[0], darkColor[1], darkColor[2]);
-        doc.setFontSize(16);
-        doc.setFontType('bold');
-        doc.text('Reason for Return', 25, y+10);
-        
-        doc.setFontSize(12);
-        doc.setFontType('normal');
-        var reason = '{{ addslashes($return->reason) }}';
-        var splitReason = doc.splitTextToSize(reason, 160);
-        doc.text(splitReason, 25, y+23);
-        
-        y += 60;
-        
-        // Items Table
-        doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-        doc.rect(15, y-5, 180, 12, 'F');
-        
-        doc.setTextColor(255, 255, 255);
-        doc.setFontSize(12);
-        doc.setFontType('bold');
-        doc.text('Product', 25, y+3);
-        doc.text('Qty', 120, y+3);
-        doc.text('Unit Price', 140, y+3);
-        doc.text('Total', 185, y+3, 'right');
+        y += 7;
+        doc.text('www.feedtanstore.com', 105, y, 'center');
         
         y += 15;
         
-        doc.setTextColor(darkColor[0], darkColor[1], darkColor[2]);
+        // Return Details
+        doc.setFontSize(14);
+        doc.setFontType('bold');
+        doc.text('Return Details', 15, y);
+        
+        y += 8;
+        doc.setFontSize(12);
+        doc.setFontType('bold');
+        doc.text('Return Number:', 15, y);
+        doc.setFontType('normal');
+        doc.text('{{ $return->return_number }}', 65, y);
+        
+        y += 7;
+        doc.setFontType('bold');
+        doc.text('Date:', 15, y);
+        doc.setFontType('normal');
+        doc.text('{{ $return->created_at->format("F d, Y H:i:s") }}', 65, y);
+        
+        y += 7;
+        doc.setFontType('bold');
+        doc.text('Invoice:', 15, y);
+        doc.setFontType('normal');
+        doc.text('{{ $return->sale->invoice_number }}', 65, y);
+        
+        y += 7;
+        doc.setFontType('bold');
+        doc.text('Processed By:', 15, y);
+        doc.setFontType('normal');
+        var processedBy = '{{ addslashes($return->user->name ?? "N/A") }}';
+        doc.text(processedBy, 65, y);
+        
+        y += 15;
+        
+        // Reason Section
+        doc.setFontSize(14);
+        doc.setFontType('bold');
+        doc.text('Reason for Return', 15, y);
+        
+        y += 8;
+        doc.setFontSize(12);
+        doc.setFontType('normal');
+        var reason = '{{ addslashes($return->reason) }}';
+        var splitReason = doc.splitTextToSize(reason, 180);
+        doc.text(splitReason, 15, y);
+        y += (splitReason.length * 6) + 5;
+        
+        // Items Table
+        doc.setFontSize(14);
+        doc.setFontType('bold');
+        doc.text('Returned Items', 15, y);
+        
+        y += 8;
+        doc.setFontSize(12);
+        doc.text('Product', 15, y);
+        doc.text('Qty', 130, y);
+        doc.text('Unit Price', 150, y);
+        doc.text('Total', 195, y, 'right');
+        
+        y += 7;
+        
         doc.setFontType('normal');
         var total = 0;
-        var row = 0;
         
         @if($return->items->count() > 0)
             @foreach($return->items as $item)
-                if (row % 2 === 0) {
-                    doc.setFillColor(248, 250, 252);
-                    doc.rect(15, y-4, 180, 10, 'F');
-                }
-                
                 var productName = '{{ addslashes($item->saleItem->product->name ?? 'Product') }}';
-                var price = {{ $item->unit_price }};
+                var price = parseFloat({{ $item->unit_price }});
                 var qty = {{ $item->quantity }};
-                var itemTotal = {{ $item->total }};
+                var itemTotal = parseFloat({{ $item->total }});
                 
-                var splitProduct = doc.splitTextToSize(productName, 90);
+                var splitProduct = doc.splitTextToSize(productName, 100);
                 var lineHeight = 6;
                 for (var i = 0; i < splitProduct.length; i++) {
-                    doc.text(splitProduct[i], 25, y);
+                    doc.text(splitProduct[i], 15, y);
                     if (i === 0) {
-                        doc.text(qty.toString(), 120, y);
-                        doc.text('TZS ' + price.toFixed(2), 140, y);
-                        doc.text('TZS ' + itemTotal.toFixed(2), 185, y, 'right');
+                        doc.text(qty.toString(), 130, y);
+                        doc.text('TZS ' + price.toFixed(2), 150, y);
+                        doc.text('TZS ' + itemTotal.toFixed(2), 195, y, 'right');
                     }
                     y += lineHeight;
                 }
@@ -215,40 +188,34 @@ function downloadPDF() {
                 } else {
                     y += 1;
                 }
-                row++;
                 total += itemTotal;
             @endforeach
         @else
-            doc.text('No items returned', 25, y);
-            y += 10;
+            doc.text('No items returned', 15, y);
+            y += 7;
         @endif
         
         // Total Section
         y += 10;
-        doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-        doc.rect(15, y-5, 180, 20, 'F');
-        
-        doc.setTextColor(255, 255, 255);
-        doc.setFontSize(18);
+        doc.setFontSize(16);
         doc.setFontType('bold');
-        doc.text('TOTAL AMOUNT', 25, y+8);
-        doc.text('TZS ' + total.toFixed(2), 185, y+8, 'right');
+        doc.text('TOTAL AMOUNT:', 15, y);
+        doc.text('TZS ' + total.toFixed(2), 195, y, 'right');
         
-        y += 35;
+        y += 20;
         
         // Thank You Note
-        doc.setTextColor(darkColor[0], darkColor[1], darkColor[2]);
         doc.setFontSize(14);
         doc.setFontType('italic');
         doc.text('Thank you for shopping with us!', 105, y, 'center');
         
         // Footer
-        y += 20;
+        y += 15;
         doc.setFontSize(10);
         doc.setFontType('normal');
-        doc.setTextColor(lightColor[0], lightColor[1], lightColor[2]);
         doc.text('This is an official receipt from Feedtan Store', 105, y, 'center');
-        doc.text('Powered by Feedtan Store', 105, y+6, 'center');
+        y += 5;
+        doc.text('Powered by Feedtan Store', 105, y, 'center');
         
         doc.save('return-{{ $return->return_number }}.pdf');
         console.log('PDF saved');
