@@ -23,11 +23,11 @@ class SalesDashboardController extends Controller
         })->sum('quantity');
 
         // This month
-        $thisMonthSales = Sale::whereMonth('created_at', '>=', now()->startOfMonth())->get();
+        $thisMonthSales = Sale::where('created_at', '>=', now()->startOfMonth())->get();
         $thisMonthRevenue = $thisMonthSales->sum('total');
         $thisMonthTransactions = $thisMonthSales->count();
         $thisMonthItems = SaleItem::whereHas('sale', function($q) {
-            $q->whereMonth('created_at', '>=', now()->startOfMonth());
+            $q->where('created_at', '>=', now()->startOfMonth());
         })->sum('quantity');
 
         // Sales trend (last 30 days)
@@ -46,7 +46,7 @@ class SalesDashboardController extends Controller
                 DB::raw('SUM(sale_items.total) as total_amount')
             )
             ->whereHas('sale', function($q) {
-                $q->whereMonth('created_at', '>=', now()->startOfMonth());
+                $q->where('created_at', '>=', now()->startOfMonth());
             })
             ->groupBy('product_id')
             ->orderByDesc('total_quantity')
@@ -69,7 +69,7 @@ class SalesDashboardController extends Controller
             ->get();
 
         // Returns this month
-        $thisMonthReturns = SaleReturn::whereMonth('created_at', '>=', now()->startOfMonth())->get();
+        $thisMonthReturns = SaleReturn::where('created_at', '>=', now()->startOfMonth())->get();
         $returnsCount = $thisMonthReturns->count();
         $returnsAmount = $thisMonthReturns->sum('total');
 
@@ -78,7 +78,8 @@ class SalesDashboardController extends Controller
                 'payment_method',
                 DB::raw('COUNT(*) as count'),
                 DB::raw('SUM(total) as total')
-            ->whereMonth('created_at', '>=', now()->startOfMonth())
+            )
+            ->where('created_at', '>=', now()->startOfMonth())
             ->groupBy('payment_method')
             ->get();
 
@@ -90,8 +91,8 @@ class SalesDashboardController extends Controller
 
         // Discounts usage this month
         $discountsUsed = Discount::withCount(['sales' => function($q) {
-            $q->whereMonth('created_at', '>=', now()->startOfMonth());
-        })->orderByDesc('sales_count')->limit(10)->get();
+            $q->where('created_at', '>=', now()->startOfMonth());
+        }])->orderByDesc('sales_count')->limit(10)->get();
 
         return view('dashboard.sales', compact(
             'todaySales',

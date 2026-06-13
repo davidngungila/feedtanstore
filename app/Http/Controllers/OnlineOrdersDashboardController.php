@@ -21,7 +21,7 @@ class OnlineOrdersDashboardController extends Controller
         })->sum('quantity');
 
         // This month's online orders
-        $thisMonthOnlineOrders = OnlineOrder::whereMonth('created_at', '>=', now()->startOfMonth())->get();
+        $thisMonthOnlineOrders = OnlineOrder::where('created_at', '>=', now()->startOfMonth())->get();
         $thisMonthOnlineRevenue = $thisMonthOnlineOrders->sum('total');
         $thisMonthOnlineOrdersCount = $thisMonthOnlineOrders->count();
 
@@ -35,7 +35,7 @@ class OnlineOrdersDashboardController extends Controller
                 DB::raw('SUM(online_order_items.total) as total_amount')
             )
             ->whereHas('order', function($q) {
-                $q->whereMonth('created_at', '>=', now()->startOfMonth());
+                $q->where('created_at', '>=', now()->startOfMonth());
             })
             ->groupBy('product_id')
             ->orderByDesc('total_quantity')
@@ -46,7 +46,7 @@ class OnlineOrdersDashboardController extends Controller
         // Rider performance
         $riderPerformance = DeliveryRider::withCount([
             'onlineOrders' => function($q) {
-                $q->whereMonth('created_at', '>=', now()->startOfMonth());
+                $q->where('created_at', '>=', now()->startOfMonth());
             }
         ])->get();
 

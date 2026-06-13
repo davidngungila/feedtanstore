@@ -21,11 +21,11 @@ class PurchasesDashboardController extends Controller
         $todayPayments = SupplierPayment::whereDate('created_at', today())->sum('amount');
 
         // This month's data
-        $thisMonthPO = PurchaseOrder::whereMonth('created_at', '>=', now()->startOfMonth())->get();
+        $thisMonthPO = PurchaseOrder::where('created_at', '>=', now()->startOfMonth())->get();
         $thisMonthPOCount = $thisMonthPO->count();
         $thisMonthPOAmount = $thisMonthPO->sum('total');
-        $thisMonthGRN = GoodsReceivedNote::whereMonth('created_at', '>=', now()->startOfMonth())->count();
-        $thisMonthPayments = SupplierPayment::whereMonth('created_at', '>=', now()->startOfMonth())->sum('amount');
+        $thisMonthGRN = GoodsReceivedNote::where('created_at', '>=', now()->startOfMonth())->count();
+        $thisMonthPayments = SupplierPayment::where('created_at', '>=', now()->startOfMonth())->sum('amount');
 
         // Top suppliers this month
         $topSuppliers = Supplier::select(
