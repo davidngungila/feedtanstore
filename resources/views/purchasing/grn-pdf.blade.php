@@ -173,7 +173,7 @@
 
       <div class="container">
           <div class="header">
-              <img src="{{ public_path('feedtanstorelogo.png') }}" alt="FEEDTAN STORE" style="max-width: 80px; margin: 0 auto 8px auto;">
+              <img src="data:image/png;base64,{{ base64_encode(file_get_contents(public_path('feedtanstorelogo.png'))) }}" alt="FEEDTAN STORE" style="max-width: 80px; margin: 0 auto 8px auto;">
               <div class="sub-header" style="font-size: 10px; margin-top: 4px;">Inventory & Sales Management System</div>
               <div class="receipt-title">GOODS RECEIVED NOTE</div>
           </div>
