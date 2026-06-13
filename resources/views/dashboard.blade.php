@@ -6,7 +6,16 @@
 <div class="animate-[fadeIn_0.4s_ease] space-y-6">
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-            <h2 class="text-xl font-bold" :class="darkMode?'text-white':'text-primary-900'">Good morning, {{ auth()->user()->name ?? 'Admin' }} 👋</h2>
+            @php
+                $hour = date('G');
+                $greeting = 'Good morning';
+                if ($hour >= 12 && $hour < 17) {
+                    $greeting = 'Good afternoon';
+                } elseif ($hour >= 17) {
+                    $greeting = 'Good evening';
+                }
+            @endphp
+            <h2 class="text-xl font-bold" :class="darkMode?'text-white':'text-primary-900'">{{ $greeting }}, {{ auth()->user()->name ?? 'Admin' }} 👋</h2>
             <p class="text-sm mt-0.5" :class="darkMode?'text-primary-400':'text-primary-600'">Here's what's happening today.</p>
         </div>
         <div class="flex items-center gap-2">

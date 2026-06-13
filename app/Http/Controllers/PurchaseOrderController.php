@@ -6,7 +6,7 @@ use App\Models\PurchaseOrder;
 use App\Models\Product;
 use App\Models\Supplier;
 use Illuminate\Http\Request;
-use Barryvdh\DomPDF\Facade\Pdf;
+use Dompdf\Dompdf;
 
 class PurchaseOrderController extends Controller
 {
@@ -92,8 +92,11 @@ class PurchaseOrderController extends Controller
     public function downloadPDF(PurchaseOrder $purchaseOrder)
     {
         $purchaseOrder->load(['supplier', 'items.product']);
-        $pdf = Pdf::loadView('purchasing.orders-pdf', compact('purchaseOrder'));
-        return $pdf->download($purchaseOrder->po_number . '.pdf');
+        $pdf = new Dompdf();
+        $pdf->loadHtml(view('purchasing.orders-pdf', compact('purchaseOrder'))->render());
+        $pdf->setPaper('A4', 'portrait');
+        $pdf->render();
+        return $pdf->stream($purchaseOrder->po_number . '.pdf');
     }
 
     public function edit(PurchaseOrder $purchaseOrder)

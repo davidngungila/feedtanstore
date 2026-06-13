@@ -215,10 +215,11 @@
        x-transition:leave="transition-opacity duration-300"
        x-transition:leave-start="opacity-100"
        x-transition:leave-end="opacity-0"
-       class="fixed inset-0 z-[9999] bg-white/80 backdrop-blur-sm flex items-center justify-center">
+       class="fixed inset-0 z-[9999] bg-white/80 backdrop-blur-md flex items-center justify-center">
     <div class="text-center">
-      <div class="w-16 h-16 border-4 border-primary-200 border-t-primary-600 rounded-full animate-spin mx-auto mb-4"></div>
-      <p class="text-primary-700 font-semibold">Loading...</p>
+      <div class="w-20 h-20 border-4 border-primary-200 border-t-primary-600 rounded-full animate-spin mx-auto mb-4"></div>
+      <p class="text-primary-700 font-semibold text-lg">Loading...</p>
+      <p class="text-primary-500 text-sm mt-2">Please wait...</p>
     </div>
   </div>
 
@@ -887,5 +888,53 @@
     </main>
   </div>
 </div>
+
+<!-- Global Loading Script -->
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Get the Alpine component instance
+    let alpineComponent;
+    
+    // Wait until Alpine is initialized
+    const checkAlpine = () => {
+      const mainEl = document.querySelector('[x-data]');
+      if (mainEl && mainEl._x_dataStack && mainEl._x_dataStack[0]) {
+        alpineComponent = mainEl._x_dataStack[0];
+        
+        // Add event listeners for links
+        document.body.addEventListener('click', function(e) {
+          const target = e.target.closest('a[href]');
+          if (target && target.href.startsWith('http') && !target.target && !target.hasAttribute('download') && !target.href.startsWith('javascript:')) {
+            alpineComponent.loading = true;
+          }
+        });
+        
+        // Add event listeners for form submissions
+        document.body.addEventListener('submit', function(e) {
+          const target = e.target.closest('form');
+          if (target) {
+            alpineComponent.loading = true;
+          }
+        });
+        
+        // Hide loading when page is ready
+        window.addEventListener('pageshow', function() {
+          alpineComponent.loading = false;
+        });
+        
+        // Also hide on page load in case something went wrong
+        setTimeout(() => {
+          if (alpineComponent.loading) {
+            alpineComponent.loading = false;
+          }
+        }, 10000); // Hide after 10 seconds max
+      } else {
+        setTimeout(checkAlpine, 100); // Try again in 100ms
+      }
+    };
+    
+    checkAlpine();
+  });
+</script>
 </body>
 </html>
