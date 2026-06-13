@@ -21,6 +21,11 @@ class PurchaseOrder extends Model
         'status'
     ];
 
+    protected $casts = [
+        'order_date' => 'datetime',
+        'expected_date' => 'datetime',
+    ];
+
     public function supplier(): BelongsTo
     {
         return $this->belongsTo(Supplier::class);
