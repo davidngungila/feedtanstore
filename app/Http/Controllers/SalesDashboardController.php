@@ -86,7 +86,7 @@ class SalesDashboardController extends Controller
         // Sales by hour (today)
         $salesByHour = [];
         for ($h = 0; $h < 24; $h++) {
-            $salesByHour[] = Sale::whereHour('created_at', $h)->whereDate('created_at', today())->count();
+            $salesByHour[] = Sale::where(DB::raw('HOUR(created_at)'), '=', $h)->whereDate('created_at', today())->count();
         }
 
         // Discounts usage this month
