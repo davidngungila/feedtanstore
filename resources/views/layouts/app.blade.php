@@ -236,11 +236,7 @@
     <!-- Sidebar Header -->
     <div class="flex items-center justify-between p-4 border-b border-white/20 flex-shrink-0">
       <div class="flex items-center gap-3" x-show="!sidebarCollapsed || window.innerWidth<1024">
-        <img src="{{ asset('feedtanstorelogo.png') }}" alt="FEEDTAN STORE" class="w-10 h-10 rounded-lg flex-shrink-0 object-contain">
-        <div x-show="!sidebarCollapsed">
-          <p class="text-white font-bold text-sm leading-tight" style="-webkit-text-stroke: 0.5px white; text-stroke: 0.5px white;">FEEDTAN</p>
-          <p class="text-primary-300 text-[10px]" style="-webkit-text-stroke: 0.3px white; text-stroke: 0.3px white;">STORE</p>
-        </div>
+        <img src="{{ asset('feedtanstorelogo.png') }}" alt="FEEDTAN STORE" class="w-full h-12 rounded-lg flex-shrink-0 object-contain" style="max-width: 180px;">
       </div>
       <div x-show="sidebarCollapsed && window.innerWidth>=1024" class="w-10 h-10 rounded-lg flex items-center justify-center mx-auto">
         <img src="{{ asset('feedtanstorelogo.png') }}" alt="FEEDTAN STORE" class="w-full h-full rounded-lg object-contain">
