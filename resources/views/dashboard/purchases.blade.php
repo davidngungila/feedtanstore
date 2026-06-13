@@ -1,11 +1,11 @@
 @extends('layouts.app')
 
-@section('page-title', 'Purchases Dashboard')
+@section('page-title', 'Purchases Analytics')
 
 @section('content')
 <div class="animate-[fadeIn_0.4s_ease] space-y-6">
     <div class="flex items-center justify-between">
-        <h1 class="text-xl font-bold" :class="darkMode?'text-white':'text-primary-900'">Purchases Dashboard</h1>
+        <h1 class="text-xl font-bold" :class="darkMode?'text-white':'text-primary-900'">Purchases Analytics</h1>
     </div>
 
     <!-- KPI Cards -->

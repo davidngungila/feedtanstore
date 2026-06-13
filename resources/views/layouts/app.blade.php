@@ -255,31 +255,31 @@
         <span x-show="!sidebarCollapsed" class="font-medium">Dashboard</span>
       </a>
 
-      <!-- Dashboards -->
+      <!-- Analytics -->
       <div x-data="{ open: {{ request()->routeIs('dashboard.*') ? 'true' : 'false' }} }">
         <button @click="open = !open" class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-all duration-150 {{ request()->routeIs('dashboard.*') ? 'bg-white/10 text-white' : 'text-primary-200 hover:bg-white/10 hover:text-white' }}">
           <div class="flex items-center gap-3">
             <i class="fa-solid fa-chart-line w-4 text-center flex-shrink-0"></i>
-            <span x-show="!sidebarCollapsed" class="font-medium">Dashboards</span>
+            <span x-show="!sidebarCollapsed" class="font-medium">Analytics</span>
           </div>
           <i x-show="!sidebarCollapsed" :class="open?'fa-solid fa-chevron-up':'fa-solid fa-chevron-down'" class="text-[10px] text-primary-400"></i>
         </button>
         <div :class="open?'max-h-[500px]':'max-h-0'" class="overflow-hidden transition-all duration-300 ml-3" x-show="!sidebarCollapsed">
           <a href="{{ route('dashboard.sales') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('dashboard.sales') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
             <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
-            Sales Dashboard
+            Sales Analytics
           </a>
           <a href="{{ route('dashboard.online-orders') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('dashboard.online-orders') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
             <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
-            Online Orders Dashboard
+            Online Orders Analytics
           </a>
           <a href="{{ route('dashboard.purchases') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('dashboard.purchases') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
             <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
-            Purchases Dashboard
+            Purchases Analytics
           </a>
           <a href="{{ route('dashboard.inventory') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('dashboard.inventory') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
             <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
-            Inventory Dashboard
+            Inventory Analytics
           </a>
         </div>
       </div>
