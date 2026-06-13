@@ -18,6 +18,23 @@
             </div>
         @endif
 
+        @if($lowStockCount > 0)
+            <div class="mb-4 p-4 bg-yellow-50 border border-yellow-300 rounded-xl flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-yellow-200 flex items-center justify-center text-yellow-700">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold text-yellow-800">Low Stock Alert</h4>
+                        <p class="text-xs text-yellow-700">{{ $lowStockCount }} product(s) are running low and need reordering.</p>
+                    </div>
+                </div>
+                <a href="{{ route('inventory.low-stock') }}" class="inline-flex items-center gap-2 px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white text-sm font-medium rounded-lg transition-colors">
+                    <i class="fa-solid fa-eye"></i> View Details
+                </a>
+            </div>
+        @endif
+
         <div class="overflow-x-auto">
             <table class="data-table w-full">
                 <thead>
