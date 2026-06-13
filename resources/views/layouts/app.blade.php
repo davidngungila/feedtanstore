@@ -256,7 +256,12 @@
 
       <!-- Dashboard -->
       <a href="{{ route('dashboard') }}" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-150 group {{ request()->routeIs('dashboard') ? 'bg-primary-600 text-white' : 'text-primary-200 hover:bg-white/10 hover:text-white' }}">
-        <i class="fa-solid fa-gauge-high w-4 text-center flex-shrink-0"></i>
+        <div class="relative">
+          <i class="fa-solid fa-gauge-high w-4 text-center flex-shrink-0"></i>
+          @if($totalNotifications > 0)
+            <span class="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center">{{ $totalNotifications }}</span>
+          @endif
+        </div>
         <span x-show="!sidebarCollapsed" class="font-medium">Dashboard</span>
       </a>
 
@@ -347,13 +352,23 @@
             <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
             Stock Count
           </a>
-          <a href="{{ route('inventory.low-stock') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('inventory.low-stock') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
-            <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
-            Low Stock Alert
+          <a href="{{ route('inventory.low-stock') }}" class="w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('inventory.low-stock') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+            <div class="flex items-center gap-2">
+              <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
+              Low Stock Alert
+            </div>
+            @if($lowStockCount > 0)
+              <span class="bg-yellow-500 text-white text-[9px] font-bold rounded-full px-1.5 py-0.5">{{ $lowStockCount }}</span>
+            @endif
           </a>
-          <a href="{{ route('inventory.expiry') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('inventory.expiry') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
-            <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
-            Expiry Management
+          <a href="{{ route('inventory.expiry') }}" class="w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('inventory.expiry') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+            <div class="flex items-center gap-2">
+              <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
+              Expiry Management
+            </div>
+            @if($expiringCount > 0 || $expiredCount > 0)
+              <span class="bg-orange-500 text-white text-[9px] font-bold rounded-full px-1.5 py-0.5">{{ $expiringCount + $expiredCount }}</span>
+            @endif
           </a>
           <a href="{{ route('inventory.damaged') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('inventory.damaged') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
             <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
@@ -743,30 +758,91 @@
         <div class="relative" x-data="{open:false}">
           <button @click="open=!open" class="relative p-2 rounded-lg transition-colors text-primary-700 hover:bg-primary-50">
             <i class="fa-solid fa-bell text-sm"></i>
-            <span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
+            @if($totalNotifications > 0)
+              <span class="absolute top-1 right-1 bg-red-500 text-white text-[9px] font-bold rounded-full w-4 h-4 flex items-center justify-center">{{ $totalNotifications }}</span>
+            @endif
           </button>
           <div x-show="open" @click.away="open=false" x-transition
                class="absolute right-0 top-10 w-80 rounded-2xl shadow-2xl z-50 overflow-hidden bg-white border border-primary-100">
             <div class="p-4 border-b border-primary-100">
               <div class="flex justify-between items-center">
                 <h3 class="font-bold text-sm text-primary-900">Notifications</h3>
-                <span class="badge badge-green text-[10px]">8 New</span>
+                @if($totalNotifications > 0)
+                  <span class="badge badge-red text-[10px]">{{ $totalNotifications }} New</span>
+                @endif
               </div>
             </div>
             <div class="max-h-72 overflow-y-auto">
-              <div class="p-3 border-b border-primary-50 transition-colors cursor-pointer hover:bg-primary-50">
-                <div class="flex items-start gap-3">
-                  <div class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-xs bg-green-900/40 text-green-400">
-                    <i class="fa-solid fa-check"></i>
+              <!-- Out of Stock -->
+              @foreach($outOfStockCount > 0 ? Product::where('quantity', 0)->limit(3)->get() : [])
+                <a href="{{ route('inventory.products') }}" class="block p-3 border-b border-primary-50 transition-colors hover:bg-primary-50">
+                  <div class="flex items-start gap-3">
+                    <div class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-xs bg-red-900/40 text-red-400">
+                      <i class="fa-solid fa-circle-xmark"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                      <p class="text-xs font-semibold truncate text-primary-900">Out of Stock</p>
+                      <p class="text-[11px] mt-0.5 text-gray-500">{{ $outOfStockCount }} product(s) are out of stock</p>
+                    </div>
+                    <div class="w-2 h-2 rounded-full bg-red-500 flex-shrink-0 mt-1"></div>
                   </div>
-                  <div class="flex-1 min-w-0">
-                    <p class="text-xs font-semibold truncate text-primary-900">New sale recorded</p>
-                    <p class="text-[11px] mt-0.5 text-gray-500">Sale #1234 has been completed</p>
-                    <p class="text-[10px] mt-1 text-primary-500">2 minutes ago</p>
+                </a>
+              @endforeach
+
+              <!-- Low Stock -->
+              @foreach($lowStockCount > 0 ? Product::whereColumn('quantity', '<=', 'reorder_level')->where('quantity', '>', 0)->limit(3)->get() : [])
+                <a href="{{ route('inventory.low-stock') }}" class="block p-3 border-b border-primary-50 transition-colors hover:bg-primary-50">
+                  <div class="flex items-start gap-3">
+                    <div class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-xs bg-yellow-900/40 text-yellow-400">
+                      <i class="fa-solid fa-triangle-exclamation"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                      <p class="text-xs font-semibold truncate text-primary-900">Low Stock Alert</p>
+                      <p class="text-[11px] mt-0.5 text-gray-500">{{ $lowStockCount }} product(s) are running low</p>
+                    </div>
+                    <div class="w-2 h-2 rounded-full bg-yellow-500 flex-shrink-0 mt-1"></div>
                   </div>
-                  <div class="w-2 h-2 rounded-full bg-primary-500 flex-shrink-0 mt-1"></div>
+                </a>
+              @endforeach
+
+              <!-- Expiring Soon -->
+              @foreach($expiringCount > 0 ? Product::whereNotNull('expiry_date')->where('expiry_date', '<=', now()->addDays(30))->where('expiry_date', '>=', now())->limit(3)->get() : [])
+                <a href="{{ route('inventory.expiry') }}" class="block p-3 border-b border-primary-50 transition-colors hover:bg-primary-50">
+                  <div class="flex items-start gap-3">
+                    <div class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-xs bg-orange-900/40 text-orange-400">
+                      <i class="fa-solid fa-clock"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                      <p class="text-xs font-semibold truncate text-primary-900">Expiring Soon</p>
+                      <p class="text-[11px] mt-0.5 text-gray-500">{{ $expiringCount }} product(s) will expire soon</p>
+                    </div>
+                    <div class="w-2 h-2 rounded-full bg-orange-500 flex-shrink-0 mt-1"></div>
+                  </div>
+                </a>
+              @endforeach
+
+              <!-- Expired Products -->
+              @foreach($expiredCount > 0 ? Product::whereNotNull('expiry_date')->where('expiry_date', '<', now())->limit(3)->get() : [])
+                <a href="{{ route('inventory.expiry') }}" class="block p-3 border-b border-primary-50 transition-colors hover:bg-primary-50">
+                  <div class="flex items-start gap-3">
+                    <div class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-xs bg-red-900/40 text-red-400">
+                      <i class="fa-solid fa-skull-crossbones"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                      <p class="text-xs font-semibold truncate text-primary-900">Expired Products</p>
+                      <p class="text-[11px] mt-0.5 text-gray-500">{{ $expiredCount }} product(s) have expired</p>
+                    </div>
+                    <div class="w-2 h-2 rounded-full bg-red-500 flex-shrink-0 mt-1"></div>
+                  </div>
+                </a>
+              @endforeach
+
+              @if($totalNotifications == 0)
+                <div class="p-8 text-center">
+                  <i class="fa-solid fa-check-circle text-2xl text-green-500 mb-2"></i>
+                  <p class="text-xs text-gray-500">No new notifications</p>
                 </div>
-              </div>
+              @endif
             </div>
           </div>
         </div>
