@@ -99,7 +99,7 @@ function downloadPDF() {
         
         // Business Info
         doc.setFillColor(bgColor[0], bgColor[1], bgColor[2]);
-        doc.roundedRect(15, y-10, 180, 40, 5, 5, 'F');
+        doc.rect(15, y-10, 180, 40, 'F');
         
         doc.setTextColor(darkColor[0], darkColor[1], darkColor[2]);
         doc.setFontSize(18);
@@ -116,10 +116,10 @@ function downloadPDF() {
         
         // Return Details Card
         doc.setFillColor(255, 255, 255);
-        doc.roundedRect(15, y-5, 180, 75, 5, 5, 'FD');
+        doc.rect(15, y-5, 180, 75, 'F');
         doc.setDrawColor(229, 231, 235);
         doc.setLineWidth(0.5);
-        doc.roundedRect(15, y-5, 180, 75, 5, 5, 'D');
+        doc.rect(15, y-5, 180, 75, 'D');
         
         doc.setTextColor(darkColor[0], darkColor[1], darkColor[2]);
         doc.setFontSize(16);
@@ -152,8 +152,8 @@ function downloadPDF() {
         
         // Reason Section
         doc.setFillColor(255, 255, 255);
-        doc.roundedRect(15, y-5, 180, 50, 5, 5, 'FD');
-        doc.roundedRect(15, y-5, 180, 50, 5, 5, 'D');
+        doc.rect(15, y-5, 180, 50, 'F');
+        doc.rect(15, y-5, 180, 50, 'D');
         
         doc.setTextColor(darkColor[0], darkColor[1], darkColor[2]);
         doc.setFontSize(16);
@@ -170,7 +170,7 @@ function downloadPDF() {
         
         // Items Table
         doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-        doc.roundedRect(15, y-5, 180, 12, 3, 3, 'F');
+        doc.rect(15, y-5, 180, 12, 'F');
         
         doc.setTextColor(255, 255, 255);
         doc.setFontSize(12);
@@ -191,7 +191,7 @@ function downloadPDF() {
             @foreach($return->items as $item)
                 if (row % 2 === 0) {
                     doc.setFillColor(248, 250, 252);
-                    doc.roundedRect(15, y-4, 180, 10, 0, 0, 'F');
+                    doc.rect(15, y-4, 180, 10, 'F');
                 }
                 
                 var productName = '{{ addslashes($item->saleItem->product->name ?? 'Product') }}';
@@ -226,7 +226,7 @@ function downloadPDF() {
         // Total Section
         y += 10;
         doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-        doc.roundedRect(15, y-5, 180, 20, 5, 5, 'F');
+        doc.rect(15, y-5, 180, 20, 'F');
         
         doc.setTextColor(255, 255, 255);
         doc.setFontSize(18);

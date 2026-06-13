@@ -277,6 +277,7 @@ document.getElementById('productSearch').addEventListener('input', function(e) {
 });
 
 function addToCart(productId, productName, price) {
+    const numericPrice = parseFloat(price);
     const existingItem = cart.find(item => item.product_id === productId);
     
     if (existingItem) {
@@ -286,7 +287,7 @@ function addToCart(productId, productName, price) {
             product_id: productId,
             name: productName,
             quantity: 1,
-            unit_price: price
+            unit_price: numericPrice
         });
     }
     
