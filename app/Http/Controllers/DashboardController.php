@@ -10,6 +10,7 @@ use App\Models\Shift;
 use App\Models\SaleItem;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 class DashboardController extends Controller
 {
@@ -43,7 +44,21 @@ class DashboardController extends Controller
         $lowStockCount = $lowStockProducts->count();
 
         // Get out of stock
-        $outOfStockCount = Product::where('quantity', 0)->count();
+        $outOfStockProducts = Product::where('quantity', 0)->get();
+        $outOfStockCount = $outOfStockProducts->count();
+
+        // Get expiring products (in next 30 days)
+        $expiringProducts = Product::whereNotNull('expiry_date')
+            ->where('expiry_date', '<=', now()->addDays(30))
+            ->where('expiry_date', '>=', now())
+            ->get();
+        $expiringCount = $expiringProducts->count();
+
+        // Get expired products
+        $expiredProducts = Product::whereNotNull('expiry_date')
+            ->where('expiry_date', '<', now())
+            ->get();
+        $expiredCount = $expiredProducts->count();
 
         // Get top selling products
         $topProducts = SaleItem::select(
@@ -117,7 +132,12 @@ class DashboardController extends Controller
             'totalCustomers',
             'lowStockProducts',
             'lowStockCount',
+            'outOfStockProducts',
             'outOfStockCount',
+            'expiringProducts',
+            'expiringCount',
+            'expiredProducts',
+            'expiredCount',
             'topProducts',
             'recentSales',
             'salesData',

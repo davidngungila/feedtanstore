@@ -7,6 +7,7 @@ use App\Models\GoodsReceivedNote;
 use App\Models\SupplierPayment;
 use App\Models\Supplier;
 use Illuminate\Http\Request;
+use Carbon\Carbon;
 
 class PurchaseReportController extends Controller
 {
@@ -19,32 +20,34 @@ class PurchaseReportController extends Controller
         $totalAmount = PurchaseOrder::sum('total');
         $totalPaid = SupplierPayment::sum('amount');
 
-        // Monthly data for charts - MySQL compatible
-        $monthlyOrders = PurchaseOrder::selectRaw(
-                "YEAR(created_at) as year, 
-                 MONTH(created_at) as month, 
-                 COUNT(*) as count, 
-                 SUM(total) as total"
-            )
-            ->groupBy('year', 'month')
-            ->orderBy('year', 'desc')
-            ->orderBy('month', 'desc')
-            ->limit(12)
-            ->get()
-            ->reverse();
+        // Monthly data for charts - database agnostic
+        $allOrders = PurchaseOrder::orderBy('created_at')->get();
+        $groupedOrders = $allOrders->groupBy(function($item) {
+            return Carbon::parse($item->created_at)->format('Y-m');
+        })->map(function($items, $key) {
+            [$year, $month] = explode('-', $key);
+            return [
+                'year' => (int)$year,
+                'month' => (int)$month,
+                'count' => $items->count(),
+                'total' => $items->sum('total')
+            ];
+        })->values()->reverse()->take(12);
+        $monthlyOrders = $groupedOrders->reverse();
 
-        $monthlyPayments = SupplierPayment::selectRaw(
-                "YEAR(created_at) as year, 
-                 MONTH(created_at) as month, 
-                 COUNT(*) as count, 
-                 SUM(amount) as total"
-            )
-            ->groupBy('year', 'month')
-            ->orderBy('year', 'desc')
-            ->orderBy('month', 'desc')
-            ->limit(12)
-            ->get()
-            ->reverse();
+        $allPayments = SupplierPayment::orderBy('created_at')->get();
+        $groupedPayments = $allPayments->groupBy(function($item) {
+            return Carbon::parse($item->created_at)->format('Y-m');
+        })->map(function($items, $key) {
+            [$year, $month] = explode('-', $key);
+            return [
+                'year' => (int)$year,
+                'month' => (int)$month,
+                'count' => $items->count(),
+                'total' => $items->sum('amount')
+            ];
+        })->values()->reverse()->take(12);
+        $monthlyPayments = $groupedPayments->reverse();
 
         // Top suppliers
         $topSuppliers = Supplier::withCount(['purchaseOrders', 'goodsReceivedNotes'])

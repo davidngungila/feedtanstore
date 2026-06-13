@@ -180,6 +180,120 @@
         </div>
     </div>
 
+    <!-- Notifications / Alerts Section -->
+    <div class="card rounded-2xl p-5">
+        <h3 class="font-bold text-sm mb-4" :class="darkMode?'text-white':'text-primary-900'">🔔 Important Alerts</h3>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <!-- Out of Stock -->
+            <div class="space-y-2">
+                <h4 class="text-xs font-semibold uppercase tracking-wider text-red-600">🚨 Out of Stock ({{ $outOfStockCount }})</h4>
+                @if($outOfStockCount > 0)
+                <div class="space-y-2 max-h-32 overflow-y-auto">
+                    @foreach($outOfStockProducts as $product)
+                    <div class="flex items-center justify-between p-3 rounded-xl bg-red-50 dark:bg-red-900/20">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-lg bg-red-200 flex items-center justify-center">
+                                <i class="fa-solid fa-circle-xmark text-red-700"></i>
+                            </div>
+                            <div>
+                                <p class="text-xs font-semibold text-red-900">{{ $product->name }}</p>
+                                <p class="text-[10px] text-red-700">Qty: {{ $product->quantity }}</p>
+                            </div>
+                        </div>
+                        <a href="{{ route('inventory.products.show', $product) }}" class="text-xs text-red-600 hover:text-red-800">
+                            <i class="fa-solid fa-eye"></i>
+                        </a>
+                    </div>
+                    @endforeach
+                </div>
+                @else
+                <p class="text-xs text-gray-500">No products out of stock! 🎉</p>
+                @endif
+            </div>
+
+            <!-- Low Stock -->
+            <div class="space-y-2">
+                <h4 class="text-xs font-semibold uppercase tracking-wider text-amber-600">⚠️ Low Stock ({{ $lowStockCount }})</h4>
+                @if($lowStockCount > 0)
+                <div class="space-y-2 max-h-32 overflow-y-auto">
+                    @foreach($lowStockProducts->take(5) as $product)
+                    <div class="flex items-center justify-between p-3 rounded-xl bg-amber-50 dark:bg-amber-900/20">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-lg bg-amber-200 flex items-center justify-center">
+                                <i class="fa-solid fa-triangle-exclamation text-amber-700"></i>
+                            </div>
+                            <div>
+                                <p class="text-xs font-semibold text-amber-900">{{ $product->name }}</p>
+                                <p class="text-[10px] text-amber-700">Qty: {{ $product->quantity }} / Reorder: {{ $product->reorder_level }}</p>
+                            </div>
+                        </div>
+                        <a href="{{ route('inventory.products.show', $product) }}" class="text-xs text-amber-600 hover:text-amber-800">
+                            <i class="fa-solid fa-eye"></i>
+                        </a>
+                    </div>
+                    @endforeach
+                </div>
+                @else
+                <p class="text-xs text-gray-500">All products are well stocked! 🎉</p>
+                @endif
+            </div>
+
+            <!-- Expiring Soon -->
+            <div class="space-y-2">
+                <h4 class="text-xs font-semibold uppercase tracking-wider text-orange-600">⏰ Expiring Soon ({{ $expiringCount }})</h4>
+                @if($expiringCount > 0)
+                <div class="space-y-2 max-h-32 overflow-y-auto">
+                    @foreach($expiringProducts as $product)
+                    <div class="flex items-center justify-between p-3 rounded-xl bg-orange-50 dark:bg-orange-900/20">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-lg bg-orange-200 flex items-center justify-center">
+                                <i class="fa-solid fa-clock text-orange-700"></i>
+                            </div>
+                            <div>
+                                <p class="text-xs font-semibold text-orange-900">{{ $product->name }}</p>
+                                <p class="text-[10px] text-orange-700">Expires: {{ $product->expiry_date->format('M d, Y') }}</p>
+                            </div>
+                        </div>
+                        <a href="{{ route('inventory.products.show', $product) }}" class="text-xs text-orange-600 hover:text-orange-800">
+                            <i class="fa-solid fa-eye"></i>
+                        </a>
+                    </div>
+                    @endforeach
+                </div>
+                @else
+                <p class="text-xs text-gray-500">No products expiring soon! 🎉</p>
+                @endif
+            </div>
+
+            <!-- Expired -->
+            <div class="space-y-2">
+                <h4 class="text-xs font-semibold uppercase tracking-wider text-red-700">💀 Expired Products ({{ $expiredCount }})</h4>
+                @if($expiredCount > 0)
+                <div class="space-y-2 max-h-32 overflow-y-auto">
+                    @foreach($expiredProducts as $product)
+                    <div class="flex items-center justify-between p-3 rounded-xl bg-red-100 dark:bg-red-900/30">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-lg bg-red-300 flex items-center justify-center">
+                                <i class="fa-solid fa-skull-crossbones text-red-800"></i>
+                            </div>
+                            <div>
+                                <p class="text-xs font-semibold text-red-900">{{ $product->name }}</p>
+                                <p class="text-[10px] text-red-700">Expired: {{ $product->expiry_date->format('M d, Y') }}</p>
+                            </div>
+                        </div>
+                        <a href="{{ route('inventory.products.show', $product) }}" class="text-xs text-red-700 hover:text-red-900">
+                            <i class="fa-solid fa-eye"></i>
+                        </a>
+                    </div>
+                    @endforeach
+                </div>
+                @else
+                <p class="text-xs text-gray-500">No expired products! 🎉</p>
+                @endif
+            </div>
+        </div>
+    </div>
+
     <!-- Recent Transactions -->
     <div class="card rounded-2xl p-5">
         <div class="flex items-center justify-between mb-4">
