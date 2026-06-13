@@ -26,7 +26,9 @@ class Product extends Model
         'is_available_online',
     ];
 
-    protected $dates = ['expiry_date'];
+    protected $casts = [
+        'expiry_date' => 'datetime',
+    ];
 
     public function category(): BelongsTo
     {
