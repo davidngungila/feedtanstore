@@ -256,12 +256,7 @@
 
       <!-- Dashboard -->
       <a href="{{ route('dashboard') }}" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-150 group {{ request()->routeIs('dashboard') ? 'bg-primary-600 text-white' : 'text-primary-200 hover:bg-white/10 hover:text-white' }}">
-        <div class="relative">
-          <i class="fa-solid fa-gauge-high w-4 text-center flex-shrink-0"></i>
-          @if($totalNotifications > 0)
-            <span class="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center">{{ $totalNotifications }}</span>
-          @endif
-        </div>
+        <i class="fa-solid fa-gauge-high w-4 text-center flex-shrink-0"></i>
         <span x-show="!sidebarCollapsed" class="font-medium">Dashboard</span>
       </a>
 
