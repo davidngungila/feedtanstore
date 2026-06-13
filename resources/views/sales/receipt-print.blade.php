@@ -164,10 +164,7 @@
 <body>
     <div class="receipt">
         <div class="header">
-            <h1>FEEDTAN STORE</h1>
-            <p>Your Trusted Supplier</p>
-            <p>123 Main Street, City</p>
-            <p>Phone: +1234567890</p>
+            <img src="{{ asset('feedtanstorelogo.png') }}" alt="FEEDTAN STORE" style="max-width: 150px; margin: 0 auto 8px auto;">
         </div>
         
         <div class="details">
