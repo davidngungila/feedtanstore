@@ -7,6 +7,7 @@ use App\Models\Product;
 use App\Models\Supplier;
 use App\Models\PurchaseOrder;
 use Illuminate\Http\Request;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class GoodsReceivedNoteController extends Controller
 {
@@ -81,6 +82,13 @@ class GoodsReceivedNoteController extends Controller
     {
         $grn->load(['supplier', 'purchaseOrder', 'items.product']);
         return view('purchasing.grn-show', compact('grn'));
+    }
+
+    public function downloadPDF(GoodsReceivedNote $grn)
+    {
+        $grn->load(['supplier', 'purchaseOrder', 'items.product']);
+        $pdf = Pdf::loadView('purchasing.grn-pdf', compact('grn'));
+        return $pdf->download($grn->grn_number . '.pdf');
     }
 
     public function edit(GoodsReceivedNote $grn)

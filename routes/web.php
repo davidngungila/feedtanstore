@@ -121,6 +121,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/orders/create', [\App\Http\Controllers\PurchaseOrderController::class, 'create'])->name('orders.create');
         Route::post('/orders', [\App\Http\Controllers\PurchaseOrderController::class, 'store'])->name('orders.store');
         Route::get('/orders/{purchaseOrder}', [\App\Http\Controllers\PurchaseOrderController::class, 'show'])->name('orders.show');
+        Route::get('/orders/{purchaseOrder}/download', [\App\Http\Controllers\PurchaseOrderController::class, 'downloadPDF'])->name('orders.download');
         Route::get('/orders/{purchaseOrder}/edit', [\App\Http\Controllers\PurchaseOrderController::class, 'edit'])->name('orders.edit');
         Route::put('/orders/{purchaseOrder}', [\App\Http\Controllers\PurchaseOrderController::class, 'update'])->name('orders.update');
         Route::delete('/orders/{purchaseOrder}', [\App\Http\Controllers\PurchaseOrderController::class, 'destroy'])->name('orders.destroy');
@@ -128,6 +129,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/grn/create', [\App\Http\Controllers\GoodsReceivedNoteController::class, 'create'])->name('grn.create');
         Route::post('/grn', [\App\Http\Controllers\GoodsReceivedNoteController::class, 'store'])->name('grn.store');
         Route::get('/grn/{grn}', [\App\Http\Controllers\GoodsReceivedNoteController::class, 'show'])->name('grn.show');
+        Route::get('/grn/{grn}/download', [\App\Http\Controllers\GoodsReceivedNoteController::class, 'downloadPDF'])->name('grn.download');
         Route::get('/grn/{grn}/edit', [\App\Http\Controllers\GoodsReceivedNoteController::class, 'edit'])->name('grn.edit');
         Route::put('/grn/{grn}', [\App\Http\Controllers\GoodsReceivedNoteController::class, 'update'])->name('grn.update');
         Route::delete('/grn/{grn}', [\App\Http\Controllers\GoodsReceivedNoteController::class, 'destroy'])->name('grn.destroy');

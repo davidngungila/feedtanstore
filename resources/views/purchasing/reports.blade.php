@@ -150,7 +150,7 @@
   const ordersCtx = document.getElementById('ordersChart').getContext('2d');
   const ordersData = {
     labels: {!! json_encode($monthlyOrders->map(function($item) { 
-        return date('M Y', mktime(0, 0, 0, intval($item->month), 1, intval($item->year))); 
+        return date('M Y', mktime(0, 0, 0, intval($item['month']), 1, intval($item['year']))); 
     })) !!},
     datasets: [
       {
@@ -213,7 +213,7 @@
   const paymentsCtx = document.getElementById('paymentsChart').getContext('2d');
   const paymentsData = {
     labels: {!! json_encode($monthlyPayments->map(function($item) { 
-        return date('M Y', mktime(0, 0, 0, intval($item->month), 1, intval($item->year))); 
+        return date('M Y', mktime(0, 0, 0, intval($item['month']), 1, intval($item['year']))); 
     })) !!},
     datasets: [
       {
