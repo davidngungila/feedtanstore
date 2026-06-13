@@ -8,6 +8,7 @@ use App\Models\Sale;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Dompdf\Dompdf;
 
 class SaleReturnController extends Controller {
     public function index() {
@@ -18,6 +19,31 @@ class SaleReturnController extends Controller {
     public function show(SaleReturn $return) {
         $return->load(['sale', 'user', 'items.saleItem.product']);
         return view('sales.returns-show', compact('return'));
+    }
+
+    public function downloadPDF(SaleReturn $return) {
+        $return->load(['sale', 'user', 'items.saleItem.product']);
+        
+        // Prepare data for the template
+        $paymentData = [
+            'orderReference' => $return->return_number,
+            'createdAt' => $return->created_at,
+            'customer_name' => $return->sale->customer->name ?? 'Anonymous',
+            'id' => $return->id,
+            'description' => 'Product Return',
+            'channel' => 'Cash',
+            'status' => 'SUCCESS',
+            'collectedCurrency' => 'TZS',
+            'collectedAmount' => $return->total,
+            'amount' => $return->total,
+            'currency' => 'TZS',
+        ];
+        
+        $pdf = new Dompdf();
+        $pdf->loadHtml(view('sales.returns-pdf', compact('return', 'paymentData'))->render());
+        $pdf->setPaper('A4', 'portrait');
+        $pdf->render();
+        return $pdf->stream('return-' . $return->return_number . '.pdf');
     }
 
     public function create($saleId) {

@@ -36,6 +36,7 @@ Route::middleware('auth')->group(function () {
         Route::delete('/history/{sale}', [\App\Http\Controllers\SaleController::class, 'destroy'])->name('destroy');
         Route::get('/returns', [\App\Http\Controllers\SaleReturnController::class, 'index'])->name('returns');
         Route::get('/returns/{return}', [\App\Http\Controllers\SaleReturnController::class, 'show'])->name('returns.show');
+        Route::get('/returns/{return}/download', [\App\Http\Controllers\SaleReturnController::class, 'downloadPDF'])->name('returns.download');
         Route::post('/returns', [\App\Http\Controllers\SaleReturnController::class, 'store'])->name('returns.store');
         Route::get('/cancelled', [\App\Http\Controllers\CancelledSaleController::class, 'index'])->name('cancelled');
         Route::get('/discounts', [\App\Http\Controllers\DiscountController::class, 'index'])->name('discounts');
