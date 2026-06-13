@@ -130,7 +130,7 @@
 <body>
     <div class="receipt">
         <div class="header">
-            <h1>FEEDTAN STORE</h1>
+            <img src="{{ public_path('feedtanstorelogo.png') }}" alt="FEEDTAN STORE" style="max-width: 80px; margin: 0 auto 8px auto;">
             <p>Your Trusted Supplier</p>
             <p>123 Main Street, City</p>
             <p>Phone: +1234567890</p>
