@@ -64,6 +64,30 @@
                 <p class="text-sm text-gray-500 mb-1">Description</p>
                 <p>{{ $product->description ?? '-' }}</p>
             </div>
+
+            <!-- Barcode Section -->
+        @if($product->barcode || $product->sku)
+            <div class="md:col-span-2 mt-4 p-4 bg-gray-50 rounded-lg">
+                <h3 class="text-lg font-semibold text-primary-900 mb-4">Product Barcode</h3>
+                <div class="flex items-start gap-6">
+                    <div class="bg-white p-4 rounded-lg border border-gray-200">
+                        <svg id="barcodeContainer" style="width: 300px; height: 120px;"></svg>
+                        <p class="text-center mt-2 font-mono text-sm text-gray-700">{{ $product->barcode ?? $product->sku }}</p>
+                    </div>
+                    <div class="flex-1">
+                        <p class="text-sm text-gray-600 mb-2">
+                            Barcode contains: <strong>{{ $product->barcode ?? $product->sku }}</strong>
+                        </p>
+                        <p class="text-sm text-gray-600 mb-4">
+                            Print this barcode and attach it to your product for quick scanning at checkout.
+                        </p>
+                        <button onclick="printBarcode()" class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors">
+                            <i class="fas fa-print mr-2"></i>Print Barcode
+                        </button>
+                    </div>
+                </div>
+            </div>
+        @endif
         </div>
     </div>
 
@@ -84,14 +108,14 @@
                     </thead>
                     <tbody>
                         @foreach($product->grnItems as $item)
-                            <tr>
-                                <td class="font-medium">{{ $item->goodsReceivedNote->grn_number }}</td>
-                                <td>{{ $item->goodsReceivedNote->supplier->name ?? '-' }}</td>
-                                <td>{{ $item->goodsReceivedNote->received_date ? date('M d, Y', strtotime($item->goodsReceivedNote->received_date)) : '-' }}</td>
-                                <td>{{ $item->quantity }}</td>
-                                <td>TZS {{ number_format($item->unit_price, 2) }}</td>
-                                <td>TZS {{ number_format($item->total, 2) }}</td>
-                            </tr>
+                        <tr>
+                            <td class="font-medium">{{ $item->goodsReceivedNote->grn_number }}</td>
+                            <td>{{ $item->goodsReceivedNote->supplier->name ?? '-' }}</td>
+                            <td>{{ $item->goodsReceivedNote->received_date ? date('M d, Y', strtotime($item->goodsReceivedNote->received_date)) : '-' }}</td>
+                            <td>{{ $item->quantity }}</td>
+                            <td>TZS {{ number_format($item->unit_price, 2) }}</td>
+                            <td>TZS {{ number_format($item->total, 2) }}</td>
+                        </tr>
                         @endforeach
                     </tbody>
                 </table>
@@ -118,18 +142,18 @@
                     </thead>
                     <tbody>
                         @foreach($product->saleItems as $item)
-                            <tr>
-                                <td class="font-medium">
-                                    <a href="{{ route('sales.show', $item->sale) }}" class="text-primary-600 hover:text-primary-800">
-                                        {{ $item->sale->invoice_number }}
-                                    </a>
-                                </td>
-                                <td>{{ $item->sale->customer->name ?? 'Walk-in Customer' }}</td>
-                                <td>{{ $item->sale->created_at ? date('M d, Y H:i', strtotime($item->sale->created_at)) : '-' }}</td>
-                                <td>{{ $item->quantity }}</td>
-                                <td>TZS {{ number_format($item->unit_price, 2) }}</td>
-                                <td>TZS {{ number_format($item->total, 2) }}</td>
-                            </tr>
+                        <tr>
+                            <td class="font-medium">
+                                <a href="{{ route('sales.show', $item->sale) }}" class="text-primary-600 hover:text-primary-800">
+                                    {{ $item->sale->invoice_number }}
+                                </a>
+                            </td>
+                            <td>{{ $item->sale->customer->name ?? 'Walk-in Customer' }}</td>
+                            <td>{{ $item->sale->created_at ? date('M d, Y H:i', strtotime($item->sale->created_at)) : '-' }}</td>
+                            <td>{{ $item->quantity }}</td>
+                            <td>TZS {{ number_format($item->unit_price, 2) }}</td>
+                            <td>TZS {{ number_format($item->total, 2) }}</td>
+                        </tr>
                         @endforeach
                     </tbody>
                 </table>
@@ -139,4 +163,100 @@
         @endif
     </div>
 </div>
+
+<!-- Barcode Library -->
+<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const barcodeContainer = document.getElementById('barcodeContainer');
+    if (barcodeContainer) {
+        const barcodeContent = '{{ addslashes($product->barcode ?? $product->sku) }}';
+        console.log('Barcode content:', barcodeContent);
+        if (barcodeContent) {
+            try {
+                JsBarcode(barcodeContainer, barcodeContent, {
+                    format: 'CODE128',
+                    lineColor: '#000000',
+                    width: 2,
+                    height: 100,
+                    margin: 10,
+                    displayValue: false
+                });
+            } catch (error) {
+                console.error('Error generating barcode:', error);
+                try {
+                    // Try auto format
+                    JsBarcode(barcodeContainer, barcodeContent, {
+                        lineColor: '#000000',
+                        width: 2,
+                        height: 100,
+                        margin: 10,
+                        displayValue: false
+                    });
+                } catch (error2) {
+                    console.error('Error generating barcode with auto format:', error2);
+                }
+            }
+        }
+    }
+});
+
+function printBarcode() {
+    const barcodeContainer = document.getElementById('barcodeContainer');
+    if (!barcodeContainer) return;
+
+    const printWindow = window.open('', '', 'width=400,height=400');
+    printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Print Barcode</title>
+            <style>
+                body {
+                    font-family: Arial, sans-serif;
+                    text-align: center;
+                    padding: 20px;
+                }
+                .product-name {
+                    font-size: 18px;
+                    font-weight: bold;
+                    margin-bottom: 10px;
+                }
+                .product-price {
+                    font-size: 16px;
+                    margin-bottom: 20px;
+                }
+                .barcode-container {
+                    display: inline-block;
+                    padding: 10px;
+                    border: 1px solid #ccc;
+                }
+                .barcode-text {
+                    font-family: monospace;
+                    font-size: 14px;
+                    margin-top: 10px;
+                }
+                @media print {
+                    body {
+                        padding: 0;
+                    }
+                }
+            </style>
+        </head>
+        <body>
+            <div class="product-name">{{ $product->name }}</div>
+            <div class="product-price">TZS {{ number_format($product->selling_price, 2) }}</div>
+            <div class="barcode-container">
+                ${barcodeContainer.outerHTML}
+                <div class="barcode-text">{{ $product->barcode ?? $product->sku }}</div>
+            </div>
+        </body>
+        </html>
+    `);
+    printWindow.document.close();
+    printWindow.focus();
+    printWindow.print();
+}
+</script>
 @endsection

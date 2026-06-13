@@ -18,8 +18,19 @@ class SaleController extends Controller {
         return view('sales.history', compact('sales'));
     }
 
-    public function create() {
+    public function create()
+    {
         $products = Product::where('is_active', true)->get();
+        $productsData = $products->map(function($p) { 
+            return [
+                'id' => $p->id, 
+                'name' => $p->name, 
+                'selling_price' => $p->selling_price, 
+                'quantity' => $p->quantity, 
+                'barcode' => $p->barcode, 
+                'sku' => $p->sku
+            ]; 
+        });
         $customers = Customer::all();
         $currentShift = Shift::where('user_id', Auth::id())->whereNull('closed_at')->first();
         $discounts = Discount::where('is_active', true)
@@ -30,7 +41,7 @@ class SaleController extends Controller {
                 $q->whereNull('end_date')->orWhere('end_date', '>=', now());
             })
             ->get();
-        return view('sales.new', compact('products', 'customers', 'currentShift', 'discounts'));
+        return view('sales.new', compact('products', 'productsData', 'customers', 'currentShift', 'discounts'));
     }
 
     public function store(Request $request) {

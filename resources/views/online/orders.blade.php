@@ -43,30 +43,40 @@
                         <td class="px-4 py-3 font-semibold">TZS {{ number_format($order->total, 2) }}</td>
                         <td class="px-4 py-3">
                             <span class="px-2 py-1 rounded-full text-xs font-semibold 
-                                @if($order->status === 'Pending') bg-yellow-100 text-yellow-800
-                                @elseif($order->status === 'Confirmed') bg-blue-100 text-blue-800
-                                @elseif($order->status === 'Preparing') bg-purple-100 text-purple-800
-                                @elseif($order->status === 'Ready') bg-cyan-100 text-cyan-800
-                                @elseif($order->status === 'Out for Delivery') bg-orange-100 text-orange-800
-                                @elseif($order->status === 'Delivered') bg-green-100 text-green-800
+                                @if($order->status === 'pending') bg-yellow-100 text-yellow-800
+                                @elseif($order->status === 'confirmed') bg-blue-100 text-blue-800
+                                @elseif($order->status === 'preparing') bg-purple-100 text-purple-800
+                                @elseif($order->status === 'ready') bg-cyan-100 text-cyan-800
+                                @elseif($order->status === 'out_for_delivery') bg-orange-100 text-orange-800
+                                @elseif($order->status === 'delivered') bg-green-100 text-green-800
                                 @else bg-red-100 text-red-800 @endif">
-                                {{ $order->status }}
+                                {{ ucwords(str_replace('_', ' ', $order->status)) }}
                             </span>
                         </td>
                         <td class="px-4 py-3">
                             <span class="px-2 py-1 rounded-full text-xs font-semibold 
-                                @if($order->payment_status === 'Paid') bg-green-100 text-green-800
-                                @elseif($order->payment_status === 'Pending') bg-yellow-100 text-yellow-800
+                                @if($order->payment_status === 'paid') bg-green-100 text-green-800
+                                @elseif($order->payment_status === 'pending') bg-yellow-100 text-yellow-800
                                 @else bg-red-100 text-red-800 @endif">
-                                {{ $order->payment_status }}
+                                {{ ucwords($order->payment_status) }}
                             </span>
                         </td>
                         <td class="px-4 py-3">{{ $order->rider ? $order->rider->name : 'Not Assigned' }}</td>
                         <td class="px-4 py-3">{{ $order->created_at->format('d/m/Y H:i') }}</td>
-                        <td class="px-4 py-3">
-                            <a href="{{ route('online.orders.show', $order) }}" class="text-primary-600 hover:text-primary-800 transition-colors">
+                        <td class="px-4 py-3 flex gap-2">
+                            <a href="{{ route('online.orders.show', $order) }}" class="text-primary-600 hover:text-primary-800 transition-colors" title="View">
                                 <i class="fas fa-eye"></i>
                             </a>
+                            <a href="{{ route('online.orders.edit', $order) }}" class="text-blue-600 hover:text-blue-800 transition-colors" title="Edit">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <form action="{{ route('online.orders.destroy', $order) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this order?');" class="inline">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="text-red-600 hover:text-red-800 transition-colors" title="Delete">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
                         </td>
                     </tr>
                     @empty

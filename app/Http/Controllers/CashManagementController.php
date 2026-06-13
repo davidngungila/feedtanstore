@@ -11,7 +11,7 @@ class CashManagementController extends Controller
     public function index()
     {
         $cashRegisters = CashRegister::all();
-        $activeShifts = Shift::where('status', 'open')->with('user')->get();
+        $activeShifts = Shift::whereNull('closed_at')->with('user')->get();
         return view('finance.cash', compact('cashRegisters', 'activeShifts'));
     }
 

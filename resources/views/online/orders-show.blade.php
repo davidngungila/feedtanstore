@@ -16,23 +16,23 @@
             <div>
                 <span class="text-sm text-gray-600">Status:</span>
                 <span class="ml-2 px-3 py-1 rounded-full text-xs font-semibold 
-                    @if($order->status === 'Pending') bg-yellow-100 text-yellow-800
-                    @elseif($order->status === 'Confirmed') bg-blue-100 text-blue-800
-                    @elseif($order->status === 'Preparing') bg-purple-100 text-purple-800
-                    @elseif($order->status === 'Ready') bg-cyan-100 text-cyan-800
-                    @elseif($order->status === 'Out for Delivery') bg-orange-100 text-orange-800
-                    @elseif($order->status === 'Delivered') bg-green-100 text-green-800
+                    @if($order->status === 'pending') bg-yellow-100 text-yellow-800
+                    @elseif($order->status === 'confirmed') bg-blue-100 text-blue-800
+                    @elseif($order->status === 'preparing') bg-purple-100 text-purple-800
+                    @elseif($order->status === 'ready') bg-cyan-100 text-cyan-800
+                    @elseif($order->status === 'out_for_delivery') bg-orange-100 text-orange-800
+                    @elseif($order->status === 'delivered') bg-green-100 text-green-800
                     @else bg-red-100 text-red-800 @endif">
-                    {{ $order->status }}
+                    {{ ucwords(str_replace('_', ' ', $order->status)) }}
                 </span>
             </div>
             <div>
                 <span class="text-sm text-gray-600">Payment Status:</span>
                 <span class="ml-2 px-3 py-1 rounded-full text-xs font-semibold 
-                    @if($order->payment_status === 'Paid') bg-green-100 text-green-800
-                    @elseif($order->payment_status === 'Pending') bg-yellow-100 text-yellow-800
+                    @if($order->payment_status === 'paid') bg-green-100 text-green-800
+                    @elseif($order->payment_status === 'pending') bg-yellow-100 text-yellow-800
                     @else bg-red-100 text-red-800 @endif">
-                    {{ $order->payment_status }}
+                    {{ ucwords($order->payment_status) }}
                 </span>
             </div>
             <div>
@@ -124,18 +124,18 @@
                 @csrf
                 @method('PUT')
                 <select name="status" class="px-3 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-primary-500">
-                    <option value="Pending" {{ $order->status === 'Pending' ? 'selected' : '' }}>Pending</option>
-                    <option value="Confirmed" {{ $order->status === 'Confirmed' ? 'selected' : '' }}>Confirmed</option>
-                    <option value="Preparing" {{ $order->status === 'Preparing' ? 'selected' : '' }}>Preparing</option>
-                    <option value="Ready" {{ $order->status === 'Ready' ? 'selected' : '' }}>Ready</option>
-                    <option value="Out for Delivery" {{ $order->status === 'Out for Delivery' ? 'selected' : '' }}>Out for Delivery</option>
-                    <option value="Delivered" {{ $order->status === 'Delivered' ? 'selected' : '' }}>Delivered</option>
-                    <option value="Cancelled" {{ $order->status === 'Cancelled' ? 'selected' : '' }}>Cancelled</option>
+                    <option value="pending" {{ $order->status === 'pending' ? 'selected' : '' }}>Pending</option>
+                    <option value="confirmed" {{ $order->status === 'confirmed' ? 'selected' : '' }}>Confirmed</option>
+                    <option value="preparing" {{ $order->status === 'preparing' ? 'selected' : '' }}>Preparing</option>
+                    <option value="ready" {{ $order->status === 'ready' ? 'selected' : '' }}>Ready</option>
+                    <option value="out_for_delivery" {{ $order->status === 'out_for_delivery' ? 'selected' : '' }}>Out for Delivery</option>
+                    <option value="delivered" {{ $order->status === 'delivered' ? 'selected' : '' }}>Delivered</option>
+                    <option value="cancelled" {{ $order->status === 'cancelled' ? 'selected' : '' }}>Cancelled</option>
                 </select>
                 <select name="payment_status" class="px-3 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-primary-500">
-                    <option value="Pending" {{ $order->payment_status === 'Pending' ? 'selected' : '' }}>Payment: Pending</option>
-                    <option value="Paid" {{ $order->payment_status === 'Paid' ? 'selected' : '' }}>Payment: Paid</option>
-                    <option value="Failed" {{ $order->payment_status === 'Failed' ? 'selected' : '' }}>Payment: Failed</option>
+                    <option value="pending" {{ $order->payment_status === 'pending' ? 'selected' : '' }}>Payment: Pending</option>
+                    <option value="paid" {{ $order->payment_status === 'paid' ? 'selected' : '' }}>Payment: Paid</option>
+                    <option value="failed" {{ $order->payment_status === 'failed' ? 'selected' : '' }}>Payment: Failed</option>
                 </select>
                 <button type="submit" class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded transition-colors">
                     Update Status
@@ -143,7 +143,7 @@
             </form>
 
             <!-- Assign Rider -->
-            @if($order->status !== 'Delivered' && $order->status !== 'Cancelled')
+            @if($order->status !== 'delivered' && $order->status !== 'cancelled')
             <form action="{{ route('online.orders.assign-rider', $order) }}" method="POST" class="flex gap-2 items-center">
                 @csrf
                 <select name="delivery_rider_id" class="px-3 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-primary-500">

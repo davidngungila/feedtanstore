@@ -15,6 +15,11 @@ class SaleReturnController extends Controller {
         return view('sales.returns', compact('returns'));
     }
 
+    public function show(SaleReturn $return) {
+        $return->load(['sale', 'user', 'items.saleItem.product']);
+        return view('sales.returns-show', compact('return'));
+    }
+
     public function create($saleId) {
         $sale = Sale::with('items.product')->findOrFail($saleId);
         return view('sales.returns', compact('sale'));

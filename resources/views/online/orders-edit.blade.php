@@ -1,12 +1,12 @@
 @extends('layouts.app')
 
-@section('page-title', 'Create Online Order')
+@section('page-title', 'Edit Online Order')
 
 @section('content')
 <div class="animate-[fadeIn_0.4s_ease]">
     <div class="card rounded-2xl p-6">
         <div class="flex items-center justify-between mb-6">
-            <h2 class="text-xl font-bold text-primary-900">Create New Online Order</h2>
+            <h2 class="text-xl font-bold text-primary-900">Edit Online Order {{ $order->order_number }}</h2>
             <a href="{{ route('online.orders') }}" class="text-primary-600 hover:text-primary-800 font-medium">
                 <i class="fas fa-arrow-left mr-2"></i>Back to Orders
             </a>
@@ -22,8 +22,9 @@
             </div>
         @endif
 
-        <form action="{{ route('online.orders.store') }}" method="POST" id="orderForm">
+        <form action="{{ route('online.orders.update', $order) }}" method="POST" id="orderForm">
             @csrf
+            @method('PUT')
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <!-- Customer Info -->
                 <div class="lg:col-span-2">
@@ -33,26 +34,26 @@
                         <select name="customer_id" id="customerSelect" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
                             <option value="">Or fill in new customer details below</option>
                             @foreach($customers as $customer)
-                                <option value="{{ $customer->id }}" data-name="{{ $customer->name }}" data-phone="{{ $customer->phone }}" data-email="{{ $customer->email }}" data-address="{{ $customer->address }}">{{ $customer->name }} ({{ $customer->phone }})</option>
+                                <option value="{{ $customer->id }}" {{ $order->customer_id == $customer->id ? 'selected' : '' }} data-name="{{ $customer->name }}" data-phone="{{ $customer->phone }}" data-email="{{ $customer->email }}" data-address="{{ $customer->address }}">{{ $customer->name }} ({{ $customer->phone }})</option>
                             @endforeach
                         </select>
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Customer Name *</label>
-                            <input type="text" name="customer_name" id="customerName" value="{{ old('customer_name') }}" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                            <input type="text" name="customer_name" id="customerName" value="{{ old('customer_name', $order->customer_name) }}" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Customer Phone *</label>
-                            <input type="text" name="customer_phone" id="customerPhone" value="{{ old('customer_phone') }}" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                            <input type="text" name="customer_phone" id="customerPhone" value="{{ old('customer_phone', $order->customer_phone) }}" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Customer Email</label>
-                            <input type="email" name="customer_email" id="customerEmail" value="{{ old('customer_email') }}" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                            <input type="email" name="customer_email" id="customerEmail" value="{{ old('customer_email', $order->customer_email) }}" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Delivery Address *</label>
-                            <input type="text" name="delivery_address" id="customerAddress" value="{{ old('delivery_address') }}" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                            <input type="text" name="delivery_address" id="customerAddress" value="{{ old('delivery_address', $order->delivery_address) }}" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
                         </div>
                     </div>
                 </div>
@@ -63,17 +64,17 @@
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Delivery Fee (TZS)</label>
-                            <input type="number" name="delivery_fee" value="{{ old('delivery_fee', 0) }}" min="0" step="0.01" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                            <input type="number" name="delivery_fee" value="{{ old('delivery_fee', $order->delivery_fee) }}" min="0" step="0.01" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Payment Method</label>
                             <select name="payment_method" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
                                 <option value="">Select Payment Method</option>
-                                <option value="Cash" {{ old('payment_method') == 'Cash' ? 'selected' : '' }}>Cash</option>
-                                <option value="M-Pesa" {{ old('payment_method') == 'M-Pesa' ? 'selected' : '' }}>M-Pesa</option>
-                                <option value="Tigo Pesa" {{ old('payment_method') == 'Tigo Pesa' ? 'selected' : '' }}>Tigo Pesa</option>
-                                <option value="Airtel Money" {{ old('payment_method') == 'Airtel Money' ? 'selected' : '' }}>Airtel Money</option>
-                                <option value="Bank Transfer" {{ old('payment_method') == 'Bank Transfer' ? 'selected' : '' }}>Bank Transfer</option>
+                                <option value="Cash" {{ old('payment_method', $order->payment_method) == 'Cash' ? 'selected' : '' }}>Cash</option>
+                                <option value="M-Pesa" {{ old('payment_method', $order->payment_method) == 'M-Pesa' ? 'selected' : '' }}>M-Pesa</option>
+                                <option value="Tigo Pesa" {{ old('payment_method', $order->payment_method) == 'Tigo Pesa' ? 'selected' : '' }}>Tigo Pesa</option>
+                                <option value="Airtel Money" {{ old('payment_method', $order->payment_method) == 'Airtel Money' ? 'selected' : '' }}>Airtel Money</option>
+                                <option value="Bank Transfer" {{ old('payment_method', $order->payment_method) == 'Bank Transfer' ? 'selected' : '' }}>Bank Transfer</option>
                             </select>
                         </div>
                         <div>
@@ -82,7 +83,7 @@
                                 <option value="">Select Rider (Optional)</option>
                                 @foreach($riders as $rider)
                                     @if($rider->is_active)
-                                        <option value="{{ $rider->id }}" {{ old('delivery_rider_id') == $rider->id ? 'selected' : '' }}>{{ $rider->name }} ({{ $rider->phone }})</option>
+                                        <option value="{{ $rider->id }}" {{ old('delivery_rider_id', $order->delivery_rider_id) == $rider->id ? 'selected' : '' }}>{{ $rider->name }} ({{ $rider->phone }})</option>
                                     @endif
                                 @endforeach
                             </select>
@@ -105,26 +106,28 @@
                                 </tr>
                             </thead>
                             <tbody id="orderItemsBody">
+                                @foreach($order->items as $index => $item)
                                 <tr class="border-t">
                                     <td class="px-4 py-2">
-                                        <select name="items[0][product_id]" class="product-select w-full px-3 py-1 border border-gray-300 rounded" required>
+                                        <select name="items[{{ $index }}][product_id]" class="product-select w-full px-3 py-1 border border-gray-300 rounded" required>
                                             <option value="">Select Product</option>
                                             @foreach($products as $product)
-                                                @if($product->is_available_online && $product->quantity > 0)
-                                                    <option value="{{ $product->id }}" data-price="{{ $product->selling_price }}" data-stock="{{ $product->quantity }}">{{ $product->name }} (Stock: {{ $product->quantity }})</option>
+                                                @if($product->is_available_online)
+                                                    <option value="{{ $product->id }}" {{ $item->product_id == $product->id ? 'selected' : '' }} data-price="{{ $product->selling_price }}" data-stock="{{ $product->quantity }}">{{ $product->name }} (Stock: {{ $product->quantity }})</option>
                                                 @endif
                                             @endforeach
                                         </select>
                                     </td>
-                                    <td class="px-4 py-2 product-price">0.00</td>
+                                    <td class="px-4 py-2 product-price">{{ number_format($item->price, 2) }}</td>
                                     <td class="px-4 py-2">
-                                        <input type="number" name="items[0][quantity]" min="1" value="1" class="item-quantity w-20 px-3 py-1 border border-gray-300 rounded">
+                                        <input type="number" name="items[{{ $index }}][quantity]" min="1" value="{{ $item->quantity }}" class="item-quantity w-20 px-3 py-1 border border-gray-300 rounded">
                                     </td>
-                                    <td class="px-4 py-2 item-total">0.00</td>
+                                    <td class="px-4 py-2 item-total">{{ number_format($item->total, 2) }}</td>
                                     <td class="px-4 py-2">
                                         <button type="button" class="remove-item text-red-600 hover:text-red-800"><i class="fas fa-trash"></i></button>
                                     </td>
                                 </tr>
+                                @endforeach
                             </tbody>
                         </table>
                         <button type="button" id="addItemBtn" class="px-4 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors">
@@ -139,15 +142,15 @@
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div>
                                 <span class="text-sm text-gray-600">Subtotal:</span>
-                                <span class="font-semibold text-primary-900" id="subtotalDisplay">TZS 0.00</span>
+                                <span class="font-semibold text-primary-900" id="subtotalDisplay">TZS {{ number_format($order->subtotal, 2) }}</span>
                             </div>
                             <div>
                                 <span class="text-sm text-gray-600">Delivery Fee:</span>
-                                <span class="font-semibold text-primary-900" id="deliveryFeeDisplay">TZS 0.00</span>
+                                <span class="font-semibold text-primary-900" id="deliveryFeeDisplay">TZS {{ number_format($order->delivery_fee, 2) }}</span>
                             </div>
                             <div>
                                 <span class="text-sm text-gray-600">Total:</span>
-                                <span class="font-bold text-lg text-primary-900" id="totalDisplay">TZS 0.00</span>
+                                <span class="font-bold text-lg text-primary-900" id="totalDisplay">TZS {{ number_format($order->total, 2) }}</span>
                             </div>
                         </div>
                     </div>
@@ -156,7 +159,7 @@
                 <!-- Notes -->
                 <div class="lg:col-span-2">
                     <label class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
-                    <textarea name="notes" rows="3" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">{{ old('notes') }}</textarea>
+                    <textarea name="notes" rows="3" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">{{ old('notes', $order->notes) }}</textarea>
                 </div>
             </div>
 
@@ -165,7 +168,7 @@
                     Cancel
                 </a>
                 <button type="submit" class="px-6 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors">
-                    Create Order
+                    Update Order
                 </button>
             </div>
         </form>
@@ -173,7 +176,7 @@
 </div>
 
 <script>
-let itemIndex = 1;
+let itemIndex = {{ $order->items->count() }};
 
 document.addEventListener('DOMContentLoaded', function() {
     // Initial setup
@@ -187,11 +190,6 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('customerPhone').value = selected.dataset.phone;
             document.getElementById('customerEmail').value = selected.dataset.email;
             document.getElementById('customerAddress').value = selected.dataset.address;
-        } else {
-            document.getElementById('customerName').value = '';
-            document.getElementById('customerPhone').value = '';
-            document.getElementById('customerEmail').value = '';
-            document.getElementById('customerAddress').value = '';
         }
     });
     
@@ -242,7 +240,7 @@ function addNewItem() {
     
     // Update names and values
     newRow.querySelectorAll('[name]').forEach(function(input) {
-        input.name = input.name.replace('[0]', '[' + itemIndex + ']');
+        input.name = input.name.replace(/\[\d+\]/, '[' + itemIndex + ']');
         if (input.tagName === 'SELECT') {
             input.selectedIndex = 0;
         } else if (input.classList.contains('item-quantity')) {

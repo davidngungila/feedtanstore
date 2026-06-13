@@ -35,6 +35,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/history/{sale}', [\App\Http\Controllers\SaleController::class, 'show'])->name('show');
         Route::delete('/history/{sale}', [\App\Http\Controllers\SaleController::class, 'destroy'])->name('destroy');
         Route::get('/returns', [\App\Http\Controllers\SaleReturnController::class, 'index'])->name('returns');
+        Route::get('/returns/{return}', [\App\Http\Controllers\SaleReturnController::class, 'show'])->name('returns.show');
         Route::post('/returns', [\App\Http\Controllers\SaleReturnController::class, 'store'])->name('returns.store');
         Route::get('/cancelled', [\App\Http\Controllers\CancelledSaleController::class, 'index'])->name('cancelled');
         Route::get('/discounts', [\App\Http\Controllers\DiscountController::class, 'index'])->name('discounts');
@@ -206,6 +207,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/orders/create', [\App\Http\Controllers\OnlineOrderController::class, 'create'])->name('orders.create');
         Route::post('/orders', [\App\Http\Controllers\OnlineOrderController::class, 'store'])->name('orders.store');
         Route::get('/orders/{order}', [\App\Http\Controllers\OnlineOrderController::class, 'show'])->name('orders.show');
+        Route::get('/orders/{order}/edit', [\App\Http\Controllers\OnlineOrderController::class, 'edit'])->name('orders.edit');
+        Route::put('/orders/{order}', [\App\Http\Controllers\OnlineOrderController::class, 'update'])->name('orders.update');
+        Route::delete('/orders/{order}', [\App\Http\Controllers\OnlineOrderController::class, 'destroy'])->name('orders.destroy');
         Route::put('/orders/{order}/status', [\App\Http\Controllers\OnlineOrderController::class, 'updateStatus'])->name('orders.status');
         Route::post('/orders/{order}/assign-rider', [\App\Http\Controllers\OnlineOrderController::class, 'assignRider'])->name('orders.assign-rider');
         

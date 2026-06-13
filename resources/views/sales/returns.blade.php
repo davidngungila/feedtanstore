@@ -98,6 +98,7 @@
                         <th class="text-left">Invoice</th>
                         <th class="text-left">Date</th>
                         <th class="text-left">Total</th>
+                        <th class="text-left">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -107,6 +108,11 @@
                         <td class="text-gray-600">{{ $return->sale->invoice_number }}</td>
                         <td class="text-gray-600">{{ $return->created_at->format('M d, Y H:i') }}</td>
                         <td class="text-gray-600">TZS {{ number_format($return->total, 2) }}</td>
+                        <td class="flex gap-2">
+                            <a href="{{ route('sales.returns.show', $return) }}" class="px-3 py-1 bg-primary-600 text-white text-sm rounded-lg hover:bg-primary-700 transition-colors">
+                                View
+                            </a>
+                        </td>
                     </tr>
                     @endforeach
                 </tbody>

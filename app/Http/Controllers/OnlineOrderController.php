@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Customer;
 use App\Models\OnlineOrder;
 use App\Models\OnlineOrderItem;
 use App\Models\Product;
@@ -22,12 +23,14 @@ class OnlineOrderController extends Controller
     {
         $products = Product::where('is_available_online', true)->where('quantity', '>', 0)->get();
         $riders = DeliveryRider::where('is_active', true)->get();
-        return view('online.orders-create', compact('products', 'riders'));
+        $customers = Customer::all();
+        return view('online.orders-create', compact('products', 'riders', 'customers'));
     }
 
     public function store(Request $request)
     {
         $request->validate([
+            'customer_id' => 'nullable|exists:customers,id',
             'customer_name' => 'required|string|max:255',
             'customer_phone' => 'required|string|max:255',
             'customer_email' => 'nullable|email',
@@ -52,6 +55,7 @@ class OnlineOrderController extends Controller
 
         $order = OnlineOrder::create([
             'order_number' => 'ORD-' . strtoupper(uniqid()),
+            'customer_id' => $request->customer_id,
             'customer_name' => $request->customer_name,
             'customer_phone' => $request->customer_phone,
             'customer_email' => $request->customer_email,
@@ -85,6 +89,80 @@ class OnlineOrderController extends Controller
     {
         $order->load(['items.product', 'rider', 'user']);
         return view('online.orders-show', compact('order'));
+    }
+
+    public function edit(OnlineOrder $order)
+    {
+        $products = Product::where('is_available_online', true)->get();
+        $riders = DeliveryRider::where('is_active', true)->get();
+        $customers = Customer::all();
+        $order->load('items');
+        return view('online.orders-edit', compact('order', 'products', 'riders', 'customers'));
+    }
+
+    public function update(Request $request, OnlineOrder $order)
+    {
+        $request->validate([
+            'customer_id' => 'nullable|exists:customers,id',
+            'customer_name' => 'required|string|max:255',
+            'customer_phone' => 'required|string|max:255',
+            'customer_email' => 'nullable|email',
+            'delivery_address' => 'required|string',
+            'payment_method' => 'nullable|string',
+            'delivery_fee' => 'nullable|numeric|min:0',
+            'delivery_rider_id' => 'nullable|exists:delivery_riders,id',
+            'notes' => 'nullable|string',
+            'items' => 'required|array',
+            'items.*.product_id' => 'required|exists:products,id',
+            'items.*.quantity' => 'required|integer|min:1'
+        ]);
+
+        $subtotal = 0;
+        foreach ($request->items as $item) {
+            $product = Product::find($item['product_id']);
+            $subtotal += $product->selling_price * $item['quantity'];
+        }
+
+        $deliveryFee = $request->delivery_fee ?? 0;
+        $total = $subtotal + $deliveryFee;
+
+        $order->update([
+            'customer_id' => $request->customer_id,
+            'customer_name' => $request->customer_name,
+            'customer_phone' => $request->customer_phone,
+            'customer_email' => $request->customer_email,
+            'delivery_address' => $request->delivery_address,
+            'payment_method' => $request->payment_method,
+            'subtotal' => $subtotal,
+            'delivery_fee' => $deliveryFee,
+            'total' => $total,
+            'delivery_rider_id' => $request->delivery_rider_id,
+            'notes' => $request->notes
+        ]);
+
+        // Delete old items
+        $order->items()->delete();
+
+        // Create new items
+        foreach ($request->items as $item) {
+            $product = Product::find($item['product_id']);
+            OnlineOrderItem::create([
+                'online_order_id' => $order->id,
+                'product_id' => $item['product_id'],
+                'quantity' => $item['quantity'],
+                'price' => $product->selling_price,
+                'total' => $product->selling_price * $item['quantity']
+            ]);
+        }
+
+        return redirect()->route('online.orders')->with('success', 'Online Order updated successfully!');
+    }
+
+    public function destroy(OnlineOrder $order)
+    {
+        $order->items()->delete();
+        $order->delete();
+        return redirect()->route('online.orders')->with('success', 'Online Order deleted successfully!');
     }
 
     public function updateStatus(Request $request, OnlineOrder $order)
