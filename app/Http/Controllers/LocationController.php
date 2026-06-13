@@ -7,8 +7,16 @@ use Illuminate\Http\Request;
 
 class LocationController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
+        // Check if we're on warehouses page
+        $isWarehouses = $request->routeIs('store.warehouses');
+        
+        if ($isWarehouses) {
+            $locations = Location::where('type', 'warehouse')->get();
+            return view('store.warehouses', compact('locations'));
+        }
+
         $locations = Location::all();
         return view('store.locations', compact('locations'));
     }

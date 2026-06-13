@@ -10,8 +10,8 @@ class DeliveryManagementController extends Controller
 {
     public function index()
     {
-        $readyOrders = OnlineOrder::with(['items', 'rider'])->where('status', 'Ready')->latest()->get();
-        $outForDelivery = OnlineOrder::with(['items', 'rider'])->where('status', 'Out for Delivery')->latest()->get();
+        $readyOrders = OnlineOrder::with(['items', 'rider'])->where('status', 'ready')->latest()->get();
+        $outForDelivery = OnlineOrder::with(['items', 'rider'])->where('status', 'out_for_delivery')->latest()->get();
         $riders = DeliveryRider::all();
         return view('online.delivery', compact('readyOrders', 'outForDelivery', 'riders'));
     }

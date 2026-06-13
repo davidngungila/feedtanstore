@@ -236,16 +236,27 @@ Route::middleware('auth')->group(function () {
 
     // Store Management
     Route::prefix('store')->name('store.')->group(function () {
-        Route::get('/profile', function () { return view('store.profile'); })->name('profile');
-        Route::get('/branches', function () { return view('store.branches'); })->name('branches');
+        Route::get('/profile', [\App\Http\Controllers\StoreSettingController::class, 'index'])->name('profile');
+        Route::put('/profile', [\App\Http\Controllers\StoreSettingController::class, 'update'])->name('profile.update');
+        
+        Route::get('/branches', [\App\Http\Controllers\BranchController::class, 'index'])->name('branches');
+        Route::get('/branches/create', [\App\Http\Controllers\BranchController::class, 'create'])->name('branches.create');
+        Route::post('/branches', [\App\Http\Controllers\BranchController::class, 'store'])->name('branches.store');
+        Route::get('/branches/{branch}/edit', [\App\Http\Controllers\BranchController::class, 'edit'])->name('branches.edit');
+        Route::put('/branches/{branch}', [\App\Http\Controllers\BranchController::class, 'update'])->name('branches.update');
+        Route::delete('/branches/{branch}', [\App\Http\Controllers\BranchController::class, 'destroy'])->name('branches.destroy');
+        
         Route::get('/locations', [\App\Http\Controllers\LocationController::class, 'index'])->name('locations');
         Route::get('/locations/create', [\App\Http\Controllers\LocationController::class, 'create'])->name('locations.create');
         Route::post('/locations', [\App\Http\Controllers\LocationController::class, 'store'])->name('locations.store');
         Route::get('/locations/{location}/edit', [\App\Http\Controllers\LocationController::class, 'edit'])->name('locations.edit');
         Route::put('/locations/{location}', [\App\Http\Controllers\LocationController::class, 'update'])->name('locations.update');
         Route::delete('/locations/{location}', [\App\Http\Controllers\LocationController::class, 'destroy'])->name('locations.destroy');
-        Route::get('/warehouses', function () { return view('store.warehouses'); })->name('warehouses');
-        Route::get('/settings', function () { return view('store.settings'); })->name('settings');
+        
+        Route::get('/warehouses', [\App\Http\Controllers\LocationController::class, 'index'])->name('warehouses');
+        
+        Route::get('/settings', [\App\Http\Controllers\StoreSettingController::class, 'settingsPage'])->name('settings');
+        Route::put('/settings', [\App\Http\Controllers\StoreSettingController::class, 'update'])->name('settings.update');
     });
 
     // HR

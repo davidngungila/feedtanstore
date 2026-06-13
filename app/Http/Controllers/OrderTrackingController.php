@@ -7,9 +7,15 @@ use Illuminate\Http\Request;
 
 class OrderTrackingController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $orders = OnlineOrder::with(['items', 'rider', 'user'])->latest()->get();
+        $query = OnlineOrder::with(['items', 'rider', 'user'])->latest();
+        
+        if ($request->has('order_number') && $request->order_number) {
+            $query->where('order_number', 'like', '%' . $request->order_number . '%');
+        }
+        
+        $orders = $query->get();
         return view('online.tracking', compact('orders'));
     }
 

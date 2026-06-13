@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Customer;
 use App\Models\OnlineOrder;
 use App\Models\OnlineOrderItem;
+use App\Models\OnlineOrderStatusHistory;
 use App\Models\Product;
 use App\Models\DeliveryRider;
 use App\Models\AccountingEntry;
@@ -81,6 +82,15 @@ class OnlineOrderController extends Controller
                 'total' => $product->selling_price * $item['quantity']
             ]);
         }
+
+        // Log initial status
+        OnlineOrderStatusHistory::create([
+            'online_order_id' => $order->id,
+            'status' => $order->status,
+            'payment_status' => $order->payment_status,
+            'notes' => 'Order created',
+            'user_id' => Auth::id()
+        ]);
 
         return redirect()->route('online.orders')->with('success', 'Online Order created successfully!');
     }
@@ -169,19 +179,45 @@ class OnlineOrderController extends Controller
     {
         $request->validate([
             'status' => 'required|in:pending,confirmed,preparing,ready,out_for_delivery,delivered,cancelled',
-            'payment_status' => 'nullable|in:pending,paid,failed'
+            'payment_status' => 'nullable|in:pending,paid,failed',
+            'notes' => 'nullable|string'
         ]);
+
+        $oldStatus = $order->status;
+        $oldPaymentStatus = $order->payment_status;
 
         $order->update([
             'status' => $request->status,
             'payment_status' => $request->payment_status ?? $order->payment_status
         ]);
 
-        // If order is delivered and paid, create accounting entries and reduce stock
-        if ($request->status === 'delivered' && $request->payment_status === 'paid') {
+        // Log status change
+        $statusChangeNote = '';
+        if ($oldStatus !== $order->status) {
+            $statusChangeNote .= "Status changed from {$oldStatus} to {$order->status}";
+        }
+        if ($oldPaymentStatus !== $order->payment_status) {
+            if ($statusChangeNote) {
+                $statusChangeNote .= ' | ';
+            }
+            $statusChangeNote .= "Payment status changed from {$oldPaymentStatus} to {$order->payment_status}";
+        }
+
+        OnlineOrderStatusHistory::create([
+            'online_order_id' => $order->id,
+            'status' => $order->status,
+            'payment_status' => $order->payment_status,
+            'notes' => $request->notes ?? $statusChangeNote,
+            'user_id' => Auth::id()
+        ]);
+
+        // If order is delivered and paid, create accounting entries and reduce stock (only once)
+        if ($order->status === 'delivered' && $order->payment_status === 'paid' && !$order->is_processed) {
             foreach ($order->items as $item) {
                 $product = Product::find($item->product_id);
-                $product->update(['quantity' => $product->quantity - $item->quantity]);
+                if ($product) {
+                    $product->update(['quantity' => max(0, $product->quantity - $item->quantity)]);
+                }
             }
 
             AccountingEntry::create([
@@ -201,6 +237,8 @@ class OnlineOrderController extends Controller
                 'amount' => $order->total,
                 'description' => 'Online Order'
             ]);
+
+            $order->update(['is_processed' => true]);
         }
 
         return back()->with('success', 'Order status updated successfully!');
@@ -209,10 +247,21 @@ class OnlineOrderController extends Controller
     public function assignRider(Request $request, OnlineOrder $order)
     {
         $request->validate([
-            'delivery_rider_id' => 'required|exists:delivery_riders,id'
+            'delivery_rider_id' => 'required|exists:delivery_riders,id',
+            'notes' => 'nullable|string'
         ]);
 
+        $oldStatus = $order->status;
         $order->update(['delivery_rider_id' => $request->delivery_rider_id, 'status' => 'out_for_delivery']);
+
+        // Log status change
+        OnlineOrderStatusHistory::create([
+            'online_order_id' => $order->id,
+            'status' => $order->status,
+            'payment_status' => $order->payment_status,
+            'notes' => $request->notes ?? "Rider assigned and status changed from {$oldStatus} to {$order->status}",
+            'user_id' => Auth::id()
+        ]);
 
         return back()->with('success', 'Rider assigned successfully!');
     }

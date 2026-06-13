@@ -1,129 +1,272 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ $grn->grn_number }}</title>
-    <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body {
-            font-family: 'Plus Jakarta Sans', Arial, sans-serif;
-            padding: 20px;
-            color: #064e3b;
-        }
-        .header {
-            text-align: center;
-            margin-bottom: 30px;
-            padding-bottom: 20px;
-            border-bottom: 2px solid #10b981;
-        }
-        .header h1 { color: #064e3b; font-size: 24px; margin-bottom: 5px; }
-        .header p { color: #6b7280; font-size: 12px; }
-        .info-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-        .info-item { margin-bottom: 15px; }
-        .info-label { font-size: 12px; color: #6b7280; margin-bottom: 3px; }
-        .info-value { font-size: 14px; font-weight: 600; }
-        table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
-        th {
-            background: #ecfdf5;
-            padding: 10px;
-            text-align: left;
-            font-size: 12px;
-            font-weight: 600;
-            border-bottom: 1px solid #10b981;
-        }
-        td { padding: 10px; border-bottom: 1px solid #e5e7eb; font-size: 13px; }
-        .text-right { text-align: right; }
-        .total-row {
-            border-top: 2px solid #10b981;
-            padding-top: 15px;
-            margin-top: 15px;
-            text-align: right;
-        }
-        .total-label { font-weight: 600; font-size: 14px; }
-        .total-value { font-weight: 700; font-size: 16px; color: #065f46; }
-        .footer {
-            margin-top: 40px;
-            padding-top: 20px;
-            border-top: 1px solid #e5e7eb;
-            text-align: center;
-            font-size: 11px;
-            color: #6b7280;
-        }
-    </style>
-</head>
-<body>
-    <div class="header">
-        <h1>FEEDTAN STORE</h1>
-        <p>Goods Received Note</p>
-    </div>
+ <html>
+ <head>
+     <meta charset="utf-8">
+     <title>Goods Received Note - {{ $grn->grn_number ?? 'N/A' }}</title>
+     <style>
+          body {
+              font-family: 'Helvetica', 'Arial', sans-serif;
+              color: #333;
+              line-height: 1.4;
+              margin: 0;
+              padding: 0;
+          }
+          .container {
+              width: 100%;
+              padding: 10px;
+          }
+          .header {
+              text-align: center;
+              border-bottom: 2px solid #16a34a;
+              padding-bottom: 15px;
+              margin-bottom: 20px;
+          }
+          .logo {
+              font-size: 22px;
+              font-weight: 900;
+              color: #16a34a;
+              text-transform: uppercase;
+              letter-spacing: 1px;
+          }
+          .sub-header {
+              font-size: 11px;
+              color: #16a34a;
+              font-weight: bold;
+              margin-top: 2px;
+              text-transform: uppercase;
+          }
+          .receipt-title {
+              font-size: 18px;
+              margin-top: 8px;
+              color: #111;
+              font-weight: 900;
+              background: #f3f4f6;
+              padding: 5px;
+              display: inline-block;
+              border-radius: 4px;
+          }
+          .watermark {
+              position: absolute;
+              top: 50%;
+              left: 50%;
+              transform: translate(-50%, -50%) rotate(-45deg);
+              font-size: 100px;
+              color: rgba(22, 163, 74, 0.05);
+              z-index: -1;
+              font-weight: bold;
+              white-space: nowrap;
+          }
+          .details-table {
+              width: 100%;
+              border-collapse: collapse;
+              margin-bottom: 20px;
+          }
+          .details-table td {
+              padding: 6px 0;
+              vertical-align: top;
+          }
+          .label {
+              font-weight: 800;
+              color: #4b5563;
+              width: 130px;
+              text-transform: uppercase;
+              font-size: 10px;
+          }
+          .value {
+              font-weight: 700;
+              color: #111;
+              font-size: 12px;
+          }
+          .amount-section {
+              background: linear-gradient(to right, #f0fdf4, #ffffff);
+              border: 1px solid #bcf0da;
+              padding: 15px;
+              margin-bottom: 20px;
+              border-radius: 8px;
+              position: relative;
+          }
+          .amount-label {
+              font-size: 10px;
+              color: #16a34a;
+              font-weight: 900;
+              text-transform: uppercase;
+              margin-bottom: 3px;
+          }
+          .amount-value {
+              font-size: 28px;
+              font-weight: 900;
+              color: #15803d;
+          }
+          .amount-words {
+              font-size: 11px;
+              font-style: italic;
+              color: #6b7280;
+              margin-top: 5px;
+              text-transform: capitalize;
+          }
+          .info-grid {
+              width: 100%;
+              margin-bottom: 20px;
+          }
+          .info-card {
+              border: 1px solid #e5e7eb;
+              border-radius: 6px;
+              padding: 12px;
+              background: #fff;
+          }
+          .qr-code-box {
+              text-align: right;
+          }
+          .status-badge {
+              display: inline-block;
+              padding: 3px 8px;
+              border-radius: 9999px;
+              font-size: 9px;
+              font-weight: 900;
+              text-transform: uppercase;
+          }
+          .status-verified { background: #dcfce7; color: #166534; }
+          .footer {
+              margin-top: 40px;
+              text-align: center;
+              font-size: 10px;
+              color: #6b7280;
+              border-top: 1px dashed #e5e7eb;
+              padding-top: 15px;
+          }
+          .signature-grid {
+              margin-top: 50px;
+              width: 100%;
+          }
+          .sig-line {
+              border-top: 1px solid #374151;
+              width: 160px;
+              margin: 0 auto 5px;
+          }
+          .sig-text {
+              font-size: 9px;
+              font-weight: bold;
+              color: #4b5563;
+          }
+          .items-table {
+              width: 100%;
+              border-collapse: collapse;
+              margin-top: 20px;
+              margin-bottom: 20px;
+          }
+          .items-table th {
+              background: #16a34a;
+              color: white;
+              padding: 8px;
+              text-align: left;
+              font-size: 10px;
+          }
+          .items-table td {
+              padding: 6px 8px;
+              border-bottom: 1px solid #e5e7eb;
+              font-size: 11px;
+          }
+      </style>
+  </head>
+  <body>
+      <div class="watermark">OFFICIAL</div>
 
-    <div class="info-grid">
-        <div>
-            <div class="info-item">
-                <p class="info-label">GRN Number</p>
-                <p class="info-value">{{ $grn->grn_number }}</p>
-            </div>
-            <div class="info-item">
-                <p class="info-label">Supplier</p>
-                <p class="info-value">{{ $grn->supplier->name ?? 'N/A' }}</p>
-            </div>
-            <div class="info-item">
-                <p class="info-label">Received Date</p>
-                <p class="info-value">{{ $grn->received_date ? date('M d, Y', strtotime($grn->received_date)) : '-' }}</p>
-            </div>
-        </div>
-        <div>
-            <div class="info-item">
-                <p class="info-label">Purchase Order</p>
-                <p class="info-value">{{ $grn->purchaseOrder?->po_number ?? 'N/A' }}</p>
-            </div>
-        </div>
-    </div>
+      <div class="container">
+          <div class="header">
+              <div class="logo" style="font-size: 18px;">FeedTan Store</div>
+              <div class="sub-header" style="font-size: 10px; margin-top: 4px;">Inventory & Sales Management System</div>
+              <div class="receipt-title">GOODS RECEIVED NOTE</div>
+          </div>
 
-    @if($grn->notes)
-    <div style="margin-bottom: 25px;">
-        <p class="info-label">Notes</p>
-        <p style="font-size: 13px;">{{ $grn->notes }}</p>
-    </div>
-    @endif
+          <table style="width: 100%; margin-bottom: 15px;">
+              <tr>
+                  <td>
+                      <div class="label">GRN Number:</div>
+                      <div class="value" style="font-size: 16px; color: #16a34a;">{{ $grn->grn_number ?? 'N/A' }}</div>
+                  </td>
+                  <td style="text-align: right;">
+                      <div class="label">Date Received:</div>
+                      <div class="value">{{ $grn->received_at->format('l, d F Y') }}</div>
+                      <div class="value" style="font-size: 10px; color: #6b7280; font-weight: normal;">Time: {{ $grn->received_at->format('H:i:s') }}</div>
+                  </td>
+              </tr>
+          </table>
 
-    <table>
-        <thead>
-            <tr>
-                <th>Product</th>
-                <th class="text-right">Quantity</th>
-                <th class="text-right">Unit Price</th>
-                <th class="text-right">Total</th>
-                <th>Expiry Date</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach($grn->items as $item)
-            <tr>
-                <td>{{ $item->product->name ?? 'N/A' }}</td>
-                <td class="text-right">{{ $item->quantity }}</td>
-                <td class="text-right">TZS {{ number_format($item->unit_price, 2) }}</td>
-                <td class="text-right">TZS {{ number_format($item->total, 2) }}</td>
-                <td>{{ $item->expiry_date ? date('M d, Y', strtotime($item->expiry_date)) : '-' }}</td>
-            </tr>
-            @endforeach
-        </tbody>
-    </table>
+          <div class="info-card">
+              <table class="details-table">
+                  <tr>
+                      <td class="label">Supplier:</td>
+                      <td class="value" style="font-size: 14px;">{{ strtoupper($grn->supplier->name ?? 'N/A') }}</td>
+                  </tr>
+                  @if($grn->purchase_order_id)
+                  <tr>
+                      <td class="label">Purchase Order:</td>
+                      <td class="value">{{ $grn->purchaseOrder->po_number ?? 'N/A' }}</td>
+                  </tr>
+                  @endif
+                  @if($grn->notes)
+                  <tr>
+                      <td class="label">Notes:</td>
+                      <td class="value">{{ strtoupper($grn->notes) }}</td>
+                  </tr>
+                  @endif
+                  <tr>
+                      <td class="label">Status:</td>
+                      <td class="value">
+                          <span class="status-badge status-verified">
+                              RECEIVED
+                          </span>
+                      </td>
+                  </tr>
+              </table>
+          </div>
 
-    <div class="total-row">
-        <span class="total-label">Total Amount: </span>
-        <span class="total-value">TZS {{ number_format($grn->total, 2) }}</span>
-    </div>
+          <h4 style="font-size: 12px; color: #111; font-weight: bold; margin-bottom: 10px;">Received Items:</h4>
+          <table class="items-table">
+              <thead>
+                  <tr>
+                      <th>Product</th>
+                      <th style="text-align: right;">Qty</th>
+                      <th style="text-align: right;">Unit Price</th>
+                      <th style="text-align: right;">Total</th>
+                      <th>Expiry Date</th>
+                  </tr>
+              </thead>
+              <tbody>
+                  @foreach($grn->items as $item)
+                  <tr>
+                      <td>{{ $item->product->name ?? 'Product' }}</td>
+                      <td style="text-align: right;">{{ $item->quantity }}</td>
+                      <td style="text-align: right;">TZS {{ number_format($item->unit_price, 2) }}</td>
+                      <td style="text-align: right;">TZS {{ number_format($item->total, 2) }}</td>
+                      <td>{{ $item->expiry_date ? $item->expiry_date->format('d/m/Y') : 'N/A' }}</td>
+                  </tr>
+                  @endforeach
+              </tbody>
+          </table>
 
-    <div class="footer">
-        <p>Generated on {{ date('M d, Y H:i:s') }}</p>
-        <p>FEEDTAN STORE - All rights reserved</p>
-    </div>
-</body>
-</html>
+          <div class="info-card">
+              <table class="details-table" style="width: 100%;">
+                  <tr>
+                      <td class="label" style="font-size: 14px; border-top: 2px solid #16a34a; padding-top: 8px;">Total:</td>
+                      <td class="value" style="font-size: 16px; text-align: right; border-top: 2px solid #16a34a; padding-top: 8px; color: #15803d;">TZS {{ number_format($grn->total, 2) }}</td>
+                  </tr>
+              </table>
+          </div>
+
+          @php
+              $amount = $grn->total;
+              $f = new NumberFormatter("en", NumberFormatter::SPELLOUT);
+              $words = $f->format($amount);
+          @endphp
+
+          <div class="footer">
+             <strong>FEEDTAN STORE INVENTORY SYSTEM</strong><br>
+             Powered by FeedTan Team<br>
+             <div style="margin-top: 10px; font-size: 8px; color: #9ca3af;">
+                 This document is electronically generated and verified by FEEDTAN STORE INVENTORY SYSTEM.
+             </div>
+         </div>
+      </div>
+  </body>
+  </html>

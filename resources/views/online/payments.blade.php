@@ -46,10 +46,10 @@
                         <td class="px-4 py-3 font-semibold">TZS {{ number_format($order->total, 2) }}</td>
                         <td class="px-4 py-3">
                             <span class="px-2 py-1 rounded-full text-xs font-semibold 
-                                @if($order->payment_status === 'Paid') bg-green-100 text-green-800
-                                @elseif($order->payment_status === 'Pending') bg-yellow-100 text-yellow-800
+                                @if($order->payment_status === 'paid') bg-green-100 text-green-800
+                                @elseif($order->payment_status === 'pending') bg-yellow-100 text-yellow-800
                                 @else bg-red-100 text-red-800 @endif">
-                                {{ $order->payment_status }}
+                                {{ ucwords($order->payment_status) }}
                             </span>
                         </td>
                         <td class="px-4 py-3">{{ $order->created_at->format('d/m/Y H:i') }}</td>

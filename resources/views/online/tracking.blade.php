@@ -9,9 +9,9 @@
             <h2 class="text-xl font-bold text-primary-900">Order Tracking</h2>
         </div>
 
-        <form action="" method="GET" class="mb-6">
+        <form action="{{ route('online.tracking') }}" method="GET" class="mb-6">
             <div class="flex gap-2">
-                <input type="text" name="order_number" placeholder="Enter Order Number" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                <input type="text" name="order_number" placeholder="Enter Order Number" value="{{ request('order_number') }}" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
                 <button type="submit" class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors">
                     Track Order
                 </button>
@@ -38,24 +38,24 @@
                         <td class="px-4 py-3">{{ $order->customer_name }}</td>
                         <td class="px-4 py-3">
                             <div class="flex items-center gap-2">
-                                @if($order->status === 'Delivered')
+                                @if($order->status === 'delivered')
                                     <i class="fas fa-check-circle text-green-500"></i>
-                                @elseif($order->status === 'Out for Delivery')
+                                @elseif($order->status === 'out_for_delivery')
                                     <i class="fas fa-truck text-orange-500"></i>
-                                @elseif($order->status === 'Ready')
+                                @elseif($order->status === 'ready')
                                     <i class="fas fa-box text-cyan-500"></i>
                                 @else
                                     <i class="fas fa-clock text-yellow-500"></i>
                                 @endif
                                 <span class="px-2 py-1 rounded-full text-xs font-semibold 
-                                    @if($order->status === 'Pending') bg-yellow-100 text-yellow-800
-                                    @elseif($order->status === 'Confirmed') bg-blue-100 text-blue-800
-                                    @elseif($order->status === 'Preparing') bg-purple-100 text-purple-800
-                                    @elseif($order->status === 'Ready') bg-cyan-100 text-cyan-800
-                                    @elseif($order->status === 'Out for Delivery') bg-orange-100 text-orange-800
-                                    @elseif($order->status === 'Delivered') bg-green-100 text-green-800
+                                    @if($order->status === 'pending') bg-yellow-100 text-yellow-800
+                                    @elseif($order->status === 'confirmed') bg-blue-100 text-blue-800
+                                    @elseif($order->status === 'preparing') bg-purple-100 text-purple-800
+                                    @elseif($order->status === 'ready') bg-cyan-100 text-cyan-800
+                                    @elseif($order->status === 'out_for_delivery') bg-orange-100 text-orange-800
+                                    @elseif($order->status === 'delivered') bg-green-100 text-green-800
                                     @else bg-red-100 text-red-800 @endif">
-                                    {{ $order->status }}
+                                    {{ ucwords(str_replace('_', ' ', $order->status)) }}
                                 </span>
                             </div>
                         </td>

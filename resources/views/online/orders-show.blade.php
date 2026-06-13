@@ -118,12 +118,12 @@
         @endif
 
         <!-- Action Buttons -->
-        <div class="flex flex-wrap gap-3 justify-end">
+        <div class="flex flex-wrap gap-3 justify-end mb-6">
             <!-- Update Status -->
-            <form action="{{ route('online.orders.status', $order) }}" method="POST" class="flex gap-2 items-center">
+            <form action="{{ route('online.orders.status', $order) }}" method="POST" class="flex flex-wrap gap-2 items-center">
                 @csrf
                 @method('PUT')
-                <select name="status" class="px-3 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-primary-500">
+                <select name="status" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500">
                     <option value="pending" {{ $order->status === 'pending' ? 'selected' : '' }}>Pending</option>
                     <option value="confirmed" {{ $order->status === 'confirmed' ? 'selected' : '' }}>Confirmed</option>
                     <option value="preparing" {{ $order->status === 'preparing' ? 'selected' : '' }}>Preparing</option>
@@ -132,30 +132,69 @@
                     <option value="delivered" {{ $order->status === 'delivered' ? 'selected' : '' }}>Delivered</option>
                     <option value="cancelled" {{ $order->status === 'cancelled' ? 'selected' : '' }}>Cancelled</option>
                 </select>
-                <select name="payment_status" class="px-3 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-primary-500">
+                <select name="payment_status" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500">
                     <option value="pending" {{ $order->payment_status === 'pending' ? 'selected' : '' }}>Payment: Pending</option>
                     <option value="paid" {{ $order->payment_status === 'paid' ? 'selected' : '' }}>Payment: Paid</option>
                     <option value="failed" {{ $order->payment_status === 'failed' ? 'selected' : '' }}>Payment: Failed</option>
                 </select>
-                <button type="submit" class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded transition-colors">
+                <input type="text" name="notes" placeholder="Notes (optional)" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500">
+                <button type="submit" class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors">
                     Update Status
                 </button>
             </form>
 
             <!-- Assign Rider -->
             @if($order->status !== 'delivered' && $order->status !== 'cancelled')
-            <form action="{{ route('online.orders.assign-rider', $order) }}" method="POST" class="flex gap-2 items-center">
+            <form action="{{ route('online.orders.assign-rider', $order) }}" method="POST" class="flex flex-wrap gap-2 items-center">
                 @csrf
-                <select name="delivery_rider_id" class="px-3 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-primary-500">
+                <select name="delivery_rider_id" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500">
                     <option value="">Assign Rider</option>
                     @foreach(\App\Models\DeliveryRider::where('is_active', true)->get() as $rider)
                         <option value="{{ $rider->id }}" {{ $order->delivery_rider_id == $rider->id ? 'selected' : '' }}>{{ $rider->name }}</option>
                     @endforeach
                 </select>
-                <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded transition-colors">
+                <input type="text" name="notes" placeholder="Notes (optional)" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500">
+                <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">
                     Assign
                 </button>
             </form>
+            @endif
+        </div>
+
+        <!-- Status History -->
+        <div class="card rounded-2xl p-6">
+            <h3 class="text-lg font-bold text-primary-900 mb-4 flex items-center gap-2">
+                <i class="fas fa-history text-primary-600"></i> Order Tracking History
+            </h3>
+            @if($order->statusHistory->count() > 0)
+                <div class="space-y-4">
+                    @foreach($order->statusHistory as $history)
+                        <div class="flex gap-4 items-start border-l-2 border-primary-200 pl-4 pb-4">
+                            <div class="flex-shrink-0 w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center text-primary-700 font-semibold text-sm">
+                                {{ strtoupper(substr($history->user->name ?? 'System', 0, 1)) }}
+                            </div>
+                            <div class="flex-1">
+                                <div class="flex flex-wrap items-center gap-3 mb-1">
+                                    <span class="font-semibold text-primary-900">{{ ucwords(str_replace('_', ' ', $history->status)) }}</span>
+                                    @if($history->payment_status)
+                                        <span class="text-sm px-2 py-1 rounded-full bg-gray-100 text-gray-700">
+                                            {{ ucwords($history->payment_status) }}
+                                        </span>
+                                    @endif
+                                    <span class="text-xs text-gray-500">{{ $history->created_at->format('d/m/Y H:i:s') }}</span>
+                                </div>
+                                @if($history->notes)
+                                    <p class="text-sm text-gray-700">{{ $history->notes }}</p>
+                                @endif
+                                @if($history->user)
+                                    <p class="text-xs text-gray-500 mt-1">By: {{ $history->user->name }}</p>
+                                @endif
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            @else
+                <p class="text-gray-500 text-center py-8">No tracking history yet.</p>
             @endif
         </div>
     </div>
