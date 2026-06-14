@@ -22,12 +22,13 @@ class ReceiptController extends Controller {
         $sale = Sale::withTrashed()->findOrFail($id);
         $sale->load(['customer', 'user', 'items.product']);
         
-        // Generate SVG QR code (no image extensions needed!)
-        $qrCodeSvg = \QrCode::size(100)->format('svg')->generate(route('sales.show', $sale));
+        // Generate PNG QR code for better PDF compatibility
+        $qrCodePng = \QrCode::size(100)->format('png')->generate(route('sales.show', $sale));
+        $qrCodeBase64 = 'data:image/png;base64,' . base64_encode($qrCodePng);
 
         // Instantiate and use the dompdf class
         $dompdf = new Dompdf();
-        $html = view('sales.receipt-pdf', compact('sale', 'qrCodeSvg'))->render();
+        $html = view('sales.receipt-pdf', compact('sale', 'qrCodeBase64'))->render();
         $dompdf->loadHtml($html);
 
         // (Optional) Setup the paper size and orientation
@@ -44,9 +45,10 @@ class ReceiptController extends Controller {
         $sale = Sale::withTrashed()->findOrFail($id);
         $sale->load(['customer', 'user', 'items.product']);
         
-        // Generate SVG QR code for print view (no image extensions needed!)
-        $qrCodeSvg = \QrCode::size(100)->format('svg')->generate(route('sales.show', $sale));
+        // Generate PNG QR code for print view
+        $qrCodePng = \QrCode::size(100)->format('png')->generate(route('sales.show', $sale));
+        $qrCodeBase64 = 'data:image/png;base64,' . base64_encode($qrCodePng);
         
-        return view('sales.receipt-print', compact('sale', 'qrCodeSvg'));
+        return view('sales.receipt-print', compact('sale', 'qrCodeBase64'));
     }
 }

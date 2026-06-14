@@ -161,7 +161,7 @@
         </div>
         
         <div class="qr-code">
-            {!! $qrCodeSvg !!}
+            <img src="{{ $qrCodeBase64 }}" alt="QR Code" style="max-width: 100px; height: auto;">
             <p style="font-size: 11px; margin-top: 4px; color: #166534;">Scan to verify</p>
         </div>
         
