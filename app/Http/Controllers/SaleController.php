@@ -210,7 +210,7 @@ class SaleController extends Controller {
 
         $sale->delete();
 
-        return redirect()->route('sales.index')->with('success', 'Sale cancelled successfully!');
+        return redirect()->route('sales.history')->with('success', 'Sale cancelled successfully!');
     }
 
     protected function createAccountingEntries(Sale $sale) {
