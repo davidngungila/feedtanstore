@@ -22,26 +22,26 @@
     </div>
 
     <!-- KPI Cards -->
-    <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
-        <div class="card rounded-2xl p-5">
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+        <div class="card rounded-2xl p-5 overflow-hidden">
             <div class="text-sm" :class="darkMode?'text-primary-400':'text-gray-500'">Total Products</div>
-            <div class="text-2xl font-bold" :class="darkMode?'text-white':'text-primary-900'">{{ $totalProducts }}</div>
+            <div class="text-lg sm:text-xl md:text-2xl font-bold break-all" :class="darkMode?'text-white':'text-primary-900'">{{ $totalProducts }}</div>
         </div>
-        <div class="card rounded-2xl p-5">
+        <div class="card rounded-2xl p-5 overflow-hidden">
             <div class="text-sm" :class="darkMode?'text-primary-400':'text-gray-500'">Inventory Value</div>
-            <div class="text-2xl font-bold" :class="darkMode?'text-white':'text-primary-900'">TZS {{ number_format($totalValue, 2) }}</div>
+            <div class="text-lg sm:text-xl md:text-2xl font-bold break-all" :class="darkMode?'text-white':'text-primary-900'">TZS {{ number_format($totalValue, 2) }}</div>
         </div>
-        <div class="card rounded-2xl p-5">
+        <div class="card rounded-2xl p-5 overflow-hidden">
             <div class="text-sm" :class="darkMode?'text-primary-400':'text-gray-500'">Retail Value</div>
-            <div class="text-2xl font-bold" :class="darkMode?'text-white':'text-primary-900'">TZS {{ number_format($totalRetailValue, 2) }}</div>
+            <div class="text-lg sm:text-xl md:text-2xl font-bold break-all" :class="darkMode?'text-white':'text-primary-900'">TZS {{ number_format($totalRetailValue, 2) }}</div>
         </div>
-        <div class="card rounded-2xl p-5">
+        <div class="card rounded-2xl p-5 overflow-hidden">
             <div class="text-sm" :class="darkMode?'text-primary-400':'text-gray-500'">In Stock</div>
-            <div class="text-2xl font-bold" :class="darkMode?'text-white':'text-green-600'">{{ $inStock }}</div>
+            <div class="text-lg sm:text-xl md:text-2xl font-bold break-all" :class="darkMode?'text-white':'text-green-600'">{{ $inStock }}</div>
         </div>
-        <div class="card rounded-2xl p-5">
+        <div class="card rounded-2xl p-5 overflow-hidden">
             <div class="text-sm" :class="darkMode?'text-primary-400':'text-gray-500'">Low Stock</div>
-            <div class="text-2xl font-bold" :class="darkMode?'text-white':'text-yellow-600'">{{ $lowStock }}</div>
+            <div class="text-lg sm:text-xl md:text-2xl font-bold break-all" :class="darkMode?'text-white':'text-yellow-600'">{{ $lowStock }}</div>
         </div>
     </div>
 

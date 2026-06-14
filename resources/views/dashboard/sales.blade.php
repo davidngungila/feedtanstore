@@ -22,19 +22,19 @@
     </div>
 
     <!-- KPI Cards -->
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div class="card rounded-2xl p-5">
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+        <div class="card rounded-2xl p-5 overflow-hidden">
             <div class="text-sm" :class="darkMode?'text-primary-400':'text-gray-500'">Revenue</div>
-            <div class="text-2xl font-bold" :class="darkMode?'text-white':'text-primary-900'">TZS {{ number_format($filteredRevenue, 2) }}</div>
+            <div class="text-lg sm:text-xl md:text-2xl font-bold break-all" :class="darkMode?'text-white':'text-primary-900'">TZS {{ number_format($filteredRevenue, 2) }}</div>
             <div class="text-xs mt-1" :class="darkMode?'text-primary-500':'text-gray-400'">{{ $filteredTransactions }} transactions</div>
         </div>
-        <div class="card rounded-2xl p-5">
+        <div class="card rounded-2xl p-5 overflow-hidden">
             <div class="text-sm" :class="darkMode?'text-primary-400':'text-gray-500'">Items Sold</div>
-            <div class="text-2xl font-bold" :class="darkMode?'text-white':'text-primary-900'">{{ $filteredItems }}</div>
+            <div class="text-lg sm:text-xl md:text-2xl font-bold break-all" :class="darkMode?'text-white':'text-primary-900'">{{ $filteredItems }}</div>
         </div>
-        <div class="card rounded-2xl p-5">
+        <div class="card rounded-2xl p-5 overflow-hidden">
             <div class="text-sm" :class="darkMode?'text-primary-400':'text-gray-500'">Returns</div>
-            <div class="text-2xl font-bold" :class="darkMode?'text-white':'text-red-600'">TZS {{ number_format($returnsAmount, 2) }}</div>
+            <div class="text-lg sm:text-xl md:text-2xl font-bold break-all" :class="darkMode?'text-white':'text-red-600'">TZS {{ number_format($returnsAmount, 2) }}</div>
             <div class="text-xs mt-1" :class="darkMode?'text-primary-500':'text-gray-400'">{{ $returnsCount }} returns</div>
         </div>
     </div>
