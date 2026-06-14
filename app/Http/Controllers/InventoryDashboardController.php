@@ -16,11 +16,16 @@ class InventoryDashboardController extends Controller
 {
     public function index(Request $request)
     {
-        // Get filter from request, default to 'day'
-        $filter = $request->input('filter', 'day');
+        // Get custom date range from request
+        $startDate = $request->input('start_date', now()->startOfDay()->toDateString());
+        $endDate = $request->input('end_date', now()->endOfDay()->toDateString());
         
-        // Calculate date range based on filter
-        list($startDate, $endDate, $labelFormat) = $this->getDateRange($filter);
+        // Convert to Carbon instances
+        $start = Carbon::parse($startDate)->startOfDay();
+        $end = Carbon::parse($endDate)->endOfDay();
+        
+        // Label format for charts
+        $labelFormat = $start->diffInDays($end) > 30 ? 'M Y' : 'd M';
         
         // Total products summary
         $totalProducts = Product::count();
@@ -35,9 +40,9 @@ class InventoryDashboardController extends Controller
         $expired = Product::whereNotNull('expiry_date')->where('expiry_date', '<', now())->count();
 
         // Stock movements
-        $adjustments = StockAdjustment::whereBetween('created_at', [$startDate, $endDate])->count();
-        $transfers = StockTransfer::whereBetween('created_at', [$startDate, $endDate])->count();
-        $damaged = DamagedGood::whereBetween('created_at', [$startDate, $endDate])->count();
+        $adjustments = StockAdjustment::whereBetween('created_at', [$start, $end])->count();
+        $transfers = StockTransfer::whereBetween('created_at', [$start, $end])->count();
+        $damaged = DamagedGood::whereBetween('created_at', [$start, $end])->count();
 
         // Products by category
         $productsByCategory = Category::withCount('products')->orderByDesc('products_count')->limit(10)->get();
@@ -56,12 +61,12 @@ class InventoryDashboardController extends Controller
             ->limit(10)
             ->get();
 
-        // Inventory value trend
+        // Inventory value trend (per day in date range)
         $inventoryValueData = [];
         $labels = [];
-        $days = $this->getTrendDays($filter);
-        for ($i = $days - 1; $i >= 0; $i--) {
-            $labels[] = now()->subDays($i)->format($labelFormat);
+        $days = $start->diffInDays($end) + 1;
+        for ($i = 0; $i < $days; $i++) {
+            $labels[] = $start->copy()->addDays($i)->format($labelFormat);
             $inventoryValueData[] = Product::sum(DB::raw('quantity * cost_price'));
         }
 
@@ -85,45 +90,8 @@ class InventoryDashboardController extends Controller
             'lowStockProducts',
             'inventoryValueData',
             'labels',
-            'filter'
+            'startDate',
+            'endDate'
         ));
-    }
-
-    private function getDateRange($filter)
-    {
-        $now = now();
-        
-        switch ($filter) {
-            case 'week':
-                return [$now->startOfWeek(), $now->endOfWeek(), 'd M'];
-            case 'month':
-                return [$now->startOfMonth(), $now->endOfMonth(), 'd M'];
-            case '3months':
-                return [$now->subMonths(3)->startOfMonth(), $now->endOfMonth(), 'M Y'];
-            case '6months':
-                return [$now->subMonths(6)->startOfMonth(), $now->endOfMonth(), 'M Y'];
-            case 'year':
-                return [$now->startOfYear(), $now->endOfYear(), 'M Y'];
-            default: // day
-                return [$now->startOfDay(), $now->endOfDay(), 'H:i'];
-        }
-    }
-
-    private function getTrendDays($filter)
-    {
-        switch ($filter) {
-            case 'week':
-                return 7;
-            case 'month':
-                return 30;
-            case '3months':
-                return 90;
-            case '6months':
-                return 180;
-            case 'year':
-                return 365;
-            default: // day
-                return 24;
-        }
     }
 }

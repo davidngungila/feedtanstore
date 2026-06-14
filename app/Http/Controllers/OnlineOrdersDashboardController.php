@@ -13,23 +13,28 @@ class OnlineOrdersDashboardController extends Controller
 {
     public function index(Request $request)
     {
-        // Get filter from request, default to 'day'
-        $filter = $request->input('filter', 'day');
+        // Get custom date range from request
+        $startDate = $request->input('start_date', now()->startOfDay()->toDateString());
+        $endDate = $request->input('end_date', now()->endOfDay()->toDateString());
         
-        // Calculate date range based on filter
-        list($startDate, $endDate, $labelFormat) = $this->getDateRange($filter);
+        // Convert to Carbon instances
+        $start = Carbon::parse($startDate)->startOfDay();
+        $end = Carbon::parse($endDate)->endOfDay();
+        
+        // Label format for charts
+        $labelFormat = $start->diffInDays($end) > 30 ? 'M Y' : 'd M';
         
         // Filtered online orders data
-        $filteredOnlineOrders = OnlineOrder::whereBetween('created_at', [$startDate, $endDate])->get();
+        $filteredOnlineOrders = OnlineOrder::whereBetween('created_at', [$start, $end])->get();
         $filteredOnlineRevenue = $filteredOnlineOrders->sum('total');
         $filteredOnlineOrdersCount = $filteredOnlineOrders->count();
-        $filteredOnlineItems = OnlineOrderItem::whereHas('order', function($q) use ($startDate, $endDate) {
-            $q->whereBetween('created_at', [$startDate, $endDate]);
+        $filteredOnlineItems = OnlineOrderItem::whereHas('order', function($q) use ($start, $end) {
+            $q->whereBetween('created_at', [$start, $end]);
         })->sum('quantity');
 
         // Order status breakdown
         $statusBreakdown = OnlineOrder::select('status', DB::raw('COUNT(*) as count'))
-            ->whereBetween('created_at', [$startDate, $endDate])
+            ->whereBetween('created_at', [$start, $end])
             ->groupBy('status')
             ->get();
 
@@ -39,8 +44,8 @@ class OnlineOrdersDashboardController extends Controller
                 DB::raw('SUM(quantity) as total_quantity'),
                 DB::raw('SUM(online_order_items.total) as total_amount')
             )
-            ->whereHas('order', function($q) use ($startDate, $endDate) {
-                $q->whereBetween('created_at', [$startDate, $endDate]);
+            ->whereHas('order', function($q) use ($start, $end) {
+                $q->whereBetween('created_at', [$start, $end]);
             })
             ->groupBy('product_id')
             ->orderByDesc('total_quantity')
@@ -50,19 +55,19 @@ class OnlineOrdersDashboardController extends Controller
 
         // Rider performance
         $riderPerformance = DeliveryRider::withCount([
-            'onlineOrders' => function($q) use ($startDate, $endDate) {
-                $q->whereBetween('created_at', [$startDate, $endDate]);
+            'onlineOrders' => function($q) use ($start, $end) {
+                $q->whereBetween('created_at', [$start, $end]);
             }
         ])->get();
 
-        // Sales trend
+        // Sales trend (per day in date range)
         $onlineSalesData = [];
         $labels = [];
-        $days = $this->getTrendDays($filter);
-        for ($i = $days - 1; $i >= 0; $i--) {
-            $date = now()->subDays($i)->format('Y-m-d');
+        $days = $start->diffInDays($end) + 1;
+        for ($i = 0; $i < $days; $i++) {
+            $date = $start->copy()->addDays($i)->format('Y-m-d');
             $onlineSalesData[] = OnlineOrder::whereDate('created_at', $date)->sum('total');
-            $labels[] = now()->subDays($i)->format($labelFormat);
+            $labels[] = $start->copy()->addDays($i)->format($labelFormat);
         }
 
         // Recent online orders
@@ -79,45 +84,8 @@ class OnlineOrdersDashboardController extends Controller
             'onlineSalesData',
             'labels',
             'recentOnlineOrders',
-            'filter'
+            'startDate',
+            'endDate'
         ));
-    }
-
-    private function getDateRange($filter)
-    {
-        $now = now();
-        
-        switch ($filter) {
-            case 'week':
-                return [$now->startOfWeek(), $now->endOfWeek(), 'd M'];
-            case 'month':
-                return [$now->startOfMonth(), $now->endOfMonth(), 'd M'];
-            case '3months':
-                return [$now->subMonths(3)->startOfMonth(), $now->endOfMonth(), 'M Y'];
-            case '6months':
-                return [$now->subMonths(6)->startOfMonth(), $now->endOfMonth(), 'M Y'];
-            case 'year':
-                return [$now->startOfYear(), $now->endOfYear(), 'M Y'];
-            default: // day
-                return [$now->startOfDay(), $now->endOfDay(), 'H:i'];
-        }
-    }
-
-    private function getTrendDays($filter)
-    {
-        switch ($filter) {
-            case 'week':
-                return 7;
-            case 'month':
-                return 30;
-            case '3months':
-                return 90;
-            case '6months':
-                return 180;
-            case 'year':
-                return 365;
-            default: // day
-                return 24;
-        }
     }
 }

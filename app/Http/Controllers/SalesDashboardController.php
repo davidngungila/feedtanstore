@@ -15,28 +15,33 @@ class SalesDashboardController extends Controller
 {
     public function index(Request $request)
     {
-        // Get filter from request, default to 'day'
-        $filter = $request->input('filter', 'day');
+        // Get custom date range from request
+        $startDate = $request->input('start_date', now()->startOfDay()->toDateString());
+        $endDate = $request->input('end_date', now()->endOfDay()->toDateString());
         
-        // Calculate date range based on filter
-        list($startDate, $endDate, $labelFormat) = $this->getDateRange($filter);
+        // Convert to Carbon instances
+        $start = Carbon::parse($startDate)->startOfDay();
+        $end = Carbon::parse($endDate)->endOfDay();
+        
+        // Label format for charts
+        $labelFormat = $start->diffInDays($end) > 30 ? 'M Y' : 'd M';
         
         // Filtered sales data
-        $filteredSales = Sale::whereBetween('created_at', [$startDate, $endDate])->get();
+        $filteredSales = Sale::whereBetween('created_at', [$start, $end])->get();
         $filteredRevenue = $filteredSales->sum('total');
         $filteredTransactions = $filteredSales->count();
-        $filteredItems = SaleItem::whereHas('sale', function ($q) use ($startDate, $endDate) {
-            $q->whereBetween('created_at', [$startDate, $endDate]);
+        $filteredItems = SaleItem::whereHas('sale', function ($q) use ($start, $end) {
+            $q->whereBetween('created_at', [$start, $end]);
         })->sum('quantity');
 
-        // Sales trend
+        // Sales trend (per day in date range)
         $salesData = [];
         $labels = [];
-        $days = $this->getTrendDays($filter);
-        for ($i = $days - 1; $i >= 0; $i--) {
-            $date = now()->subDays($i)->format('Y-m-d');
+        $days = $start->diffInDays($end) + 1;
+        for ($i = 0; $i < $days; $i++) {
+            $date = $start->copy()->addDays($i)->format('Y-m-d');
             $salesData[] = Sale::whereDate('created_at', $date)->sum('total');
-            $labels[] = now()->subDays($i)->format($labelFormat);
+            $labels[] = $start->copy()->addDays($i)->format($labelFormat);
         }
 
         // Top products
@@ -45,8 +50,8 @@ class SalesDashboardController extends Controller
             DB::raw('SUM(quantity) as total_quantity'),
             DB::raw('SUM(sale_items.total) as total_amount')
         )
-            ->whereHas('sale', function ($q) use ($startDate, $endDate) {
-                $q->whereBetween('created_at', [$startDate, $endDate]);
+            ->whereHas('sale', function ($q) use ($start, $end) {
+                $q->whereBetween('created_at', [$start, $end]);
             })
             ->groupBy('product_id')
             ->orderByDesc('total_quantity')
@@ -62,14 +67,14 @@ class SalesDashboardController extends Controller
             DB::raw('COUNT(sales.id) as transactions')
         )
             ->join('sales', 'customers.id', '=', 'sales.customer_id')
-            ->whereBetween('sales.created_at', [$startDate, $endDate])
+            ->whereBetween('sales.created_at', [$start, $end])
             ->groupBy('customers.id', 'customers.name')
             ->orderByDesc('total_spent')
             ->limit(10)
             ->get();
 
         // Returns
-        $filteredReturns = SaleReturn::whereBetween('created_at', [$startDate, $endDate])->get();
+        $filteredReturns = SaleReturn::whereBetween('created_at', [$start, $end])->get();
         $returnsCount = $filteredReturns->count();
         $returnsAmount = $filteredReturns->sum('total');
 
@@ -79,24 +84,24 @@ class SalesDashboardController extends Controller
             DB::raw('COUNT(*) as count'),
             DB::raw('SUM(total) as total')
         )
-            ->whereBetween('created_at', [$startDate, $endDate])
+            ->whereBetween('created_at', [$start, $end])
             ->groupBy('payment_method')
             ->get();
 
-        // Sales by hour (for day filter only)
+        // Sales by hour (only if date range is 1 day)
         $salesByHour = [];
-        if ($filter === 'day') {
+        if ($days === 1) {
             for ($h = 0; $h < 24; $h++) {
                 $hourStr = str_pad($h, 2, '0', STR_PAD_LEFT);
                 $salesByHour[] = Sale::where(DB::raw("strftime('%H', created_at)"), '=', $hourStr)
-                    ->whereBetween('created_at', [$startDate, $endDate])
+                    ->whereBetween('created_at', [$start, $end])
                     ->count();
             }
         }
 
         // Discounts usage
-        $discountsUsed = Discount::withCount(['sales' => function ($q) use ($startDate, $endDate) {
-            $q->whereBetween('created_at', [$startDate, $endDate]);
+        $discountsUsed = Discount::withCount(['sales' => function ($q) use ($start, $end) {
+            $q->whereBetween('created_at', [$start, $end]);
         }])->orderByDesc('sales_count')->limit(10)->get();
 
         return view('dashboard.sales', compact(
@@ -113,45 +118,8 @@ class SalesDashboardController extends Controller
             'paymentMethods',
             'salesByHour',
             'discountsUsed',
-            'filter'
+            'startDate',
+            'endDate'
         ));
-    }
-
-    private function getDateRange($filter)
-    {
-        $now = now();
-        
-        switch ($filter) {
-            case 'week':
-                return [$now->startOfWeek(), $now->endOfWeek(), 'd M'];
-            case 'month':
-                return [$now->startOfMonth(), $now->endOfMonth(), 'd M'];
-            case '3months':
-                return [$now->subMonths(3)->startOfMonth(), $now->endOfMonth(), 'M Y'];
-            case '6months':
-                return [$now->subMonths(6)->startOfMonth(), $now->endOfMonth(), 'M Y'];
-            case 'year':
-                return [$now->startOfYear(), $now->endOfYear(), 'M Y'];
-            default: // day
-                return [$now->startOfDay(), $now->endOfDay(), 'H:i'];
-        }
-    }
-
-    private function getTrendDays($filter)
-    {
-        switch ($filter) {
-            case 'week':
-                return 7;
-            case 'month':
-                return 30;
-            case '3months':
-                return 90;
-            case '6months':
-                return 180;
-            case 'year':
-                return 365;
-            default: // day
-                return 24;
-        }
     }
 }

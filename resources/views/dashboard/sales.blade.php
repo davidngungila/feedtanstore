@@ -7,18 +7,18 @@
     <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <h1 class="text-xl font-bold" :class="darkMode?'text-white':'text-primary-900'">Sales Analytics</h1>
         
-        <!-- Date Filter -->
-        <div class="flex items-center gap-2">
-            <label class="text-sm font-medium" :class="darkMode?'text-gray-300':'text-gray-600'">Filter:</label>
-            <select id="date-filter" onchange="window.location.href = this.value" class="px-3 py-2 rounded-lg text-sm border focus:outline-none focus:ring-2 focus:ring-primary-500" :class="darkMode?'bg-primary-900 border-primary-800 text-white':'bg-white border-gray-200 text-gray-900'">
-                <option value="{{ route('dashboard.sales', ['filter' => 'day']) }}" {{ $filter === 'day' ? 'selected' : '' }}>Day</option>
-                <option value="{{ route('dashboard.sales', ['filter' => 'week']) }}" {{ $filter === 'week' ? 'selected' : '' }}>Week</option>
-                <option value="{{ route('dashboard.sales', ['filter' => 'month']) }}" {{ $filter === 'month' ? 'selected' : '' }}>Month</option>
-                <option value="{{ route('dashboard.sales', ['filter' => '3months']) }}" {{ $filter === '3months' ? 'selected' : '' }}>3 Months</option>
-                <option value="{{ route('dashboard.sales', ['filter' => '6months']) }}" {{ $filter === '6months' ? 'selected' : '' }}>6 Months</option>
-                <option value="{{ route('dashboard.sales', ['filter' => 'year']) }}" {{ $filter === 'year' ? 'selected' : '' }}>Year</option>
-            </select>
-        </div>
+        <!-- Custom Date Range Filter -->
+        <form id="date-range-form" class="flex flex-wrap items-center gap-3" method="GET">
+            <label class="text-sm font-medium" :class="darkMode?'text-gray-300':'text-gray-600'">From:</label>
+            <input type="date" name="start_date" value="{{ $startDate }}" class="px-3 py-2 rounded-lg text-sm border focus:outline-none focus:ring-2 focus:ring-primary-500" :class="darkMode?'bg-primary-900 border-primary-800 text-white':'bg-white border-gray-200 text-gray-900'">
+            
+            <label class="text-sm font-medium" :class="darkMode?'text-gray-300':'text-gray-600'">To:</label>
+            <input type="date" name="end_date" value="{{ $endDate }}" class="px-3 py-2 rounded-lg text-sm border focus:outline-none focus:ring-2 focus:ring-primary-500" :class="darkMode?'bg-primary-900 border-primary-800 text-white':'bg-white border-gray-200 text-gray-900'">
+            
+            <button type="submit" class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg font-medium transition-colors">
+                Apply
+            </button>
+        </form>
     </div>
 
     <!-- KPI Cards -->
