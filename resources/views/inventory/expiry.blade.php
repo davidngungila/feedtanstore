@@ -7,6 +7,15 @@
     <div class="card rounded-2xl p-6">
         <div class="flex items-center justify-between mb-6">
             <h2 class="text-xl font-bold text-primary-900">Expiry Management</h2>
+            @if(count($products) > 0)
+                <form action="{{ route('inventory.barcodes.print') }}" method="POST" class="inline">
+                    @csrf
+                    <input type="hidden" name="product_ids" value="{{ json_encode($products->pluck('id')->toArray()) }}">
+                    <button type="submit" class="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                        <i class="fas fa-print mr-2"></i>Print Barcodes for Expiring Products
+                    </button>
+                </form>
+            @endif
         </div>
         @if(count($products) > 0)
             <div class="overflow-x-auto">
@@ -18,6 +27,7 @@
                             <th class="text-left">Quantity</th>
                             <th class="text-left">Expiry Date</th>
                             <th class="text-left">Status</th>
+                            <th class="text-left">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -40,6 +50,21 @@
                                 @else
                                     <span class="badge badge-green">Good</span>
                                 @endif
+                            </td>
+                            <td class="flex items-center gap-2">
+                                <a href="{{ route('inventory.products.show', $product) }}" class="text-primary-600 hover:text-primary-800 p-1" title="View">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="{{ route('inventory.products.edit', $product) }}" class="text-primary-600 hover:text-primary-800 p-1" title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <form action="{{ route('inventory.barcodes.print') }}" method="POST" class="inline">
+                                    @csrf
+                                    <input type="hidden" name="product_ids[]" value="{{ $product->id }}">
+                                    <button type="submit" class="text-primary-600 hover:text-primary-800 p-1" title="Print Barcode">
+                                        <i class="fas fa-barcode"></i>
+                                    </button>
+                                </form>
                             </td>
                         </tr>
                         @endforeach

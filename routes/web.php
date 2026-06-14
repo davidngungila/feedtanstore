@@ -111,6 +111,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/expiry', [\App\Http\Controllers\ProductController::class, 'expiry'])->name('expiry');
         Route::get('/damaged', [\App\Http\Controllers\DamagedGoodController::class, 'index'])->name('damaged');
         Route::get('/reports', [\App\Http\Controllers\ProductController::class, 'reports'])->name('reports');
+        Route::get('/barcodes', [\App\Http\Controllers\ProductController::class, 'barcodes'])->name('barcodes');
+        Route::post('/barcodes/print', [\App\Http\Controllers\ProductController::class, 'printBarcodes'])->name('barcodes.print');
+        Route::post('/barcodes/print-all', [\App\Http\Controllers\ProductController::class, 'printAllBarcodes'])->name('barcodes.print-all');
     });
 
     // Purchasing & Suppliers
