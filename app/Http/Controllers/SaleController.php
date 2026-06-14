@@ -208,6 +208,8 @@ class SaleController extends Controller {
             $customer->decrement('balance', $sale->total);
         }
 
+        $sale->delete();
+
         return redirect()->route('sales.index')->with('success', 'Sale cancelled successfully!');
     }
 
