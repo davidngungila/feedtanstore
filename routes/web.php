@@ -38,6 +38,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/history', [\App\Http\Controllers\SaleController::class, 'index'])->name('history');
         Route::get('/history/{sale}', [\App\Http\Controllers\SaleController::class, 'show'])->name('show');
         Route::delete('/history/{sale}', [\App\Http\Controllers\SaleController::class, 'destroy'])->name('destroy');
+        Route::post('/history/{id}/restore', [\App\Http\Controllers\SaleController::class, 'restore'])->name('restore');
         Route::get('/returns', [\App\Http\Controllers\SaleReturnController::class, 'index'])->name('returns');
         Route::get('/returns/{return}', [\App\Http\Controllers\SaleReturnController::class, 'show'])->name('returns.show');
         Route::get('/returns/{return}/download', [\App\Http\Controllers\SaleReturnController::class, 'downloadPDF'])->name('returns.download');

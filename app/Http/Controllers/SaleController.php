@@ -190,7 +190,8 @@ class SaleController extends Controller {
         return redirect()->route('sales.show', $sale)->with('success', 'Sale completed successfully!');
     }
 
-    public function show(Sale $sale) {
+    public function show($id) {
+        $sale = Sale::withTrashed()->findOrFail($id);
         $sale->load(['customer', 'user', 'items.product', 'discountApplied']);
         return view('sales.show', compact('sale'));
     }
@@ -211,6 +212,29 @@ class SaleController extends Controller {
         $sale->delete();
 
         return redirect()->route('sales.history')->with('success', 'Sale cancelled successfully!');
+    }
+
+    public function restore($id) {
+        $sale = Sale::withTrashed()->findOrFail($id);
+
+        foreach ($sale->items as $item) {
+            $product = Product::find($item->product_id);
+            if ($product->quantity >= $item->quantity) {
+                $product->decrement('quantity', $item->quantity);
+            } else {
+                return back()->with('error', 'Not enough stock to restore this sale!');
+            }
+        }
+
+        if ($sale->type == 'credit' && $sale->customer_id) {
+            $customer = Customer::find($sale->customer_id);
+            $customer->increment('balance', $sale->total);
+        }
+
+        $sale->update(['status' => 'completed']);
+        $sale->restore();
+
+        return redirect()->route('sales.cancelled')->with('success', 'Sale restored successfully!');
     }
 
     protected function createAccountingEntries(Sale $sale) {
