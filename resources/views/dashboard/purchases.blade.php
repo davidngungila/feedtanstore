@@ -4,28 +4,37 @@
 
 @section('content')
 <div class="animate-[fadeIn_0.4s_ease] space-y-6">
-    <div class="flex items-center justify-between">
+    <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <h1 class="text-xl font-bold" :class="darkMode?'text-white':'text-primary-900'">Purchases Analytics</h1>
+        
+        <!-- Date Filter -->
+        <div class="flex items-center gap-2">
+            <label class="text-sm font-medium" :class="darkMode?'text-gray-300':'text-gray-600'">Filter:</label>
+            <select id="date-filter" onchange="window.location.href = this.value" class="px-3 py-2 rounded-lg text-sm border focus:outline-none focus:ring-2 focus:ring-primary-500" :class="darkMode?'bg-primary-900 border-primary-800 text-white':'bg-white border-gray-200 text-gray-900'">
+                <option value="{{ route('dashboard.purchases', ['filter' => 'day']) }}" {{ $filter === 'day' ? 'selected' : '' }}>Day</option>
+                <option value="{{ route('dashboard.purchases', ['filter' => 'week']) }}" {{ $filter === 'week' ? 'selected' : '' }}>Week</option>
+                <option value="{{ route('dashboard.purchases', ['filter' => 'month']) }}" {{ $filter === 'month' ? 'selected' : '' }}>Month</option>
+                <option value="{{ route('dashboard.purchases', ['filter' => '3months']) }}" {{ $filter === '3months' ? 'selected' : '' }}>3 Months</option>
+                <option value="{{ route('dashboard.purchases', ['filter' => '6months']) }}" {{ $filter === '6months' ? 'selected' : '' }}>6 Months</option>
+                <option value="{{ route('dashboard.purchases', ['filter' => 'year']) }}" {{ $filter === 'year' ? 'selected' : '' }}>Year</option>
+            </select>
+        </div>
     </div>
 
     <!-- KPI Cards -->
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div class="card rounded-2xl p-5">
-            <div class="text-sm" :class="darkMode?'text-primary-400':'text-gray-500'">Today's PO Amount</div>
-            <div class="text-2xl font-bold" :class="darkMode?'text-white':'text-primary-900'">TZS {{ number_format($todayPOAmount, 2) }}</div>
-            <div class="text-xs mt-1" :class="darkMode?'text-primary-500':'text-gray-400'">{{ $todayPOCount }} PO(s)</div>
+            <div class="text-sm" :class="darkMode?'text-primary-400':'text-gray-500'">PO Amount</div>
+            <div class="text-2xl font-bold" :class="darkMode?'text-white':'text-primary-900'">TZS {{ number_format($filteredPOAmount, 2) }}</div>
+            <div class="text-xs mt-1" :class="darkMode?'text-primary-500':'text-gray-400'">{{ $filteredPOCount }} PO(s)</div>
         </div>
         <div class="card rounded-2xl p-5">
-            <div class="text-sm" :class="darkMode?'text-primary-400':'text-gray-500'">Today's GRNs</div>
-            <div class="text-2xl font-bold" :class="darkMode?'text-white':'text-primary-900'">{{ $todayGRN }}</div>
+            <div class="text-sm" :class="darkMode?'text-primary-400':'text-gray-500'">GRNs</div>
+            <div class="text-2xl font-bold" :class="darkMode?'text-white':'text-primary-900'">{{ $filteredGRN }}</div>
         </div>
         <div class="card rounded-2xl p-5">
-            <div class="text-sm" :class="darkMode?'text-primary-400':'text-gray-500'">Today's Payments</div>
-            <div class="text-2xl font-bold" :class="darkMode?'text-white':'text-primary-900'">TZS {{ number_format($todayPayments, 2) }}</div>
-        </div>
-        <div class="card rounded-2xl p-5">
-            <div class="text-sm" :class="darkMode?'text-primary-400':'text-gray-500'">This Month's PO Amount</div>
-            <div class="text-2xl font-bold" :class="darkMode?'text-white':'text-primary-900'">TZS {{ number_format($thisMonthPOAmount, 2) }}</div>
+            <div class="text-sm" :class="darkMode?'text-primary-400':'text-gray-500'">Payments</div>
+            <div class="text-2xl font-bold" :class="darkMode?'text-white':'text-primary-900'">TZS {{ number_format($filteredPayments, 2) }}</div>
         </div>
     </div>
 

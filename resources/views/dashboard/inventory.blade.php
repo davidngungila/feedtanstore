@@ -4,8 +4,21 @@
 
 @section('content')
 <div class="animate-[fadeIn_0.4s_ease] space-y-6">
-    <div class="flex items-center justify-between">
+    <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <h1 class="text-xl font-bold" :class="darkMode?'text-white':'text-primary-900'">Inventory Analytics</h1>
+        
+        <!-- Date Filter -->
+        <div class="flex items-center gap-2">
+            <label class="text-sm font-medium" :class="darkMode?'text-gray-300':'text-gray-600'">Filter:</label>
+            <select id="date-filter" onchange="window.location.href = this.value" class="px-3 py-2 rounded-lg text-sm border focus:outline-none focus:ring-2 focus:ring-primary-500" :class="darkMode?'bg-primary-900 border-primary-800 text-white':'bg-white border-gray-200 text-gray-900'">
+                <option value="{{ route('dashboard.inventory', ['filter' => 'day']) }}" {{ $filter === 'day' ? 'selected' : '' }}>Day</option>
+                <option value="{{ route('dashboard.inventory', ['filter' => 'week']) }}" {{ $filter === 'week' ? 'selected' : '' }}>Week</option>
+                <option value="{{ route('dashboard.inventory', ['filter' => 'month']) }}" {{ $filter === 'month' ? 'selected' : '' }}>Month</option>
+                <option value="{{ route('dashboard.inventory', ['filter' => '3months']) }}" {{ $filter === '3months' ? 'selected' : '' }}>3 Months</option>
+                <option value="{{ route('dashboard.inventory', ['filter' => '6months']) }}" {{ $filter === '6months' ? 'selected' : '' }}>6 Months</option>
+                <option value="{{ route('dashboard.inventory', ['filter' => 'year']) }}" {{ $filter === 'year' ? 'selected' : '' }}>Year</option>
+            </select>
+        </div>
     </div>
 
     <!-- KPI Cards -->
