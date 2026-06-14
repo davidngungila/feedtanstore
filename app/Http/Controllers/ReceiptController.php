@@ -12,12 +12,14 @@ class ReceiptController extends Controller {
         return view('sales.receipts', compact('sales'));
     }
 
-    public function show(Sale $sale) {
+    public function show($id) {
+        $sale = Sale::withTrashed()->findOrFail($id);
         $sale->load(['customer', 'user', 'items.product']);
         return view('sales.show', compact('sale'));
     }
 
-    public function download(Sale $sale) {
+    public function download($id) {
+        $sale = Sale::withTrashed()->findOrFail($id);
         $sale->load(['customer', 'user', 'items.product']);
         
         // Generate SVG QR code (no image extensions needed!)
@@ -38,7 +40,8 @@ class ReceiptController extends Controller {
         return $dompdf->stream('receipt-' . $sale->invoice_number . '.pdf');
     }
 
-    public function print(Sale $sale) {
+    public function print($id) {
+        $sale = Sale::withTrashed()->findOrFail($id);
         $sale->load(['customer', 'user', 'items.product']);
         
         // Generate SVG QR code for print view (no image extensions needed!)
