@@ -15,7 +15,7 @@
             font-family: 'Courier New', Courier, monospace;
             font-size: 14px;
             line-height: 1.6;
-            color: #1a3d1a;
+            color: #000000;
             padding: 15px;
         }
         
@@ -28,19 +28,19 @@
             text-align: center;
             margin-bottom: 12px;
             padding-bottom: 12px;
-            border-bottom: 2px dashed #22c55e;
+            border-bottom: 2px dashed #000000;
         }
         
         .header h1 {
             font-size: 22px;
             font-weight: 700;
-            color: #15803d;
+            color: #000000;
             margin-bottom: 4px;
             letter-spacing: 1px;
         }
         
         .header p {
-            color: #4ade80;
+            color: #000000;
             font-size: 12px;
             font-weight: 500;
         }
@@ -48,7 +48,7 @@
         .details {
             margin: 12px 0;
             padding: 8px 0;
-            border-bottom: 1px dashed #86efac;
+            border-bottom: 1px dashed #000000;
         }
         
         .details p {
@@ -57,14 +57,14 @@
         }
         
         .details .label {
-            color: #166534;
+            color: #000000;
             font-weight: 600;
         }
         
         .items {
             margin: 12px 0;
             padding-bottom: 12px;
-            border-bottom: 1px dashed #86efac;
+            border-bottom: 1px dashed #000000;
         }
         
         .item-row {
@@ -73,12 +73,12 @@
         
         .item-name {
             font-weight: 600;
-            color: #15803d;
+            color: #000000;
             font-size: 14px;
         }
         
         .item-details {
-            color: #166534;
+            color: #000000;
             font-size: 13px;
         }
         
@@ -96,21 +96,21 @@
         .totals .total-amount {
             font-size: 16px;
             font-weight: 700;
-            color: #15803d;
+            color: #000000;
             padding-top: 8px;
             margin-top: 8px;
-            border-top: 2px solid #22c55e;
+            border-top: 2px solid #000000;
         }
         
         .footer {
             text-align: center;
             margin-top: 12px;
             padding-top: 12px;
-            border-top: 2px dashed #22c55e;
+            border-top: 2px dashed #000000;
         }
         
         .footer p {
-            color: #4ade80;
+            color: #000000;
             font-size: 12px;
             font-weight: 500;
         }
@@ -155,14 +155,14 @@
                 <p><span>Discount :</span><span>-{{ number_format($sale->discount, 2) }}</span></p>
             @endif
             <p class="total-amount"><span>TOTAL :</span><span>{{ number_format($sale->total, 2) }}</span></p>
-            <div style="border-top: 1px dashed #86efac; margin: 8px 0;"></div>
+            <div style="border-top: 1px dashed #000000; margin: 8px 0;"></div>
             <p><span>Paid :</span><span>{{ number_format($sale->paid, 2) }}</span></p>
             <p><span>Change :</span><span>{{ number_format($sale->change, 2) }}</span></p>
         </div>
         
         <div class="qr-code">
             <img src="{{ $qrCodeBase64 }}" alt="QR Code" style="max-width: 100px; height: auto;">
-            <p style="font-size: 11px; margin-top: 4px; color: #166534;">Scan to verify</p>
+            <p style="font-size: 11px; margin-top: 4px; color: #000000;">Scan to verify</p>
         </div>
         
         <div class="footer">
