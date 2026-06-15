@@ -434,6 +434,18 @@ function updateTotals() {
 }
 
 function handleSaleTypeChange() {
+    const saleType = document.getElementById('saleType').value;
+    const paidInput = document.getElementById('paidAmount');
+    
+    if (saleType === 'credit') {
+        paidInput.value = '0.00';
+        originalPaidAmount = 0;
+    } else {
+        // For cash sales, auto-fill with total
+        paidInput.value = lastCalculatedTotal.toFixed(2);
+        originalPaidAmount = lastCalculatedTotal;
+    }
+    
     updateTotals();
 }
 

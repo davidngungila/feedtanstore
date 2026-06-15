@@ -21,7 +21,12 @@
                 <a href="{{ route('sales.receipts.print', $sale) }}" target="_blank" class="px-4 py-2 border border-gray-300 rounded-lg flex items-center">
                     <i class="fas fa-print mr-2"></i>Print
                 </a>
-                <a href="{{ route('sales.new') }}" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center">
+                @if($sale->type === 'credit' && $sale->total - $sale->paid > 0)
+                    <a href="{{ route('sales.credit.payment', $sale) }}" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center">
+                        <i class="fas fa-money-bill-wave mr-2"></i>Add Payment
+                    </a>
+                @endif
+                <a href="{{ route('sales.new') }}" class="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 flex items-center">
                     <i class="fas fa-plus mr-2"></i>New Sale
                 </a>
                 <a href="{{ route('sales.history') }}" class="px-4 py-2 border border-gray-300 rounded-lg flex items-center">Back</a>
