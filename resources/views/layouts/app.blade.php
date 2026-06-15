@@ -195,11 +195,37 @@
 <!-- ============================================================
      MAIN APP
      ============================================================ -->
+@php
+    $activeSection = null;
+    if (request()->routeIs('dashboard.*')) {
+        $activeSection = 'analytics';
+    } elseif (request()->routeIs('sales.*')) {
+        $activeSection = 'sales';
+    } elseif (request()->routeIs('inventory.*')) {
+        $activeSection = 'inventory';
+    } elseif (request()->routeIs('purchasing.*')) {
+        $activeSection = 'purchasing';
+    } elseif (request()->routeIs('customers.*')) {
+        $activeSection = 'customers';
+    } elseif (request()->routeIs('finance.*')) {
+        $activeSection = 'finance';
+    } elseif (request()->routeIs('online.*')) {
+        $activeSection = 'online';
+    } elseif (request()->routeIs('store.*')) {
+        $activeSection = 'store';
+    } elseif (request()->routeIs('hr.*')) {
+        $activeSection = 'hr';
+    } elseif (request()->routeIs('security.*')) {
+        $activeSection = 'security';
+    } elseif (request()->routeIs('marketing.*')) {
+        $activeSection = 'marketing';
+    }
+@endphp
 <div x-data="{
     sidebarOpen: false,
     sidebarCollapsed: false,
     loading: false,
-    activeSection: {{ request()->routeIs('dashboard.*') ? 'analytics' : (request()->routeIs('sales.*') ? 'sales' : (request()->routeIs('inventory.*') ? 'inventory' : (request()->routeIs('purchasing.*') ? 'purchasing' : (request()->routeIs('customers.*') ? 'customers' : (request()->routeIs('finance.*') ? 'finance' : (request()->routeIs('online.*') ? 'online' : (request()->routeIs('store.*') ? 'store' : (request()->routeIs('hr.*') ? 'hr' : (request()->routeIs('security.*') ? 'security' : (request()->routeIs('marketing.*') ? 'marketing' : null))))))))}}},
+    activeSection: {{ $activeSection ? "'$activeSection'" : 'null' }},
     currentUser: {
         name: 'Admin User',
         email: 'admin@feedtan.co.tz',
