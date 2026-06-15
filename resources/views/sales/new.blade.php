@@ -18,6 +18,9 @@
 
                 <!-- Manual Mode Content -->
                 <div id="manualModeContent">
+                    <div class="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+                        <p class="text-sm text-green-700"><i class="fas fa-barcode mr-2"></i> Scan barcode anywhere on this page to add product to cart automatically!</p>
+                    </div>
                     <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
                         <h2 class="text-xl font-bold text-primary-900">Products</h2>
                         <div class="flex-1 max-w-md">
@@ -163,6 +166,8 @@ let originalPaidAmount = 0;
 let lastCalculatedTotal = 0;
 let currentDiscount = null;
 let html5QrCodeScanner = null;
+let barcodeBuffer = '';
+let lastKeyTime = 0;
 
 // Product data for quick lookup
 const productsData = @json($productsData);
@@ -444,5 +449,25 @@ function handlePaidChange() {
         document.getElementById('paidNote').required = false;
     }
 }
+
+// Global barcode scanner listener (works in both modes)
+document.addEventListener('keydown', function(e) {
+    const now = Date.now();
+    // Barcode scanners type very fast - if more than 100ms since last key, reset buffer
+    if (now - lastKeyTime > 100) {
+        barcodeBuffer = '';
+    }
+    lastKeyTime = now;
+    
+    if (e.key === 'Enter') {
+        if (barcodeBuffer.length > 0) {
+            e.preventDefault();
+            findProductByCode(barcodeBuffer.trim());
+            barcodeBuffer = '';
+        }
+    } else if (e.key.length === 1) { // Only add printable characters
+        barcodeBuffer += e.key;
+    }
+});
 </script>
 @endsection
