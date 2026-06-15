@@ -164,7 +164,7 @@
 <body>
     <div class="receipt">
         <div class="header">
-            <img src="{{ asset('feedtanstorelogo.png') }}" alt="FEEDTAN STORE" style="max-width: 150px; margin: 0 auto 8px auto; filter: brightness(0);">
+            <img src="{{ asset('feedtanstorelogo.png') }}" alt="FEEDTAN STORE" style="max-width: 150px; margin: 0 auto 8px auto; filter: grayscale(100%) brightness(0);">
         </div>
         
         <div class="details">
