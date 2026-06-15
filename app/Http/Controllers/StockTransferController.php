@@ -56,4 +56,49 @@ class StockTransferController extends Controller
         
         return redirect()->route('inventory.transfers')->with('success', 'Stock transfer completed successfully');
     }
+
+    public function show($id)
+    {
+        $transfer = StockTransfer::with(['product', 'fromLocation', 'toLocation'])->findOrFail($id);
+        return view('inventory.transfers-show', compact('transfer'));
+    }
+
+    public function edit($id)
+    {
+        $transfer = StockTransfer::findOrFail($id);
+        $products = Product::all();
+        $locations = Location::all();
+        return view('inventory.transfers-edit', compact('transfer', 'products', 'locations'));
+    }
+
+    public function update(Request $request, $id)
+    {
+        $request->validate([
+            'product_id' => 'required|exists:products,id',
+            'from_location_id' => 'required|exists:locations,id|different:to_location_id',
+            'to_location_id' => 'required|exists:locations,id|different:from_location_id',
+            'quantity' => 'required|numeric|min:1',
+            'transfer_date' => 'required|date'
+        ]);
+        
+        $transfer = StockTransfer::findOrFail($id);
+        $transfer->update($request->all());
+        
+        return redirect()->route('inventory.transfers')->with('success', 'Stock transfer updated successfully');
+    }
+
+    public function destroy($id)
+    {
+        $transfer = StockTransfer::findOrFail($id);
+        $product = Product::find($transfer->product_id);
+        
+        // Restore the quantity
+        if ($product) {
+            $product->increment('quantity', $transfer->quantity);
+        }
+        
+        $transfer->delete();
+        
+        return redirect()->route('inventory.transfers')->with('success', 'Stock transfer deleted successfully');
+    }
 }

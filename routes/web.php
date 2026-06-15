@@ -52,6 +52,12 @@ Route::middleware('auth')->group(function () {
         Route::post('/discounts/{discount}/toggle', [\App\Http\Controllers\DiscountController::class, 'toggleActive'])->name('discounts.toggle');
         Route::delete('/discounts/{discount}', [\App\Http\Controllers\DiscountController::class, 'destroy'])->name('discounts.destroy');
         Route::get('/credit', [\App\Http\Controllers\CreditSaleController::class, 'index'])->name('credit');
+        Route::get('/credit/{id}', [\App\Http\Controllers\CreditSaleController::class, 'show'])->name('credit.show');
+        Route::get('/credit/{id}/edit', [\App\Http\Controllers\CreditSaleController::class, 'edit'])->name('credit.edit');
+        Route::put('/credit/{id}', [\App\Http\Controllers\CreditSaleController::class, 'update'])->name('credit.update');
+        Route::delete('/credit/{id}', [\App\Http\Controllers\CreditSaleController::class, 'destroy'])->name('credit.destroy');
+        Route::get('/credit/{id}/payment', [\App\Http\Controllers\CreditSaleController::class, 'addPayment'])->name('credit.payment');
+        Route::post('/credit/{id}/payment', [\App\Http\Controllers\CreditSaleController::class, 'storePayment'])->name('credit.payment.store');
         Route::get('/receipts', [\App\Http\Controllers\ReceiptController::class, 'index'])->name('receipts');
         Route::get('/receipts/{sale}', [\App\Http\Controllers\ReceiptController::class, 'show'])->name('receipts.show');
         Route::get('/receipts/{sale}/download', [\App\Http\Controllers\ReceiptController::class, 'download'])->name('receipts.download');
@@ -104,6 +110,10 @@ Route::middleware('auth')->group(function () {
         Route::get('/transfers', [\App\Http\Controllers\StockTransferController::class, 'index'])->name('transfers');
         Route::get('/transfers/create', [\App\Http\Controllers\StockTransferController::class, 'create'])->name('transfers.create');
         Route::post('/transfers', [\App\Http\Controllers\StockTransferController::class, 'store'])->name('transfers.store');
+        Route::get('/transfers/{id}', [\App\Http\Controllers\StockTransferController::class, 'show'])->name('transfers.show');
+        Route::get('/transfers/{id}/edit', [\App\Http\Controllers\StockTransferController::class, 'edit'])->name('transfers.edit');
+        Route::put('/transfers/{id}', [\App\Http\Controllers\StockTransferController::class, 'update'])->name('transfers.update');
+        Route::delete('/transfers/{id}', [\App\Http\Controllers\StockTransferController::class, 'destroy'])->name('transfers.destroy');
         Route::get('/count', [\App\Http\Controllers\StockCountController::class, 'index'])->name('count');
         Route::get('/count/create', [\App\Http\Controllers\StockCountController::class, 'create'])->name('count.create');
         Route::post('/count', [\App\Http\Controllers\StockCountController::class, 'store'])->name('count.store');

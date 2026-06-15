@@ -256,12 +256,16 @@
                         @foreach($product->saleItems as $item)
                         <tr class="hover:bg-primary-50 transition-colors">
                             <td class="font-medium">
-                                <a href="{{ route('sales.show', $item->sale) }}" class="text-primary-600 hover:text-primary-800">
-                                    {{ $item->sale->invoice_number }}
-                                </a>
+                                @if($item->sale)
+                                    <a href="{{ route('sales.show', $item->sale) }}" class="text-primary-600 hover:text-primary-800">
+                                        {{ $item->sale->invoice_number }}
+                                    </a>
+                                @else
+                                    N/A
+                                @endif
                             </td>
-                            <td>{{ $item->sale->customer->name ?? 'Walk-in Customer' }}</td>
-                            <td>{{ $item->sale->created_at ? date('M d, Y H:i', strtotime($item->sale->created_at)) : '-' }}</td>
+                            <td>{{ $item->sale?->customer?->name ?? 'Walk-in Customer' }}</td>
+                            <td>{{ $item->sale?->created_at ? date('M d, Y H:i', strtotime($item->sale->created_at)) : '-' }}</td>
                             <td class="font-semibold text-primary-800">{{ $item->quantity }}</td>
                             <td>TZS {{ number_format($item->unit_price, 2) }}</td>
                             <td class="font-semibold text-primary-800">TZS {{ number_format($item->total, 2) }}</td>

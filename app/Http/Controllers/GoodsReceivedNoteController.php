@@ -22,7 +22,11 @@ class GoodsReceivedNoteController extends Controller
         $suppliers = Supplier::all();
         $products = Product::all();
         $purchaseOrders = PurchaseOrder::with('items.product')->where('status', 'pending')->get();
-        return view('purchasing.grn-create', compact('suppliers', 'products', 'purchaseOrders'));
+        $selectedPurchaseOrder = null;
+        if (request()->has('purchase_order_id')) {
+            $selectedPurchaseOrder = PurchaseOrder::with('items.product')->find(request()->purchase_order_id);
+        }
+        return view('purchasing.grn-create', compact('suppliers', 'products', 'purchaseOrders', 'selectedPurchaseOrder'));
     }
 
     public function store(Request $request)

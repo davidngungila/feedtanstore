@@ -29,19 +29,37 @@
                         <th class="text-left">Quantity</th>
                         <th class="text-left">Date</th>
                         <th class="text-left">Status</th>
+                        <th class="text-left">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach($transfers as $transfer)
                     <tr>
-                        <td class="font-medium text-primary-900">{{ $transfer->transfer_number }}</td>
+                        <td class="font-medium text-primary-900">
+                            <a href="{{ route('inventory.transfers.show', $transfer->id) }}" class="hover:underline">{{ $transfer->transfer_number }}</a>
+                        </td>
                         <td class="text-gray-600">{{ $transfer->product->name ?? 'N/A' }}</td>
                         <td class="text-gray-600">{{ $transfer->fromLocation->name ?? 'N/A' }}</td>
                         <td class="text-gray-600">{{ $transfer->toLocation->name ?? 'N/A' }}</td>
                         <td class="text-gray-600">{{ $transfer->quantity }}</td>
-                        <td class="text-gray-600">{{ $transfer->transfer_date }}</td>
+                        <td class="text-gray-600">{{ $transfer->transfer_date ? date('M d, Y', strtotime($transfer->transfer_date)) : '-' }}</td>
                         <td>
                             <span class="badge badge-green">Completed</span>
+                        </td>
+                        <td class="flex items-center gap-2">
+                            <a href="{{ route('inventory.transfers.show', $transfer->id) }}" class="text-primary-600 hover:text-primary-800 p-1" title="View">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <a href="{{ route('inventory.transfers.edit', $transfer->id) }}" class="text-primary-600 hover:text-primary-800 p-1" title="Edit">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <form action="{{ route('inventory.transfers.destroy', $transfer->id) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this transfer?')">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="text-red-600 hover:text-red-800 p-1" title="Delete">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
                         </td>
                     </tr>
                     @endforeach

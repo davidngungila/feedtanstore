@@ -7,7 +7,7 @@
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
             @php
-                $hour = date('G');
+                $hour = \Illuminate\Support\Carbon::now()->hour;
                 $greeting = 'Good morning';
                 if ($hour >= 12 && $hour < 17) {
                     $greeting = 'Good afternoon';
