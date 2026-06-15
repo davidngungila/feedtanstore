@@ -73,12 +73,42 @@
 
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Cost Price (TZS) *</label>
-                    <input type="number" step="0.01" name="cost_price" value="{{ old('cost_price', $product->cost_price) }}" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                    <input type="number" step="0.01" name="cost_price" id="cost_price" value="{{ old('cost_price', $product->cost_price) }}" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Pricing Method</label>
+                    <select name="pricing_method" id="pricing_method" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                        <option value="percentage">Percentage (%)</option>
+                        <option value="flat">Flat Amount</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Profit Value</label>
+                    <input type="number" step="0.01" name="profit_value" id="profit_value" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
                 </div>
 
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Selling Price (TZS) *</label>
-                    <input type="number" step="0.01" name="selling_price" value="{{ old('selling_price', $product->selling_price) }}" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                    <input type="number" step="0.01" name="selling_price" id="selling_price" value="{{ old('selling_price', $product->selling_price) }}" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                </div>
+
+                <div class="md:col-span-2">
+                    <div class="flex gap-4 mt-2">
+                        <div class="flex-1">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Profit per Unit</label>
+                            <div class="px-4 py-2 bg-green-50 border border-green-200 rounded-lg text-green-800 font-medium" id="profit_per_unit">
+                                0.00
+                            </div>
+                        </div>
+                        <div class="flex-1">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Profit Margin (%)</label>
+                            <div class="px-4 py-2 bg-blue-50 border border-blue-200 rounded-lg text-blue-800 font-medium" id="profit_percentage">
+                                0.00
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <div>
@@ -124,4 +154,39 @@
         </form>
     </div>
 </div>
+<script>
+    function calculateProfit() {
+        const costPrice = parseFloat(document.getElementById('cost_price').value) || 0;
+        const sellingPrice = parseFloat(document.getElementById('selling_price').value) || 0;
+        const profitPerUnit = sellingPrice - costPrice;
+        const profitPercentage = costPrice > 0 ? ((profitPerUnit / costPrice) * 100) : 0;
+        
+        document.getElementById('profit_per_unit').textContent = profitPerUnit.toFixed(2);
+        document.getElementById('profit_percentage').textContent = profitPercentage.toFixed(2) + '%';
+    }
+
+    function calculateSellingPrice() {
+        const costPrice = parseFloat(document.getElementById('cost_price').value) || 0;
+        const pricingMethod = document.getElementById('pricing_method').value;
+        const profitValue = parseFloat(document.getElementById('profit_value').value) || 0;
+        
+        let sellingPrice;
+        if (pricingMethod === 'percentage') {
+            sellingPrice = costPrice * (1 + profitValue / 100);
+        } else {
+            sellingPrice = costPrice + profitValue;
+        }
+        
+        document.getElementById('selling_price').value = sellingPrice.toFixed(2);
+        calculateProfit();
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        calculateProfit(); // Calculate initial profit
+        document.getElementById('cost_price').addEventListener('input', calculateSellingPrice);
+        document.getElementById('pricing_method').addEventListener('change', calculateSellingPrice);
+        document.getElementById('profit_value').addEventListener('input', calculateSellingPrice);
+        document.getElementById('selling_price').addEventListener('input', calculateProfit);
+    });
+</script>
 @endsection

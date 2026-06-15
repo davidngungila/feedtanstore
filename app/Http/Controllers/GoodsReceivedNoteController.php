@@ -68,9 +68,13 @@ class GoodsReceivedNoteController extends Controller
                 'expiry_date' => $productData['expiry_date'] ?? null,
             ]);
 
-            // Update product quantity
+            // Update product quantity, cost price, and selling price
             $product = Product::find($productData['product_id']);
             $product->increment('quantity', $productData['quantity']);
+            $product->update([
+                'cost_price' => $productData['unit_price'],
+                'selling_price' => $productData['selling_price'],
+            ]);
         }
 
         // If purchase order is linked, mark it as received

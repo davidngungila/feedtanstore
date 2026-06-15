@@ -56,30 +56,65 @@
             <div class="mb-6">
                 <h3 class="text-lg font-semibold text-primary-900 mb-4">Products</h3>
                 <div id="products_container">
-                    <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-4 product_item">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Product *</label>
-                            <select name="products[0][product_id]" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 product_select">
-                                <option value="">Select Product</option>
-                                @foreach($products as $product)
-                                    <option value="{{ $product->id }}" data-price="{{ $product->cost_price }}">{{ $product->name }}</option>
-                                @endforeach
-                            </select>
+                    <div class="product_item mb-6 p-4 border border-gray-200 rounded-lg">
+                        <div class="grid grid-cols-1 md:grid-cols-6 gap-4 mb-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Product *</label>
+                                <select name="products[0][product_id]" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 product_select">
+                                    <option value="">Select Product</option>
+                                    @foreach($products as $product)
+                                        <option value="{{ $product->id }}" data-price="{{ $product->cost_price }}" data-selling-price="{{ $product->selling_price }}">{{ $product->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Quantity *</label>
+                                <input type="number" name="products[0][quantity]" value="1" min="1" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 product_quantity">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Cost Price *</label>
+                                <input type="number" step="0.01" name="products[0][unit_price]" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 product_cost_price">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Pricing Method</label>
+                                <select name="products[0][pricing_method]" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 product_pricing_method">
+                                    <option value="percentage">Percentage (%)</option>
+                                    <option value="flat">Flat Amount</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Profit Value</label>
+                                <input type="number" step="0.01" name="products[0][profit_value]" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 product_profit_value">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Selling Price *</label>
+                                <input type="number" step="0.01" name="products[0][selling_price]" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 product_selling_price">
+                            </div>
                         </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Quantity *</label>
-                            <input type="number" name="products[0][quantity]" value="1" min="1" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 product_quantity">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Unit Price *</label>
-                            <input type="number" step="0.01" name="products[0][unit_price]" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 product_price">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Expiry Date</label>
-                            <input type="date" name="products[0][expiry_date]" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
-                        </div>
-                        <div class="flex items-end">
-                            <button type="button" class="remove_product text-red-600 hover:text-red-800 px-4 py-2 border border-red-300 rounded-lg">Remove</button>
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Expiry Date</label>
+                                <input type="date" name="products[0][expiry_date]" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                            </div>
+                            <div class="md:col-span-2">
+                                <div class="flex gap-4">
+                                    <div class="flex-1">
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Profit per Unit</label>
+                                        <div class="px-4 py-2 bg-green-50 border border-green-200 rounded-lg text-green-800 font-medium product_profit_per_unit">
+                                            0.00
+                                        </div>
+                                    </div>
+                                    <div class="flex-1">
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Profit Margin (%)</label>
+                                        <div class="px-4 py-2 bg-blue-50 border border-blue-200 rounded-lg text-blue-800 font-medium product_profit_percentage">
+                                            0.00
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex items-end">
+                                <button type="button" class="remove_product text-red-600 hover:text-red-800 px-4 py-2 border border-red-300 rounded-lg">Remove</button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -108,6 +143,32 @@ const productsData = @json($products);
 let selectedPurchaseOrderData = @json($selectedPurchaseOrder);
 @endif
 
+function calculateProfit(item) {
+    const costPrice = parseFloat(item.querySelector('.product_cost_price').value) || 0;
+    const sellingPrice = parseFloat(item.querySelector('.product_selling_price').value) || 0;
+    const profitPerUnit = sellingPrice - costPrice;
+    const profitPercentage = costPrice > 0 ? ((profitPerUnit / costPrice) * 100) : 0;
+    
+    item.querySelector('.product_profit_per_unit').textContent = profitPerUnit.toFixed(2);
+    item.querySelector('.product_profit_percentage').textContent = profitPercentage.toFixed(2) + '%';
+}
+
+function calculateSellingPrice(item) {
+    const costPrice = parseFloat(item.querySelector('.product_cost_price').value) || 0;
+    const pricingMethod = item.querySelector('.product_pricing_method').value;
+    const profitValue = parseFloat(item.querySelector('.product_profit_value').value) || 0;
+    
+    let sellingPrice;
+    if (pricingMethod === 'percentage') {
+        sellingPrice = costPrice * (1 + profitValue / 100);
+    } else {
+        sellingPrice = costPrice + profitValue;
+    }
+    
+    item.querySelector('.product_selling_price').value = sellingPrice.toFixed(2);
+    calculateProfit(item);
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     // If we have a selected purchase order, auto-fill on page load
     if (typeof selectedPurchaseOrderData !== 'undefined') {
@@ -131,17 +192,9 @@ document.addEventListener('DOMContentLoaded', function() {
         addProductItem('', 1, 0);
     });
 
-    document.querySelectorAll('.remove_product').forEach(btn => {
-        btn.addEventListener('click', function() {
-            this.closest('.product_item').remove();
-        });
-    });
-
-    document.querySelectorAll('.product_select').forEach(select => {
-        select.addEventListener('change', function() {
-            const price = this.options[this.selectedIndex].dataset.price || 0;
-            this.closest('.product_item').querySelector('.product_price').value = price;
-        });
+    // Event listeners for initial elements
+    document.querySelectorAll('.product_item').forEach(item => {
+        addProductItemListeners(item);
     });
 
     // Auto-fill from purchase order
@@ -168,37 +221,108 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
+function addProductItemListeners(item) {
+    item.querySelector('.remove_product').addEventListener('click', function() {
+        item.remove();
+    });
+    
+    item.querySelector('.product_select').addEventListener('change', function() {
+        const selectedOption = this.options[this.selectedIndex];
+        const costPrice = selectedOption.dataset.price || 0;
+        const sellingPrice = selectedOption.dataset.sellingPrice || 0;
+        
+        item.querySelector('.product_cost_price').value = costPrice;
+        item.querySelector('.product_selling_price').value = sellingPrice;
+        calculateProfit(item);
+    });
+    
+    item.querySelector('.product_cost_price').addEventListener('input', function() {
+        calculateSellingPrice(item);
+    });
+    
+    item.querySelector('.product_pricing_method').addEventListener('change', function() {
+        calculateSellingPrice(item);
+    });
+    
+    item.querySelector('.product_profit_value').addEventListener('input', function() {
+        calculateSellingPrice(item);
+    });
+    
+    item.querySelector('.product_selling_price').addEventListener('input', function() {
+        calculateProfit(item);
+    });
+}
+
 function addProductItem(productId, quantity, unitPrice) {
     const container = document.getElementById('products_container');
     
     let optionsHtml = '<option value="">Select Product</option>';
+    let selectedProduct = null;
     productsData.forEach(product => {
         const selected = product.id == productId ? 'selected' : '';
-        optionsHtml += `<option value="${product.id}" data-price="${product.cost_price}" ${selected}>${product.name}</option>`;
+        optionsHtml += `<option value="${product.id}" data-price="${product.cost_price}" data-selling-price="${product.selling_price}" ${selected}>${product.name}</option>`;
+        if (product.id == productId) {
+            selectedProduct = product;
+        }
     });
     
     const template = `
-        <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-4 product_item">
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Product *</label>
-                <select name="products[${productIndex}][product_id]" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 product_select">
-                    ${optionsHtml}
-                </select>
+        <div class="product_item mb-6 p-4 border border-gray-200 rounded-lg">
+            <div class="grid grid-cols-1 md:grid-cols-6 gap-4 mb-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Product *</label>
+                    <select name="products[${productIndex}][product_id]" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 product_select">
+                        ${optionsHtml}
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Quantity *</label>
+                    <input type="number" name="products[${productIndex}][quantity]" value="${quantity}" min="1" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 product_quantity">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Cost Price *</label>
+                    <input type="number" step="0.01" name="products[${productIndex}][unit_price]" value="${unitPrice}" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 product_cost_price">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Pricing Method</label>
+                    <select name="products[${productIndex}][pricing_method]" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 product_pricing_method">
+                        <option value="percentage">Percentage (%)</option>
+                        <option value="flat">Flat Amount</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Profit Value</label>
+                    <input type="number" step="0.01" name="products[${productIndex}][profit_value]" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 product_profit_value">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Selling Price *</label>
+                    <input type="number" step="0.01" name="products[${productIndex}][selling_price]" value="${selectedProduct ? selectedProduct.selling_price : 0}" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 product_selling_price">
+                </div>
             </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Quantity *</label>
-                <input type="number" name="products[${productIndex}][quantity]" value="${quantity}" min="1" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 product_quantity">
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Unit Price *</label>
-                <input type="number" step="0.01" name="products[${productIndex}][unit_price]" value="${unitPrice}" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 product_price">
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Expiry Date</label>
-                <input type="date" name="products[${productIndex}][expiry_date]" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
-            </div>
-            <div class="flex items-end">
-                <button type="button" class="remove_product text-red-600 hover:text-red-800 px-4 py-2 border border-red-300 rounded-lg">Remove</button>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Expiry Date</label>
+                    <input type="date" name="products[${productIndex}][expiry_date]" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                </div>
+                <div class="md:col-span-2">
+                    <div class="flex gap-4">
+                        <div class="flex-1">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Profit per Unit</label>
+                            <div class="px-4 py-2 bg-green-50 border border-green-200 rounded-lg text-green-800 font-medium product_profit_per_unit">
+                                0.00
+                            </div>
+                        </div>
+                        <div class="flex-1">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Profit Margin (%)</label>
+                            <div class="px-4 py-2 bg-blue-50 border border-blue-200 rounded-lg text-blue-800 font-medium product_profit_percentage">
+                                0.00
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex items-end">
+                    <button type="button" class="remove_product text-red-600 hover:text-red-800 px-4 py-2 border border-red-300 rounded-lg">Remove</button>
+                </div>
             </div>
         </div>
     `;
@@ -207,15 +331,10 @@ function addProductItem(productId, quantity, unitPrice) {
     
     // Add event listeners to the new item
     const lastItem = container.lastElementChild;
+    addProductItemListeners(lastItem);
     
-    lastItem.querySelector('.remove_product').addEventListener('click', function() {
-        lastItem.remove();
-    });
-    
-    lastItem.querySelector('.product_select').addEventListener('change', function() {
-        const price = this.options[this.selectedIndex].dataset.price || 0;
-        lastItem.querySelector('.product_price').value = price;
-    });
+    // Calculate initial profit
+    calculateProfit(lastItem);
     
     productIndex++;
 }
@@ -224,13 +343,6 @@ function addProductItem(productId, quantity, unitPrice) {
 document.getElementById('products_container').addEventListener('click', function(e) {
     if (e.target.classList.contains('remove_product')) {
         e.target.closest('.product_item').remove();
-    }
-});
-
-document.getElementById('products_container').addEventListener('change', function(e) {
-    if (e.target.classList.contains('product_select')) {
-        const price = e.target.options[e.target.selectedIndex].dataset.price || 0;
-        e.target.closest('.product_item').querySelector('.product_price').value = price;
     }
 });
 </script>
