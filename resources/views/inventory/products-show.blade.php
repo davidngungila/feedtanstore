@@ -34,6 +34,13 @@
                 <span class="ml-2">{{ $product->barcode ?? '-' }}</span>
             </div>
         </div>
+        
+        <!-- Barcode Display -->
+        <div class="mb-6 p-4 bg-gray-50 rounded-lg flex items-center justify-center flex-col">
+            <h4 class="font-semibold text-primary-900 mb-2">Product Barcode</h4>
+            <img src="{{ $barcodeBase64 }}" alt="Barcode for {{ $product->name }}" class="mb-2">
+            <p class="text-sm text-gray-600">{{ $barcodeValue }}</p>
+        </div>
 
         <!-- Details -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 p-4 bg-gray-50 rounded-lg">

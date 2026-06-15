@@ -11,6 +11,7 @@ use App\Models\DeliveryRider;
 use App\Models\AccountingEntry;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Dompdf\Dompdf;
 
 class OnlineOrderController extends Controller
 {
@@ -264,5 +265,15 @@ class OnlineOrderController extends Controller
         ]);
 
         return back()->with('success', 'Rider assigned successfully!');
+    }
+
+    public function downloadPDF(OnlineOrder $order)
+    {
+        $order->load(['items.product', 'rider', 'user']);
+        $pdf = new Dompdf();
+        $pdf->loadHtml(view('online.orders-pdf', compact('order'))->render());
+        $pdf->setPaper('A4', 'portrait');
+        $pdf->render();
+        return $pdf->stream($order->order_number . '.pdf');
     }
 }

@@ -7,9 +7,14 @@
     <div class="card rounded-2xl p-6 mb-6">
         <div class="flex items-center justify-between mb-6">
             <h2 class="text-xl font-bold text-primary-900">Order #{{ $order->order_number }}</h2>
-            <a href="{{ route('online.orders') }}" class="text-primary-600 hover:text-primary-800 font-medium">
-                <i class="fas fa-arrow-left mr-2"></i>Back to Orders
-            </a>
+            <div class="flex gap-3">
+                <a href="{{ route('online.orders.download', $order) }}" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors">
+                    <i class="fas fa-download mr-2"></i>Download PDF
+                </a>
+                <a href="{{ route('online.orders') }}" class="text-primary-600 hover:text-primary-800 font-medium">
+                    <i class="fas fa-arrow-left mr-2"></i>Back to Orders
+                </a>
+            </div>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">

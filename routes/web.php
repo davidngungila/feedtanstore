@@ -228,6 +228,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/orders/create', [\App\Http\Controllers\OnlineOrderController::class, 'create'])->name('orders.create');
         Route::post('/orders', [\App\Http\Controllers\OnlineOrderController::class, 'store'])->name('orders.store');
         Route::get('/orders/{order}', [\App\Http\Controllers\OnlineOrderController::class, 'show'])->name('orders.show');
+        Route::get('/orders/{order}/download', [\App\Http\Controllers\OnlineOrderController::class, 'downloadPDF'])->name('orders.download');
         Route::get('/orders/{order}/edit', [\App\Http\Controllers\OnlineOrderController::class, 'edit'])->name('orders.edit');
         Route::put('/orders/{order}', [\App\Http\Controllers\OnlineOrderController::class, 'update'])->name('orders.update');
         Route::delete('/orders/{order}', [\App\Http\Controllers\OnlineOrderController::class, 'destroy'])->name('orders.destroy');

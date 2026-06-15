@@ -25,7 +25,12 @@ class ProductController extends Controller
             'unit',
             'saleItems.sale.customer'
         ]);
-        return view('inventory.products-show', compact('product'));
+        
+        $barcodeValue = $product->barcode ?? $product->sku ?? $product->id;
+        $barcodePng = \QrCode::size(150)->format('png')->generate($barcodeValue);
+        $barcodeBase64 = 'data:image/png;base64,' . base64_encode($barcodePng);
+        
+        return view('inventory.products-show', compact('product', 'barcodeBase64', 'barcodeValue'));
     }
 
     public function create()
