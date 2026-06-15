@@ -186,8 +186,7 @@
                   </td>
                   <td style="text-align: right;">
                       <div class="label">Date Received:</div>
-                      <div class="value">{{ $grn->received_at->format('l, d F Y') }}</div>
-                      <div class="value" style="font-size: 10px; color: #6b7280; font-weight: normal;">Time: {{ $grn->received_at->format('H:i:s') }}</div>
+                      <div class="value">{{ $grn->received_date ? $grn->received_date->format('l, d F Y') : 'N/A' }}</div>
                   </td>
               </tr>
           </table>
