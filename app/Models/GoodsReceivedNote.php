@@ -18,6 +18,10 @@ class GoodsReceivedNote extends Model
         'status'
     ];
 
+    protected $casts = [
+        'received_date' => 'date',
+    ];
+
     public function supplier(): BelongsTo
     {
         return $this->belongsTo(Supplier::class);
