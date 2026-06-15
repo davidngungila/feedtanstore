@@ -199,12 +199,20 @@
     sidebarOpen: false,
     sidebarCollapsed: false,
     loading: false,
+    activeSection: {{ request()->routeIs('dashboard.*') ? 'analytics' : (request()->routeIs('sales.*') ? 'sales' : (request()->routeIs('inventory.*') ? 'inventory' : (request()->routeIs('purchasing.*') ? 'purchasing' : (request()->routeIs('customers.*') ? 'customers' : (request()->routeIs('finance.*') ? 'finance' : (request()->routeIs('online.*') ? 'online' : (request()->routeIs('store.*') ? 'store' : (request()->routeIs('hr.*') ? 'hr' : (request()->routeIs('security.*') ? 'security' : (request()->routeIs('marketing.*') ? 'marketing' : null))))))))}}},
     currentUser: {
         name: 'Admin User',
         email: 'admin@feedtan.co.tz',
         role: 'admin',
         roleLabel: 'Administrator',
         branch: 'Main Store'
+    },
+    toggleSection(section) {
+        if (this.activeSection === section) {
+            this.activeSection = null;
+        } else {
+            this.activeSection = section;
+        }
     }
 }" class="flex h-screen overflow-hidden">
 
@@ -256,15 +264,15 @@
       </a>
 
       <!-- Analytics -->
-      <div x-data="{ open: {{ request()->routeIs('dashboard.*') ? 'true' : 'false' }} }">
-        <button @click="open = !open" class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-all duration-150 {{ request()->routeIs('dashboard.*') ? 'bg-white/10 text-white' : 'text-primary-200 hover:bg-white/10 hover:text-white' }}">
+      <div>
+        <button @click="toggleSection('analytics')" class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-all duration-150 {{ request()->routeIs('dashboard.*') ? 'bg-white/10 text-white' : 'text-primary-200 hover:bg-white/10 hover:text-white' }}">
           <div class="flex items-center gap-3">
             <i class="fa-solid fa-chart-line w-4 text-center flex-shrink-0"></i>
             <span x-show="!sidebarCollapsed" class="font-medium">Analytics</span>
           </div>
-          <i x-show="!sidebarCollapsed" :class="open?'fa-solid fa-chevron-up':'fa-solid fa-chevron-down'" class="text-[10px] text-primary-400"></i>
+          <i x-show="!sidebarCollapsed" :class="activeSection === 'analytics'?'fa-solid fa-chevron-up':'fa-solid fa-chevron-down'" class="text-[10px] text-primary-400"></i>
         </button>
-        <div :class="open?'max-h-[500px]':'max-h-0'" class="overflow-hidden transition-all duration-300 ml-3" x-show="!sidebarCollapsed">
+        <div :class="activeSection === 'analytics'?'max-h-[500px]':'max-h-0'" class="overflow-hidden transition-all duration-300 ml-3" x-show="!sidebarCollapsed">
           <a href="{{ route('dashboard.sales') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('dashboard.sales') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
             <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
             Sales Analytics
@@ -285,15 +293,15 @@
       </div>
 
       <!-- Sales Management -->
-      <div x-data="{ open: {{ request()->routeIs('sales.*') ? 'true' : 'false' }} }">
-        <button @click="open = !open" class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-all duration-150 {{ request()->routeIs('sales.*') ? 'bg-white/10 text-white' : 'text-primary-200 hover:bg-white/10 hover:text-white' }}">
+      <div>
+        <button @click="toggleSection('sales')" class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-all duration-150 {{ request()->routeIs('sales.*') ? 'bg-white/10 text-white' : 'text-primary-200 hover:bg-white/10 hover:text-white' }}">
           <div class="flex items-center gap-3">
             <i class="fa-solid fa-cash-register w-4 text-center flex-shrink-0"></i>
             <span x-show="!sidebarCollapsed" class="font-medium">Sales Management</span>
           </div>
-          <i x-show="!sidebarCollapsed" :class="open?'fa-solid fa-chevron-up':'fa-solid fa-chevron-down'" class="text-[10px] text-primary-400"></i>
+          <i x-show="!sidebarCollapsed" :class="activeSection === 'sales'?'fa-solid fa-chevron-up':'fa-solid fa-chevron-down'" class="text-[10px] text-primary-400"></i>
         </button>
-        <div :class="open?'max-h-[500px]':'max-h-0'" class="overflow-hidden transition-all duration-300 ml-3" x-show="!sidebarCollapsed">
+        <div :class="activeSection === 'sales'?'max-h-[500px]':'max-h-0'" class="overflow-hidden transition-all duration-300 ml-3" x-show="!sidebarCollapsed">
           <a href="{{ route('sales.new') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('sales.new') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
             <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
             New Sale (POS)
@@ -330,15 +338,15 @@
       </div>
 
       <!-- Inventory Management -->
-      <div x-data="{ open: {{ request()->routeIs('inventory.*') ? 'true' : 'false' }} }">
-        <button @click="open = !open" class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-all duration-150 {{ request()->routeIs('inventory.*') ? 'bg-white/10 text-white' : 'text-primary-200 hover:bg-white/10 hover:text-white' }}">
+      <div>
+        <button @click="toggleSection('inventory')" class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-all duration-150 {{ request()->routeIs('inventory.*') ? 'bg-white/10 text-white' : 'text-primary-200 hover:bg-white/10 hover:text-white' }}">
           <div class="flex items-center gap-3">
             <i class="fa-solid fa-boxes-stacked w-4 text-center flex-shrink-0"></i>
             <span x-show="!sidebarCollapsed" class="font-medium">Inventory Management</span>
           </div>
-          <i x-show="!sidebarCollapsed" :class="open?'fa-solid fa-chevron-up':'fa-solid fa-chevron-down'" class="text-[10px] text-primary-400"></i>
+          <i x-show="!sidebarCollapsed" :class="activeSection === 'inventory'?'fa-solid fa-chevron-up':'fa-solid fa-chevron-down'" class="text-[10px] text-primary-400"></i>
         </button>
-        <div :class="open?'max-h-[500px]':'max-h-0'" class="overflow-hidden transition-all duration-300 ml-3" x-show="!sidebarCollapsed">
+        <div :class="activeSection === 'inventory'?'max-h-[500px]':'max-h-0'" class="overflow-hidden transition-all duration-300 ml-3" x-show="!sidebarCollapsed">
           <a href="{{ route('inventory.products') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('inventory.products') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
             <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
             Products
@@ -405,15 +413,15 @@
       </div>
 
       <!-- Purchasing & Suppliers -->
-      <div x-data="{ open: {{ request()->routeIs('purchasing.*') ? 'true' : 'false' }} }">
-        <button @click="open = !open" class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-all duration-150 {{ request()->routeIs('purchasing.*') ? 'bg-white/10 text-white' : 'text-primary-200 hover:bg-white/10 hover:text-white' }}">
+      <div>
+        <button @click="toggleSection('purchasing')" class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-all duration-150 {{ request()->routeIs('purchasing.*') ? 'bg-white/10 text-white' : 'text-primary-200 hover:bg-white/10 hover:text-white' }}">
           <div class="flex items-center gap-3">
             <i class="fa-solid fa-truck-fast w-4 text-center flex-shrink-0"></i>
             <span x-show="!sidebarCollapsed" class="font-medium">Purchasing & Suppliers</span>
           </div>
-          <i x-show="!sidebarCollapsed" :class="open?'fa-solid fa-chevron-up':'fa-solid fa-chevron-down'" class="text-[10px] text-primary-400"></i>
+          <i x-show="!sidebarCollapsed" :class="activeSection === 'purchasing'?'fa-solid fa-chevron-up':'fa-solid fa-chevron-down'" class="text-[10px] text-primary-400"></i>
         </button>
-        <div :class="open?'max-h-[500px]':'max-h-0'" class="overflow-hidden transition-all duration-300 ml-3" x-show="!sidebarCollapsed">
+        <div :class="activeSection === 'purchasing'?'max-h-[500px]':'max-h-0'" class="overflow-hidden transition-all duration-300 ml-3" x-show="!sidebarCollapsed">
           <a href="{{ route('purchasing.suppliers') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('purchasing.suppliers') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
             <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
             Suppliers
@@ -438,15 +446,15 @@
       </div>
 
       <!-- Customers -->
-      <div x-data="{ open: {{ request()->routeIs('customers.*') ? 'true' : 'false' }} }">
-        <button @click="open = !open" class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-all duration-150 {{ request()->routeIs('customers.*') ? 'bg-white/10 text-white' : 'text-primary-200 hover:bg-white/10 hover:text-white' }}">
+      <div>
+        <button @click="toggleSection('customers')" class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-all duration-150 {{ request()->routeIs('customers.*') ? 'bg-white/10 text-white' : 'text-primary-200 hover:bg-white/10 hover:text-white' }}">
           <div class="flex items-center gap-3">
             <i class="fa-solid fa-users w-4 text-center flex-shrink-0"></i>
             <span x-show="!sidebarCollapsed" class="font-medium">Customers</span>
           </div>
-          <i x-show="!sidebarCollapsed" :class="open?'fa-solid fa-chevron-up':'fa-solid fa-chevron-down'" class="text-[10px] text-primary-400"></i>
+          <i x-show="!sidebarCollapsed" :class="activeSection === 'customers'?'fa-solid fa-chevron-up':'fa-solid fa-chevron-down'" class="text-[10px] text-primary-400"></i>
         </button>
-        <div :class="open?'max-h-[500px]':'max-h-0'" class="overflow-hidden transition-all duration-300 ml-3" x-show="!sidebarCollapsed">
+        <div :class="activeSection === 'customers'?'max-h-[500px]':'max-h-0'" class="overflow-hidden transition-all duration-300 ml-3" x-show="!sidebarCollapsed">
           <a href="{{ route('customers.list') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('customers.list') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
             <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
             Customer List
@@ -471,15 +479,15 @@
       </div>
 
       <!-- Finance -->
-      <div x-data="{ open: {{ request()->routeIs('finance.*') ? 'true' : 'false' }} }">
-        <button @click="open = !open" class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-all duration-150 {{ request()->routeIs('finance.*') ? 'bg-white/10 text-white' : 'text-primary-200 hover:bg-white/10 hover:text-white' }}">
+      <div>
+        <button @click="toggleSection('finance')" class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-all duration-150 {{ request()->routeIs('finance.*') ? 'bg-white/10 text-white' : 'text-primary-200 hover:bg-white/10 hover:text-white' }}">
           <div class="flex items-center gap-3">
             <i class="fa-solid fa-sack-dollar w-4 text-center flex-shrink-0"></i>
             <span x-show="!sidebarCollapsed" class="font-medium">Finance</span>
           </div>
-          <i x-show="!sidebarCollapsed" :class="open?'fa-solid fa-chevron-up':'fa-solid fa-chevron-down'" class="text-[10px] text-primary-400"></i>
+          <i x-show="!sidebarCollapsed" :class="activeSection === 'finance'?'fa-solid fa-chevron-up':'fa-solid fa-chevron-down'" class="text-[10px] text-primary-400"></i>
         </button>
-        <div :class="open?'max-h-[500px]':'max-h-0'" class="overflow-hidden transition-all duration-300 ml-3" x-show="!sidebarCollapsed">
+        <div :class="activeSection === 'finance'?'max-h-[500px]':'max-h-0'" class="overflow-hidden transition-all duration-300 ml-3" x-show="!sidebarCollapsed">
           <a href="{{ route('finance.payments') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('finance.payments') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
             <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
             Payments
@@ -512,15 +520,15 @@
       </div>
 
       <!-- Online Sales -->
-      <div x-data="{ open: {{ request()->routeIs('online.*') ? 'true' : 'false' }} }">
-        <button @click="open = !open" class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-all duration-150 {{ request()->routeIs('online.*') ? 'bg-white/10 text-white' : 'text-primary-200 hover:bg-white/10 hover:text-white' }}">
+      <div>
+        <button @click="toggleSection('online')" class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-all duration-150 {{ request()->routeIs('online.*') ? 'bg-white/10 text-white' : 'text-primary-200 hover:bg-white/10 hover:text-white' }}">
           <div class="flex items-center gap-3">
             <i class="fa-solid fa-globe w-4 text-center flex-shrink-0"></i>
             <span x-show="!sidebarCollapsed" class="font-medium">Online Sales</span>
           </div>
-          <i x-show="!sidebarCollapsed" :class="open?'fa-solid fa-chevron-up':'fa-solid fa-chevron-down'" class="text-[10px] text-primary-400"></i>
+          <i x-show="!sidebarCollapsed" :class="activeSection === 'online'?'fa-solid fa-chevron-up':'fa-solid fa-chevron-down'" class="text-[10px] text-primary-400"></i>
         </button>
-        <div :class="open?'max-h-[500px]':'max-h-0'" class="overflow-hidden transition-all duration-300 ml-3" x-show="!sidebarCollapsed">
+        <div :class="activeSection === 'online'?'max-h-[500px]':'max-h-0'" class="overflow-hidden transition-all duration-300 ml-3" x-show="!sidebarCollapsed">
           <a href="{{ route('online.orders') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('online.orders') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
             <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
             Online Orders
@@ -549,15 +557,15 @@
       </div>
 
       <!-- Store Management -->
-      <div x-data="{ open: {{ request()->routeIs('store.*') ? 'true' : 'false' }} }">
-        <button @click="open = !open" class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-all duration-150 {{ request()->routeIs('store.*') ? 'bg-white/10 text-white' : 'text-primary-200 hover:bg-white/10 hover:text-white' }}">
+      <div>
+        <button @click="toggleSection('store')" class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-all duration-150 {{ request()->routeIs('store.*') ? 'bg-white/10 text-white' : 'text-primary-200 hover:bg-white/10 hover:text-white' }}">
           <div class="flex items-center gap-3">
             <i class="fa-solid fa-store w-4 text-center flex-shrink-0"></i>
             <span x-show="!sidebarCollapsed" class="font-medium">Store Management</span>
           </div>
-          <i x-show="!sidebarCollapsed" :class="open?'fa-solid fa-chevron-up':'fa-solid fa-chevron-down'" class="text-[10px] text-primary-400"></i>
+          <i x-show="!sidebarCollapsed" :class="activeSection === 'store'?'fa-solid fa-chevron-up':'fa-solid fa-chevron-down'" class="text-[10px] text-primary-400"></i>
         </button>
-        <div :class="open?'max-h-[500px]':'max-h-0'" class="overflow-hidden transition-all duration-300 ml-3" x-show="!sidebarCollapsed">
+        <div :class="activeSection === 'store'?'max-h-[500px]':'max-h-0'" class="overflow-hidden transition-all duration-300 ml-3" x-show="!sidebarCollapsed">
           <a href="{{ route('store.profile') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('store.profile') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
             <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
             Store Profile
@@ -582,15 +590,15 @@
       </div>
 
       <!-- Employees & HR -->
-      <div x-data="{ open: {{ request()->routeIs('hr.*') ? 'true' : 'false' }} }">
-        <button @click="open = !open" class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-all duration-150 {{ request()->routeIs('hr.*') ? 'bg-white/10 text-white' : 'text-primary-200 hover:bg-white/10 hover:text-white' }}">
+      <div>
+        <button @click="toggleSection('hr')" class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-all duration-150 {{ request()->routeIs('hr.*') ? 'bg-white/10 text-white' : 'text-primary-200 hover:bg-white/10 hover:text-white' }}">
           <div class="flex items-center gap-3">
             <i class="fa-solid fa-user-tie w-4 text-center flex-shrink-0"></i>
             <span x-show="!sidebarCollapsed" class="font-medium">Employees & HR</span>
           </div>
-          <i x-show="!sidebarCollapsed" :class="open?'fa-solid fa-chevron-up':'fa-solid fa-chevron-down'" class="text-[10px] text-primary-400"></i>
+          <i x-show="!sidebarCollapsed" :class="activeSection === 'hr'?'fa-solid fa-chevron-up':'fa-solid fa-chevron-down'" class="text-[10px] text-primary-400"></i>
         </button>
-        <div :class="open?'max-h-[500px]':'max-h-0'" class="overflow-hidden transition-all duration-300 ml-3" x-show="!sidebarCollapsed">
+        <div :class="activeSection === 'hr'?'max-h-[500px]':'max-h-0'" class="overflow-hidden transition-all duration-300 ml-3" x-show="!sidebarCollapsed">
           <a href="{{ route('hr.employees') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('hr.employees') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
             <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
             Employees
@@ -615,15 +623,15 @@
       </div>
 
       <!-- Security & Control -->
-      <div x-data="{ open: {{ request()->routeIs('security.*') ? 'true' : 'false' }} }">
-        <button @click="open = !open" class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-all duration-150 {{ request()->routeIs('security.*') ? 'bg-white/10 text-white' : 'text-primary-200 hover:bg-white/10 hover:text-white' }}">
+      <div>
+        <button @click="toggleSection('security')" class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-all duration-150 {{ request()->routeIs('security.*') ? 'bg-white/10 text-white' : 'text-primary-200 hover:bg-white/10 hover:text-white' }}">
           <div class="flex items-center gap-3">
             <i class="fa-solid fa-shield-halved w-4 text-center flex-shrink-0"></i>
             <span x-show="!sidebarCollapsed" class="font-medium">Security & Control</span>
           </div>
-          <i x-show="!sidebarCollapsed" :class="open?'fa-solid fa-chevron-up':'fa-solid fa-chevron-down'" class="text-[10px] text-primary-400"></i>
+          <i x-show="!sidebarCollapsed" :class="activeSection === 'security'?'fa-solid fa-chevron-up':'fa-solid fa-chevron-down'" class="text-[10px] text-primary-400"></i>
         </button>
-        <div :class="open?'max-h-[500px]':'max-h-0'" class="overflow-hidden transition-all duration-300 ml-3" x-show="!sidebarCollapsed">
+        <div :class="activeSection === 'security'?'max-h-[500px]':'max-h-0'" class="overflow-hidden transition-all duration-300 ml-3" x-show="!sidebarCollapsed">
           <a href="{{ route('security.users') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('security.users') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
             <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
             User Accounts
@@ -652,15 +660,15 @@
       </div>
 
       <!-- Marketing -->
-      <div x-data="{ open: {{ request()->routeIs('marketing.*') ? 'true' : 'false' }} }">
-        <button @click="open = !open" class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-all duration-150 {{ request()->routeIs('marketing.*') ? 'bg-white/10 text-white' : 'text-primary-200 hover:bg-white/10 hover:text-white' }}">
+      <div>
+        <button @click="toggleSection('marketing')" class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-all duration-150 {{ request()->routeIs('marketing.*') ? 'bg-white/10 text-white' : 'text-primary-200 hover:bg-white/10 hover:text-white' }}">
           <div class="flex items-center gap-3">
             <i class="fa-solid fa-bullhorn w-4 text-center flex-shrink-0"></i>
             <span x-show="!sidebarCollapsed" class="font-medium">Marketing</span>
           </div>
-          <i x-show="!sidebarCollapsed" :class="open?'fa-solid fa-chevron-up':'fa-solid fa-chevron-down'" class="text-[10px] text-primary-400"></i>
+          <i x-show="!sidebarCollapsed" :class="activeSection === 'marketing'?'fa-solid fa-chevron-up':'fa-solid fa-chevron-down'" class="text-[10px] text-primary-400"></i>
         </button>
-        <div :class="open?'max-h-[500px]':'max-h-0'" class="overflow-hidden transition-all duration-300 ml-3" x-show="!sidebarCollapsed">
+        <div :class="activeSection === 'marketing'?'max-h-[500px]':'max-h-0'" class="overflow-hidden transition-all duration-300 ml-3" x-show="!sidebarCollapsed">
           <a href="{{ route('marketing.promotions') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('marketing.promotions') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
             <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
             Promotions
