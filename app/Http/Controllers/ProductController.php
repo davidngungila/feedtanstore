@@ -27,7 +27,8 @@ class ProductController extends Controller
         ]);
         
         $barcodeValue = $product->barcode ?? $product->sku ?? $product->id;
-        $barcodePng = \QrCode::size(150)->format('png')->generate($barcodeValue);
+        $generator = new \Picqer\BarcodeGenerator\BarcodeGeneratorPNG();
+        $barcodePng = $generator->getBarcode($barcodeValue, \Picqer\BarcodeGenerator\BarcodeGeneratorPNG::TYPE_CODE_128);
         $barcodeBase64 = 'data:image/png;base64,' . base64_encode($barcodePng);
         
         return view('inventory.products-show', compact('product', 'barcodeBase64', 'barcodeValue'));
@@ -164,10 +165,11 @@ class ProductController extends Controller
             ->where('is_active', true)
             ->get();
 
+        $generator = new \Picqer\BarcodeGenerator\BarcodeGeneratorPNG();
         $barcodes = [];
         foreach ($products as $product) {
             $barcodeValue = $product->barcode ?? $product->sku ?? $product->id;
-            $barcodePng = \QrCode::size(150)->format('png')->generate($barcodeValue);
+            $barcodePng = $generator->getBarcode($barcodeValue, \Picqer\BarcodeGenerator\BarcodeGeneratorPNG::TYPE_CODE_128);
             $barcodes[] = [
                 'product' => $product,
                 'barcode_base64' => 'data:image/png;base64,' . base64_encode($barcodePng),
@@ -184,10 +186,11 @@ class ProductController extends Controller
             ->where('is_active', true)
             ->get();
 
+        $generator = new \Picqer\BarcodeGenerator\BarcodeGeneratorPNG();
         $barcodes = [];
         foreach ($products as $product) {
             $barcodeValue = $product->barcode ?? $product->sku ?? $product->id;
-            $barcodePng = \QrCode::size(150)->format('png')->generate($barcodeValue);
+            $barcodePng = $generator->getBarcode($barcodeValue, \Picqer\BarcodeGenerator\BarcodeGeneratorPNG::TYPE_CODE_128);
             $barcodes[] = [
                 'product' => $product,
                 'barcode_base64' => 'data:image/png;base64,' . base64_encode($barcodePng),

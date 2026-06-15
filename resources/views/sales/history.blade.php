@@ -60,13 +60,9 @@
                             <a href="{{ route('sales.returns') }}?sale={{ $sale->id }}" class="text-yellow-600 hover:text-yellow-800" title="Return">
                                 <i class="fas fa-undo"></i>
                             </a>
-                            <form action="{{ route('sales.destroy', $sale) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to cancel this sale?')">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="text-red-600 hover:text-red-800" title="Cancel">
-                                    <i class="fas fa-times-circle"></i>
-                                </button>
-                            </form>
+                            <button type="button" class="text-red-600 hover:text-red-800" title="Cancel" onclick="openCancelModal({{ $sale->id }})">
+                                <i class="fas fa-times-circle"></i>
+                            </button>
                             @endif
                         </td>
                     </tr>
@@ -76,4 +72,35 @@
         </div>
     </div>
 </div>
+
+<!-- Cancel Modal -->
+<div id="cancelModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+    <div class="bg-white rounded-lg p-6 w-full max-w-md">
+        <h3 class="text-xl font-bold text-primary-900 mb-4">Cancel Sale</h3>
+        <form id="cancelForm" action="" method="POST">
+            @csrf
+            @method('DELETE')
+            <div class="mb-4">
+                <label for="cancellation_reason" class="block text-sm font-medium text-gray-700 mb-2">Reason for Cancellation</label>
+                <textarea id="cancellation_reason" name="cancellation_reason" required class="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-primary-500" rows="4" placeholder="Enter reason for cancellation..."></textarea>
+            </div>
+            <div class="flex justify-end gap-3">
+                <button type="button" onclick="closeCancelModal()" class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">Cancel</button>
+                <button type="submit" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg">Confirm Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function openCancelModal(saleId) {
+        document.getElementById('cancelForm').action = '/sales/history/' + saleId;
+        document.getElementById('cancelModal').classList.remove('hidden');
+    }
+
+    function closeCancelModal() {
+        document.getElementById('cancelModal').classList.add('hidden');
+        document.getElementById('cancellation_reason').value = '';
+    }
+</script>
 @endsection

@@ -34,13 +34,6 @@
                 <span class="ml-2">{{ $product->barcode ?? '-' }}</span>
             </div>
         </div>
-        
-        <!-- Barcode Display -->
-        <div class="mb-6 p-4 bg-gray-50 rounded-lg flex items-center justify-center flex-col">
-            <h4 class="font-semibold text-primary-900 mb-2">Product Barcode</h4>
-            <img src="{{ $barcodeBase64 }}" alt="Barcode for {{ $product->name }}" class="mb-2">
-            <p class="text-sm text-gray-600">{{ $barcodeValue }}</p>
-        </div>
 
         <!-- Details -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 p-4 bg-gray-50 rounded-lg">
@@ -69,7 +62,7 @@
         @endif
 
         <!-- Recent Transactions -->
-        <div class="card rounded-2xl p-6">
+        <div class="card rounded-2xl p-6 mb-6">
             <h3 class="text-lg font-bold text-primary-900 mb-4 flex items-center gap-2">
                 <i class="fas fa-history text-primary-600"></i> Recent Transactions
             </h3>
@@ -85,7 +78,7 @@
                                     <span class="font-semibold text-green-700">Stock In</span>
                                     <span class="text-xs text-gray-500">{{ $item->created_at->format('d/m/Y H:i:s') }}</span>
                                 </div>
-                                <p class="text-sm text-gray-700">
+                                <p class="text-sm text-gray-600">
                                     <a href="{{ route('purchasing.grn.show', $item->goodsReceivedNote) }}" class="hover:underline text-primary-600">
                                         {{ $item->goodsReceivedNote->grn_number }}
                                     </a>
@@ -104,7 +97,7 @@
                                     <span class="font-semibold text-red-700">Stock Out</span>
                                     <span class="text-xs text-gray-500">{{ $item->created_at->format('d/m/Y H:i:s') }}</span>
                                 </div>
-                                <p class="text-sm text-gray-700">
+                                <p class="text-sm text-gray-600">
                                     @if($item->sale)
                                         <a href="{{ route('sales.show', $item->sale) }}" class="hover:underline text-primary-600">
                                             Sale #{{ $item->sale->id }}
@@ -122,6 +115,61 @@
                 <p class="text-gray-500 text-center py-8">No transactions yet.</p>
             @endif
         </div>
+        
+        <!-- Barcode Display -->
+        <div class="card rounded-2xl p-6">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-lg font-bold text-primary-900">Product Barcode</h3>
+                <button onclick="printBarcode()" class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors">
+                    <i class="fas fa-print mr-2"></i>Print Barcode
+                </button>
+            </div>
+            <div id="barcode-print-area" class="flex flex-col items-center justify-center p-4 bg-gray-50 rounded-lg">
+                <h4 class="font-semibold text-gray-900 mb-2">{{ $product->name }}</h4>
+                <img src="{{ $barcodeBase64 }}" alt="Barcode for {{ $product->name }}" class="mb-2" style="width: 400px;">
+                <p class="text-sm text-gray-600 font-mono">{{ $barcodeValue }}</p>
+                <p class="text-lg font-bold text-primary-600 mt-1">TZS {{ number_format($product->selling_price, 2) }}</p>
+            </div>
+        </div>
     </div>
 </div>
+
+<script>
+    function printBarcode() {
+        const printContent = document.getElementById('barcode-print-area').innerHTML;
+        const originalContent = document.body.innerHTML;
+        
+        document.body.innerHTML = `
+            <html>
+                <head>
+                    <title>Product Barcode</title>
+                    <style>
+                        body {
+                            font-family: Arial, sans-serif;
+                            display: flex;
+                            justify-content: center;
+                            align-items: center;
+                            min-height: 100vh;
+                            margin: 0;
+                            padding: 20px;
+                        }
+                        .barcode-container {
+                            text-align: center;
+                            padding: 20px;
+                            border: 2px solid #000;
+                            width: 450px;
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="barcode-container">${printContent}</div>
+                </body>
+            </html>
+        `;
+        
+        window.print();
+        document.body.innerHTML = originalContent;
+        location.reload();
+    }
+</script>
 @endsection

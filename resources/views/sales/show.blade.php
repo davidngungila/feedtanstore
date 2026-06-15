@@ -111,6 +111,13 @@
             <p class="text-gray-600 whitespace-pre-wrap">{{ $sale->notes }}</p>
         </div>
         @endif
+        
+        @if($sale->cancellation_reason)
+        <div class="border-t pt-4 mt-4">
+            <h3 class="text-sm font-semibold text-red-700 mb-2">Cancellation Reason</h3>
+            <p class="text-gray-600 whitespace-pre-wrap">{{ $sale->cancellation_reason }}</p>
+        </div>
+        @endif
     </div>
 </div>
 @endsection

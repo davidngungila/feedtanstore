@@ -196,8 +196,15 @@ class SaleController extends Controller {
         return view('sales.show', compact('sale'));
     }
 
-    public function destroy(Sale $sale) {
-        $sale->update(['status' => 'cancelled']);
+    public function destroy(Request $request, Sale $sale) {
+        $request->validate([
+            'cancellation_reason' => 'required|string'
+        ]);
+        
+        $sale->update([
+            'status' => 'cancelled', 
+            'cancellation_reason' => $request->cancellation_reason
+        ]);
 
         foreach ($sale->items as $item) {
             $product = Product::find($item->product_id);
