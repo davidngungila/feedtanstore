@@ -50,7 +50,7 @@
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Payment Method *</label>
-                    <select name="payment_method" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                    <select name="payment_method" id="paymentMethod" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500" onchange="toggleTransactionId()">
                         <option value="">Select Method</option>
                         <option value="cash" {{ old('payment_method', $payment->payment_method) == 'cash' ? 'selected' : '' }}>Cash</option>
                         <option value="bank_transfer" {{ old('payment_method', $payment->payment_method) == 'bank_transfer' ? 'selected' : '' }}>Bank Transfer</option>
@@ -58,9 +58,9 @@
                         <option value="check" {{ old('payment_method', $payment->payment_method) == 'check' ? 'selected' : '' }}>Check</option>
                     </select>
                 </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Transaction ID (Optional)</label>
-                    <input type="text" name="transaction_id" value="{{ old('transaction_id', $payment->transaction_id) }}" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                <div class="md:col-span-2" id="transactionIdContainer" style="display: none;">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Transaction ID *</label>
+                    <input type="text" name="transaction_id" id="transactionId" value="{{ old('transaction_id', $payment->transaction_id) }}" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Payment Date *</label>
@@ -81,6 +81,27 @@
                 </button>
             </div>
         </form>
+
+        <script>
+            function toggleTransactionId() {
+                const paymentMethod = document.getElementById('paymentMethod').value;
+                const transactionIdContainer = document.getElementById('transactionIdContainer');
+                const transactionIdInput = document.getElementById('transactionId');
+                
+                if (paymentMethod === 'card' || paymentMethod === 'bank_transfer' || paymentMethod === 'mobile_money') {
+                    transactionIdContainer.style.display = 'block';
+                    transactionIdInput.required = true;
+                } else {
+                    transactionIdContainer.style.display = 'none';
+                    transactionIdInput.required = false;
+                }
+            }
+            
+            // Initialize on page load
+            document.addEventListener('DOMContentLoaded', function() {
+                toggleTransactionId();
+            });
+        </script>
     </div>
 </div>
 @endsection

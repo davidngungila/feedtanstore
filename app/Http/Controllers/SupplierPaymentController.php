@@ -69,7 +69,7 @@ class SupplierPaymentController extends Controller
             'purchase_order_id' => 'nullable|exists:purchase_orders,id',
             'amount' => 'required|numeric|min:0',
             'payment_method' => 'required|string',
-            'transaction_id' => 'nullable|string',
+            'transaction_id' => 'required_if:payment_method,card,bank_transfer,mobile_money|string',
             'payment_date' => 'required|date',
             'notes' => 'nullable|string',
         ]);
