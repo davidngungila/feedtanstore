@@ -103,56 +103,16 @@
 <script>
 let productIndex = 1;
 
-document.getElementById('add_product').addEventListener('click', function() {
-    const container = document.getElementById('products_container');
-    const template = document.querySelector('.product_item');
-    const clone = template.cloneNode(true);
-    
-    clone.querySelectorAll('input, select').forEach(input => {
-        const name = input.name.replace('[0]', '[' + productIndex + ']');
-        input.name = name;
-        if (input.tagName === 'INPUT') {
-            input.value = input.type === 'number' && input.name.includes('quantity') ? '1' : '';
-        } else {
-            input.value = '';
-        }
-    });
-    
-    container.appendChild(clone);
-    productIndex++;
-    
-    clone.querySelector('.remove_product').addEventListener('click', function() {
-        clone.remove();
-    });
-    
-    clone.querySelector('.product_select').addEventListener('change', function() {
-        const price = this.options[this.selectedIndex].dataset.price || 0;
-        clone.querySelector('.product_price').value = price;
-    });
-});
+@if($selectedPurchaseOrder)
+let selectedPurchaseOrderData = @json($selectedPurchaseOrder);
+@endif
 
-document.querySelectorAll('.remove_product').forEach(btn => {
-    btn.addEventListener('click', function() {
-        this.closest('.product_item').remove();
-    });
-});
-
-document.querySelectorAll('.product_select').forEach(select => {
-    select.addEventListener('change', function() {
-        const price = this.options[this.selectedIndex].dataset.price || 0;
-        this.closest('.product_item').querySelector('.product_price').value = price;
-    });
-});
-
-// Auto-fill from purchase order
-document.getElementById('purchase_order_select').addEventListener('change', function() {
-    const selectedOption = this.options[this.selectedIndex];
-    if (selectedOption.value) {
-        const poData = JSON.parse(selectedOption.dataset.po);
-        
+document.addEventListener('DOMContentLoaded', function() {
+    // If we have a selected purchase order, auto-fill on page load
+    if (typeof selectedPurchaseOrderData !== 'undefined') {
         // Set supplier
-        if (poData.supplier_id) {
-            document.querySelector('select[name="supplier_id"]').value = poData.supplier_id;
+        if (selectedPurchaseOrderData.supplier_id) {
+            document.querySelector('select[name="supplier_id"]').value = selectedPurchaseOrderData.supplier_id;
         }
         
         // Clear existing products
@@ -161,10 +121,79 @@ document.getElementById('purchase_order_select').addEventListener('change', func
         productIndex = 0;
         
         // Add products from PO
-        poData.items.forEach((item, index) => {
+        selectedPurchaseOrderData.items.forEach((item, index) => {
             addProductItem(item.product_id, item.quantity, item.unit_price);
         });
     }
+
+    document.getElementById('add_product').addEventListener('click', function() {
+        const container = document.getElementById('products_container');
+        const template = document.querySelector('.product_item');
+        if (!template) {
+            // If no template exists, create a new one from scratch
+            addProductItem('', 1, 0);
+            return;
+        }
+        const clone = template.cloneNode(true);
+        
+        clone.querySelectorAll('input, select').forEach(input => {
+            const name = input.name.replace(/\[\d+\]/, '[' + productIndex + ']');
+            input.name = name;
+            if (input.tagName === 'INPUT') {
+                input.value = input.type === 'number' && input.name.includes('quantity') ? '1' : '';
+            } else {
+                input.value = '';
+            }
+        });
+        
+        container.appendChild(clone);
+        productIndex++;
+        
+        clone.querySelector('.remove_product').addEventListener('click', function() {
+            clone.remove();
+        });
+        
+        clone.querySelector('.product_select').addEventListener('change', function() {
+            const price = this.options[this.selectedIndex].dataset.price || 0;
+            clone.querySelector('.product_price').value = price;
+        });
+    });
+
+    document.querySelectorAll('.remove_product').forEach(btn => {
+        btn.addEventListener('click', function() {
+            this.closest('.product_item').remove();
+        });
+    });
+
+    document.querySelectorAll('.product_select').forEach(select => {
+        select.addEventListener('change', function() {
+            const price = this.options[this.selectedIndex].dataset.price || 0;
+            this.closest('.product_item').querySelector('.product_price').value = price;
+        });
+    });
+
+    // Auto-fill from purchase order
+    document.getElementById('purchase_order_select').addEventListener('change', function() {
+        const selectedOption = this.options[this.selectedIndex];
+        if (selectedOption.value) {
+            const poData = JSON.parse(selectedOption.dataset.po);
+            
+            // Set supplier
+            if (poData.supplier_id) {
+                document.querySelector('select[name="supplier_id"]').value = poData.supplier_id;
+            }
+            
+            // Clear existing products
+            const container = document.getElementById('products_container');
+            container.innerHTML = '';
+            productIndex = 0;
+            
+            // Add products from PO
+            poData.items.forEach((item, index) => {
+                addProductItem(item.product_id, item.quantity, item.unit_price);
+            });
+        }
+    });
 });
 
 function addProductItem(productId, quantity, unitPrice) {
@@ -176,7 +205,7 @@ function addProductItem(productId, quantity, unitPrice) {
                 <select name="products[${productIndex}][product_id]" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 product_select">
                     <option value="">Select Product</option>
                     @foreach($products as $product)
-                        <option value="{{ $product->id }}" {{ old('products[0][product_id]') == $product->id ? 'selected' : '' }} data-price="{{ $product->cost_price }}">{{ $product->name }}</option>
+                        <option value="{{ $product->id }}" data-price="{{ $product->cost_price }}">{{ $product->name }}</option>
                     @endforeach
                 </select>
             </div>
@@ -199,12 +228,25 @@ function addProductItem(productId, quantity, unitPrice) {
     `;
     
     container.innerHTML += template;
-    productIndex++;
     
     // Set the selected product
     const lastItem = container.lastElementChild;
     const select = lastItem.querySelector('.product_select');
-    select.value = productId;
+    if (productId) {
+        select.value = productId;
+    }
+    
+    // Add event listeners to the new item
+    lastItem.querySelector('.remove_product').addEventListener('click', function() {
+        lastItem.remove();
+    });
+    
+    select.addEventListener('change', function() {
+        const price = this.options[this.selectedIndex].dataset.price || 0;
+        lastItem.querySelector('.product_price').value = price;
+    });
+    
+    productIndex++;
 }
 
 // Event listeners for dynamically added elements
