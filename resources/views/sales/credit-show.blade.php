@@ -94,6 +94,7 @@
                             <th class="text-left">Payment #</th>
                             <th class="text-left">Date</th>
                             <th class="text-left">Method</th>
+                            <th class="text-left">Transaction ID</th>
                             <th class="text-left">Amount</th>
                             <th class="text-left">Notes</th>
                         </tr>
@@ -104,6 +105,7 @@
                             <td class="text-gray-600">{{ $payment->payment_number }}</td>
                             <td class="text-gray-600">{{ $payment->created_at->format('M d, Y H:i') }}</td>
                             <td class="text-gray-600">{{ ucfirst($payment->payment_method) }}</td>
+                            <td class="text-gray-600">{{ $payment->transaction_id ?? '-' }}</td>
                             <td class="text-gray-600">TZS {{ number_format($payment->amount, 2) }}</td>
                             <td class="text-gray-600">{{ $payment->notes ?? '-' }}</td>
                         </tr>

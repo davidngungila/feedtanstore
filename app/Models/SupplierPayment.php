@@ -13,6 +13,7 @@ class SupplierPayment extends Model
         'purchase_order_id',
         'amount',
         'payment_method',
+        'transaction_id',
         'payment_date',
         'notes',
         'status'

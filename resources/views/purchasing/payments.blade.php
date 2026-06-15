@@ -26,6 +26,7 @@
                         <th class="text-left">Supplier</th>
                         <th class="text-left">Amount</th>
                         <th class="text-left">Method</th>
+                        <th class="text-left">Transaction ID</th>
                         <th class="text-left">Date</th>
                         <th class="text-left">Actions</th>
                     </tr>
@@ -39,6 +40,7 @@
                         <td class="text-gray-600">{{ $payment->supplier->name ?? 'N/A' }}</td>
                         <td class="text-gray-600">TZS {{ number_format($payment->amount, 2) }}</td>
                         <td class="text-gray-600">{{ ucfirst(str_replace('_', ' ', $payment->payment_method)) }}</td>
+                        <td class="text-gray-600">{{ $payment->transaction_id ?? '-' }}</td>
                         <td class="text-gray-600">{{ $payment->payment_date ? date('M d, Y', strtotime($payment->payment_date)) : '-' }}</td>
                         <td class="flex items-center gap-2">
                             <a href="{{ route('purchasing.payments.show', $payment) }}" class="text-primary-600 hover:text-primary-800 p-1" title="View">

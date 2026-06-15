@@ -35,6 +35,10 @@
                 <p class="font-medium">{{ ucfirst(str_replace('_', ' ', $payment->payment_method)) }}</p>
             </div>
             <div>
+                <p class="text-sm text-gray-500 mb-1">Transaction ID</p>
+                <p class="font-medium">{{ $payment->transaction_id ?? '-' }}</p>
+            </div>
+            <div>
                 <p class="text-sm text-gray-500 mb-1">Payment Date</p>
                 <p class="font-medium">{{ $payment->payment_date ? date('M d, Y', strtotime($payment->payment_date)) : '-' }}</p>
             </div>

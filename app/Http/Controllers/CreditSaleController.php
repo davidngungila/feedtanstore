@@ -23,6 +23,7 @@ class CreditSaleController extends Controller {
         $request->validate([
             'amount' => 'required|numeric|min:0.01',
             'payment_method' => 'required|string|in:cash,card,mobile',
+            'transaction_id' => 'nullable|string',
             'notes' => 'nullable|string'
         ]);
 
@@ -41,6 +42,7 @@ class CreditSaleController extends Controller {
             'user_id' => Auth::id(),
             'amount' => $request->amount,
             'payment_method' => $request->payment_method,
+            'transaction_id' => $request->transaction_id,
             'notes' => $request->notes
         ]);
 

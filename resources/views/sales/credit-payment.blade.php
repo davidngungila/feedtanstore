@@ -39,6 +39,10 @@
                     </select>
                 </div>
             </div>
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Transaction ID (Optional)</label>
+                <input type="text" name="transaction_id" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500">
+            </div>
             <div class="mb-6">
                 <label class="block text-sm font-medium text-gray-700 mb-2">Notes (Optional)</label>
                 <textarea name="notes" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"></textarea>
