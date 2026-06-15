@@ -11,112 +11,110 @@
                 <a href="{{ route('inventory.products.edit', $product) }}" class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors">
                     Edit
                 </a>
-                <a href="{{ route('inventory.products') }}" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
-                    Back to Products
+                <a href="{{ route('inventory.products') }}" class="text-primary-600 hover:text-primary-800 font-medium">
+                    <i class="fas fa-arrow-left mr-2"></i>Back to Products
                 </a>
             </div>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Product Info -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
             <div>
-                <p class="text-sm text-gray-500 mb-1">SKU</p>
-                <p class="font-medium">{{ $product->sku ?? '-' }}</p>
-            </div>
-            <div>
-                <p class="text-sm text-gray-500 mb-1">Barcode</p>
-                <p class="font-medium">{{ $product->barcode ?? '-' }}</p>
-            </div>
-            <div>
-                <p class="text-sm text-gray-500 mb-1">Category</p>
-                <p class="font-medium">{{ $product->category->name ?? '-' }}</p>
-            </div>
-            <div>
-                <p class="text-sm text-gray-500 mb-1">Brand</p>
-                <p class="font-medium">{{ $product->brand->name ?? '-' }}</p>
-            </div>
-            <div>
-                <p class="text-sm text-gray-500 mb-1">Unit</p>
-                <p class="font-medium">{{ $product->unit->name ?? '-' }}</p>
-            </div>
-            <div>
-                <p class="text-sm text-gray-500 mb-1">Quantity in Stock</p>
-                <p class="font-medium">{{ $product->quantity }}</p>
-            </div>
-            <div>
-                <p class="text-sm text-gray-500 mb-1">Cost Price</p>
-                <p class="font-medium">TZS {{ number_format($product->cost_price, 2) }}</p>
-            </div>
-            <div>
-                <p class="text-sm text-gray-500 mb-1">Selling Price</p>
-                <p class="font-medium">TZS {{ number_format($product->selling_price, 2) }}</p>
-            </div>
-            <div>
-                <p class="text-sm text-gray-500 mb-1">Reorder Level</p>
-                <p class="font-medium">{{ $product->reorder_level }}</p>
-            </div>
-            <div>
-                <p class="text-sm text-gray-500 mb-1">Expiry Date</p>
-                <p class="font-medium">{{ $product->expiry_date ? date('M d, Y', strtotime($product->expiry_date)) : '-' }}</p>
-            </div>
-            <div>
-                <p class="text-sm text-gray-500 mb-1">Status</p>
-                <p class="font-medium">
+                <span class="text-sm text-gray-600">Status:</span>
+                <span class="ml-2 px-3 py-1 rounded-full text-xs font-semibold {{ $product->is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
                     {{ $product->is_active ? 'Active' : 'Inactive' }}
-                </p>
+                </span>
             </div>
             <div>
-                <p class="text-sm text-gray-500 mb-1">Available Online</p>
-                <p class="font-medium">
-                    {{ ($product->is_available_online ?? false) ? 'Yes' : 'No' }}
-                </p>
+                <span class="text-sm text-gray-600">SKU:</span>
+                <span class="ml-2">{{ $product->sku ?? '-' }}</span>
             </div>
-            <div class="md:col-span-2">
-                <p class="text-sm text-gray-500 mb-1">Description</p>
-                <p>{{ $product->description ?? '-' }}</p>
+            <div>
+                <span class="text-sm text-gray-600">Barcode:</span>
+                <span class="ml-2">{{ $product->barcode ?? '-' }}</span>
             </div>
         </div>
-    </div>
 
-    <div class="card rounded-2xl p-6">
-        <h3 class="text-lg font-bold text-primary-900 mb-6">Recent Transactions</h3>
-        @if($product->grnItems->count() > 0 || $product->saleItems->count() > 0)
-            <div class="overflow-x-auto">
-                <table class="data-table w-full">
-                    <thead>
-                        <tr>
-                            <th class="text-left">Date</th>
-                            <th class="text-left">Type</th>
-                            <th class="text-left">Reference</th>
-                            <th class="text-left">Quantity</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach($product->grnItems->sortByDesc('created_at') as $item)
-                        <tr>
-                            <td class="font-medium">{{ $item->created_at->format('M d, Y') }}</td>
-                            <td class="text-green-600">Stock In</td>
-                            <td class="text-primary-900">
-                                <a href="{{ route('purchasing.grn.show', $item->goodsReceivedNote) }}" class="hover:underline">{{ $item->goodsReceivedNote->grn_number }}</a>
-                            </td>
-                            <td class="text-gray-600">+{{ $item->quantity }}</td>
-                        </tr>
-                        @endforeach
-                        @foreach($product->saleItems->sortByDesc('created_at') as $item)
-                        <tr>
-                            <td class="font-medium">{{ $item->created_at->format('M d, Y') }}</td>
-                            <td class="text-red-600">Stock Out</td>
-                            <td class="text-primary-900">
-                                <a href="{{ $item->sale ? route('sales.show', $item->sale) : '#' }}" class="hover:underline">{{ $item->sale ? 'Sale #' . $item->sale->id : 'N/A' }}</a>
-                            </td>
-                            <td class="text-gray-600">-{{ $item->quantity }}</td>
-                        </tr>
-                        @endforeach
-                    </tbody>
-                </table>
+        <!-- Details -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 p-4 bg-gray-50 rounded-lg">
+            <div>
+                <h4 class="font-semibold text-primary-900 mb-2">Basic Info</h4>
+                <p class="mb-1"><strong>Category:</strong> {{ $product->category->name ?? '-' }}</p>
+                <p class="mb-1"><strong>Brand:</strong> {{ $product->brand->name ?? '-' }}</p>
+                <p class="mb-1"><strong>Unit:</strong> {{ $product->unit->name ?? '-' }}</p>
+                <p class="mb-1"><strong>Quantity in Stock:</strong> {{ $product->quantity }}</p>
+                <p class="mb-1"><strong>Reorder Level:</strong> {{ $product->reorder_level }}</p>
             </div>
-        @else
-            <p class="text-gray-600 text-center py-8">No transactions yet.</p>
+            <div>
+                <h4 class="font-semibold text-primary-900 mb-2">Pricing</h4>
+                <p class="mb-1"><strong>Cost Price:</strong> TZS {{ number_format($product->cost_price, 2) }}</p>
+                <p class="mb-1"><strong>Selling Price:</strong> TZS {{ number_format($product->selling_price, 2) }}</p>
+                <p class="mb-1"><strong>Expiry Date:</strong> {{ $product->expiry_date ? date('M d, Y', strtotime($product->expiry_date)) : '-' }}</p>
+                <p class="mb-1"><strong>Available Online:</strong> {{ ($product->is_available_online ?? false) ? 'Yes' : 'No' }}</p>
+            </div>
+        </div>
+
+        @if($product->description)
+        <div class="p-4 bg-yellow-50 border-l-4 border-yellow-400 rounded mb-6">
+            <h4 class="font-semibold text-yellow-800 mb-1">Description</h4>
+            <p class="text-sm text-yellow-700">{{ $product->description }}</p>
+        </div>
         @endif
+
+        <!-- Recent Transactions -->
+        <div class="card rounded-2xl p-6">
+            <h3 class="text-lg font-bold text-primary-900 mb-4 flex items-center gap-2">
+                <i class="fas fa-history text-primary-600"></i> Recent Transactions
+            </h3>
+            @if($product->grnItems->count() > 0 || $product->saleItems->count() > 0)
+                <div class="space-y-4">
+                    @foreach($product->grnItems->sortByDesc('created_at')->take(5) as $item)
+                        <div class="flex gap-4 items-start border-l-2 border-green-200 pl-4 pb-4">
+                            <div class="flex-shrink-0 w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-700 font-semibold text-sm">
+                                <i class="fas fa-arrow-down"></i>
+                            </div>
+                            <div class="flex-1">
+                                <div class="flex flex-wrap items-center gap-3 mb-1">
+                                    <span class="font-semibold text-green-700">Stock In</span>
+                                    <span class="text-xs text-gray-500">{{ $item->created_at->format('d/m/Y H:i:s') }}</span>
+                                </div>
+                                <p class="text-sm text-gray-700">
+                                    <a href="{{ route('purchasing.grn.show', $item->goodsReceivedNote) }}" class="hover:underline text-primary-600">
+                                        {{ $item->goodsReceivedNote->grn_number }}
+                                    </a>
+                                    - Qty: +{{ $item->quantity }}
+                                </p>
+                            </div>
+                        </div>
+                    @endforeach
+                    @foreach($product->saleItems->sortByDesc('created_at')->take(5) as $item)
+                        <div class="flex gap-4 items-start border-l-2 border-red-200 pl-4 pb-4">
+                            <div class="flex-shrink-0 w-10 h-10 rounded-full bg-red-100 flex items-center justify-center text-red-700 font-semibold text-sm">
+                                <i class="fas fa-arrow-up"></i>
+                            </div>
+                            <div class="flex-1">
+                                <div class="flex flex-wrap items-center gap-3 mb-1">
+                                    <span class="font-semibold text-red-700">Stock Out</span>
+                                    <span class="text-xs text-gray-500">{{ $item->created_at->format('d/m/Y H:i:s') }}</span>
+                                </div>
+                                <p class="text-sm text-gray-700">
+                                    @if($item->sale)
+                                        <a href="{{ route('sales.show', $item->sale) }}" class="hover:underline text-primary-600">
+                                            Sale #{{ $item->sale->id }}
+                                        </a>
+                                    @else
+                                        N/A
+                                    @endif
+                                    - Qty: -{{ $item->quantity }}
+                                </p>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            @else
+                <p class="text-gray-500 text-center py-8">No transactions yet.</p>
+            @endif
+        </div>
     </div>
 </div>
 @endsection
