@@ -27,8 +27,8 @@ class ProductController extends Controller
         ]);
         
         $barcodeValue = $product->barcode ?? $product->sku ?? $product->id;
-        $generator = new \Picqer\BarcodeGenerator\BarcodeGeneratorPNG();
-        $barcodePng = $generator->getBarcode($barcodeValue, \Picqer\BarcodeGenerator\BarcodeGeneratorPNG::TYPE_CODE_128);
+        $generator = new \Picqer\Barcode\BarcodeGeneratorPNG();
+        $barcodePng = $generator->getBarcode($barcodeValue, \Picqer\Barcode\BarcodeGeneratorPNG::TYPE_CODE_128);
         $barcodeBase64 = 'data:image/png;base64,' . base64_encode($barcodePng);
         
         return view('inventory.products-show', compact('product', 'barcodeBase64', 'barcodeValue'));
@@ -165,11 +165,11 @@ class ProductController extends Controller
             ->where('is_active', true)
             ->get();
 
-        $generator = new \Picqer\BarcodeGenerator\BarcodeGeneratorPNG();
+        $generator = new \Picqer\Barcode\BarcodeGeneratorPNG();
         $barcodes = [];
         foreach ($products as $product) {
             $barcodeValue = $product->barcode ?? $product->sku ?? $product->id;
-            $barcodePng = $generator->getBarcode($barcodeValue, \Picqer\BarcodeGenerator\BarcodeGeneratorPNG::TYPE_CODE_128);
+            $barcodePng = $generator->getBarcode($barcodeValue, \Picqer\Barcode\BarcodeGeneratorPNG::TYPE_CODE_128);
             $barcodes[] = [
                 'product' => $product,
                 'barcode_base64' => 'data:image/png;base64,' . base64_encode($barcodePng),
@@ -186,11 +186,11 @@ class ProductController extends Controller
             ->where('is_active', true)
             ->get();
 
-        $generator = new \Picqer\BarcodeGenerator\BarcodeGeneratorPNG();
+        $generator = new \Picqer\Barcode\BarcodeGeneratorPNG();
         $barcodes = [];
         foreach ($products as $product) {
             $barcodeValue = $product->barcode ?? $product->sku ?? $product->id;
-            $barcodePng = $generator->getBarcode($barcodeValue, \Picqer\BarcodeGenerator\BarcodeGeneratorPNG::TYPE_CODE_128);
+            $barcodePng = $generator->getBarcode($barcodeValue, \Picqer\Barcode\BarcodeGeneratorPNG::TYPE_CODE_128);
             $barcodes[] = [
                 'product' => $product,
                 'barcode_base64' => 'data:image/png;base64,' . base64_encode($barcodePng),
