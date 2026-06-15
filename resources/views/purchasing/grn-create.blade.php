@@ -102,6 +102,7 @@
 
 <script>
 let productIndex = 1;
+const productsData = @json($products);
 
 @if($selectedPurchaseOrder)
 let selectedPurchaseOrderData = @json($selectedPurchaseOrder);
@@ -127,36 +128,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     document.getElementById('add_product').addEventListener('click', function() {
-        const container = document.getElementById('products_container');
-        const template = document.querySelector('.product_item');
-        if (!template) {
-            // If no template exists, create a new one from scratch
-            addProductItem('', 1, 0);
-            return;
-        }
-        const clone = template.cloneNode(true);
-        
-        clone.querySelectorAll('input, select').forEach(input => {
-            const name = input.name.replace(/\[\d+\]/, '[' + productIndex + ']');
-            input.name = name;
-            if (input.tagName === 'INPUT') {
-                input.value = input.type === 'number' && input.name.includes('quantity') ? '1' : '';
-            } else {
-                input.value = '';
-            }
-        });
-        
-        container.appendChild(clone);
-        productIndex++;
-        
-        clone.querySelector('.remove_product').addEventListener('click', function() {
-            clone.remove();
-        });
-        
-        clone.querySelector('.product_select').addEventListener('change', function() {
-            const price = this.options[this.selectedIndex].dataset.price || 0;
-            clone.querySelector('.product_price').value = price;
-        });
+        addProductItem('', 1, 0);
     });
 
     document.querySelectorAll('.remove_product').forEach(btn => {
@@ -198,15 +170,19 @@ document.addEventListener('DOMContentLoaded', function() {
 
 function addProductItem(productId, quantity, unitPrice) {
     const container = document.getElementById('products_container');
+    
+    let optionsHtml = '<option value="">Select Product</option>';
+    productsData.forEach(product => {
+        const selected = product.id == productId ? 'selected' : '';
+        optionsHtml += `<option value="${product.id}" data-price="${product.cost_price}" ${selected}>${product.name}</option>`;
+    });
+    
     const template = `
         <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-4 product_item">
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Product *</label>
                 <select name="products[${productIndex}][product_id]" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 product_select">
-                    <option value="">Select Product</option>
-                    @foreach($products as $product)
-                        <option value="{{ $product->id }}" data-price="{{ $product->cost_price }}">{{ $product->name }}</option>
-                    @endforeach
+                    ${optionsHtml}
                 </select>
             </div>
             <div>
@@ -229,19 +205,14 @@ function addProductItem(productId, quantity, unitPrice) {
     
     container.innerHTML += template;
     
-    // Set the selected product
-    const lastItem = container.lastElementChild;
-    const select = lastItem.querySelector('.product_select');
-    if (productId) {
-        select.value = productId;
-    }
-    
     // Add event listeners to the new item
+    const lastItem = container.lastElementChild;
+    
     lastItem.querySelector('.remove_product').addEventListener('click', function() {
         lastItem.remove();
     });
     
-    select.addEventListener('change', function() {
+    lastItem.querySelector('.product_select').addEventListener('change', function() {
         const price = this.options[this.selectedIndex].dataset.price || 0;
         lastItem.querySelector('.product_price').value = price;
     });
