@@ -162,7 +162,7 @@
 <script>
 let cart = [];
 let selectedPaymentMethod = 'cash';
-let productsData = @json($products);
+let productsData = @json($products).map(p => ({...p, selling_price: parseFloat(p.selling_price)}));
 let currentSaleId = null;
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -312,9 +312,9 @@ function setupProductSearch() {
     function renderProducts(filtered) {
         if (filtered.length > 0) {
             searchResults.innerHTML = filtered.map(p => `
-                <div class="px-4 py-3 hover:bg-gray-100 cursor-pointer border-b border-gray-100 last:border-0" onclick="addProductToCart(${p.id}, '${p.name.replace(/'/g, "\\'")}', ${p.selling_price})">
+                <div class="px-4 py-3 hover:bg-gray-100 cursor-pointer border-b border-gray-100 last:border-0" onclick="addProductToCart(${p.id}, '${p.name.replace(/'/g, "\\'")}', ${parseFloat(p.selling_price)})">
                     <p class="font-semibold text-primary-900">${p.name}</p>
-                    <p class="text-sm text-gray-600">TZS ${p.selling_price.toFixed(2)}</p>
+                    <p class="text-sm text-gray-600">TZS ${parseFloat(p.selling_price).toFixed(2)}</p>
                 </div>
             `).join('');
         } else {
@@ -353,7 +353,7 @@ function setupProductSearch() {
 function addProductByBarcode(barcode) {
     const product = productsData.find(p => p.barcode === barcode);
     if (product) {
-        addProductToCart(product.id, product.name, product.selling_price);
+        addProductToCart(product.id, product.name, parseFloat(product.selling_price));
     }
     document.getElementById('barcodeInput').value = '';
 }
@@ -363,7 +363,7 @@ function addProductToCart(id, name, price) {
     if (existing) {
         existing.quantity += 1;
     } else {
-        cart.push({ id, name, price, quantity: 1 });
+        cart.push({id, name, price: parseFloat(price), quantity: 1});
     }
     renderCart();
     showNotification('Added ' + name + ' to cart', 'success');
@@ -379,7 +379,7 @@ function renderCart() {
             <div class="flex items-center justify-between py-3 border-b border-gray-100">
                 <div class="flex-1">
                     <p class="font-medium text-primary-900">${item.name}</p>
-                    <p class="text-sm text-gray-600">TZS ${item.price.toFixed(2)}</p>
+                    <p class="text-sm text-gray-600">TZS ${parseFloat(item.price).toFixed(2)}</p>
                 </div>
                 <div class="flex items-center gap-2">
                     <button type="button" class="w-8 h-8 rounded-lg border border-gray-300 flex items-center justify-center" onclick="updateQuantity(${index}, -1)">-</button>
@@ -416,7 +416,7 @@ function clearCart() {
 }
 
 function updateTotals() {
-    const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const subtotal = cart.reduce((sum, item) => sum + (parseFloat(item.price) * item.quantity), 0);
     const discount = parseFloat(document.getElementById('discountInput').value) || 0;
     const total = subtotal - discount;
 
@@ -449,7 +449,7 @@ function setPaidAmount(amount) {
 }
 
 function calculateChange() {
-    const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0) - (parseFloat(document.getElementById('discountInput').value) || 0);
+    const total = cart.reduce((sum, item) => sum + (parseFloat(item.price) * item.quantity), 0) - (parseFloat(document.getElementById('discountInput').value) || 0);
     const paid = parseFloat(document.getElementById('paidAmount').value) || 0;
     const change = paid - total;
     document.getElementById('changeAmount').textContent = 'TZS ' + change.toFixed(2);
@@ -461,7 +461,7 @@ function completeSale() {
         return;
     }
     const paid = parseFloat(document.getElementById('paidAmount').value) || 0;
-    const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0) - (parseFloat(document.getElementById('discountInput').value) || 0);
+    const total = cart.reduce((sum, item) => sum + (parseFloat(item.price) * item.quantity), 0) - (parseFloat(document.getElementById('discountInput').value) || 0);
 
     if (paid < total) {
         showNotification('Insufficient payment!', 'error');
@@ -473,6 +473,14 @@ function completeSale() {
         return;
     }
 
+    // Convert cart items to ensure prices are numbers
+    const formattedCart = cart.map(item => ({
+        id: item.id,
+        name: item.name,
+        price: parseFloat(item.price),
+        quantity: item.quantity
+    }));
+
     fetch('/cashier/sale', {
         method: 'POST',
         headers: {
@@ -480,7 +488,7 @@ function completeSale() {
             'X-CSRF-TOKEN': '{{ csrf_token() }}'
         },
         body: JSON.stringify({
-            items: cart,
+            items: formattedCart,
             total,
             discount: parseFloat(document.getElementById('discountInput').value) || 0,
             paid,
