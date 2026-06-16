@@ -8,8 +8,9 @@ Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
-// Public verify route
+// Public receipt routes
 Route::get('/sales/receipts/{sale}/verify', [\App\Http\Controllers\ReceiptController::class, 'verify'])->name('sales.receipts.verify');
+Route::get('/sales/receipts/{sale}/download', [\App\Http\Controllers\ReceiptController::class, 'download'])->name('sales.receipts.download');
 
 // Protected Routes (must be authenticated)
 Route::middleware('auth')->group(function () {
@@ -69,7 +70,6 @@ Route::middleware('auth')->group(function () {
         Route::post('/credit/{id}/payment', [\App\Http\Controllers\CreditSaleController::class, 'storePayment'])->name('credit.payment.store');
         Route::get('/receipts', [\App\Http\Controllers\ReceiptController::class, 'index'])->name('receipts');
         Route::get('/receipts/{sale}', [\App\Http\Controllers\ReceiptController::class, 'show'])->name('receipts.show');
-        Route::get('/receipts/{sale}/download', [\App\Http\Controllers\ReceiptController::class, 'download'])->name('receipts.download');
         Route::get('/receipts/{sale}/print', [\App\Http\Controllers\ReceiptController::class, 'print'])->name('receipts.print');
         Route::get('/shifts', [\App\Http\Controllers\ShiftController::class, 'index'])->name('shifts');
         Route::post('/shifts/open', [\App\Http\Controllers\ShiftController::class, 'open'])->name('shifts.open');
