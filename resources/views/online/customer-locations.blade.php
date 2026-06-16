@@ -118,21 +118,49 @@
             
             const marker = new maplibregl.Marker(el)
                 .setLngLat([{{ $order->delivery_longitude }}, {{ $order->delivery_latitude }}])
-                .setPopup(new maplibregl.Popup({ offset: 25 }).setHTML(`
-                    <div class="p-4 min-w-[250px]">
-                        <h4 class="font-bold text-base mb-2">Order #{{ $order->order_number }}</h4>
-                        <div class="space-y-1 text-sm">
-                            <p><strong>Stop #:</strong> {{ $index + 1 }}</p>
-                            <p><strong>Customer:</strong> {{ $order->customer_name }}</p>
-                            <p><strong>Phone:</strong> {{ $order->customer_phone }}</p>
-                            <p><strong>Address:</strong> {{ $order->delivery_address }}</p>
-                            <p><strong>Status:</strong> <span class="px-2 py-0.5 rounded-full text-xs" style="background-color: ${statusColors['{{ $order->status }}']}20; color: ${statusColors['{{ $order->status }}']}">{{ ucwords(str_replace('_', ' ', $order->status)) }}</span></p>
-                            <p><strong>Total:</strong> TZS {{ number_format($order->total, 2) }}</p>
-                            <p class="text-gray-500 text-xs">{{ $order->created_at->format('d/m/Y H:i') }}</p>
+                .setPopup(new maplibregl.Popup({ offset: 25, maxWidth: '300px' }).setHTML(`
+                    <div class="p-4 min-w-[280px]">
+                        <!-- Order Number -->
+                        <div class="flex items-center justify-between mb-3 pb-2 border-b border-gray-100">
+                            <h4 class="font-bold text-base text-gray-900 m-0">Order #{{ $order->order_number }}</h4>
+                            <span class="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs font-semibold">#{{ $index + 1 }}</span>
                         </div>
-                        <a href="{{ route('online.orders.show', $order) }}" class="mt-3 inline-block text-primary-600 hover:text-primary-800 font-medium text-sm">
-                            View Order →
-                        </a>
+
+                        <!-- Details Grid -->
+                        <div class="grid grid-cols-1 gap-2 text-sm mb-3">
+                            <div class="flex gap-2">
+                                <span class="text-gray-500 font-medium min-w-[70px]">Customer:</span>
+                                <span class="text-gray-900 font-medium">{{ $order->customer_name }}</span>
+                            </div>
+                            <div class="flex gap-2">
+                                <span class="text-gray-500 font-medium min-w-[70px]">Phone:</span>
+                                <a href="tel:{{ $order->customer_phone }}" class="text-blue-600 hover:text-blue-800">{{ $order->customer_phone }}</a>
+                            </div>
+                            <div class="flex gap-2">
+                                <span class="text-gray-500 font-medium min-w-[70px]">Address:</span>
+                                <span class="text-gray-700">{{ $order->delivery_address }}</span>
+                            </div>
+                            <div class="flex gap-2">
+                                <span class="text-gray-500 font-medium min-w-[70px]">Status:</span>
+                                <span class="px-2 py-0.5 rounded-full text-xs font-semibold" style="background-color: ${statusColors['{{ $order->status }}']}20; color: ${statusColors['{{ $order->status }}']}">{{ ucwords(str_replace('_', ' ', $order->status)) }}</span>
+                            </div>
+                            <div class="flex gap-2">
+                                <span class="text-gray-500 font-medium min-w-[70px]">Total:</span>
+                                <span class="text-green-700 font-bold text-base">TZS {{ number_format($order->total, 2) }}</span>
+                            </div>
+                            <div class="flex gap-2">
+                                <span class="text-gray-500 font-medium min-w-[70px]">Date:</span>
+                                <span class="text-gray-500 text-xs">{{ $order->created_at->format('d/m/Y H:i') }}</span>
+                            </div>
+                        </div>
+
+                        <!-- View Order Button -->
+                        <div class="pt-2 border-t border-gray-100">
+                            <a href="{{ route('online.orders.show', $order) }}" class="w-full inline-flex items-center justify-center gap-1 bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg font-medium text-sm transition-colors">
+                                <i class="fas fa-eye"></i>
+                                View Order
+                            </a>
+                        </div>
                     </div>
                 `))
                 .addTo(map);
