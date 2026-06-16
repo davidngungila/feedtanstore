@@ -15,6 +15,11 @@ Route::middleware('auth')->group(function () {
     });
 
     // Dashboards
+    Route::get('/cashier', [\App\Http\Controllers\CashierController::class, 'index'])->name('cashier.dashboard');
+    Route::get('/cashier/product/{barcode}', [\App\Http\Controllers\CashierController::class, 'getProductByBarcode'])->name('cashier.product');
+    Route::get('/cashier/search', [\App\Http\Controllers\CashierController::class, 'searchProducts'])->name('cashier.search');
+    Route::post('/cashier/sale', [\App\Http\Controllers\CashierController::class, 'completeSale'])->name('cashier.sale');
+    
     Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
     Route::get('/dashboard/sales', [\App\Http\Controllers\SalesDashboardController::class, 'index'])->name('dashboard.sales');
     Route::get('/dashboard/online-orders', [\App\Http\Controllers\OnlineOrdersDashboardController::class, 'index'])->name('dashboard.online-orders');
