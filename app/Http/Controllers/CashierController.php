@@ -18,7 +18,7 @@ class CashierController extends Controller
             return redirect()->route('dashboard');
         }
 
-        $products = Product::all();
+        $products = Product::with(['category', 'brand', 'unit'])->where('is_active', true)->get();
         $storeSetting = StoreSetting::first() ?? (object)[
             'store_name' => 'Feedtan Store'
         ];
@@ -28,7 +28,7 @@ class CashierController extends Controller
 
     public function getProductByBarcode($barcode)
     {
-        $product = Product::where('barcode', $barcode)->first();
+        $product = Product::where('barcode', $barcode)->where('is_active', true)->first();
         if (!$product) {
             return response()->json(['error' => 'Product not found'], 404);
         }
@@ -38,8 +38,12 @@ class CashierController extends Controller
     public function searchProducts(Request $request)
     {
         $term = $request->input('term');
-        $products = Product::where('name', 'like', "%{$term}%")
-            ->orWhere('barcode', 'like', "%{$term}%")
+        $products = Product::with(['category', 'brand', 'unit'])
+            ->where('is_active', true)
+            ->where(function($q) use ($term) {
+                $q->where('name', 'like', "%{$term}%")
+                  ->orWhere('barcode', 'like', "%{$term}%");
+            })
             ->get();
         return response()->json($products);
     }
