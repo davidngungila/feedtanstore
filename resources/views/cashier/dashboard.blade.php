@@ -520,12 +520,12 @@ function updateDashboardDisplay() {
     const todayMobile = parseFloat(dashboardData.todayBreakdown?.mobile || 0);
     const todayCard = parseFloat(dashboardData.todayBreakdown?.card || 0);
     
-    document.getElementById('todaySales').textContent = 'TZS ' + todayTotal.toFixed(2);
-    document.getElementById('shiftSales').textContent = 'TZS ' + shiftTotal.toFixed(2);
+    document.getElementById('todaySales').textContent = 'TZS ' + formatNumber(todayTotal);
+    document.getElementById('shiftSales').textContent = 'TZS ' + formatNumber(shiftTotal);
     document.getElementById('todayItems').textContent = todayItemsCount + ' items';
     document.getElementById('shiftItems').textContent = shiftItemsCount + ' items';
-    document.getElementById('todayCash').textContent = 'TZS ' + todayCash.toFixed(2);
-    document.getElementById('todayMobile').textContent = 'TZS ' + (todayMobile + todayCard).toFixed(2);
+    document.getElementById('todayCash').textContent = 'TZS ' + formatNumber(todayCash);
+    document.getElementById('todayMobile').textContent = 'TZS ' + formatNumber(todayMobile + todayCard);
 }
 
 function updateTime() {
@@ -796,9 +796,9 @@ function completeSale() {
     })
     .then(data => {
         currentSaleId = data.sale_id;
-        document.getElementById('modalTotal').textContent = 'TZS ' + total.toFixed(2);
-        document.getElementById('modalPaid').textContent = 'TZS ' + paid.toFixed(2);
-        document.getElementById('modalChange').textContent = 'TZS ' + (paid - total).toFixed(2);
+        document.getElementById('modalTotal').textContent = 'TZS ' + formatNumber(total);
+        document.getElementById('modalPaid').textContent = 'TZS ' + formatNumber(paid);
+        document.getElementById('modalChange').textContent = 'TZS ' + formatNumber(paid - total);
         document.getElementById('successModal').classList.remove('hidden');
         loadDashboardData();
         
@@ -855,7 +855,7 @@ function showTransactionsModal() {
                 </div>
                 <div class="flex justify-between text-sm mb-1">
                     <span class="text-gray-600">${t.items_count} items</span>
-                    <span class="font-semibold text-gray-800">TZS ${parseFloat(t.total).toFixed(2)}</span>
+                    <span class="font-semibold text-gray-800">TZS ${formatNumber(parseFloat(t.total))}</span>
                 </div>
                 <div class="flex justify-between text-xs">
                     <span class="text-gray-500">${t.payment_method.toUpperCase()}</span>
