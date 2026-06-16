@@ -110,48 +110,48 @@
             </div>
 
             <!-- Payment Panel -->
-            <div class="card rounded-2xl p-6 sticky top-6">
-                <h2 class="text-xl font-bold text-primary-900 mb-4">Payment</h2>
-                <div class="mb-4 p-4 bg-primary-50 rounded-xl text-center">
-                    <p class="text-sm text-primary-600">TOTAL</p>
-                    <p class="text-3xl font-bold text-primary-800" id="paymentTotal">TZS 0.00</p>
+            <div class="card rounded-2xl p-8 sticky top-6">
+                <h2 class="text-2xl font-bold text-primary-900 mb-6">Payment</h2>
+                <div class="mb-6 p-6 bg-primary-50 rounded-xl text-center">
+                    <p class="text-base text-primary-600 mb-1">TOTAL</p>
+                    <p class="text-4xl font-bold text-primary-800" id="paymentTotal">TZS 0.00</p>
                 </div>
-                <div class="space-y-3 mb-4">
+                <div class="space-y-4 mb-6">
                     <label class="block">
-                        <span class="text-gray-700 font-medium mb-1">Paid Amount</span>
-                        <input type="number" id="paidAmount" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500" oninput="calculateChange()" placeholder="Enter amount paid">
+                        <span class="text-gray-700 font-medium mb-2">Paid Amount</span>
+                        <input type="number" id="paidAmount" class="w-full px-4 py-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 text-lg" oninput="calculateChange()" placeholder="Enter amount paid">
                     </label>
-                    <div class="grid grid-cols-3 gap-2">
-                        <button type="button" class="py-2 border border-gray-300 rounded-xl hover:bg-gray-50" onclick="setPaidAmount(5000)">5k</button>
-                        <button type="button" class="py-2 border border-gray-300 rounded-xl hover:bg-gray-50" onclick="setPaidAmount(10000)">10k</button>
-                        <button type="button" class="py-2 border border-gray-300 rounded-xl hover:bg-gray-50" onclick="setPaidAmount(20000)">20k</button>
+                    <div class="grid grid-cols-3 gap-3">
+                        <button type="button" class="py-3 border border-gray-300 rounded-xl hover:bg-gray-50 font-medium text-lg" onclick="setPaidAmount(5000)">5k</button>
+                        <button type="button" class="py-3 border border-gray-300 rounded-xl hover:bg-gray-50 font-medium text-lg" onclick="setPaidAmount(10000)">10k</button>
+                        <button type="button" class="py-3 border border-gray-300 rounded-xl hover:bg-gray-50 font-medium text-lg" onclick="setPaidAmount(20000)">20k</button>
                     </div>
-                    <div class="mt-2">
-                        <div class="flex justify-between text-lg font-bold">
+                    <div class="mt-3">
+                        <div class="flex justify-between text-xl font-bold">
                             <span class="text-gray-600">Change:</span>
                             <span class="text-green-600" id="changeAmount">TZS 0.00</span>
                         </div>
                     </div>
                 </div>
-                <div class="mb-4">
-                    <p class="text-gray-700 font-medium mb-2">Payment Method</p>
-                    <div class="flex gap-2">
-                        <button type="button" class="flex-1 py-3 border-2 border-primary-600 bg-primary-600 text-white rounded-xl font-medium" id="methodCash" onclick="selectPaymentMethod('cash')">
+                <div class="mb-6">
+                    <p class="text-gray-700 font-medium mb-3">Payment Method</p>
+                    <div class="flex gap-3">
+                        <button type="button" class="flex-1 py-4 border-2 border-primary-600 bg-primary-600 text-white rounded-xl font-semibold text-lg" id="methodCash" onclick="selectPaymentMethod('cash')">
                             <i class="fas fa-money-bill mr-2"></i>Cash
                         </button>
-                        <button type="button" class="flex-1 py-3 border-2 border-gray-300 text-gray-700 hover:border-primary-500 rounded-xl font-medium" id="methodCard" onclick="selectPaymentMethod('card')">
+                        <button type="button" class="flex-1 py-4 border-2 border-gray-300 text-gray-700 hover:border-primary-500 rounded-xl font-semibold text-lg" id="methodCard" onclick="selectPaymentMethod('card')">
                             <i class="fas fa-credit-card mr-2"></i>Card
                         </button>
-                        <button type="button" class="flex-1 py-3 border-2 border-gray-300 text-gray-700 hover:border-primary-500 rounded-xl font-medium" id="methodMobile" onclick="selectPaymentMethod('mobile')">
+                        <button type="button" class="flex-1 py-4 border-2 border-gray-300 text-gray-700 hover:border-primary-500 rounded-xl font-semibold text-lg" id="methodMobile" onclick="selectPaymentMethod('mobile')">
                             <i class="fas fa-mobile-alt mr-2"></i>Mobile
                         </button>
                     </div>
                 </div>
-                <div id="transactionIdDiv" class="mb-4 hidden">
-                    <label class="block text-gray-700 font-medium mb-1">Transaction ID <span class="text-red-500">*</span></label>
-                    <input type="text" id="transactionIdInput" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500" placeholder="Enter transaction ID">
+                <div id="transactionIdDiv" class="mb-6 hidden">
+                    <label class="block text-gray-700 font-medium mb-2">Transaction ID <span class="text-red-500">*</span></label>
+                    <input type="text" id="transactionIdInput" class="w-full px-4 py-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 text-lg" placeholder="Enter transaction ID">
                 </div>
-                <button type="button" id="completeSaleBtn" onclick="completeSale()" class="w-full py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl font-semibold text-lg mb-2">
+                <button type="button" id="completeSaleBtn" onclick="completeSale()" class="w-full py-4 bg-green-600 hover:bg-green-700 text-white rounded-xl font-semibold text-xl mb-3">
                     <span id="btnLoading" class="hidden"><i class="fas fa-spinner fa-spin mr-2"></i>Processing...</span>
                     <span id="btnText"><i class="fas fa-check mr-2"></i>Complete Sale</span>
                 </button>
@@ -365,33 +365,21 @@ async function loadDashboardData() {
 }
 
 function updateDashboardDisplay() {
-    document.getElementById('todaySales').textContent = 'TZS ' + parseFloat(dashboardData.todaySales).toFixed(2);
-    document.getElementById('shiftSales').textContent = 'TZS ' + parseFloat(dashboardData.shiftSales).toFixed(2);
-    document.getElementById('todayItems').textContent = dashboardData.todayItems + ' items';
-    document.getElementById('shiftItems').textContent = dashboardData.shiftItems + ' items';
-    document.getElementById('todayCash').textContent = 'TZS ' + parseFloat(dashboardData.todayBreakdown.cash).toFixed(2);
-    document.getElementById('todayMobile').textContent = 'TZS ' + parseFloat(dashboardData.todayBreakdown.mobile + dashboardData.todayBreakdown.card).toFixed(2);
-
-    const transactionsDiv = document.getElementById('recentTransactions');
-    if (dashboardData.transactions.length > 0) {
-        transactionsDiv.innerHTML = dashboardData.transactions.slice(0, 10).map(t => `
-            <div class="p-3 border border-gray-200 rounded-lg">
-                <div class="flex justify-between items-center">
-                    <span class="font-semibold text-gray-800">${t.invoice_number}</span>
-                    <span class="text-sm text-gray-500">${t.created_at}</span>
-                </div>
-                <div class="flex justify-between text-sm">
-                    <span class="text-gray-600">${t.items_count} items</span>
-                    <span class="font-semibold text-primary-700">TZS ${parseFloat(t.total).toFixed(2)}</span>
-                </div>
-                <div class="flex justify-between text-xs">
-                    <span class="text-gray-500">${t.payment_method.toUpperCase()}</span>
-                </div>
-            </div>
-        `).join('');
-    } else {
-        transactionsDiv.innerHTML = '<p class="text-gray-500 text-sm">No transactions yet</p>';
-    }
+    // Safely parse all numbers
+    const todayTotal = parseFloat(dashboardData.todayTotal || 0);
+    const shiftTotal = parseFloat(dashboardData.shiftTotal || 0);
+    const todayItemsCount = parseInt(dashboardData.todayItems || 0);
+    const shiftItemsCount = parseInt(dashboardData.shiftItems || 0);
+    const todayCash = parseFloat(dashboardData.todayBreakdown?.cash || 0);
+    const todayMobile = parseFloat(dashboardData.todayBreakdown?.mobile || 0);
+    const todayCard = parseFloat(dashboardData.todayBreakdown?.card || 0);
+    
+    document.getElementById('todaySales').textContent = 'TZS ' + todayTotal.toFixed(2);
+    document.getElementById('shiftSales').textContent = 'TZS ' + shiftTotal.toFixed(2);
+    document.getElementById('todayItems').textContent = todayItemsCount + ' items';
+    document.getElementById('shiftItems').textContent = shiftItemsCount + ' items';
+    document.getElementById('todayCash').textContent = 'TZS ' + todayCash.toFixed(2);
+    document.getElementById('todayMobile').textContent = 'TZS ' + (todayMobile + todayCard).toFixed(2);
 }
 
 function updateTime() {
@@ -746,23 +734,35 @@ function showAllDetails() {
     const detailsContent = document.getElementById('detailsContent');
     let html = '';
 
+    // Safely parse all numbers
+    const todayTotal = parseFloat(dashboardData.todayTotal || 0);
+    const shiftTotal = parseFloat(dashboardData.shiftTotal || 0);
+    const todayItemsCount = parseInt(dashboardData.todayItems || 0);
+    const shiftItemsCount = parseInt(dashboardData.shiftItems || 0);
+    const todayCash = parseFloat(dashboardData.todayBreakdown?.cash || 0);
+    const todayCard = parseFloat(dashboardData.todayBreakdown?.card || 0);
+    const todayMobile = parseFloat(dashboardData.todayBreakdown?.mobile || 0);
+    const shiftCash = parseFloat(dashboardData.shiftBreakdown?.cash || 0);
+    const shiftCard = parseFloat(dashboardData.shiftBreakdown?.card || 0);
+    const shiftMobile = parseFloat(dashboardData.shiftBreakdown?.mobile || 0);
+
     html += '<div class="grid grid-cols-2 gap-4">';
     html += '<div class="p-4 bg-gray-50 rounded-xl">';
     html += '<h4 class="font-bold text-lg text-primary-900 mb-3">Today</h4>';
-    html += '<p class="mb-2"><strong>Total:</strong> TZS ' + parseFloat(dashboardData.todaySales).toFixed(2) + '</p>';
-    html += '<p class="mb-2"><strong>Items:</strong> ' + dashboardData.todayItems + '</p>';
-    html += '<p class="mb-2"><strong>Cash:</strong> TZS ' + parseFloat(dashboardData.todayBreakdown.cash).toFixed(2) + '</p>';
-    html += '<p class="mb-2"><strong>Card:</strong> TZS ' + parseFloat(dashboardData.todayBreakdown.card).toFixed(2) + '</p>';
-    html += '<p><strong>Mobile:</strong> TZS ' + parseFloat(dashboardData.todayBreakdown.mobile).toFixed(2) + '</p>';
+    html += '<p class="mb-2"><strong>Total:</strong> TZS ' + todayTotal.toFixed(2) + '</p>';
+    html += '<p class="mb-2"><strong>Items:</strong> ' + todayItemsCount + '</p>';
+    html += '<p class="mb-2"><strong>Cash:</strong> TZS ' + todayCash.toFixed(2) + '</p>';
+    html += '<p class="mb-2"><strong>Card:</strong> TZS ' + todayCard.toFixed(2) + '</p>';
+    html += '<p><strong>Mobile:</strong> TZS ' + todayMobile.toFixed(2) + '</p>';
     html += '</div>';
 
     html += '<div class="p-4 bg-gray-50 rounded-xl">';
     html += '<h4 class="font-bold text-lg text-primary-900 mb-3">Current Shift</h4>';
-    html += '<p class="mb-2"><strong>Total:</strong> TZS ' + parseFloat(dashboardData.shiftSales).toFixed(2) + '</p>';
-    html += '<p class="mb-2"><strong>Items:</strong> ' + dashboardData.shiftItems + '</p>';
-    html += '<p class="mb-2"><strong>Cash:</strong> TZS ' + parseFloat(dashboardData.shiftBreakdown.cash).toFixed(2) + '</p>';
-    html += '<p class="mb-2"><strong>Card:</strong> TZS ' + parseFloat(dashboardData.shiftBreakdown.card).toFixed(2) + '</p>';
-    html += '<p><strong>Mobile:</strong> TZS ' + parseFloat(dashboardData.shiftBreakdown.mobile).toFixed(2) + '</p>';
+    html += '<p class="mb-2"><strong>Total:</strong> TZS ' + shiftTotal.toFixed(2) + '</p>';
+    html += '<p class="mb-2"><strong>Items:</strong> ' + shiftItemsCount + '</p>';
+    html += '<p class="mb-2"><strong>Cash:</strong> TZS ' + shiftCash.toFixed(2) + '</p>';
+    html += '<p class="mb-2"><strong>Card:</strong> TZS ' + shiftCard.toFixed(2) + '</p>';
+    html += '<p><strong>Mobile:</strong> TZS ' + shiftMobile.toFixed(2) + '</p>';
     html += '</div>';
     html += '</div>';
 
