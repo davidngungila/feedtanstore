@@ -4,11 +4,16 @@
 
 @section('content')
 <div class="animate-[fadeIn_0.4s_ease]">
-    <div class="flex items-center justify-between mb-6">
+    <div class="flex items-center justify-between mb-6 flex-wrap gap-3">
         <h1 class="text-xl font-bold" :class="darkMode?'text-white':'text-primary-900'">Delivery Management</h1>
-        <a href="{{ route('online.delivery.map') }}" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors">
-            <i class="fas fa-map mr-2"></i>Delivery Map
-        </a>
+        <div class="flex gap-3">
+            <a href="{{ route('online.delivery.map') }}" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors">
+                <i class="fas fa-map mr-2"></i>Delivery Map
+            </a>
+            <a href="{{ route('online.customer.locations') }}" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">
+                <i class="fas fa-users mr-2"></i>Customer Locations
+            </a>
+        </div>
     </div>
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <!-- Ready Orders -->

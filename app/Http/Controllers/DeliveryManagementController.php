@@ -29,4 +29,15 @@ class DeliveryManagementController extends Controller
 
         return view('online.delivery-map', compact('activeOrders', 'riders'));
     }
+
+    public function customerMap()
+    {
+        $orders = OnlineOrder::with(['items', 'rider'])
+            ->whereNotNull('delivery_latitude')
+            ->whereNotNull('delivery_longitude')
+            ->latest()
+            ->get();
+
+        return view('online.customer-locations', compact('orders'));
+    }
 }

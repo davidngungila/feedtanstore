@@ -270,6 +270,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/tracking', [\App\Http\Controllers\OrderTrackingController::class, 'index'])->name('tracking');
         Route::get('/tracking/{orderNumber}', [\App\Http\Controllers\OrderTrackingController::class, 'show'])->name('tracking.show');
         Route::get('/delivery-map', [\App\Http\Controllers\DeliveryManagementController::class, 'map'])->name('delivery.map');
+        Route::get('/customer-locations', [\App\Http\Controllers\DeliveryManagementController::class, 'customerMap'])->name('customer.locations');
     });
 
     // Store Management
