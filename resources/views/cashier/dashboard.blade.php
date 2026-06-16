@@ -147,9 +147,14 @@
                     <span id="modalChange">TZS 0.00</span>
                 </div>
             </div>
-            <button onclick="newSale()" class="w-full py-3 bg-primary-600 hover:bg-primary-700 text-white rounded-xl font-semibold text-lg">
-                <i class="fas fa-plus mr-2"></i>New Sale
-            </button>
+            <div class="flex gap-3">
+                <button onclick="printReceipt()" class="flex-1 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold text-lg">
+                    <i class="fas fa-print mr-2"></i>Print Receipt
+                </button>
+                <button onclick="newSale()" class="flex-1 py-3 bg-primary-600 hover:bg-primary-700 text-white rounded-xl font-semibold text-lg">
+                    <i class="fas fa-plus mr-2"></i>New Sale
+                </button>
+            </div>
         </div>
     </div>
 </div>
@@ -158,6 +163,7 @@
 let cart = [];
 let selectedPaymentMethod = 'cash';
 let productsData = @json($products);
+let currentSaleId = null;
 
 document.addEventListener('DOMContentLoaded', function() {
     updateTime();
@@ -482,18 +488,34 @@ function completeSale() {
             transaction_id: document.getElementById('transactionIdInput').value
         })
     })
-    .then(r => r.json())
+    .then(r => {
+        if (!r.ok) {
+            return r.json().then(err => Promise.reject(err));
+        }
+        return r.json();
+    })
     .then(data => {
+        currentSaleId = data.sale_id;
         document.getElementById('modalTotal').textContent = 'TZS ' + total.toFixed(2);
         document.getElementById('modalPaid').textContent = 'TZS ' + paid.toFixed(2);
         document.getElementById('modalChange').textContent = 'TZS ' + (paid - total).toFixed(2);
         document.getElementById('successModal').classList.remove('hidden');
     })
-    .catch(e => showNotification('Error completing sale', 'error'));
+    .catch(e => {
+        console.error(e);
+        showNotification(e.error || 'Error completing sale', 'error');
+    });
+}
+
+function printReceipt() {
+    if (currentSaleId) {
+        window.open('/sales/receipts/' + currentSaleId + '/print', '_blank');
+    }
 }
 
 function newSale() {
     cart = [];
+    currentSaleId = null;
     document.getElementById('successModal').classList.add('hidden');
     document.getElementById('paidAmount').value = '';
     document.getElementById('discountInput').value = '';

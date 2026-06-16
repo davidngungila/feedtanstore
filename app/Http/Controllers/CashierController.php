@@ -6,7 +6,8 @@ use Illuminate\Http\Request;
 use App\Models\Product;
 use App\Models\Sale;
 use App\Models\SaleItem;
-use App\Models\Customer;
+use App\Models\Shift;
+use App\Models\AccountingEntry;
 use App\Models\StoreSetting;
 use Illuminate\Support\Facades\Auth;
 
@@ -49,45 +50,120 @@ class CashierController extends Controller
     public function completeSale(Request $request)
     {
         $data = $request->validate([
-            'items' => 'required|array',
-            'total' => 'required|numeric',
+            'items' => 'required|array|min:1',
+            'items.*.id' => 'required|exists:products,id',
+            'items.*.quantity' => 'required|integer|min:1',
+            'items.*.price' => 'required|numeric|min:0',
             'discount' => 'nullable|numeric',
-            'paid' => 'required|numeric',
+            'paid' => 'required|numeric|min:0',
             'payment_method' => 'required|string|in:cash,card,mobile',
             'transaction_id' => 'required_if:payment_method,card,mobile|string',
             'customer_id' => 'nullable|exists:customers,id'
         ]);
 
+        // Check stock availability
+        foreach ($data['items'] as $item) {
+            $product = Product::find($item['id']);
+            if (!$product) {
+                return response()->json(['error' => 'Product not found'], 400);
+            }
+            if ($product->quantity < $item['quantity']) {
+                return response()->json(['error' => "Insufficient stock for {$product->name}. Available: {$product->quantity}"], 400);
+            }
+        }
+
         $invoiceNumber = 'INV-' . date('YmdHis');
         $subtotal = collect($data['items'])->sum(fn($item) => $item['price'] * $item['quantity']);
+        $tax = 0; // 0% tax
         $discount = $data['discount'] ?? 0;
-        $total = $subtotal - $discount;
-        $change = max(0, $data['paid'] - $total);
+        $total = $subtotal + $tax - $discount;
+        $paid = $data['paid'];
+        $change = max(0, $paid - $total);
+
+        $currentShift = Shift::where('user_id', Auth::id())->whereNull('closed_at')->first();
 
         $sale = Sale::create([
             'invoice_number' => $invoiceNumber,
-            'subtotal' => $subtotal,
-            'total' => $total,
-            'paid' => $data['paid'],
-            'change' => $change,
-            'discount' => $discount,
-            'payment_method' => $data['payment_method'],
-            'user_id' => Auth::id(),
             'customer_id' => $data['customer_id'] ?? null,
+            'user_id' => Auth::id(),
+            'shift_id' => $currentShift->id ?? null,
+            'discount_id' => null,
+            'subtotal' => $subtotal,
+            'tax' => $tax,
+            'discount' => $discount,
+            'total' => $total,
+            'paid' => $paid,
+            'change' => $change,
+            'payment_method' => $data['payment_method'],
             'type' => 'cash',
-            'status' => 'completed'
+            'status' => 'completed',
+            'notes' => $data['transaction_id'] ?? ''
         ]);
 
-        foreach ($data['items'] as $item) {
-            SaleItem::create([
-                'sale_id' => $sale->id,
-                'product_id' => $item['id'],
-                'quantity' => $item['quantity'],
-                'unit_price' => $item['price'],
-                'total' => $item['price'] * $item['quantity']
+        foreach ($data['items'] as $itemData) {
+            $itemTotal = $itemData['quantity'] * $itemData['price'];
+            $sale->items()->create([
+                'product_id' => $itemData['id'],
+                'quantity' => $itemData['quantity'],
+                'unit_price' => $itemData['price'],
+                'discount' => 0,
+                'total' => $itemTotal
             ]);
+
+            $product = Product::find($itemData['id']);
+            $product->decrement('quantity', $itemData['quantity']);
         }
 
-        return response()->json(['sale' => $sale, 'change' => $change]);
+        if ($currentShift) {
+            if ($data['payment_method'] == 'cash') {
+                $currentShift->increment('cash_sales', $total);
+            } elseif ($data['payment_method'] == 'card') {
+                $currentShift->increment('card_sales', $total);
+            } elseif ($data['payment_method'] == 'mobile') {
+                $currentShift->increment('mobile_sales', $total);
+            }
+        }
+
+        $this->createAccountingEntries($sale);
+
+        return response()->json(['sale' => $sale, 'change' => $change, 'sale_id' => $sale->id]);
+    }
+
+    protected function createAccountingEntries(Sale $sale) {
+        AccountingEntry::create([
+            'reference_number' => $sale->invoice_number,
+            'reference_type' => Sale::class,
+            'account' => 'Cash',
+            'type' => 'debit',
+            'amount' => $sale->paid,
+            'description' => 'Sale payment received'
+        ]);
+
+        AccountingEntry::create([
+            'reference_number' => $sale->invoice_number,
+            'reference_type' => Sale::class,
+            'account' => 'Sales',
+            'type' => 'credit',
+            'amount' => $sale->total,
+            'description' => 'Sale completed'
+        ]);
+
+        AccountingEntry::create([
+            'reference_number' => $sale->invoice_number,
+            'reference_type' => Sale::class,
+            'account' => 'Inventory',
+            'type' => 'credit',
+            'amount' => $sale->subtotal,
+            'description' => 'Inventory sold'
+        ]);
+
+        AccountingEntry::create([
+            'reference_number' => $sale->invoice_number,
+            'reference_type' => Sale::class,
+            'account' => 'Cost of Goods Sold',
+            'type' => 'debit',
+            'amount' => $sale->subtotal,
+            'description' => 'COGS for sale'
+        ]);
     }
 }
