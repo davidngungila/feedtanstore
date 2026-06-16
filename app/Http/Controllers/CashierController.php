@@ -22,56 +22,7 @@ class CashierController extends Controller
         $products = Product::with(['category', 'brand', 'unit'])->where('is_active', true)->get();
         $storeSetting = StoreSetting::firstOrCreate();
         
-        // Get current shift
-        $currentShift = Shift::where('user_id', Auth::id())->whereNull('closed_at')->first();
-        
-        // Get today's sales
-        $todaySales = Sale::whereDate('created_at', today())->where('status', 'completed')->get();
-        $todayTotal = $todaySales->sum('total');
-        $todayCash = $todaySales->where('payment_method', 'cash')->sum('total');
-        $todayMobile = $todaySales->where('payment_method', 'mobile')->sum('total');
-        $todayCard = $todaySales->where('payment_method', 'card')->sum('total');
-        $todayTransactionsCount = $todaySales->count();
-        $todayItemsSold = $todaySales->flatMap->items->sum('quantity');
-        
-        // Get shift sales if shift exists
-        $shiftSales = collect();
-        $shiftTotal = 0;
-        $shiftCash = 0;
-        $shiftMobile = 0;
-        $shiftCard = 0;
-        $shiftTransactionsCount = 0;
-        $shiftItemsSold = 0;
-        
-        if ($currentShift) {
-            $shiftSales = Sale::where('shift_id', $currentShift->id)->where('status', 'completed')->get();
-            $shiftTotal = $shiftSales->sum('total');
-            $shiftCash = $shiftSales->where('payment_method', 'cash')->sum('total');
-            $shiftMobile = $shiftSales->where('payment_method', 'mobile')->sum('total');
-            $shiftCard = $shiftSales->where('payment_method', 'card')->sum('total');
-            $shiftTransactionsCount = $shiftSales->count();
-            $shiftItemsSold = $shiftSales->flatMap->items->sum('quantity');
-        }
-        
-        return view('cashier.dashboard', compact(
-            'products', 
-            'storeSetting', 
-            'todaySales', 
-            'todayTotal', 
-            'todayCash', 
-            'todayMobile', 
-            'todayCard', 
-            'todayTransactionsCount', 
-            'todayItemsSold',
-            'currentShift',
-            'shiftSales', 
-            'shiftTotal', 
-            'shiftCash', 
-            'shiftMobile', 
-            'shiftCard', 
-            'shiftTransactionsCount', 
-            'shiftItemsSold'
-        ));
+        return view('cashier.dashboard', compact('products', 'storeSetting'));
     }
 
     public function getProductByBarcode($barcode)
@@ -96,6 +47,63 @@ class CashierController extends Controller
         return response()->json($products);
     }
 
+    public function getDashboardData()
+    {
+        $userId = Auth::id();
+        $today = now()->startOfDay();
+        
+        // Get current shift
+        $currentShift = Shift::where('user_id', $userId)->whereNull('closed_at')->first();
+        
+        // Today's sales
+        $todaySales = Sale::where('user_id', $userId)
+            ->where('created_at', '>=', $today)
+            ->where('status', 'completed')
+            ->get();
+        
+        // Shift's sales (if shift exists)
+        $shiftSales = $currentShift 
+            ? Sale::where('shift_id', $currentShift->id)->where('status', 'completed')->get()
+            : collect();
+        
+        // Calculate totals
+        $todayTotal = $todaySales->sum('total');
+        $shiftTotal = $shiftSales->sum('total');
+        $todayItems = $todaySales->sum(fn($sale) => $sale->items->sum('quantity'));
+        $shiftItems = $shiftSales->sum(fn($sale) => $sale->items->sum('quantity'));
+        
+        // Payment breakdown
+        $todayBreakdown = [
+            'cash' => $todaySales->where('payment_method', 'cash')->sum('total'),
+            'card' => $todaySales->where('payment_method', 'card')->sum('total'),
+            'mobile' => $todaySales->where('payment_method', 'mobile')->sum('total'),
+        ];
+        
+        $shiftBreakdown = [
+            'cash' => $shiftSales->where('payment_method', 'cash')->sum('total'),
+            'card' => $shiftSales->where('payment_method', 'card')->sum('total'),
+            'mobile' => $shiftSales->where('payment_method', 'mobile')->sum('total'),
+        ];
+        
+        return response()->json([
+            'todayTotal' => $todayTotal,
+            'shiftTotal' => $shiftTotal,
+            'todayItems' => $todayItems,
+            'shiftItems' => $shiftItems,
+            'todayBreakdown' => $todayBreakdown,
+            'shiftBreakdown' => $shiftBreakdown,
+            'transactions' => $todaySales->take(10)->map(fn($sale) => [
+                'id' => $sale->id,
+                'invoice_number' => $sale->invoice_number,
+                'total' => $sale->total,
+                'payment_method' => $sale->payment_method,
+                'created_at' => $sale->created_at->format('H:i:s'),
+                'items_count' => $sale->items->count()
+            ]),
+            'currentShift' => $currentShift
+        ]);
+    }
+
     public function completeSale(Request $request)
     {
         $data = $request->validate([
@@ -106,9 +114,14 @@ class CashierController extends Controller
             'discount' => 'nullable|numeric',
             'paid' => 'required|numeric|min:0',
             'payment_method' => 'required|string|in:cash,card,mobile',
-            'transaction_id' => 'required_if:payment_method,card,mobile|string',
+            'transaction_id' => 'nullable|string',
             'customer_id' => 'nullable|exists:customers,id'
         ]);
+        
+        // Validate transaction_id only for non-cash payments
+        if ($data['payment_method'] !== 'cash' && empty($data['transaction_id'])) {
+            return response()->json(['error' => 'Transaction ID required for card/mobile payments'], 422);
+        }
 
         // Check stock availability
         foreach ($data['items'] as $item) {

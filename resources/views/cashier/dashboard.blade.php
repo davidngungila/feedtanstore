@@ -4,9 +4,31 @@
 
 @section('content')
 <div class="animate-[fadeIn_0.4s_ease]">
+    <!-- Dashboard Stats -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div class="card rounded-2xl p-4">
+            <h4 class="text-sm font-medium text-gray-600 mb-1">Today's Sales</h4>
+            <p class="text-2xl font-bold text-primary-900" id="todaySales">TZS 0.00</p>
+            <p class="text-xs text-gray-500" id="todayItems">0 items</p>
+        </div>
+        <div class="card rounded-2xl p-4">
+            <h4 class="text-sm font-medium text-gray-600 mb-1">Shift Sales</h4>
+            <p class="text-2xl font-bold text-primary-900" id="shiftSales">TZS 0.00</p>
+            <p class="text-xs text-gray-500" id="shiftItems">0 items</p>
+        </div>
+        <div class="card rounded-2xl p-4">
+            <h4 class="text-sm font-medium text-gray-600 mb-1">Today's Cash</h4>
+            <p class="text-2xl font-bold text-green-700" id="todayCash">TZS 0.00</p>
+        </div>
+        <div class="card rounded-2xl p-4">
+            <h4 class="text-sm font-medium text-gray-600 mb-1">Today's Mobile</h4>
+            <p class="text-2xl font-bold text-blue-700" id="todayMobile">TZS 0.00</p>
+        </div>
+    </div>
+
     <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
         <!-- Scan, Search & Cart -->
-        <div class="lg:col-span-2 space-y-6">
+        <div class="lg:col-span-3 space-y-6">
             <!-- Scan & Search -->
             <div class="card rounded-2xl p-6">
                 <h2 class="text-xl font-bold text-primary-900 mb-4">Scan & Search Products</h2>
@@ -33,9 +55,14 @@
             <div class="card rounded-2xl p-6">
                 <div class="flex items-center justify-between mb-4">
                     <h2 class="text-xl font-bold text-primary-900">Cart</h2>
-                    <button type="button" onclick="clearCart()" class="px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg font-medium">
-                        <i class="fas fa-trash mr-2"></i>Clear
-                    </button>
+                    <div class="flex gap-2">
+                        <button type="button" onclick="showAllDetails()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium">
+                            <i class="fas fa-list mr-2"></i>View Details
+                        </button>
+                        <button type="button" onclick="clearCart()" class="px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg font-medium">
+                            <i class="fas fa-trash mr-2"></i>Clear
+                        </button>
+                    </div>
                 </div>
                 <div id="cartItems" class="mb-4 max-h-96 overflow-y-auto">
                     <!-- Cart items will be added here -->
@@ -72,6 +99,14 @@
                     <button type="button" class="py-3 border border-gray-300 rounded-xl hover:bg-gray-50 text-gray-700 font-medium" onclick="clearCart()">
                         <i class="fas fa-times mr-2"></i>Cancel
                     </button>
+                </div>
+            </div>
+
+            <!-- Recent Transactions -->
+            <div class="card rounded-2xl p-6">
+                <h2 class="text-xl font-bold text-primary-900 mb-4">Recent Transactions</h2>
+                <div id="recentTransactions" class="space-y-2 max-h-60 overflow-y-auto">
+                    <p class="text-gray-500 text-sm">No transactions yet</p>
                 </div>
             </div>
 
@@ -123,83 +158,17 @@
                 </button>
             </div>
         </div>
-        
-        <!-- Sales Summary -->
-        <div class="lg:col-span-1 space-y-6">
-            <!-- Today's Sales -->
-            <div class="card rounded-2xl p-6">
-                <h2 class="text-xl font-bold text-primary-900 mb-4">Today's Sales</h2>
-                <div class="space-y-3 mb-4">
-                    <div class="flex justify-between">
-                        <span class="text-gray-600">Total:</span>
-                        <span class="font-semibold text-primary-800">TZS {{ number_format($todayTotal, 2) }}</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span class="text-gray-600">Cash:</span>
-                        <span class="font-semibold text-green-700">TZS {{ number_format($todayCash, 2) }}</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span class="text-gray-600">Mobile:</span>
-                        <span class="font-semibold text-blue-700">TZS {{ number_format($todayMobile, 2) }}</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span class="text-gray-600">Card:</span>
-                        <span class="font-semibold text-purple-700">TZS {{ number_format($todayCard, 2) }}</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span class="text-gray-600">Transactions:</span>
-                        <span class="font-semibold text-gray-800">{{ $todayTransactionsCount }}</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span class="text-gray-600">Items Sold:</span>
-                        <span class="font-semibold text-gray-800">{{ $todayItemsSold }}</span>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Shift Sales -->
-            @if($currentShift)
-            <div class="card rounded-2xl p-6">
-                <h2 class="text-xl font-bold text-primary-900 mb-4">Shift Sales</h2>
-                <div class="space-y-3 mb-4">
-                    <div class="flex justify-between">
-                        <span class="text-gray-600">Total:</span>
-                        <span class="font-semibold text-primary-800">TZS {{ number_format($shiftTotal, 2) }}</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span class="text-gray-600">Cash:</span>
-                        <span class="font-semibold text-green-700">TZS {{ number_format($shiftCash, 2) }}</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span class="text-gray-600">Mobile:</span>
-                        <span class="font-semibold text-blue-700">TZS {{ number_format($shiftMobile, 2) }}</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span class="text-gray-600">Card:</span>
-                        <span class="font-semibold text-purple-700">TZS {{ number_format($shiftCard, 2) }}</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span class="text-gray-600">Transactions:</span>
-                        <span class="font-semibold text-gray-800">{{ $shiftTransactionsCount }}</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span class="text-gray-600">Items Sold:</span>
-                        <span class="font-semibold text-gray-800">{{ $shiftItemsSold }}</span>
-                    </div>
-                </div>
-            </div>
-            @endif
-        </div>
     </div>
 </div>
 
 <!-- Loading Overlay -->
-<div id="loadingOverlay" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-[100]">
+<div id="loadingOverlay" class="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm flex items-center justify-center hidden z-[100]">
     <div class="bg-white rounded-2xl p-8 text-center">
-        <div class="w-20 h-20 mx-auto mb-4 animate-spin">
-            <i class="fas fa-circle-notch text-primary-600 text-6xl"></i>
+        <div class="w-20 h-20 mx-auto mb-4">
+            <i class="fas fa-spinner fa-spin text-primary-600 text-6xl"></i>
         </div>
-        <h2 class="text-2xl font-bold text-primary-900">Processing Sale...</h2>
+        <h3 class="text-xl font-bold text-primary-900 mb-2">Processing Sale</h3>
+        <p class="text-gray-600">Please wait...</p>
     </div>
 </div>
 
@@ -237,12 +206,36 @@
     </div>
 </div>
 
+<!-- All Details Modal -->
+<div id="detailsModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+    <div class="bg-white rounded-2xl p-6 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+        <div class="flex items-center justify-between mb-6">
+            <h2 class="text-2xl font-bold text-primary-900">Sales Details</h2>
+            <button type="button" onclick="hideAllDetails()" class="text-gray-500 hover:text-gray-700">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+        </div>
+        <div id="detailsContent" class="space-y-6">
+            <!-- Details will be loaded here -->
+        </div>
+    </div>
+</div>
+
 <script>
 let cart = [];
 let selectedPaymentMethod = 'cash';
 let productsData = @json($products).map(p => ({...p, selling_price: parseFloat(p.selling_price)}));
 let currentSaleId = null;
 let isProcessing = false;
+let dashboardData = {
+    todaySales: 0,
+    shiftSales: 0,
+    todayItems: 0,
+    shiftItems: 0,
+    todayBreakdown: {cash: 0, card: 0, mobile: 0},
+    shiftBreakdown: {cash: 0, card: 0, mobile: 0},
+    transactions: []
+};
 
 document.addEventListener('DOMContentLoaded', function() {
     updateTime();
@@ -250,6 +243,8 @@ document.addEventListener('DOMContentLoaded', function() {
     setupBarcodeScanner();
     setupProductSearch();
     renderCart();
+    loadDashboardData();
+    setInterval(loadDashboardData, 10000); // Refresh every 10 seconds
 
     // Kiosk Mode
     const kioskModeEnabled = {{ $storeSetting->kiosk_mode_enabled ? 'true' : 'false' }};
@@ -312,7 +307,6 @@ document.addEventListener('DOMContentLoaded', function() {
             });
             document.addEventListener('visibilitychange', function() {
                 if (document.hidden) {
-                    // Try to focus the tab back (limited by browser security)
                     window.focus();
                 }
             });
@@ -321,24 +315,20 @@ document.addEventListener('DOMContentLoaded', function() {
         // Lock keyboard shortcuts
         if (kioskLockKeyboardShortcuts) {
             document.addEventListener('keydown', function(e) {
-                // Disable F1-F12 except maybe F5, but let's lock all
                 if (e.key.startsWith('F') && !isNaN(e.key.slice(1))) {
                     e.preventDefault();
                     return false;
                 }
-                // Ctrl+W, Ctrl+N, Ctrl+Shift+N, etc.
                 if (e.ctrlKey || e.metaKey) {
                     if (['w', 'n', 't', 'r', 'q', 'Tab'].includes(e.key.toLowerCase())) {
                         e.preventDefault();
                         return false;
                     }
-                    // Ctrl+Shift+...
                     if (e.shiftKey && ['i', 'j', 'c', 't', 'n'].includes(e.key.toLowerCase())) {
                         e.preventDefault();
                         return false;
                     }
                 }
-                // Alt+F4, Alt+Tab
                 if (e.altKey) {
                     if (['F4', 'Tab'].includes(e.key)) {
                         e.preventDefault();
@@ -349,6 +339,46 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 });
+
+async function loadDashboardData() {
+    try {
+        const response = await fetch('/cashier/dashboard-data');
+        dashboardData = await response.json();
+        updateDashboardDisplay();
+    } catch (e) {
+        console.error('Error loading dashboard data', e);
+    }
+}
+
+function updateDashboardDisplay() {
+    document.getElementById('todaySales').textContent = 'TZS ' + parseFloat(dashboardData.todaySales).toFixed(2);
+    document.getElementById('shiftSales').textContent = 'TZS ' + parseFloat(dashboardData.shiftSales).toFixed(2);
+    document.getElementById('todayItems').textContent = dashboardData.todayItems + ' items';
+    document.getElementById('shiftItems').textContent = dashboardData.shiftItems + ' items';
+    document.getElementById('todayCash').textContent = 'TZS ' + parseFloat(dashboardData.todayBreakdown.cash).toFixed(2);
+    document.getElementById('todayMobile').textContent = 'TZS ' + parseFloat(dashboardData.todayBreakdown.mobile + dashboardData.todayBreakdown.card).toFixed(2);
+
+    const transactionsDiv = document.getElementById('recentTransactions');
+    if (dashboardData.transactions.length > 0) {
+        transactionsDiv.innerHTML = dashboardData.transactions.slice(0, 10).map(t => `
+            <div class="p-3 border border-gray-200 rounded-lg">
+                <div class="flex justify-between items-center">
+                    <span class="font-semibold text-gray-800">${t.invoice_number}</span>
+                    <span class="text-sm text-gray-500">${t.created_at}</span>
+                </div>
+                <div class="flex justify-between text-sm">
+                    <span class="text-gray-600">${t.items_count} items</span>
+                    <span class="font-semibold text-primary-700">TZS ${parseFloat(t.total).toFixed(2)}</span>
+                </div>
+                <div class="flex justify-between text-xs">
+                    <span class="text-gray-500">${t.payment_method.toUpperCase()}</span>
+                </div>
+            </div>
+        `).join('');
+    } else {
+        transactionsDiv.innerHTML = '<p class="text-gray-500 text-sm">No transactions yet</p>';
+    }
+}
 
 function updateTime() {
     const now = new Date();
@@ -554,11 +584,9 @@ function completeSale() {
         return;
     }
 
-    // Show loading overlay
     isProcessing = true;
     document.getElementById('loadingOverlay').classList.remove('hidden');
 
-    // Convert cart items to ensure prices are numbers
     const formattedCart = cart.map(item => ({
         id: item.id,
         name: item.name,
@@ -593,8 +621,8 @@ function completeSale() {
         document.getElementById('modalPaid').textContent = 'TZS ' + paid.toFixed(2);
         document.getElementById('modalChange').textContent = 'TZS ' + (paid - total).toFixed(2);
         document.getElementById('successModal').classList.remove('hidden');
+        loadDashboardData();
         
-        // Auto print receipt
         setTimeout(() => {
             if (currentSaleId) {
                 printReceipt();
@@ -606,7 +634,6 @@ function completeSale() {
         showNotification(e.error || 'Error completing sale', 'error');
     })
     .finally(() => {
-        // Hide loading overlay
         isProcessing = false;
         document.getElementById('loadingOverlay').classList.add('hidden');
     });
@@ -627,6 +654,70 @@ function newSale() {
     document.getElementById('transactionIdInput').value = '';
     selectPaymentMethod('cash');
     renderCart();
+}
+
+function showAllDetails() {
+    const detailsContent = document.getElementById('detailsContent');
+    let html = '';
+
+    html += '<div class="grid grid-cols-2 gap-4">';
+    html += '<div class="p-4 bg-gray-50 rounded-xl">';
+    html += '<h4 class="font-bold text-lg text-primary-900 mb-3">Today</h4>';
+    html += '<p class="mb-2"><strong>Total:</strong> TZS ' + parseFloat(dashboardData.todaySales).toFixed(2) + '</p>';
+    html += '<p class="mb-2"><strong>Items:</strong> ' + dashboardData.todayItems + '</p>';
+    html += '<p class="mb-2"><strong>Cash:</strong> TZS ' + parseFloat(dashboardData.todayBreakdown.cash).toFixed(2) + '</p>';
+    html += '<p class="mb-2"><strong>Card:</strong> TZS ' + parseFloat(dashboardData.todayBreakdown.card).toFixed(2) + '</p>';
+    html += '<p><strong>Mobile:</strong> TZS ' + parseFloat(dashboardData.todayBreakdown.mobile).toFixed(2) + '</p>';
+    html += '</div>';
+
+    html += '<div class="p-4 bg-gray-50 rounded-xl">';
+    html += '<h4 class="font-bold text-lg text-primary-900 mb-3">Current Shift</h4>';
+    html += '<p class="mb-2"><strong>Total:</strong> TZS ' + parseFloat(dashboardData.shiftSales).toFixed(2) + '</p>';
+    html += '<p class="mb-2"><strong>Items:</strong> ' + dashboardData.shiftItems + '</p>';
+    html += '<p class="mb-2"><strong>Cash:</strong> TZS ' + parseFloat(dashboardData.shiftBreakdown.cash).toFixed(2) + '</p>';
+    html += '<p class="mb-2"><strong>Card:</strong> TZS ' + parseFloat(dashboardData.shiftBreakdown.card).toFixed(2) + '</p>';
+    html += '<p><strong>Mobile:</strong> TZS ' + parseFloat(dashboardData.shiftBreakdown.mobile).toFixed(2) + '</p>';
+    html += '</div>';
+    html += '</div>';
+
+    html += '<div class="mt-6">';
+    html += '<h4 class="font-bold text-lg text-primary-900 mb-3">All Transactions</h4>';
+    if (dashboardData.transactions.length > 0) {
+        html += '<div class="overflow-x-auto">';
+        html += '<table class="min-w-full divide-y divide-gray-200">';
+        html += '<thead class="bg-gray-50">';
+        html += '<tr>';
+        html += '<th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Invoice</th>';
+        html += '<th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Time</th>';
+        html += '<th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Items</th>';
+        html += '<th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Method</th>';
+        html += '<th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Total</th>';
+        html += '</tr>';
+        html += '</thead>';
+        html += '<tbody class="bg-white divide-y divide-gray-200">';
+        dashboardData.transactions.forEach(t => {
+            html += '<tr>';
+            html += '<td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">' + t.invoice_number + '</td>';
+            html += '<td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">' + t.created_at + '</td>';
+            html += '<td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">' + t.items_count + '</td>';
+            html += '<td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">' + t.payment_method.toUpperCase() + '</td>';
+            html += '<td class="px-4 py-3 whitespace-nowrap text-sm text-right font-semibold text-gray-900">TZS ' + parseFloat(t.total).toFixed(2) + '</td>';
+            html += '</tr>';
+        });
+        html += '</tbody>';
+        html += '</table>';
+        html += '</div>';
+    } else {
+        html += '<p class="text-gray-500">No transactions yet</p>';
+    }
+    html += '</div>';
+
+    detailsContent.innerHTML = html;
+    document.getElementById('detailsModal').classList.remove('hidden');
+}
+
+function hideAllDetails() {
+    document.getElementById('detailsModal').classList.add('hidden');
 }
 
 function showNotification(message, type) {

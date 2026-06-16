@@ -18,6 +18,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/cashier', [\App\Http\Controllers\CashierController::class, 'index'])->name('cashier.dashboard');
     Route::get('/cashier/product/{barcode}', [\App\Http\Controllers\CashierController::class, 'getProductByBarcode'])->name('cashier.product');
     Route::get('/cashier/search', [\App\Http\Controllers\CashierController::class, 'searchProducts'])->name('cashier.search');
+    Route::get('/cashier/dashboard-data', [\App\Http\Controllers\CashierController::class, 'getDashboardData'])->name('cashier.dashboard-data');
     Route::post('/cashier/sale', [\App\Http\Controllers\CashierController::class, 'completeSale'])->name('cashier.sale');
     
     Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
