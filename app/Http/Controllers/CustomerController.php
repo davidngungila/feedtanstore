@@ -25,13 +25,23 @@ class CustomerController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
+        $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
             'name' => 'required',
             'email' => 'nullable|email',
             'phone' => 'nullable',
             'address' => 'nullable|string',
             'credit_limit' => 'nullable|numeric|min:0',
         ]);
+
+        if ($validator->fails()) {
+            if ($request->expectsJson() || $request->is('cashier*') || $request->wantsJson() || $request->header('Content-Type') === 'application/json') {
+                return response()->json([
+                    'success' => false,
+                    'message' => $validator->errors()->first()
+                ], 422);
+            }
+            return back()->withErrors($validator)->withInput();
+        }
 
         $customer = Customer::create($request->all() + ['balance' => 0]);
 
