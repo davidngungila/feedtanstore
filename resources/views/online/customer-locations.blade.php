@@ -70,13 +70,51 @@
         'cancelled': '#ef4444'
     };
 
+    const coordinates = [
+        @foreach($orders as $order)
+            [{{ $order->delivery_longitude }}, {{ $order->delivery_latitude }}],
+        @endforeach
+    ];
+
+    map.on('load', function() {
+        // Add line layer connecting all customer locations
+        if (coordinates.length > 1) {
+            map.addSource('customer-route', {
+                'type': 'geojson',
+                'data': {
+                    'type': 'Feature',
+                    'properties': {},
+                    'geometry': {
+                        'type': 'LineString',
+                        'coordinates': coordinates
+                    }
+                }
+            });
+
+            map.addLayer({
+                'id': 'customer-route',
+                'type': 'line',
+                'source': 'customer-route',
+                'layout': {
+                    'line-join': 'round',
+                    'line-cap': 'round'
+                },
+                'paint': {
+                    'line-color': '#3b82f6',
+                    'line-width': 4,
+                    'line-opacity': 0.7
+                }
+            });
+        }
+    });
+
     // Add markers for all customer locations
-    @foreach($orders as $order)
+    @foreach($orders as $index => $order)
         (function() {
             const el = document.createElement('div');
             el.className = 'w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white shadow-lg border-2 border-white cursor-pointer';
             el.style.backgroundColor = statusColors['{{ $order->status }}'];
-            el.innerHTML = '{{ $order->id }}';
+            el.innerHTML = '{{ $index + 1 }}';
             
             const marker = new maplibregl.Marker(el)
                 .setLngLat([{{ $order->delivery_longitude }}, {{ $order->delivery_latitude }}])
@@ -84,6 +122,7 @@
                     <div class="p-4 min-w-[250px]">
                         <h4 class="font-bold text-base mb-2">Order #{{ $order->order_number }}</h4>
                         <div class="space-y-1 text-sm">
+                            <p><strong>Stop #:</strong> {{ $index + 1 }}</p>
                             <p><strong>Customer:</strong> {{ $order->customer_name }}</p>
                             <p><strong>Phone:</strong> {{ $order->customer_phone }}</p>
                             <p><strong>Address:</strong> {{ $order->delivery_address }}</p>
