@@ -18,12 +18,19 @@ class ReceiptController extends Controller {
         return view('sales.show', compact('sale'));
     }
 
+    public function verify($id) {
+        $sale = Sale::withTrashed()->findOrFail($id);
+        $sale->load(['customer', 'user', 'items.product']);
+        $isVerified = $sale->status === 'completed' && !$sale->trashed();
+        return view('sales.verify', compact('sale', 'isVerified'));
+    }
+
     public function download($id) {
         $sale = Sale::withTrashed()->findOrFail($id);
         $sale->load(['customer', 'user', 'items.product']);
         
-        // Generate PNG QR code for better PDF compatibility
-        $qrCodePng = \QrCode::size(100)->format('png')->generate(route('sales.show', $sale));
+        // Generate PNG QR code linking to verify page
+        $qrCodePng = \QrCode::size(100)->format('png')->generate(route('sales.receipts.verify', $sale));
         $qrCodeBase64 = 'data:image/png;base64,' . base64_encode($qrCodePng);
 
         // Instantiate and use the dompdf class
@@ -45,8 +52,8 @@ class ReceiptController extends Controller {
         $sale = Sale::withTrashed()->findOrFail($id);
         $sale->load(['customer', 'user', 'items.product']);
         
-        // Generate PNG QR code for print view
-        $qrCodePng = \QrCode::size(100)->format('png')->generate(route('sales.show', $sale));
+        // Generate PNG QR code linking to verify page
+        $qrCodePng = \QrCode::size(100)->format('png')->generate(route('sales.receipts.verify', $sale));
         $qrCodeBase64 = 'data:image/png;base64,' . base64_encode($qrCodePng);
         
         return view('sales.receipt-print', compact('sale', 'qrCodeBase64'));
