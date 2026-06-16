@@ -101,9 +101,6 @@
             <a href="{{ route('sales.receipts.download', $sale) }}" class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
                 <i class="fas fa-download mr-2"></i>Download PDF
             </a>
-            <button onclick="window.print()" class="px-6 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors">
-                <i class="fas fa-print mr-2"></i>Print This Page
-            </button>
         </div>
         </div>
     </div>
