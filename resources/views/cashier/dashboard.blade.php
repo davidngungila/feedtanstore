@@ -442,6 +442,13 @@ function hideCreateCustomerModal() {
 function setupCreateCustomerForm() {
     document.getElementById('createCustomerForm').addEventListener('submit', function(e) {
         e.preventDefault();
+        const form = this;
+        const submitBtn = form.querySelector('button[type="submit"]');
+        const originalBtnText = submitBtn.innerHTML;
+        
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Adding...';
+        
         const name = document.getElementById('customerName').value;
         const phone = document.getElementById('customerPhone').value;
         const email = document.getElementById('customerEmail').value;
@@ -455,7 +462,18 @@ function setupCreateCustomerForm() {
             },
             body: JSON.stringify({name, phone, email, address})
         })
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                return response.text().then(text => {
+                    try {
+                        return JSON.parse(text);
+                    } catch {
+                        return { success: false, message: 'Server error' };
+                    }
+                });
+            }
+            return response.json();
+        })
         .then(data => {
             if (data.success) {
                 customersData.push(data.customer);
@@ -474,6 +492,10 @@ function setupCreateCustomerForm() {
         .catch(error => {
             console.error('Error:', error);
             showNotification('Error adding customer', 'error');
+        })
+        .finally(() => {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalBtnText;
         });
     });
 }
