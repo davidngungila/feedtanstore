@@ -796,7 +796,7 @@
   <div class="flex-1 flex flex-col overflow-hidden main-content">
 
     <!-- TOP NAVBAR -->
-    <header class="navbar-bg flex items-center justify-between px-4 h-14 flex-shrink-0 relative z-30">
+    <header :class="isCashier ? 'flex items-center justify-between h-auto flex-shrink-0 relative z-30' : 'navbar-bg flex items-center justify-between px-4 h-14 flex-shrink-0 relative z-30'">
       <template x-if="!isCashier">
         <div class="w-full flex items-center justify-between">
           <!-- Left: Hamburger + Breadcrumb -->
@@ -959,7 +959,7 @@
       </template>
       <template x-if="isCashier">
         <!-- Cashier Navbar -->
-        <div class="w-full flex items-center justify-between sidebar-bg text-white px-4 py-3 rounded-lg">
+        <div class="w-full flex items-center justify-between sidebar-bg text-white px-4 py-3">
           <div class="flex items-center gap-4">
             <img src="{{ asset('feedtanstorelogo.png') }}" alt="FEEDTAN STORE" class="h-10 object-contain" style="filter: brightness(0) invert(1);">
             <div class="flex items-center gap-2 text-sm">
