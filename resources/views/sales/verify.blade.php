@@ -11,6 +11,7 @@
     <div class="max-w-2xl mx-auto px-4">
         <div class="bg-white rounded-2xl shadow-lg p-8">
             <div class="text-center mb-8">
+                <img src="{{ asset('feedtanstorelogo.png') }}" alt="Feedtan Store" class="mx-auto h-20 mb-4">
             <div class="inline-flex items-center justify-center w-16 h-16 rounded-full mb-4 {{ $isVerified ? 'bg-green-100' : 'bg-red-100' }}">
                 <i class="fas {{ $isVerified ? 'fa-check-circle text-green-600' : 'fa-times-circle text-red-600' }} text-3xl"></i>
             </div>
