@@ -86,7 +86,7 @@
                     container: 'order-map',
                     style: 'https://demotiles.maplibre.org/style.json',
                     center: [{{ $order->delivery_longitude }}, {{ $order->delivery_latitude }}],
-                    zoom: 15
+                    zoom: 10
                 });
 
                 orderMap.addControl(new maplibregl.NavigationControl());
