@@ -21,6 +21,11 @@ class AuthController extends Controller
 
         if (Auth::attempt($credentials, $request->boolean('remember'))) {
             $request->session()->regenerate();
+            
+            if (Auth::user()->role === 'cashier') {
+                return redirect()->intended(route('cashier.dashboard'));
+            }
+            
             return redirect()->intended(route('dashboard'));
         }
 

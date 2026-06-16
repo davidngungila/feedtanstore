@@ -14,6 +14,10 @@ class CashierController extends Controller
 {
     public function index()
     {
+        if (Auth::user()->role !== 'cashier') {
+            return redirect()->route('dashboard');
+        }
+
         $products = Product::where('active', true)->get();
         $storeSetting = StoreSetting::first() ?? (object)[
             'store_name' => 'Feedtan Store'

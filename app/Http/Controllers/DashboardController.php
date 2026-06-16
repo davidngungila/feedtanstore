@@ -10,12 +10,17 @@ use App\Models\Shift;
 use App\Models\SaleItem;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 
 class DashboardController extends Controller
 {
     public function index()
     {
+        if (Auth::user()->role === 'cashier') {
+            return redirect()->route('cashier.dashboard');
+        }
+        
         // Get today's data
         $todaySales = Sale::whereDate('created_at', today())->get();
         $todayRevenue = $todaySales->sum('total');
