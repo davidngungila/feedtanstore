@@ -15,4 +15,18 @@ class DeliveryManagementController extends Controller
         $riders = DeliveryRider::all();
         return view('online.delivery', compact('readyOrders', 'outForDelivery', 'riders'));
     }
+
+    public function map()
+    {
+        $activeOrders = OnlineOrder::with(['items', 'rider'])
+            ->whereIn('status', ['ready', 'out_for_delivery'])
+            ->whereNotNull('delivery_latitude')
+            ->whereNotNull('delivery_longitude')
+            ->latest()
+            ->get();
+
+        $riders = DeliveryRider::all();
+
+        return view('online.delivery-map', compact('activeOrders', 'riders'));
+    }
 }

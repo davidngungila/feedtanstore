@@ -4,6 +4,12 @@
 
 @section('content')
 <div class="animate-[fadeIn_0.4s_ease]">
+    <div class="flex items-center justify-between mb-6">
+        <h1 class="text-xl font-bold" :class="darkMode?'text-white':'text-primary-900'">Delivery Management</h1>
+        <a href="{{ route('online.delivery.map') }}" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors">
+            <i class="fas fa-map mr-2"></i>Delivery Map
+        </a>
+    </div>
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <!-- Ready Orders -->
         <div class="card rounded-2xl p-6">

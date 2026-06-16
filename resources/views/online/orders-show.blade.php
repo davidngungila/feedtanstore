@@ -59,12 +59,54 @@
             <div>
                 <h4 class="font-semibold text-primary-900 mb-2">Delivery</h4>
                 <p class="mb-1"><strong>Address:</strong> {{ $order->delivery_address }}</p>
+                @if($order->delivery_latitude && $order->delivery_longitude)
+                    <p class="mb-1 text-sm text-gray-600">
+                        <i class="fas fa-map-marker-alt mr-1"></i>
+                        {{ number_format($order->delivery_latitude, 6) }}, {{ number_format($order->delivery_longitude, 6) }}
+                    </p>
+                @endif
                 @if($order->rider)
                     <p class="mb-1"><strong>Rider:</strong> {{ $order->rider->name }} ({{ $order->rider->phone }})</p>
                 @endif
                 <p class="mb-1"><strong>Payment Method:</strong> {{ $order->payment_method ?? 'N/A' }}</p>
             </div>
         </div>
+
+        @if($order->delivery_latitude && $order->delivery_longitude)
+            <div class="card rounded-2xl overflow-hidden mb-6">
+                <div class="p-4 border-b">
+                    <h4 class="font-semibold text-primary-900">Delivery Location</h4>
+                </div>
+                <div id="order-map" class="w-full h-[400px]"></div>
+            </div>
+
+            <script src="https://cdn.jsdelivr.net/npm/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
+            <script>
+                const orderMap = new maplibregl.Map({
+                    container: 'order-map',
+                    style: 'https://demotiles.maplibre.org/style.json',
+                    center: [{{ $order->delivery_longitude }}, {{ $order->delivery_latitude }}],
+                    zoom: 15
+                });
+
+                orderMap.addControl(new maplibregl.NavigationControl());
+
+                const el = document.createElement('div');
+                el.className = 'bg-orange-500 text-white p-3 rounded-full text-sm font-bold shadow-lg';
+                el.innerHTML = '<i class="fas fa-home"></i>';
+                
+                new maplibregl.Marker(el)
+                    .setLngLat([{{ $order->delivery_longitude }}, {{ $order->delivery_latitude }}])
+                    .setPopup(new maplibregl.Popup({ offset: 25 }).setHTML(`
+                        <div class="p-3">
+                            <h4 class="font-bold text-sm">Delivery Location</h4>
+                            <p class="text-xs text-gray-600">{{ $order->customer_name }}</p>
+                            <p class="text-xs text-gray-500 mt-1">{{ $order->delivery_address }}</p>
+                        </div>
+                    `))
+                    .addTo(orderMap);
+            </script>
+        @endif
 
         <!-- Order Items -->
         <h3 class="text-lg font-semibold text-primary-900 mb-3">Order Items</h3>
