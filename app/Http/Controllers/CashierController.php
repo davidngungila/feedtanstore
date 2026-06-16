@@ -81,7 +81,7 @@ class CashierController extends Controller
                 'sale_id' => $sale->id,
                 'product_id' => $item['id'],
                 'quantity' => $item['quantity'],
-                'price' => $item['price'],
+                'unit_price' => $item['price'],
                 'total' => $item['price'] * $item['quantity']
             ]);
         }
