@@ -959,9 +959,9 @@
       </template>
       <template x-if="isCashier">
         <!-- Cashier Navbar -->
-        <div class="w-full flex items-center justify-between sidebar-bg text-white p-2 rounded-lg">
+        <div class="w-full flex items-center justify-between sidebar-bg text-white px-4 py-3 rounded-lg">
           <div class="flex items-center gap-4">
-            <img src="{{ asset('feedtanstorelogo.png') }}" alt="FEEDTAN STORE" class="h-10 object-contain">
+            <img src="{{ asset('feedtanstorelogo.png') }}" alt="FEEDTAN STORE" class="h-10 object-contain" style="filter: brightness(0) invert(1);">
             <div class="flex items-center gap-2 text-sm">
               <i class="fa-solid fa-user-circle"></i>
               <span x-text="currentUser.name"></span>
