@@ -798,159 +798,161 @@
     <!-- TOP NAVBAR -->
     <header class="navbar-bg flex items-center justify-between px-4 h-14 flex-shrink-0 relative z-30">
       <template x-if="!isCashier">
-        <!-- Left: Hamburger + Breadcrumb -->
-        <div class="flex items-center gap-3">
-          <button @click="sidebarOpen=!sidebarOpen" class="p-2 rounded-lg transition-colors lg:hidden text-primary-700 hover:bg-primary-50">
-            <i class="fa-solid fa-bars text-sm"></i>
-          </button>
-          <button @click="sidebarCollapsed=!sidebarCollapsed" class="p-2 rounded-lg transition-colors hidden lg:block text-primary-700 hover:bg-primary-50">
-            <i class="fa-solid fa-bars text-sm"></i>
-          </button>
-          <div class="hidden sm:flex items-center gap-2">
-            <span class="text-xs font-medium text-primary-500">FEEDTAN STORE</span>
-            <i class="fa-solid fa-chevron-right text-[10px] text-primary-300"></i>
-            <span class="text-xs font-semibold text-primary-800">@yield('page-title')</span>
-          </div>
-        </div>
-
-        <!-- Center: Search -->
-        <div class="hidden md:flex flex-1 max-w-xs mx-4">
-          <div class="relative w-full">
-            <i class="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-xs text-primary-400"></i>
-            <input type="text" placeholder="Search..."
-                   class="form-input input-field pl-8 text-xs py-2 bg-primary-50 border-primary-200 text-primary-900">
-          </div>
-        </div>
-
-        <!-- Right: Actions -->
-        <div class="flex items-center gap-2">
-          <!-- Notifications -->
-          <div class="relative" x-data="{open:false}">
-            <button @click="open=!open" class="relative p-2 rounded-lg transition-colors text-primary-700 hover:bg-primary-50">
-              <i class="fa-solid fa-bell text-sm"></i>
-              @if($totalNotifications > 0)
-                <span class="absolute top-1 right-1 bg-red-500 text-white text-[9px] font-bold rounded-full w-4 h-4 flex items-center justify-center">{{ $totalNotifications }}</span>
-              @endif
+        <div class="w-full flex items-center justify-between">
+          <!-- Left: Hamburger + Breadcrumb -->
+          <div class="flex items-center gap-3">
+            <button @click="sidebarOpen=!sidebarOpen" class="p-2 rounded-lg transition-colors lg:hidden text-primary-700 hover:bg-primary-50">
+              <i class="fa-solid fa-bars text-sm"></i>
             </button>
-            <div x-show="open" @click.away="open=false" x-transition
-                 class="absolute right-0 top-10 w-80 rounded-2xl shadow-2xl z-50 overflow-hidden bg-white border border-primary-100">
-              <div class="p-4 border-b border-primary-100">
-                <div class="flex justify-between items-center">
-                  <h3 class="font-bold text-sm text-primary-900">Notifications</h3>
-                  @if($totalNotifications > 0)
-                    <span class="badge badge-red text-[10px]">{{ $totalNotifications }} New</span>
-                  @endif
-                </div>
-              </div>
-              <div class="max-h-72 overflow-y-auto">
-                <!-- Out of Stock -->
-                @if($hasOutOfStock)
-                  <a href="{{ route('inventory.products') }}" class="block p-3 border-b border-primary-50 transition-colors hover:bg-primary-50">
-                    <div class="flex items-start gap-3">
-                      <div class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-xs bg-red-900/40 text-red-400">
-                        <i class="fa-solid fa-circle-xmark"></i>
-                      </div>
-                      <div class="flex-1 min-w-0">
-                        <p class="text-xs font-semibold truncate text-primary-900">Out of Stock</p>
-                        <p class="text-[11px] mt-0.5 text-gray-500">{{ $outOfStockCount }} product(s) are out of stock</p>
-                      </div>
-                      <div class="w-2 h-2 rounded-full bg-red-500 flex-shrink-0 mt-1"></div>
-                    </div>
-                  </a>
-                @endif
-
-                <!-- Low Stock -->
-                @if($hasLowStock)
-                  <a href="{{ route('inventory.low-stock') }}" class="block p-3 border-b border-primary-50 transition-colors hover:bg-primary-50">
-                    <div class="flex items-start gap-3">
-                      <div class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-xs bg-yellow-900/40 text-yellow-400">
-                        <i class="fa-solid fa-triangle-exclamation"></i>
-                      </div>
-                      <div class="flex-1 min-w-0">
-                        <p class="text-xs font-semibold truncate text-primary-900">Low Stock Alert</p>
-                        <p class="text-[11px] mt-0.5 text-gray-500">{{ $lowStockCount }} product(s) are running low</p>
-                      </div>
-                      <div class="w-2 h-2 rounded-full bg-yellow-500 flex-shrink-0 mt-1"></div>
-                    </div>
-                  </a>
-                @endif
-
-                <!-- Expiring Soon -->
-                @if($hasExpiring)
-                  <a href="{{ route('inventory.expiry') }}" class="block p-3 border-b border-primary-50 transition-colors hover:bg-primary-50">
-                    <div class="flex items-start gap-3">
-                      <div class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-xs bg-orange-900/40 text-orange-400">
-                        <i class="fa-solid fa-clock"></i>
-                      </div>
-                      <div class="flex-1 min-w-0">
-                        <p class="text-xs font-semibold truncate text-primary-900">Expiring Soon</p>
-                        <p class="text-[11px] mt-0.5 text-gray-500">{{ $expiringCount }} product(s) will expire soon</p>
-                      </div>
-                      <div class="w-2 h-2 rounded-full bg-orange-500 flex-shrink-0 mt-1"></div>
-                    </div>
-                  </a>
-                @endif
-
-                <!-- Expired Products -->
-                @if($hasExpired)
-                  <a href="{{ route('inventory.expiry') }}" class="block p-3 border-b border-primary-50 transition-colors hover:bg-primary-50">
-                    <div class="flex items-start gap-3">
-                      <div class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-xs bg-red-900/40 text-red-400">
-                        <i class="fa-solid fa-skull-crossbones"></i>
-                      </div>
-                      <div class="flex-1 min-w-0">
-                        <p class="text-xs font-semibold truncate text-primary-900">Expired Products</p>
-                        <p class="text-[11px] mt-0.5 text-gray-500">{{ $expiredCount }} product(s) have expired</p>
-                      </div>
-                      <div class="w-2 h-2 rounded-full bg-red-500 flex-shrink-0 mt-1"></div>
-                    </div>
-                  </a>
-                @endif
-
-                @if($totalNotifications == 0)
-                  <div class="p-8 text-center">
-                    <i class="fa-solid fa-check-circle text-2xl text-green-500 mb-2"></i>
-                    <p class="text-xs text-gray-500">No new notifications</p>
-                  </div>
-                @endif
-              </div>
+            <button @click="sidebarCollapsed=!sidebarCollapsed" class="p-2 rounded-lg transition-colors hidden lg:block text-primary-700 hover:bg-primary-50">
+              <i class="fa-solid fa-bars text-sm"></i>
+            </button>
+            <div class="hidden sm:flex items-center gap-2">
+              <span class="text-xs font-medium text-primary-500">FEEDTAN STORE</span>
+              <i class="fa-solid fa-chevron-right text-[10px] text-primary-300"></i>
+              <span class="text-xs font-semibold text-primary-800">@yield('page-title')</span>
             </div>
           </div>
 
-          <!-- User Profile -->
-          <div class="relative" x-data="{open:false}">
-            <button @click="open=!open" class="flex items-center gap-2 p-1.5 rounded-xl transition-colors hover:bg-primary-50">
-              @if(Auth::user()->profile_image)
-                <img src="{{ Storage::url(Auth::user()->profile_image) }}" 
-                     alt="Profile" 
-                     class="w-8 h-8 rounded-full object-cover border-2 border-primary-200">
-              @else
-                <div class="w-8 h-8 rounded-full bg-gradient-to-br from-primary-400 to-primary-700 flex items-center justify-center text-white font-bold text-sm">
-                  {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
+          <!-- Center: Search -->
+          <div class="hidden md:flex flex-1 max-w-xs mx-4">
+            <div class="relative w-full">
+              <i class="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-xs text-primary-400"></i>
+              <input type="text" placeholder="Search..."
+                     class="form-input input-field pl-8 text-xs py-2 bg-primary-50 border-primary-200 text-primary-900">
+            </div>
+          </div>
+
+          <!-- Right: Actions -->
+          <div class="flex items-center gap-2">
+            <!-- Notifications -->
+            <div class="relative" x-data="{open:false}">
+              <button @click="open=!open" class="relative p-2 rounded-lg transition-colors text-primary-700 hover:bg-primary-50">
+                <i class="fa-solid fa-bell text-sm"></i>
+                @if($totalNotifications > 0)
+                  <span class="absolute top-1 right-1 bg-red-500 text-white text-[9px] font-bold rounded-full w-4 h-4 flex items-center justify-center">{{ $totalNotifications }}</span>
+                @endif
+              </button>
+              <div x-show="open" @click.away="open=false" x-transition
+                   class="absolute right-0 top-10 w-80 rounded-2xl shadow-2xl z-50 overflow-hidden bg-white border border-primary-100">
+                <div class="p-4 border-b border-primary-100">
+                  <div class="flex justify-between items-center">
+                    <h3 class="font-bold text-sm text-primary-900">Notifications</h3>
+                    @if($totalNotifications > 0)
+                      <span class="badge badge-red text-[10px]">{{ $totalNotifications }} New</span>
+                    @endif
+                  </div>
                 </div>
-              @endif
-              <div class="hidden lg:block text-left">
-                <p class="text-xs font-semibold leading-tight text-primary-900">{{ Auth::user()->name }}</p>
-                <p class="text-[10px] text-primary-500">{{ Auth::user()->email }}</p>
+                <div class="max-h-72 overflow-y-auto">
+                  <!-- Out of Stock -->
+                  @if($hasOutOfStock)
+                    <a href="{{ route('inventory.products') }}" class="block p-3 border-b border-primary-50 transition-colors hover:bg-primary-50">
+                      <div class="flex items-start gap-3">
+                        <div class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-xs bg-red-900/40 text-red-400">
+                          <i class="fa-solid fa-circle-xmark"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                          <p class="text-xs font-semibold truncate text-primary-900">Out of Stock</p>
+                          <p class="text-[11px] mt-0.5 text-gray-500">{{ $outOfStockCount }} product(s) are out of stock</p>
+                        </div>
+                        <div class="w-2 h-2 rounded-full bg-red-500 flex-shrink-0 mt-1"></div>
+                      </div>
+                    </a>
+                  @endif
+
+                  <!-- Low Stock -->
+                  @if($hasLowStock)
+                    <a href="{{ route('inventory.low-stock') }}" class="block p-3 border-b border-primary-50 transition-colors hover:bg-primary-50">
+                      <div class="flex items-start gap-3">
+                        <div class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-xs bg-yellow-900/40 text-yellow-400">
+                          <i class="fa-solid fa-triangle-exclamation"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                          <p class="text-xs font-semibold truncate text-primary-900">Low Stock Alert</p>
+                          <p class="text-[11px] mt-0.5 text-gray-500">{{ $lowStockCount }} product(s) are running low</p>
+                        </div>
+                        <div class="w-2 h-2 rounded-full bg-yellow-500 flex-shrink-0 mt-1"></div>
+                      </div>
+                    </a>
+                  @endif
+
+                  <!-- Expiring Soon -->
+                  @if($hasExpiring)
+                    <a href="{{ route('inventory.expiry') }}" class="block p-3 border-b border-primary-50 transition-colors hover:bg-primary-50">
+                      <div class="flex items-start gap-3">
+                        <div class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-xs bg-orange-900/40 text-orange-400">
+                          <i class="fa-solid fa-clock"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                          <p class="text-xs font-semibold truncate text-primary-900">Expiring Soon</p>
+                          <p class="text-[11px] mt-0.5 text-gray-500">{{ $expiringCount }} product(s) will expire soon</p>
+                        </div>
+                        <div class="w-2 h-2 rounded-full bg-orange-500 flex-shrink-0 mt-1"></div>
+                      </div>
+                    </a>
+                  @endif
+
+                  <!-- Expired Products -->
+                  @if($hasExpired)
+                    <a href="{{ route('inventory.expiry') }}" class="block p-3 border-b border-primary-50 transition-colors hover:bg-primary-50">
+                      <div class="flex items-start gap-3">
+                        <div class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-xs bg-red-900/40 text-red-400">
+                          <i class="fa-solid fa-skull-crossbones"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                          <p class="text-xs font-semibold truncate text-primary-900">Expired Products</p>
+                          <p class="text-[11px] mt-0.5 text-gray-500">{{ $expiredCount }} product(s) have expired</p>
+                        </div>
+                        <div class="w-2 h-2 rounded-full bg-red-500 flex-shrink-0 mt-1"></div>
+                      </div>
+                    </a>
+                  @endif
+
+                  @if($totalNotifications == 0)
+                    <div class="p-8 text-center">
+                      <i class="fa-solid fa-check-circle text-2xl text-green-500 mb-2"></i>
+                      <p class="text-xs text-gray-500">No new notifications</p>
+                    </div>
+                  @endif
+                </div>
               </div>
-              <i class="fa-solid fa-chevron-down text-[10px] hidden lg:block text-primary-400"></i>
-            </button>
-            <div x-show="open" @click.away="open=false" x-transition
-                 class="absolute right-0 top-11 w-56 rounded-2xl shadow-2xl z-50 py-2 bg-white border border-primary-100">
-              <div class="px-4 py-2 border-b border-primary-100">
-                <p class="text-xs font-bold text-primary-900">{{ Auth::user()->name }}</p>
-                <p class="text-[11px] text-gray-500">{{ Auth::user()->email }}</p>
+            </div>
+
+            <!-- User Profile -->
+            <div class="relative" x-data="{open:false}">
+              <button @click="open=!open" class="flex items-center gap-2 p-1.5 rounded-xl transition-colors hover:bg-primary-50">
+                @if(Auth::user()->profile_image)
+                  <img src="{{ Storage::url(Auth::user()->profile_image) }}" 
+                       alt="Profile" 
+                       class="w-8 h-8 rounded-full object-cover border-2 border-primary-200">
+                @else
+                  <div class="w-8 h-8 rounded-full bg-gradient-to-br from-primary-400 to-primary-700 flex items-center justify-center text-white font-bold text-sm">
+                    {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
+                  </div>
+                @endif
+                <div class="hidden lg:block text-left">
+                  <p class="text-xs font-semibold leading-tight text-primary-900">{{ Auth::user()->name }}</p>
+                  <p class="text-[10px] text-primary-500">{{ Auth::user()->email }}</p>
+                </div>
+                <i class="fa-solid fa-chevron-down text-[10px] hidden lg:block text-primary-400"></i>
+              </button>
+              <div x-show="open" @click.away="open=false" x-transition
+                   class="absolute right-0 top-11 w-56 rounded-2xl shadow-2xl z-50 py-2 bg-white border border-primary-100">
+                <div class="px-4 py-2 border-b border-primary-100">
+                  <p class="text-xs font-bold text-primary-900">{{ Auth::user()->name }}</p>
+                  <p class="text-[11px] text-gray-500">{{ Auth::user()->email }}</p>
+                </div>
+                <a href="{{ route('profile.show') }}" class="w-full flex items-center gap-3 px-4 py-2.5 text-xs hover:bg-primary-50 transition-colors text-left text-gray-700">
+                  <i class="fa-solid fa-user w-4"></i> My Profile
+                </a>
+                <div class="border-t my-1 border-primary-100"></div>
+                <form method="POST" action="{{ route('logout') }}">
+                  @csrf
+                  <button type="submit" class="w-full flex items-center gap-3 px-4 py-2.5 text-xs text-red-500 hover:bg-red-50 transition-colors text-left">
+                    <i class="fa-solid fa-right-from-bracket w-4"></i> Logout
+                  </button>
+                </form>
               </div>
-              <a href="{{ route('profile.show') }}" class="w-full flex items-center gap-3 px-4 py-2.5 text-xs hover:bg-primary-50 transition-colors text-left text-gray-700">
-                <i class="fa-solid fa-user w-4"></i> My Profile
-              </a>
-              <div class="border-t my-1 border-primary-100"></div>
-              <form method="POST" action="{{ route('logout') }}">
-                @csrf
-                <button type="submit" class="w-full flex items-center gap-3 px-4 py-2.5 text-xs text-red-500 hover:bg-red-50 transition-colors text-left">
-                  <i class="fa-solid fa-right-from-bracket w-4"></i> Logout
-                </button>
-              </form>
             </div>
           </div>
         </div>
