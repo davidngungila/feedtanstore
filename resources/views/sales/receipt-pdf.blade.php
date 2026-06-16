@@ -61,6 +61,11 @@
             font-weight: 600;
         }
         
+        .details .value {
+            font-weight: 700;
+            color: #000000;
+        }
+        
         .items {
             margin: 12px 0;
             padding-bottom: 12px;
@@ -72,7 +77,7 @@
         }
         
         .item-name {
-            font-weight: 600;
+            font-weight: 700;
             color: #000000;
             font-size: 14px;
         }
@@ -80,6 +85,7 @@
         .item-details {
             color: #000000;
             font-size: 13px;
+            font-weight: 700;
         }
         
         .totals {
@@ -91,6 +97,11 @@
             justify-content: space-between;
             margin: 4px 0;
             font-size: 13px;
+        }
+        
+        .totals .value {
+            font-weight: 700;
+            color: #000000;
         }
         
         .totals .total-amount {
@@ -134,10 +145,10 @@
         </div>
         
         <div class="details">
-            <p><span class="label">Invoice #:</span> {{ $sale->invoice_number }}</p>
-            <p><span class="label">Date:</span> {{ $sale->created_at->format('d/m/Y H:i') }}</p>
-            <p><span class="label">Customer:</span> {{ $sale->customer->name ?? 'Walk-in Customer' }}</p>
-            <p><span class="label">Cashier:</span> {{ $sale->user->name ?? '-' }}</p>
+            <p><span class="label">Invoice #:</span> <span class="value">{{ $sale->invoice_number }}</span></p>
+            <p><span class="label">Date:</span> <span class="value">{{ $sale->created_at->format('d/m/Y H:i') }}</span></p>
+            <p><span class="label">Customer:</span> <span class="value">{{ $sale->customer->name ?? 'Walk-in Customer' }}</span></p>
+            <p><span class="label">Cashier:</span> <span class="value">{{ $sale->user->name ?? '-' }}</span></p>
         </div>
         
         <div class="items">
@@ -150,14 +161,14 @@
         </div>
         
         <div class="totals">
-            <p><span>Subtotal :</span><span>{{ number_format($sale->subtotal, 2) }}</span></p>
+            <p><span>Subtotal :</span><span class="value">{{ number_format($sale->subtotal, 2) }}</span></p>
             @if($sale->discount > 0)
-                <p><span>Discount :</span><span>-{{ number_format($sale->discount, 2) }}</span></p>
+                <p><span>Discount :</span><span class="value">-{{ number_format($sale->discount, 2) }}</span></p>
             @endif
-            <p class="total-amount"><span>TOTAL :</span><span>{{ number_format($sale->total, 2) }}</span></p>
+            <p class="total-amount"><span>TOTAL :</span><span class="value">{{ number_format($sale->total, 2) }}</span></p>
             <div style="border-top: 1px dashed #000000; margin: 8px 0;"></div>
-            <p><span>Paid :</span><span>{{ number_format($sale->paid, 2) }}</span></p>
-            <p><span>Change :</span><span>{{ number_format($sale->change, 2) }}</span></p>
+            <p><span>Paid :</span><span class="value">{{ number_format($sale->paid, 2) }}</span></p>
+            <p><span>Change :</span><span class="value">{{ number_format($sale->change, 2) }}</span></p>
         </div>
         
         <div class="qr-code">
