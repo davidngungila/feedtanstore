@@ -8,9 +8,18 @@ Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
-// Public receipt routes
+// Public verify route
 Route::get('/sales/receipts/{sale}/verify', [\App\Http\Controllers\ReceiptController::class, 'verify'])->name('sales.receipts.verify');
 Route::get('/sales/receipts/{sale}/download', [\App\Http\Controllers\ReceiptController::class, 'download'])->name('sales.receipts.download');
+
+// Public Shop Routes
+Route::get('/shop', [\App\Http\Controllers\OnlineOrderController::class, 'shop'])->name('shop.index');
+Route::get('/shop/checkout', function () {
+    return view('shop.checkout');
+})->name('shop.checkout');
+Route::get('/shop/tracking/{orderNumber}', [\App\Http\Controllers\OnlineOrderController::class, 'showTracking'])->name('shop.tracking');
+Route::post('/api/shop/orders', [\App\Http\Controllers\OnlineOrderController::class, 'placeOrder']);
+Route::get('/api/shop/orders/{orderNumber}/payment-status', [\App\Http\Controllers\OnlineOrderController::class, 'checkPaymentStatus'])->name('shop.payment-status');
 
 // Protected Routes (must be authenticated)
 Route::middleware('auth')->group(function () {

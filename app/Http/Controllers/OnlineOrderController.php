@@ -12,6 +12,7 @@ use App\Models\AccountingEntry;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Dompdf\Dompdf;
+use App\Services\ClickPesaService;
 
 class OnlineOrderController extends Controller
 {
@@ -19,6 +20,18 @@ class OnlineOrderController extends Controller
     {
         $orders = OnlineOrder::with(['items', 'rider', 'user'])->latest()->get();
         return view('online.orders', compact('orders'));
+    }
+
+    public function shop()
+    {
+        $products = Product::where('is_active', true)
+            ->where('is_available_online', true)
+            ->where('quantity', '>', 0)
+            ->with(['category', 'brand'])
+            ->latest()
+            ->get();
+
+        return view('shop.index', compact('products'));
     }
 
     public function create()
@@ -275,5 +288,168 @@ class OnlineOrderController extends Controller
         $pdf->setPaper('A4', 'portrait');
         $pdf->render();
         return $pdf->stream($order->order_number . '.pdf');
+    }
+
+    public function placeOrder(Request $request, ClickPesaService $clickPesaService)
+    {
+        $request->validate([
+            'customer_name' => 'required|string|max:255',
+            'customer_phone' => 'required|string|max:255',
+            'customer_email' => 'nullable|email',
+            'delivery_address' => 'required|string',
+            'delivery_latitude' => 'nullable|numeric',
+            'delivery_longitude' => 'nullable|numeric',
+            'delivery_fee' => 'nullable|numeric|min:0',
+            'items' => 'required|array|min:1',
+            'items.*.product_id' => 'required|exists:products,id',
+            'items.*.quantity' => 'required|integer|min:1'
+        ]);
+
+        $subtotal = 0;
+        $orderItems = [];
+        $cartItemsForMetadata = [];
+        foreach ($request->items as $item) {
+            $product = Product::find($item['product_id']);
+            if (!$product || $product->quantity < $item['quantity']) {
+                return response()->json(['success' => false, 'message' => "Insufficient stock for {$product->name}"], 400);
+            }
+            $subtotal += $product->selling_price * $item['quantity'];
+            $orderItems[] = [
+                'product' => $product,
+                'quantity' => $item['quantity'],
+                'price' => $product->selling_price
+            ];
+            $cartItemsForMetadata[] = [
+                'name' => $product->name,
+                'quantity' => $item['quantity'],
+                'price' => $product->selling_price
+            ];
+        }
+
+        $deliveryFee = $request->delivery_fee ?? 0;
+        $total = $subtotal + $deliveryFee;
+
+        $order = OnlineOrder::create([
+            'order_number' => 'ORD-' . strtoupper(uniqid()),
+            'customer_name' => $request->customer_name,
+            'customer_phone' => $request->customer_phone,
+            'customer_email' => $request->customer_email,
+            'delivery_address' => $request->delivery_address,
+            'delivery_latitude' => $request->delivery_latitude,
+            'delivery_longitude' => $request->delivery_longitude,
+            'status' => 'pending',
+            'payment_status' => 'pending',
+            'subtotal' => $subtotal,
+            'delivery_fee' => $deliveryFee,
+            'total' => $total,
+            'notes' => 'Order placed from public shop'
+        ]);
+
+        foreach ($orderItems as $item) {
+            OnlineOrderItem::create([
+                'online_order_id' => $order->id,
+                'product_id' => $item['product']->id,
+                'quantity' => $item['quantity'],
+                'price' => $item['price'],
+                'total' => $item['price'] * $item['quantity']
+            ]);
+        }
+
+        // Log initial status
+        OnlineOrderStatusHistory::create([
+            'online_order_id' => $order->id,
+            'status' => $order->status,
+            'payment_status' => $order->payment_status,
+            'notes' => 'Order placed from public shop'
+        ]);
+
+        // Try to initiate payment with ClickPesa (but don't fail the order if it doesn't work)
+        try {
+            $phoneNumber = $request->customer_phone;
+            // Format phone number to 255xxxxxxxxx
+            if (substr($phoneNumber, 0, 1) === '0') {
+                $phoneNumber = '255' . substr($phoneNumber, 1);
+            }
+
+            $paymentData = [
+                'amount' => $total,
+                'phone_number' => $phoneNumber,
+                'payer_name' => $request->customer_name,
+                'description' => "Order {$order->order_number} - Shopping Cart",
+                'order_reference' => $order->order_number,
+                'email' => $request->customer_email,
+                'metadata' => [
+                    'order_id' => $order->id,
+                    'items' => $cartItemsForMetadata
+                ]
+            ];
+
+            $paymentResponse = $clickPesaService->initiatePayment($paymentData);
+
+            if (isset($paymentResponse['success']) && $paymentResponse['success']) {
+                $order->update([
+                    'payment_transaction_id' => $paymentResponse['data']['transaction_id'],
+                    'payment_order_reference' => $paymentResponse['data']['order_reference'],
+                    'clickpesa_status' => $paymentResponse['data']['status']
+                ]);
+            }
+        } catch (\Exception $e) {
+            // Do nothing - just log the error and continue
+            \Log::error('ClickPesa payment initiation failed: ' . $e->getMessage());
+        }
+
+        return response()->json([
+            'success' => true,
+            'order_number' => $order->order_number
+        ]);
+    }
+
+    public function checkPaymentStatus($orderNumber, ClickPesaService $clickPesaService)
+    {
+        $order = OnlineOrder::where('order_number', $orderNumber)->firstOrFail();
+
+        if ($order->payment_order_reference) {
+            try {
+                $paymentStatus = $clickPesaService->checkPaymentStatus($order->payment_order_reference);
+
+                if (isset($paymentStatus['success']) && $paymentStatus['success']) {
+                    $newClickpesaStatus = $paymentStatus['data']['status'];
+                    $order->update(['clickpesa_status' => $newClickpesaStatus]);
+
+                    if (in_array($newClickpesaStatus, ['SUCCESS', 'SETTLED'])) {
+                        $order->update(['payment_status' => 'paid']);
+
+                        // Update order status history
+                        OnlineOrderStatusHistory::create([
+                            'online_order_id' => $order->id,
+                            'status' => $order->status,
+                            'payment_status' => 'paid',
+                            'notes' => 'Payment received successfully'
+                        ]);
+                    } elseif (in_array($newClickpesaStatus, ['FAILED', 'DECLINED', 'CANCELLED'])) {
+                        $order->update(['payment_status' => 'failed']);
+                    }
+                }
+
+                return response()->json($paymentStatus);
+            } catch (\Exception $e) {
+                \Log::error('ClickPesa payment status check failed: ' . $e->getMessage());
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Failed to check payment status'
+                ]);
+            }
+        }
+
+        return response()->json([
+            'success' => false,
+            'message' => 'No payment reference found for this order'
+        ]);
+    }
+
+    public function showTracking($orderNumber)
+    {
+        $order = OnlineOrder::where('order_number', $orderNumber)->with(['items', 'rider', 'statusHistory'])->firstOrFail();
+        return view('shop.tracking', compact('order'));
     }
 }
