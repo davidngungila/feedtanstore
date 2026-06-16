@@ -117,8 +117,9 @@
                     <label class="block text-gray-700 font-medium mb-1">Transaction ID <span class="text-red-500">*</span></label>
                     <input type="text" id="transactionIdInput" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500" placeholder="Enter transaction ID">
                 </div>
-                <button type="button" onclick="completeSale()" class="w-full py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl font-semibold text-lg mb-2">
-                    <i class="fas fa-check mr-2"></i>Complete Sale
+                <button type="button" id="completeSaleBtn" onclick="completeSale()" class="w-full py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl font-semibold text-lg mb-2">
+                    <span id="btnLoading" class="hidden"><i class="fas fa-spinner fa-spin mr-2"></i>Processing...</span>
+                    <span id="btnText"><i class="fas fa-check mr-2"></i>Complete Sale</span>
                 </button>
             </div>
         </div>
@@ -164,6 +165,7 @@ let cart = [];
 let selectedPaymentMethod = 'cash';
 let productsData = @json($products).map(p => ({...p, selling_price: parseFloat(p.selling_price)}));
 let currentSaleId = null;
+let isProcessing = false;
 
 document.addEventListener('DOMContentLoaded', function() {
     updateTime();
@@ -456,6 +458,8 @@ function calculateChange() {
 }
 
 function completeSale() {
+    if (isProcessing) return;
+    
     if (cart.length === 0) {
         showNotification('Cart is empty!', 'error');
         return;
@@ -472,6 +476,14 @@ function completeSale() {
         showNotification('Transaction ID required!', 'error');
         return;
     }
+
+    // Show loading state
+    isProcessing = true;
+    document.getElementById('btnLoading').classList.remove('hidden');
+    document.getElementById('btnText').classList.add('hidden');
+    document.getElementById('completeSaleBtn').disabled = true;
+    document.getElementById('completeSaleBtn').classList.remove('hover:bg-green-700');
+    document.getElementById('completeSaleBtn').classList.add('cursor-not-allowed', 'opacity-75');
 
     // Convert cart items to ensure prices are numbers
     const formattedCart = cart.map(item => ({
@@ -508,10 +520,26 @@ function completeSale() {
         document.getElementById('modalPaid').textContent = 'TZS ' + paid.toFixed(2);
         document.getElementById('modalChange').textContent = 'TZS ' + (paid - total).toFixed(2);
         document.getElementById('successModal').classList.remove('hidden');
+        
+        // Auto print receipt
+        setTimeout(() => {
+            if (currentSaleId) {
+                printReceipt();
+            }
+        }, 500);
     })
     .catch(e => {
         console.error(e);
         showNotification(e.error || 'Error completing sale', 'error');
+    })
+    .finally(() => {
+        // Reset loading state
+        isProcessing = false;
+        document.getElementById('btnLoading').classList.add('hidden');
+        document.getElementById('btnText').classList.remove('hidden');
+        document.getElementById('completeSaleBtn').disabled = false;
+        document.getElementById('completeSaleBtn').classList.remove('cursor-not-allowed', 'opacity-75');
+        document.getElementById('completeSaleBtn').classList.add('hover:bg-green-700');
     });
 }
 
