@@ -959,7 +959,7 @@
         <!-- Cashier Navbar -->
         <div class="w-full flex items-center justify-between">
           <div class="flex items-center gap-4">
-            <span class="font-bold text-primary-900">FEEDTAN STORE</span>
+            <img src="{{ asset('feedtanstorelogo.png') }}" alt="FEEDTAN STORE" class="h-10 object-contain">
             <div class="flex items-center gap-2 text-sm text-primary-800">
               <i class="fa-solid fa-user-circle"></i>
               <span x-text="currentUser.name"></span>
