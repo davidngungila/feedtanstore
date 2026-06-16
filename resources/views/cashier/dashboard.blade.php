@@ -47,7 +47,7 @@
             <div class="flex items-center gap-6">
                 <h1 class="text-xl font-bold text-primary-800">{{ $storeSetting->store_name }}</h1>
                 <span class="px-4 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
-                    <i class="fas fa-user mr-2"></i>{{ auth()->user()->name
+                    <i class="fas fa-user mr-2"></i>{{ auth()->user()->name }}
                 </span>
                 <span class="text-gray-600" id="currentTime"></span>
             </div>
