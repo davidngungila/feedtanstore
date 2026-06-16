@@ -80,9 +80,6 @@
                         <button type="button" onclick="showAllDetails()" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium">
                             <i class="fas fa-list mr-1"></i>Details
                         </button>
-                        <button type="button" onclick="clearCart()" class="px-3 py-1.5 text-red-600 hover:bg-red-50 rounded-lg text-sm font-medium">
-                            <i class="fas fa-trash mr-1"></i>Clear
-                        </button>
                     </div>
                 </div>
                 <div id="cartItems" class="mb-3 max-h-64 overflow-y-auto">
@@ -96,7 +93,13 @@
                     <div class="flex justify-between mb-1.5 items-center text-sm">
                         <label class="text-gray-600">Discount:</label>
                         <div class="flex items-center gap-2">
-                            <input type="number" id="discountInput" placeholder="0" class="w-24 px-2 py-1 border border-gray-300 rounded text-sm" onchange="updateTotals()">
+                            <div class="flex border border-gray-300 rounded overflow-hidden">
+                                <select id="discountType" class="px-2 py-1 border-r border-gray-300 bg-gray-50 text-sm" onchange="updateTotals()">
+                                    <option value="amount">TZS</option>
+                                    <option value="percent">%</option>
+                                </select>
+                                <input type="number" id="discountInput" placeholder="0" class="w-24 px-2 py-1 border-0 text-sm" onchange="updateTotals()">
+                            </div>
                             <span id="discountAmount" class="font-semibold text-red-600">-TZS 0.00</span>
                         </div>
                     </div>
@@ -114,11 +117,17 @@
             <div class="card rounded-2xl p-4">
                 <h2 class="text-lg font-bold text-primary-900 mb-3">Quick Actions</h2>
                 <div class="grid grid-cols-2 gap-2">
-                    <button type="button" class="py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-700 text-sm font-medium">
-                        <i class="fas fa-pause mr-1"></i>Hold
+                    <button type="button" onclick="holdSale()" class="py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-700 text-sm font-medium">
+                        <i class="fas fa-pause mr-1"></i>Hold Sale
                     </button>
-                    <button type="button" class="py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-700 text-sm font-medium" onclick="clearCart()">
-                        <i class="fas fa-times mr-1"></i>Cancel
+                    <button type="button" onclick="showHeldSalesModal()" class="py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-700 text-sm font-medium">
+                        <i class="fas fa-folder-open mr-1"></i>Retrieve Sale
+                    </button>
+                    <button type="button" onclick="clearCart()" class="py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-700 text-sm font-medium">
+                        <i class="fas fa-trash mr-1"></i>Clear Cart
+                    </button>
+                    <button type="button" onclick="cancelSale()" class="py-2 border border-red-300 rounded-lg hover:bg-red-50 text-red-700 text-sm font-medium">
+                        <i class="fas fa-times mr-1"></i>Cancel Sale
                     </button>
                 </div>
             </div>
@@ -247,6 +256,21 @@
         </div>
         <div id="transactionsModalContent" class="space-y-3">
             <!-- Transactions will be loaded here -->
+        </div>
+    </div>
+</div>
+
+<!-- Held Sales Modal -->
+<div id="heldSalesModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+    <div class="bg-white rounded-2xl p-6 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+        <div class="flex items-center justify-between mb-6">
+            <h2 class="text-2xl font-bold text-primary-900">Held Sales</h2>
+            <button type="button" onclick="hideHeldSalesModal()" class="text-gray-500 hover:text-gray-700">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+        </div>
+        <div id="heldSalesModalContent" class="space-y-3">
+            <!-- Held sales will be loaded here -->
         </div>
     </div>
 </div>
@@ -593,10 +617,10 @@ function renderCart() {
                     <p class="text-sm text-gray-600">TZS ${parseFloat(item.price).toFixed(2)}</p>
                 </div>
                 <div class="flex items-center gap-2">
-                    <button type="button" class="w-8 h-8 rounded-lg border border-gray-300 flex items-center justify-center" onclick="updateQuantity(${index}, -1)">-</button>
+                    <button type="button" class="w-8 h-8 rounded-lg border border-gray-300 flex items-center justify-center hover:bg-gray-100" onclick="updateQuantity(${index}, -1)">-</button>
                     <span class="font-semibold text-gray-800 w-8 text-center">${item.quantity}</span>
-                    <button type="button" class="w-8 h-8 rounded-lg border border-gray-300 flex items-center justify-center" onclick="updateQuantity(${index}, 1)">+</button>
-                    <button type="button" onclick="removeFromCart(${index})" class="text-red-500 hover:text-red-700 ml-2">
+                    <button type="button" class="w-8 h-8 rounded-lg border border-gray-300 flex items-center justify-center hover:bg-gray-100" onclick="updateQuantity(${index}, 1)">+</button>
+                    <button type="button" onclick="removeFromCart(${index})" class="text-red-500 hover:text-red-700 hover:bg-red-50 p-2 rounded-lg ml-2" title="Remove Item">
                         <i class="fas fa-trash"></i>
                     </button>
                 </div>
@@ -632,8 +656,17 @@ function formatNumber(num) {
 
 function updateTotals() {
     const subtotal = cart.reduce((sum, item) => sum + (parseFloat(item.price) * item.quantity), 0);
-    const discount = parseFloat(document.getElementById('discountInput').value) || 0;
-    const total = subtotal - discount;
+    const discountType = document.getElementById('discountType').value;
+    const discountValue = parseFloat(document.getElementById('discountInput').value) || 0;
+    let discount = 0;
+
+    if (discountType === 'percent') {
+        discount = (discountValue / 100) * subtotal;
+    } else {
+        discount = discountValue;
+    }
+
+    const total = Math.max(0, subtotal - discount);
 
     document.getElementById('subtotal').textContent = 'TZS ' + formatNumber(subtotal);
     document.getElementById('discountAmount').textContent = '-TZS ' + formatNumber(discount);
@@ -682,7 +715,16 @@ function completeSale() {
         return;
     }
     const paid = parseFloat(document.getElementById('paidAmount').value) || 0;
-    const total = cart.reduce((sum, item) => sum + (parseFloat(item.price) * item.quantity), 0) - (parseFloat(document.getElementById('discountInput').value) || 0);
+    const subtotal = cart.reduce((sum, item) => sum + (parseFloat(item.price) * item.quantity), 0);
+    const discountType = document.getElementById('discountType').value;
+    const discountValue = parseFloat(document.getElementById('discountInput').value) || 0;
+    let discount = 0;
+    if (discountType === 'percent') {
+        discount = (discountValue / 100) * subtotal;
+    } else {
+        discount = discountValue;
+    }
+    const total = Math.max(0, subtotal - discount);
 
     if (paid < total) {
         showNotification('Insufficient payment!', 'error');
@@ -715,7 +757,9 @@ function completeSale() {
         body: JSON.stringify({
             items: formattedCart,
             total,
-            discount: parseFloat(document.getElementById('discountInput').value) || 0,
+            discount,
+            discount_type: discountType,
+            discount_value: discountValue,
             paid,
             payment_method: selectedPaymentMethod,
             transaction_id: document.getElementById('transactionIdInput').value,
@@ -836,7 +880,9 @@ function newSale() {
     document.getElementById('successModal').classList.add('hidden');
     document.getElementById('paidAmount').value = '';
     document.getElementById('discountInput').value = '';
+    document.getElementById('discountType').value = 'amount';
     document.getElementById('transactionIdInput').value = '';
+    document.getElementById('customerSelect').value = '';
     selectPaymentMethod('cash');
     renderCart();
 }
@@ -924,6 +970,110 @@ function showNotification(message, type) {
     notification.textContent = message;
     document.body.appendChild(notification);
     setTimeout(() => notification.remove(), 3000);
+}
+
+// Held Sales Functions
+function holdSale() {
+    if (cart.length === 0) {
+        showNotification('Cart is empty!', 'error');
+        return;
+    }
+
+    const heldSales = JSON.parse(localStorage.getItem('heldSales') || '[]');
+    const heldSale = {
+        id: Date.now(),
+        timestamp: new Date().toLocaleString(),
+        cart: [...cart],
+        customerId: document.getElementById('customerSelect').value,
+        discountType: document.getElementById('discountType').value,
+        discountValue: parseFloat(document.getElementById('discountInput').value) || 0
+    };
+
+    heldSales.push(heldSale);
+    localStorage.setItem('heldSales', JSON.stringify(heldSales));
+
+    cart = [];
+    renderCart();
+    showNotification('Sale held successfully!', 'success');
+}
+
+function showHeldSalesModal() {
+    const heldSales = JSON.parse(localStorage.getItem('heldSales') || '[]');
+    const content = document.getElementById('heldSalesModalContent');
+
+    if (heldSales.length === 0) {
+        content.innerHTML = '<p class="text-gray-500 text-center py-8">No held sales</p>';
+    } else {
+        content.innerHTML = heldSales.map((sale, index) => `
+            <div class="border border-gray-200 rounded-xl p-4 hover:border-gray-300 transition-colors">
+                <div class="flex items-center justify-between mb-3">
+                    <div>
+                        <p class="font-semibold text-primary-900">Held Sale #${sale.id}</p>
+                        <p class="text-sm text-gray-500">${sale.timestamp}</p>
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="retrieveSale(${index})" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium">
+                            <i class="fas fa-folder-open mr-1"></i>Retrieve
+                        </button>
+                        <button onclick="deleteHeldSale(${index})" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium">
+                            <i class="fas fa-trash mr-1"></i>Delete
+                        </button>
+                    </div>
+                </div>
+                <div class="text-sm text-gray-600">
+                    <p class="font-medium mb-1">${sale.cart.length} items</p>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    document.getElementById('heldSalesModal').classList.remove('hidden');
+}
+
+function hideHeldSalesModal() {
+    document.getElementById('heldSalesModal').classList.add('hidden');
+}
+
+function retrieveSale(index) {
+    const heldSales = JSON.parse(localStorage.getItem('heldSales') || '[]');
+    const sale = heldSales[index];
+
+    cart = [...sale.cart];
+    document.getElementById('customerSelect').value = sale.customerId || '';
+    document.getElementById('discountType').value = sale.discountType;
+    document.getElementById('discountInput').value = sale.discountValue;
+
+    // Remove from held sales
+    heldSales.splice(index, 1);
+    localStorage.setItem('heldSales', JSON.stringify(heldSales));
+
+    hideHeldSalesModal();
+    renderCart();
+    showNotification('Sale retrieved successfully!', 'success');
+}
+
+function deleteHeldSale(index) {
+    if (confirm('Delete this held sale?')) {
+        const heldSales = JSON.parse(localStorage.getItem('heldSales') || '[]');
+        heldSales.splice(index, 1);
+        localStorage.setItem('heldSales', JSON.stringify(heldSales));
+        showHeldSalesModal();
+        showNotification('Held sale deleted', 'success');
+    }
+}
+
+function cancelSale() {
+    if (cart.length === 0) {
+        return;
+    }
+
+    if (confirm('Cancel this sale? All items will be cleared.')) {
+        cart = [];
+        document.getElementById('discountInput').value = '';
+        document.getElementById('customerSelect').value = '';
+        renderCart();
+        showNotification('Sale cancelled', 'success');
+    }
 }
 </script>
 @endsection
