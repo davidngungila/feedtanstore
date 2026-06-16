@@ -35,7 +35,7 @@ class CustomerController extends Controller
 
         $customer = Customer::create($request->all() + ['balance' => 0]);
 
-        if ($request->expectsJson() || $request->is('cashier*')) {
+        if ($request->expectsJson() || $request->is('cashier*') || $request->wantsJson() || $request->header('Content-Type') === 'application/json') {
             return response()->json(['success' => true, 'customer' => $customer]);
         }
 

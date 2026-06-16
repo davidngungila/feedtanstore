@@ -465,23 +465,27 @@ function setupCreateCustomerForm() {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'Accept': 'application/json',
                 'X-CSRF-TOKEN': '{{ csrf_token() }}'
             },
             body: JSON.stringify({name, phone, email, address})
         })
         .then(response => {
+            console.log('Response status:', response.status);
             if (!response.ok) {
                 return response.text().then(text => {
+                    console.error('Response text:', text);
                     try {
                         return JSON.parse(text);
                     } catch {
-                        return { success: false, message: 'Server error' };
+                        return { success: false, message: text || 'Server error' };
                     }
                 });
             }
             return response.json();
         })
         .then(data => {
+            console.log('Response data:', data);
             if (data.success) {
                 customersData.push(data.customer);
                 const select = document.getElementById('customerSelect');
@@ -498,7 +502,7 @@ function setupCreateCustomerForm() {
         })
         .catch(error => {
             console.error('Error:', error);
-            showNotification('Error adding customer', 'error');
+            showNotification('Error adding customer: ' + error.message, 'error');
         })
         .finally(() => {
             submitBtn.disabled = false;
