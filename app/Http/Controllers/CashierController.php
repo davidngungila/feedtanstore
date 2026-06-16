@@ -18,7 +18,7 @@ class CashierController extends Controller
             return redirect()->route('dashboard');
         }
 
-        $products = Product::where('active', true)->get();
+        $products = Product::all();
         $storeSetting = StoreSetting::first() ?? (object)[
             'store_name' => 'Feedtan Store'
         ];
@@ -40,7 +40,6 @@ class CashierController extends Controller
         $term = $request->input('term');
         $products = Product::where('name', 'like', "%{$term}%")
             ->orWhere('barcode', 'like', "%{$term}%")
-            ->where('active', true)
             ->get();
         return response()->json($products);
     }
