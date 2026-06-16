@@ -164,6 +164,7 @@ document.addEventListener('DOMContentLoaded', function() {
     setInterval(updateTime, 1000);
     setupBarcodeScanner();
     setupProductSearch();
+    renderCart();
 });
 
 function updateTime() {
