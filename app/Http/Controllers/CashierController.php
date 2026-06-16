@@ -56,16 +56,19 @@ class CashierController extends Controller
             'customer_id' => 'nullable|exists:customers,id'
         ]);
 
-        $saleNumber = 'SAL-' . date('YmdHis');
+        $invoiceNumber = 'INV-' . date('YmdHis');
         $subtotal = collect($data['items'])->sum(fn($item) => $item['price'] * $item['quantity']);
         $discount = $data['discount'] ?? 0;
         $total = $subtotal - $discount;
-        $change = $data['paid'] - $total;
+        $change = max(0, $data['paid'] - $total);
 
         $sale = Sale::create([
-            'sale_number' => $saleNumber,
+            'invoice_number' => $invoiceNumber,
+            'subtotal' => $subtotal,
             'total' => $total,
             'paid' => $data['paid'],
+            'change' => $change,
+            'discount' => $discount,
             'payment_method' => $data['payment_method'],
             'user_id' => Auth::id(),
             'customer_id' => $data['customer_id'] ?? null,
