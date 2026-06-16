@@ -431,17 +431,24 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function showCreateCustomerModal() {
+    document.getElementById('loadingOverlay').classList.add('hidden');
     document.getElementById('createCustomerModal').classList.remove('hidden');
 }
 
 function hideCreateCustomerModal() {
     document.getElementById('createCustomerModal').classList.add('hidden');
     document.getElementById('createCustomerForm').reset();
+    document.getElementById('loadingOverlay').classList.add('hidden');
 }
 
 function setupCreateCustomerForm() {
     document.getElementById('createCustomerForm').addEventListener('submit', function(e) {
         e.preventDefault();
+        e.stopPropagation();
+        
+        // Make sure loading overlay is definitely hidden
+        document.getElementById('loadingOverlay').classList.add('hidden');
+        
         const form = this;
         const submitBtn = form.querySelector('button[type="submit"]');
         const originalBtnText = submitBtn.innerHTML;
