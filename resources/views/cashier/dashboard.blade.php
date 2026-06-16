@@ -56,12 +56,18 @@
                         <h2 class="text-lg font-bold text-primary-900 mb-3">Customer</h2>
                         <div class="relative">
                             <i class="fas fa-user absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
-                            <select id="customerSelect" class="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm appearance-none">
-                                <option value="">Walk-in Customer</option>
+                            <input type="text" id="customerSearchInput" placeholder="Search or select customer..." class="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm">
+                            <input type="hidden" id="customerSelect" value="">
+                            <div id="customerSearchResults" class="absolute w-full bg-white border border-gray-300 rounded-lg mt-1 shadow-lg max-h-64 overflow-y-auto hidden z-50">
+                                <div class="px-4 py-2 cursor-pointer hover:bg-gray-100" onclick="selectCustomer(null, 'Walk-in Customer')">
+                                    Walk-in Customer
+                                </div>
                                 @foreach($customers as $customer)
-                                    <option value="{{ $customer->id }}">{{ $customer->name }} ({{ $customer->phone ?? 'No phone' }})</option>
+                                    <div class="px-4 py-2 cursor-pointer hover:bg-gray-100" onclick="selectCustomer({{ $customer->id }}, '{{ $customer->name }} ({{ $customer->phone ?? 'No phone' }})')">
+                                        {{ $customer->name }} ({{ $customer->phone ?? 'No phone' }})
+                                    </div>
                                 @endforeach
-                            </select>
+                            </div>
                         </div>
                         <div class="mt-2">
                             <button onclick="showCreateCustomerModal()" class="text-sm text-primary-600 hover:text-primary-800 font-medium">
@@ -335,6 +341,7 @@ document.addEventListener('DOMContentLoaded', function() {
     loadDashboardData();
     setInterval(loadDashboardData, 10000); // Refresh every 10 seconds
     setupCreateCustomerForm();
+    setupCustomerSearch();
 
     // Kiosk Mode
     const kioskModeEnabled = {{ $storeSetting->kiosk_mode_enabled ? 'true' : 'false' }};
@@ -441,6 +448,66 @@ function hideCreateCustomerModal() {
     document.getElementById('loadingOverlay').classList.add('hidden');
 }
 
+function selectCustomer(id, displayText) {
+    document.getElementById('customerSelect').value = id || '';
+    document.getElementById('customerSearchInput').value = displayText;
+    document.getElementById('customerSearchResults').classList.add('hidden');
+}
+
+function setupCustomerSearch() {
+    const searchInput = document.getElementById('customerSearchInput');
+    const resultsDiv = document.getElementById('customerSearchResults');
+    
+    // Show results when input is focused
+    searchInput.addEventListener('focus', function() {
+        renderCustomerSearchResults('');
+        resultsDiv.classList.remove('hidden');
+    });
+    
+    // Filter results when typing
+    searchInput.addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase();
+        renderCustomerSearchResults(searchTerm);
+        resultsDiv.classList.remove('hidden');
+    });
+    
+    // Hide results when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!searchInput.contains(e.target) && !resultsDiv.contains(e.target)) {
+            resultsDiv.classList.add('hidden');
+        }
+    });
+}
+
+function renderCustomerSearchResults(searchTerm) {
+    const resultsDiv = document.getElementById('customerSearchResults');
+    let html = `
+        <div class="px-4 py-2 cursor-pointer hover:bg-gray-100" onclick="selectCustomer(null, 'Walk-in Customer')">
+            Walk-in Customer
+        </div>
+    `;
+    
+    // Filter customers
+    const filteredCustomers = customersData.filter(customer => {
+        if (!searchTerm) return true;
+        const name = customer.name ? customer.name.toLowerCase() : '';
+        const phone = customer.phone ? customer.phone.toLowerCase() : '';
+        const email = customer.email ? customer.email.toLowerCase() : '';
+        return name.includes(searchTerm) || phone.includes(searchTerm) || email.includes(searchTerm);
+    });
+    
+    // Add filtered customers to results
+    filteredCustomers.forEach(customer => {
+        html += `
+            <div class="px-4 py-2 cursor-pointer hover:bg-gray-100" onclick="selectCustomer(${customer.id}, '${customer.name} (${customer.phone || 'No phone'})')">
+                ${customer.name} (${customer.phone || 'No phone'})
+            </div>
+        `;
+    });
+    
+    resultsDiv.innerHTML = html;
+}
+
 function setupCreateCustomerForm() {
     document.getElementById('createCustomerForm').addEventListener('submit', function(e) {
         e.preventDefault();
@@ -488,12 +555,8 @@ function setupCreateCustomerForm() {
             console.log('Response data:', data);
             if (data.success) {
                 customersData.push(data.customer);
-                const select = document.getElementById('customerSelect');
-                const option = document.createElement('option');
-                option.value = data.customer.id;
-                option.textContent = data.customer.name + ' (' + (data.customer.phone || 'No phone') + ')';
-                select.appendChild(option);
-                select.value = data.customer.id;
+                const displayText = data.customer.name + ' (' + (data.customer.phone || 'No phone') + ')';
+                selectCustomer(data.customer.id, displayText);
                 hideCreateCustomerModal();
                 showNotification('Customer added successfully!', 'success');
             } else {
@@ -915,7 +978,7 @@ function newSale() {
     document.getElementById('discountInput').value = '';
     document.getElementById('discountType').value = 'amount';
     document.getElementById('transactionIdInput').value = '';
-    document.getElementById('customerSelect').value = '';
+    selectCustomer(null, '');
     selectPaymentMethod('cash');
     renderCart();
 }
@@ -1072,9 +1135,21 @@ function retrieveSale(index) {
     const sale = heldSales[index];
 
     cart = [...sale.cart];
-    document.getElementById('customerSelect').value = sale.customerId || '';
     document.getElementById('discountType').value = sale.discountType;
     document.getElementById('discountInput').value = sale.discountValue;
+    
+    // Restore customer selection
+    if (sale.customerId) {
+        const customer = customersData.find(c => c.id === sale.customerId);
+        if (customer) {
+            const displayText = customer.name + ' (' + (customer.phone || 'No phone') + ')';
+            selectCustomer(customer.id, displayText);
+        } else {
+            selectCustomer(null, '');
+        }
+    } else {
+        selectCustomer(null, '');
+    }
 
     // Remove from held sales
     heldSales.splice(index, 1);
@@ -1103,7 +1178,7 @@ function cancelSale() {
     if (confirm('Cancel this sale? All items will be cleared.')) {
         cart = [];
         document.getElementById('discountInput').value = '';
-        document.getElementById('customerSelect').value = '';
+        selectCustomer(null, '');
         renderCart();
         showNotification('Sale cancelled', 'success');
     }
