@@ -55,15 +55,16 @@ class CashierController extends Controller
         // Get current shift
         $currentShift = Shift::where('user_id', $userId)->whereNull('closed_at')->first();
         
-        // Today's sales
-        $todaySales = Sale::where('user_id', $userId)
+        // Today's sales - eager load items to avoid N+1 queries
+        $todaySales = Sale::with('items')->where('user_id', $userId)
             ->where('created_at', '>=', $today)
             ->where('status', 'completed')
+            ->latest()
             ->get();
         
-        // Shift's sales (if shift exists)
+        // Shift's sales (if shift exists) - eager load items
         $shiftSales = $currentShift 
-            ? Sale::where('shift_id', $currentShift->id)->where('status', 'completed')->get()
+            ? Sale::with('items')->where('shift_id', $currentShift->id)->where('status', 'completed')->get()
             : collect();
         
         // Calculate totals

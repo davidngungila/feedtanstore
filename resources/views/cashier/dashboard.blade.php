@@ -102,12 +102,11 @@
                 </div>
             </div>
 
-            <!-- Recent Transactions -->
+            <!-- Recent Transactions Button -->
             <div class="card rounded-2xl p-6">
-                <h2 class="text-xl font-bold text-primary-900 mb-4">Recent Transactions</h2>
-                <div id="recentTransactions" class="space-y-2 max-h-60 overflow-y-auto">
-                    <p class="text-gray-500 text-sm">No transactions yet</p>
-                </div>
+                <button type="button" onclick="showTransactionsModal()" class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold text-lg">
+                    <i class="fas fa-history mr-2"></i>Recent Transactions
+                </button>
             </div>
 
             <!-- Payment Panel -->
@@ -217,6 +216,21 @@
         </div>
         <div id="detailsContent" class="space-y-6">
             <!-- Details will be loaded here -->
+        </div>
+    </div>
+</div>
+
+<!-- Recent Transactions Modal -->
+<div id="transactionsModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+    <div class="bg-white rounded-2xl p-6 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+        <div class="flex items-center justify-between mb-6">
+            <h2 class="text-2xl font-bold text-primary-900">Recent Transactions</h2>
+            <button type="button" onclick="hideTransactionsModal()" class="text-gray-500 hover:text-gray-700">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+        </div>
+        <div id="transactionsModalContent" class="space-y-3">
+            <!-- Transactions will be loaded here -->
         </div>
     </div>
 </div>
@@ -641,8 +655,80 @@ function completeSale() {
 
 function printReceipt() {
     if (currentSaleId) {
-        window.open('/sales/receipts/' + currentSaleId + '/print', '_blank');
+        // Create an iframe to load and print the receipt
+        const iframe = document.createElement('iframe');
+        iframe.style.position = 'fixed';
+        iframe.style.right = '0';
+        iframe.style.bottom = '0';
+        iframe.style.width = '0';
+        iframe.style.height = '0';
+        iframe.style.border = '0';
+        iframe.src = '/sales/receipts/' + currentSaleId + '/print';
+        document.body.appendChild(iframe);
+        
+        // Wait for iframe to load, then print
+        iframe.onload = function() {
+            setTimeout(() => {
+                iframe.contentWindow.print();
+                // Remove iframe after printing
+                setTimeout(() => {
+                    document.body.removeChild(iframe);
+                }, 500);
+            }, 500);
+        };
     }
+}
+
+function showTransactionsModal() {
+    const contentDiv = document.getElementById('transactionsModalContent');
+    if (dashboardData.transactions.length > 0) {
+        contentDiv.innerHTML = dashboardData.transactions.map(t => `
+            <div class="p-4 border border-gray-200 rounded-lg">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="font-bold text-lg text-primary-900">${t.invoice_number}</span>
+                    <span class="text-sm text-gray-500">${t.created_at}</span>
+                </div>
+                <div class="flex justify-between text-sm mb-1">
+                    <span class="text-gray-600">${t.items_count} items</span>
+                    <span class="font-semibold text-gray-800">TZS ${parseFloat(t.total).toFixed(2)}</span>
+                </div>
+                <div class="flex justify-between text-xs">
+                    <span class="text-gray-500">${t.payment_method.toUpperCase()}</span>
+                    <button type="button" onclick="printSpecificReceipt('${t.id}')" class="text-blue-600 hover:text-blue-800">
+                        <i class="fas fa-print mr-1"></i>Print
+                    </button>
+                </div>
+            </div>
+        `).join('');
+    } else {
+        contentDiv.innerHTML = '<p class="text-gray-500 text-center py-8">No transactions yet</p>';
+    }
+    document.getElementById('transactionsModal').classList.remove('hidden');
+}
+
+function hideTransactionsModal() {
+    document.getElementById('transactionsModal').classList.add('hidden');
+}
+
+function printSpecificReceipt(saleId) {
+    const iframe = document.createElement('iframe');
+    iframe.style.position = 'fixed';
+    iframe.style.right = '0';
+    iframe.style.bottom = '0';
+    iframe.style.width = '0';
+    iframe.style.height = '0';
+    iframe.style.border = '0';
+    iframe.src = '/sales/receipts/' + saleId + '/print';
+    document.body.appendChild(iframe);
+    
+    iframe.onload = function() {
+        setTimeout(() => {
+            iframe.contentWindow.print();
+            setTimeout(() => {
+                document.body.removeChild(iframe);
+            }, 500);
+        }, 500);
+    };
 }
 
 function newSale() {
