@@ -204,17 +204,7 @@ function setupProductSearch() {
     const searchInput = document.getElementById('searchProduct');
     const searchResults = document.getElementById('searchResults');
 
-    searchInput.addEventListener('input', function() {
-        const term = this.value.toLowerCase();
-        if (term.length < 2) {
-            searchResults.classList.add('hidden');
-            return;
-        }
-
-        const filtered = productsData.filter(p => 
-            p.name.toLowerCase().includes(term) || 
-            (p.barcode && p.barcode.includes(term))
-        );
+    function renderProducts(filtered) {
         if (filtered.length > 0) {
             searchResults.innerHTML = filtered.map(p => `
                 <div class="px-4 py-3 hover:bg-gray-100 cursor-pointer border-b border-gray-100 last:border-0" onclick="addProductToCart(${p.id}, '${p.name.replace(/'/g, "\\'")}', ${p.selling_price})">
@@ -222,10 +212,29 @@ function setupProductSearch() {
                     <p class="text-sm text-gray-600">TZS ${p.selling_price.toFixed(2)}</p>
                 </div>
             `).join('');
-            searchResults.classList.remove('hidden');
         } else {
             searchResults.innerHTML = '<div class="px-4 py-3 text-gray-500">No products found</div>';
-            searchResults.classList.remove('hidden');
+        }
+        searchResults.classList.remove('hidden');
+    }
+
+    searchInput.addEventListener('input', function() {
+        const term = this.value.toLowerCase();
+        if (term.length < 2) {
+            renderProducts(productsData);
+            return;
+        }
+
+        const filtered = productsData.filter(p => 
+            p.name.toLowerCase().includes(term) || 
+            (p.barcode && p.barcode.includes(term))
+        );
+        renderProducts(filtered);
+    });
+
+    searchInput.addEventListener('focus', function() {
+        if (this.value.length < 2) {
+            renderProducts(productsData);
         }
     });
 
