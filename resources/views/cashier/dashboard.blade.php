@@ -593,6 +593,9 @@ function updateDashboardDisplay() {
     const todayCash = parseFloat(dashboardData.todayBreakdown?.cash || 0);
     const todayMobile = parseFloat(dashboardData.todayBreakdown?.mobile || 0);
     const todayCard = parseFloat(dashboardData.todayBreakdown?.card || 0);
+    const shiftCash = parseFloat(dashboardData.shiftBreakdown?.cash || 0);
+    const shiftCard = parseFloat(dashboardData.shiftBreakdown?.card || 0);
+    const shiftMobile = parseFloat(dashboardData.shiftBreakdown?.mobile || 0);
     
     document.getElementById('todaySales').textContent = 'TZS ' + formatNumber(todayTotal);
     document.getElementById('shiftSales').textContent = 'TZS ' + formatNumber(shiftTotal);
