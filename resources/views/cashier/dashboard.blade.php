@@ -6,13 +6,14 @@
 <div class="animate-[fadeIn_0.4s_ease]">
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <!-- Scan, Search & Cart -->
-        <div class="lg:col-span-2 space-y-6">
-            <!-- Scan & Search -->
-            <div class="card rounded-2xl p-6">
-                <div class="flex items-center justify-center mb-6">
-                    <img src="{{ asset('feedtanstorelogo.png') }}" alt="FEEDTAN STORE" class="h-16 object-contain">
-                </div>
-                <h2 class="text-xl font-bold text-primary-900 mb-4 text-center">Scan & Search Products</h2>
+      <div class="lg:col-span-2 space-y-6">
+        <!-- Logo Section -->
+        <div class="card rounded-2xl p-6 flex justify-center">
+          <img src="{{ asset('feedtanstorelogo.png') }}" alt="FEEDTAN STORE" class="h-20 object-contain">
+        </div>
+        <!-- Scan & Search -->
+        <div class="card rounded-2xl p-6">
+                <h2 class="text-xl font-bold text-primary-900 mb-4">Scan & Search Products</h2>
                 <div class="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
                     <p class="text-sm text-green-700"><i class="fas fa-barcode mr-2"></i> Scan barcode anywhere on this page to add product to cart automatically!</p>
                 </div>
