@@ -52,8 +52,8 @@
     const map = new maplibregl.Map({
         container: 'customer-map',
         style: 'https://demotiles.maplibre.org/style.json',
-        center: [39.2083, -6.7924],
-        zoom: 12
+        center: [35.5296, -6.3690],
+        zoom: 6
     });
 
     map.addControl(new maplibregl.NavigationControl());
