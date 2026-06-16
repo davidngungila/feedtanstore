@@ -29,9 +29,9 @@ class ReceiptController extends Controller {
         $sale = Sale::withTrashed()->findOrFail($id);
         $sale->load(['customer', 'user', 'items.product']);
         
-        // Generate PNG QR code linking to verify page
-        $qrCodePng = \QrCode::size(100)->format('png')->generate(route('sales.receipts.verify', $sale));
-        $qrCodeBase64 = 'data:image/png;base64,' . base64_encode($qrCodePng);
+        // Generate SVG QR code (no imagick needed)
+        $qrCodeSvg = \QrCode::size(100)->generate(route('sales.receipts.verify', $sale));
+        $qrCodeBase64 = 'data:image/svg+xml;base64,' . base64_encode($qrCodeSvg);
 
         // Instantiate and use the dompdf class
         $dompdf = new Dompdf();
@@ -52,9 +52,9 @@ class ReceiptController extends Controller {
         $sale = Sale::withTrashed()->findOrFail($id);
         $sale->load(['customer', 'user', 'items.product']);
         
-        // Generate PNG QR code linking to verify page
-        $qrCodePng = \QrCode::size(100)->format('png')->generate(route('sales.receipts.verify', $sale));
-        $qrCodeBase64 = 'data:image/png;base64,' . base64_encode($qrCodePng);
+        // Generate SVG QR code (no imagick needed)
+        $qrCodeSvg = \QrCode::size(100)->generate(route('sales.receipts.verify', $sale));
+        $qrCodeBase64 = 'data:image/svg+xml;base64,' . base64_encode($qrCodeSvg);
         
         return view('sales.receipt-print', compact('sale', 'qrCodeBase64'));
     }
