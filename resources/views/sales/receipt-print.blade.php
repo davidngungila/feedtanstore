@@ -17,7 +17,8 @@
             font-family: 'Manrope', 'Courier New', Courier, monospace;
             font-size: 14px;
             line-height: 1.6;
-            color: #1a3d1a;
+            color: #000000;
+            font-weight: 700;
             padding: 15px;
         }
         

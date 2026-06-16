@@ -16,6 +16,7 @@
             font-size: 14px;
             line-height: 1.6;
             color: #000000;
+            font-weight: 700;
             padding: 15px;
         }
         
