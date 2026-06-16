@@ -22,7 +22,56 @@ class CashierController extends Controller
         $products = Product::with(['category', 'brand', 'unit'])->where('is_active', true)->get();
         $storeSetting = StoreSetting::firstOrCreate();
         
-        return view('cashier.dashboard', compact('products', 'storeSetting'));
+        // Get current shift
+        $currentShift = Shift::where('user_id', Auth::id())->whereNull('closed_at')->first();
+        
+        // Get today's sales
+        $todaySales = Sale::whereDate('created_at', today())->where('status', 'completed')->get();
+        $todayTotal = $todaySales->sum('total');
+        $todayCash = $todaySales->where('payment_method', 'cash')->sum('total');
+        $todayMobile = $todaySales->where('payment_method', 'mobile')->sum('total');
+        $todayCard = $todaySales->where('payment_method', 'card')->sum('total');
+        $todayTransactionsCount = $todaySales->count();
+        $todayItemsSold = $todaySales->flatMap->items->sum('quantity');
+        
+        // Get shift sales if shift exists
+        $shiftSales = collect();
+        $shiftTotal = 0;
+        $shiftCash = 0;
+        $shiftMobile = 0;
+        $shiftCard = 0;
+        $shiftTransactionsCount = 0;
+        $shiftItemsSold = 0;
+        
+        if ($currentShift) {
+            $shiftSales = Sale::where('shift_id', $currentShift->id)->where('status', 'completed')->get();
+            $shiftTotal = $shiftSales->sum('total');
+            $shiftCash = $shiftSales->where('payment_method', 'cash')->sum('total');
+            $shiftMobile = $shiftSales->where('payment_method', 'mobile')->sum('total');
+            $shiftCard = $shiftSales->where('payment_method', 'card')->sum('total');
+            $shiftTransactionsCount = $shiftSales->count();
+            $shiftItemsSold = $shiftSales->flatMap->items->sum('quantity');
+        }
+        
+        return view('cashier.dashboard', compact(
+            'products', 
+            'storeSetting', 
+            'todaySales', 
+            'todayTotal', 
+            'todayCash', 
+            'todayMobile', 
+            'todayCard', 
+            'todayTransactionsCount', 
+            'todayItemsSold',
+            'currentShift',
+            'shiftSales', 
+            'shiftTotal', 
+            'shiftCash', 
+            'shiftMobile', 
+            'shiftCard', 
+            'shiftTransactionsCount', 
+            'shiftItemsSold'
+        ));
     }
 
     public function getProductByBarcode($barcode)

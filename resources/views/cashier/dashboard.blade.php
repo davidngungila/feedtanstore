@@ -4,7 +4,7 @@
 
 @section('content')
 <div class="animate-[fadeIn_0.4s_ease]">
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
         <!-- Scan, Search & Cart -->
         <div class="lg:col-span-2 space-y-6">
             <!-- Scan & Search -->
@@ -123,6 +123,83 @@
                 </button>
             </div>
         </div>
+        
+        <!-- Sales Summary -->
+        <div class="lg:col-span-1 space-y-6">
+            <!-- Today's Sales -->
+            <div class="card rounded-2xl p-6">
+                <h2 class="text-xl font-bold text-primary-900 mb-4">Today's Sales</h2>
+                <div class="space-y-3 mb-4">
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Total:</span>
+                        <span class="font-semibold text-primary-800">TZS {{ number_format($todayTotal, 2) }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Cash:</span>
+                        <span class="font-semibold text-green-700">TZS {{ number_format($todayCash, 2) }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Mobile:</span>
+                        <span class="font-semibold text-blue-700">TZS {{ number_format($todayMobile, 2) }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Card:</span>
+                        <span class="font-semibold text-purple-700">TZS {{ number_format($todayCard, 2) }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Transactions:</span>
+                        <span class="font-semibold text-gray-800">{{ $todayTransactionsCount }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Items Sold:</span>
+                        <span class="font-semibold text-gray-800">{{ $todayItemsSold }}</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Shift Sales -->
+            @if($currentShift)
+            <div class="card rounded-2xl p-6">
+                <h2 class="text-xl font-bold text-primary-900 mb-4">Shift Sales</h2>
+                <div class="space-y-3 mb-4">
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Total:</span>
+                        <span class="font-semibold text-primary-800">TZS {{ number_format($shiftTotal, 2) }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Cash:</span>
+                        <span class="font-semibold text-green-700">TZS {{ number_format($shiftCash, 2) }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Mobile:</span>
+                        <span class="font-semibold text-blue-700">TZS {{ number_format($shiftMobile, 2) }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Card:</span>
+                        <span class="font-semibold text-purple-700">TZS {{ number_format($shiftCard, 2) }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Transactions:</span>
+                        <span class="font-semibold text-gray-800">{{ $shiftTransactionsCount }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Items Sold:</span>
+                        <span class="font-semibold text-gray-800">{{ $shiftItemsSold }}</span>
+                    </div>
+                </div>
+            </div>
+            @endif
+        </div>
+    </div>
+</div>
+
+<!-- Loading Overlay -->
+<div id="loadingOverlay" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-[100]">
+    <div class="bg-white rounded-2xl p-8 text-center">
+        <div class="w-20 h-20 mx-auto mb-4 animate-spin">
+            <i class="fas fa-circle-notch text-primary-600 text-6xl"></i>
+        </div>
+        <h2 class="text-2xl font-bold text-primary-900">Processing Sale...</h2>
     </div>
 </div>
 
@@ -477,13 +554,9 @@ function completeSale() {
         return;
     }
 
-    // Show loading state
+    // Show loading overlay
     isProcessing = true;
-    document.getElementById('btnLoading').classList.remove('hidden');
-    document.getElementById('btnText').classList.add('hidden');
-    document.getElementById('completeSaleBtn').disabled = true;
-    document.getElementById('completeSaleBtn').classList.remove('hover:bg-green-700');
-    document.getElementById('completeSaleBtn').classList.add('cursor-not-allowed', 'opacity-75');
+    document.getElementById('loadingOverlay').classList.remove('hidden');
 
     // Convert cart items to ensure prices are numbers
     const formattedCart = cart.map(item => ({
@@ -533,13 +606,9 @@ function completeSale() {
         showNotification(e.error || 'Error completing sale', 'error');
     })
     .finally(() => {
-        // Reset loading state
+        // Hide loading overlay
         isProcessing = false;
-        document.getElementById('btnLoading').classList.add('hidden');
-        document.getElementById('btnText').classList.remove('hidden');
-        document.getElementById('completeSaleBtn').disabled = false;
-        document.getElementById('completeSaleBtn').classList.remove('cursor-not-allowed', 'opacity-75');
-        document.getElementById('completeSaleBtn').classList.add('hover:bg-green-700');
+        document.getElementById('loadingOverlay').classList.add('hidden');
     });
 }
 
