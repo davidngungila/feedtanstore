@@ -959,16 +959,16 @@
       </template>
       <template x-if="isCashier">
         <!-- Cashier Navbar -->
-        <div class="w-full flex items-center justify-between">
+        <div class="w-full flex items-center justify-between sidebar-bg text-white p-2 rounded-lg">
           <div class="flex items-center gap-4">
             <img src="{{ asset('feedtanstorelogo.png') }}" alt="FEEDTAN STORE" class="h-10 object-contain">
-            <div class="flex items-center gap-2 text-sm text-primary-800">
+            <div class="flex items-center gap-2 text-sm">
               <i class="fa-solid fa-user-circle"></i>
               <span x-text="currentUser.name"></span>
             </div>
           </div>
           <div class="flex items-center gap-4">
-            <div class="flex items-center gap-2 text-sm text-primary-800">
+            <div class="flex items-center gap-2 text-sm">
               <i class="fa-solid fa-clock"></i>
               <span x-text="currentTime"></span>
             </div>
