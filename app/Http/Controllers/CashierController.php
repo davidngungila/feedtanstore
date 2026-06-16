@@ -19,9 +19,7 @@ class CashierController extends Controller
         }
 
         $products = Product::with(['category', 'brand', 'unit'])->where('is_active', true)->get();
-        $storeSetting = StoreSetting::first() ?? (object)[
-            'store_name' => 'Feedtan Store'
-        ];
+        $storeSetting = StoreSetting::firstOrCreate();
         
         return view('cashier.dashboard', compact('products', 'storeSetting'));
     }

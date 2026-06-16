@@ -1040,5 +1040,6 @@
     checkAlpine();
   });
 </script>
+@yield('scripts')
 </body>
 </html>

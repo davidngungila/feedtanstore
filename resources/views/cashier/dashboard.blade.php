@@ -165,6 +165,104 @@ document.addEventListener('DOMContentLoaded', function() {
     setupBarcodeScanner();
     setupProductSearch();
     renderCart();
+
+    // Kiosk Mode
+    const kioskModeEnabled = {{ $storeSetting->kiosk_mode_enabled ? 'true' : 'false' }};
+    const kioskForceFullscreen = {{ $storeSetting->kiosk_force_fullscreen ? 'true' : 'false' }};
+    const kioskBlockRightClick = {{ $storeSetting->kiosk_block_right_click ? 'true' : 'false' }};
+    const kioskPreventTabSwitch = {{ $storeSetting->kiosk_prevent_tab_switch ? 'true' : 'false' }};
+    const kioskLockKeyboardShortcuts = {{ $storeSetting->kiosk_lock_keyboard_shortcuts ? 'true' : 'false' }};
+    const kioskAutoFocusCashier = {{ $storeSetting->kiosk_auto_focus_cashier ? 'true' : 'false' }};
+
+    if (kioskModeEnabled) {
+        // Auto-focus cashier
+        if (kioskAutoFocusCashier) {
+            const barcodeInput = document.getElementById('barcodeInput');
+            if (barcodeInput) {
+                barcodeInput.focus();
+                // Re-focus if user clicks away
+                document.addEventListener('click', function() {
+                    setTimeout(() => barcodeInput.focus(), 100);
+                });
+            }
+        }
+
+        // Force fullscreen
+        if (kioskForceFullscreen) {
+            const enterFullscreen = () => {
+                if (!document.fullscreenElement) {
+                    document.documentElement.requestFullscreen().catch(err => {
+                        console.log('Fullscreen request failed:', err);
+                    });
+                }
+            };
+
+            enterFullscreen();
+            document.addEventListener('fullscreenchange', function() {
+                if (!document.fullscreenElement) {
+                    setTimeout(enterFullscreen, 100);
+                }
+            });
+            document.addEventListener('visibilitychange', function() {
+                if (!document.hidden) {
+                    enterFullscreen();
+                }
+            });
+        }
+
+        // Block right-click
+        if (kioskBlockRightClick) {
+            document.addEventListener('contextmenu', function(e) {
+                e.preventDefault();
+                return false;
+            });
+        }
+
+        // Prevent tab switching
+        if (kioskPreventTabSwitch) {
+            window.addEventListener('beforeunload', function(e) {
+                e.preventDefault();
+                e.returnValue = '';
+                return '';
+            });
+            document.addEventListener('visibilitychange', function() {
+                if (document.hidden) {
+                    // Try to focus the tab back (limited by browser security)
+                    window.focus();
+                }
+            });
+        }
+
+        // Lock keyboard shortcuts
+        if (kioskLockKeyboardShortcuts) {
+            document.addEventListener('keydown', function(e) {
+                // Disable F1-F12 except maybe F5, but let's lock all
+                if (e.key.startsWith('F') && !isNaN(e.key.slice(1))) {
+                    e.preventDefault();
+                    return false;
+                }
+                // Ctrl+W, Ctrl+N, Ctrl+Shift+N, etc.
+                if (e.ctrlKey || e.metaKey) {
+                    if (['w', 'n', 't', 'r', 'q', 'Tab'].includes(e.key.toLowerCase())) {
+                        e.preventDefault();
+                        return false;
+                    }
+                    // Ctrl+Shift+...
+                    if (e.shiftKey && ['i', 'j', 'c', 't', 'n'].includes(e.key.toLowerCase())) {
+                        e.preventDefault();
+                        return false;
+                    }
+                }
+                // Alt+F4, Alt+Tab
+                if (e.altKey) {
+                    if (['F4', 'Tab'].includes(e.key)) {
+                        e.preventDefault();
+                        return false;
+                    }
+                }
+            });
+        }
+    }
 });
 
 function updateTime() {

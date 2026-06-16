@@ -28,7 +28,13 @@ class StoreSettingController extends Controller
             'currency' => 'required|string|max:10',
             'tax_rate' => 'nullable|numeric|min:0|max:100',
             'receipt_footer' => 'nullable|string',
-            'enable_loyalty' => 'boolean'
+            'enable_loyalty' => 'boolean',
+            'kiosk_mode_enabled' => 'boolean',
+            'kiosk_force_fullscreen' => 'boolean',
+            'kiosk_block_right_click' => 'boolean',
+            'kiosk_prevent_tab_switch' => 'boolean',
+            'kiosk_lock_keyboard_shortcuts' => 'boolean',
+            'kiosk_auto_focus_cashier' => 'boolean'
         ]);
 
         $data = $request->all();
