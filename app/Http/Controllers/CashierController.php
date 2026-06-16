@@ -21,8 +21,9 @@ class CashierController extends Controller
 
         $products = Product::with(['category', 'brand', 'unit'])->where('is_active', true)->get();
         $storeSetting = StoreSetting::firstOrCreate();
+        $customers = \App\Models\Customer::all();
         
-        return view('cashier.dashboard', compact('products', 'storeSetting'));
+        return view('cashier.dashboard', compact('products', 'storeSetting', 'customers'));
     }
 
     public function getProductByBarcode($barcode)

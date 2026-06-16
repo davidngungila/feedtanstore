@@ -29,10 +29,15 @@ class CustomerController extends Controller
             'name' => 'required',
             'email' => 'nullable|email',
             'phone' => 'nullable',
+            'address' => 'nullable|string',
             'credit_limit' => 'nullable|numeric|min:0',
         ]);
 
         $customer = Customer::create($request->all() + ['balance' => 0]);
+
+        if ($request->expectsJson() || $request->is('cashier*')) {
+            return response()->json(['success' => true, 'customer' => $customer]);
+        }
 
         return redirect()->route('customers.list')->with('success', 'Customer created successfully!');
     }

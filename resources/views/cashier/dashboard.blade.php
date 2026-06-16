@@ -3,83 +3,104 @@
 @section('page-title', 'Cashier Dashboard')
 
 @section('content')
-<div class="animate-[fadeIn_0.4s_ease]">
+<div class="animate-[fadeIn_0.4s_ease] min-h-screen p-4">
     <!-- Dashboard Stats -->
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
         <div class="card rounded-2xl p-4">
             <h4 class="text-sm font-medium text-gray-600 mb-1">Today's Sales</h4>
-            <p class="text-2xl font-bold text-primary-900" id="todaySales">TZS 0.00</p>
+            <p class="text-xl font-bold text-primary-900" id="todaySales">TZS 0.00</p>
             <p class="text-xs text-gray-500" id="todayItems">0 items</p>
         </div>
         <div class="card rounded-2xl p-4">
             <h4 class="text-sm font-medium text-gray-600 mb-1">Shift Sales</h4>
-            <p class="text-2xl font-bold text-primary-900" id="shiftSales">TZS 0.00</p>
+            <p class="text-xl font-bold text-primary-900" id="shiftSales">TZS 0.00</p>
             <p class="text-xs text-gray-500" id="shiftItems">0 items</p>
         </div>
         <div class="card rounded-2xl p-4">
             <h4 class="text-sm font-medium text-gray-600 mb-1">Today's Cash</h4>
-            <p class="text-2xl font-bold text-green-700" id="todayCash">TZS 0.00</p>
+            <p class="text-xl font-bold text-green-700" id="todayCash">TZS 0.00</p>
         </div>
         <div class="card rounded-2xl p-4">
             <h4 class="text-sm font-medium text-gray-600 mb-1">Today's Mobile</h4>
-            <p class="text-2xl font-bold text-blue-700" id="todayMobile">TZS 0.00</p>
+            <p class="text-xl font-bold text-blue-700" id="todayMobile">TZS 0.00</p>
         </div>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-4">
         <!-- Scan, Search & Cart -->
-        <div class="lg:col-span-3 space-y-6">
-            <!-- Scan & Search -->
-            <div class="card rounded-2xl p-6">
-                <h2 class="text-xl font-bold text-primary-900 mb-4">Scan & Search Products</h2>
-                <div class="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
-                    <p class="text-sm text-green-700"><i class="fas fa-barcode mr-2"></i> Scan barcode anywhere on this page to add product to cart automatically!</p>
-                </div>
-                <div class="flex gap-2 items-center mb-4">
-                    <div class="flex-1 relative">
-                        <i class="fas fa-barcode absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
-                        <input type="text" id="barcodeInput" placeholder="Scan Barcode..." class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 text-lg" autofocus>
+        <div class="lg:col-span-3 space-y-4">
+            <!-- Scan & Search + Customer -->
+            <div class="card rounded-2xl p-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <h2 class="text-lg font-bold text-primary-900 mb-3">Scan & Search Products</h2>
+                        <div class="mb-3 p-2 bg-green-50 border border-green-200 rounded-lg">
+                            <p class="text-xs text-green-700"><i class="fas fa-barcode mr-2"></i>Scan barcode anywhere on this page to add product to cart automatically!</p>
+                        </div>
+                        <div class="flex gap-2 items-center mb-3">
+                            <div class="flex-1 relative">
+                                <i class="fas fa-barcode absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+                                <input type="text" id="barcodeInput" placeholder="Scan Barcode..." class="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm" autofocus>
+                            </div>
+                            <div class="text-green-600 text-sm font-medium scan-indicator">
+                                <i class="fas fa-circle mr-1 text-xs"></i>Scan Ready
+                            </div>
+                        </div>
+                        <div class="relative">
+                            <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+                            <input type="text" id="searchProduct" placeholder="Search Products..." class="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm">
+                            <div id="searchResults" class="absolute w-full bg-white border border-gray-300 rounded-lg mt-1 shadow-lg max-h-64 overflow-y-auto hidden z-50"></div>
+                        </div>
                     </div>
-                    <div class="text-green-600 font-medium scan-indicator">
-                        <i class="fas fa-circle mr-2"></i>Scan Ready
+                    <div>
+                        <h2 class="text-lg font-bold text-primary-900 mb-3">Customer</h2>
+                        <div class="relative">
+                            <i class="fas fa-user absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+                            <select id="customerSelect" class="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm appearance-none">
+                                <option value="">Walk-in Customer</option>
+                                @foreach($customers as $customer)
+                                    <option value="{{ $customer->id }}">{{ $customer->name }} ({{ $customer->phone ?? 'No phone' }})</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="mt-2">
+                            <button onclick="showCreateCustomerModal()" class="text-sm text-primary-600 hover:text-primary-800 font-medium">
+                                <i class="fas fa-plus mr-1"></i>Add New Customer
+                            </button>
+                        </div>
                     </div>
-                </div>
-                <div class="relative">
-                    <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
-                    <input type="text" id="searchProduct" placeholder="Search Products..." class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500">
-                    <div id="searchResults" class="absolute w-full bg-white border border-gray-300 rounded-xl mt-1 shadow-lg max-h-96 overflow-y-auto hidden z-50"></div>
                 </div>
             </div>
 
             <!-- Cart -->
-            <div class="card rounded-2xl p-6">
-                <div class="flex items-center justify-between mb-4">
-                    <h2 class="text-xl font-bold text-primary-900">Cart</h2>
+            <div class="card rounded-2xl p-4">
+                <div class="flex items-center justify-between mb-3">
+                    <h2 class="text-lg font-bold text-primary-900">Cart</h2>
                     <div class="flex gap-2">
-                        <button type="button" onclick="showAllDetails()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium">
-                            <i class="fas fa-list mr-2"></i>View Details
+                        <button type="button" onclick="showAllDetails()" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium">
+                            <i class="fas fa-list mr-1"></i>Details
                         </button>
-                        <button type="button" onclick="clearCart()" class="px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg font-medium">
-                            <i class="fas fa-trash mr-2"></i>Clear
+                        <button type="button" onclick="clearCart()" class="px-3 py-1.5 text-red-600 hover:bg-red-50 rounded-lg text-sm font-medium">
+                            <i class="fas fa-trash mr-1"></i>Clear
                         </button>
                     </div>
                 </div>
-                <div id="cartItems" class="mb-4 max-h-96 overflow-y-auto">
+                <div id="cartItems" class="mb-3 max-h-64 overflow-y-auto">
                     <!-- Cart items will be added here -->
                 </div>
-                <div class="border-t pt-4">
-                    <div class="flex justify-between mb-2">
+                <div class="border-t pt-3">
+                    <div class="flex justify-between mb-1.5 text-sm">
                         <span class="text-gray-600">Subtotal:</span>
                         <span id="subtotal" class="font-semibold">TZS 0.00</span>
                     </div>
-                    <div class="flex justify-between mb-2 items-center">
+                    <div class="flex justify-between mb-1.5 items-center text-sm">
                         <label class="text-gray-600">Discount:</label>
                         <div class="flex items-center gap-2">
-                            <input type="number" id="discountInput" placeholder="0" class="w-32 px-3 py-1 border border-gray-300 rounded-lg" onchange="updateTotals()">
+                            <input type="number" id="discountInput" placeholder="0" class="w-24 px-2 py-1 border border-gray-300 rounded text-sm" onchange="updateTotals()">
                             <span id="discountAmount" class="font-semibold text-red-600">-TZS 0.00</span>
                         </div>
                     </div>
-                    <div class="flex justify-between mb-2 text-lg font-bold">
+                    <div class="flex justify-between text-lg font-bold">
                         <span>Total:</span>
                         <span id="total">TZS 0.00</span>
                     </div>
@@ -88,72 +109,67 @@
         </div>
 
         <!-- Payment & Quick Actions -->
-        <div class="space-y-6">
+        <div class="space-y-4">
             <!-- Quick Actions -->
-            <div class="card rounded-2xl p-6">
-                <h2 class="text-xl font-bold text-primary-900 mb-4">Quick Actions</h2>
+            <div class="card rounded-2xl p-4">
+                <h2 class="text-lg font-bold text-primary-900 mb-3">Quick Actions</h2>
                 <div class="grid grid-cols-2 gap-2">
-                    <button type="button" class="py-3 border border-gray-300 rounded-xl hover:bg-gray-50 text-gray-700 font-medium">
-                        <i class="fas fa-pause mr-2"></i>Hold
+                    <button type="button" class="py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-700 text-sm font-medium">
+                        <i class="fas fa-pause mr-1"></i>Hold
                     </button>
-                    <button type="button" class="py-3 border border-gray-300 rounded-xl hover:bg-gray-50 text-gray-700 font-medium" onclick="clearCart()">
-                        <i class="fas fa-times mr-2"></i>Cancel
+                    <button type="button" class="py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-700 text-sm font-medium" onclick="clearCart()">
+                        <i class="fas fa-times mr-1"></i>Cancel
                     </button>
                 </div>
             </div>
 
             <!-- Recent Transactions Button -->
-            <div class="card rounded-2xl p-6">
-                <button type="button" onclick="showTransactionsModal()" class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold text-lg">
-                    <i class="fas fa-history mr-2"></i>Recent Transactions
+            <div class="card rounded-2xl p-4">
+                <button type="button" onclick="showTransactionsModal()" class="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold text-base">
+                    <i class="fas fa-history mr-1"></i>Recent Transactions
                 </button>
             </div>
 
             <!-- Payment Panel -->
-            <div class="card rounded-2xl p-8 sticky top-6">
-                <h2 class="text-2xl font-bold text-primary-900 mb-6">Payment</h2>
-                <div class="mb-6 p-6 bg-primary-50 rounded-xl text-center">
-                    <p class="text-base text-primary-600 mb-1">TOTAL</p>
-                    <p class="text-4xl font-bold text-primary-800" id="paymentTotal">TZS 0.00</p>
+            <div class="card rounded-2xl p-4">
+                <h2 class="text-xl font-bold text-primary-900 mb-3">Payment</h2>
+                <div class="mb-4 p-4 bg-primary-50 rounded-lg text-center">
+                    <p class="text-sm text-primary-600 mb-1">TOTAL</p>
+                    <p class="text-3xl font-bold text-primary-800" id="paymentTotal">TZS 0.00</p>
                 </div>
-                <div class="space-y-4 mb-6">
+                <div class="space-y-3 mb-4">
                     <label class="block">
-                        <span class="text-gray-700 font-medium mb-2">Paid Amount</span>
-                        <input type="number" id="paidAmount" class="w-full px-4 py-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 text-lg" oninput="calculateChange()" placeholder="Enter amount paid">
+                        <span class="text-gray-700 font-medium mb-1.5 text-sm">Paid Amount</span>
+                        <input type="number" id="paidAmount" class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-base" oninput="calculateChange()" placeholder="Enter amount paid">
                     </label>
-                    <div class="grid grid-cols-3 gap-3">
-                        <button type="button" class="py-3 border border-gray-300 rounded-xl hover:bg-gray-50 font-medium text-lg" onclick="setPaidAmount(5000)">5k</button>
-                        <button type="button" class="py-3 border border-gray-300 rounded-xl hover:bg-gray-50 font-medium text-lg" onclick="setPaidAmount(10000)">10k</button>
-                        <button type="button" class="py-3 border border-gray-300 rounded-xl hover:bg-gray-50 font-medium text-lg" onclick="setPaidAmount(20000)">20k</button>
-                    </div>
-                    <div class="mt-3">
-                        <div class="flex justify-between text-xl font-bold">
-                            <span class="text-gray-600">Change:</span>
+                    <div class="mt-2">
+                        <div class="flex justify-between text-lg font-bold">
+                            <span class="text-gray-600 text-sm">Change:</span>
                             <span class="text-green-600" id="changeAmount">TZS 0.00</span>
                         </div>
                     </div>
                 </div>
-                <div class="mb-6">
-                    <p class="text-gray-700 font-medium mb-3">Payment Method</p>
-                    <div class="flex gap-3">
-                        <button type="button" class="flex-1 py-4 border-2 border-primary-600 bg-primary-600 text-white rounded-xl font-semibold text-lg" id="methodCash" onclick="selectPaymentMethod('cash')">
-                            <i class="fas fa-money-bill mr-2"></i>Cash
+                <div class="mb-4">
+                    <p class="text-gray-700 font-medium mb-2 text-sm">Payment Method</p>
+                    <div class="flex gap-2">
+                        <button type="button" class="flex-1 py-2.5 border-2 border-primary-600 bg-primary-600 text-white rounded-lg font-semibold text-sm" id="methodCash" onclick="selectPaymentMethod('cash')">
+                            <i class="fas fa-money-bill mr-1"></i>Cash
                         </button>
-                        <button type="button" class="flex-1 py-4 border-2 border-gray-300 text-gray-700 hover:border-primary-500 rounded-xl font-semibold text-lg" id="methodCard" onclick="selectPaymentMethod('card')">
-                            <i class="fas fa-credit-card mr-2"></i>Card
+                        <button type="button" class="flex-1 py-2.5 border-2 border-gray-300 text-gray-700 hover:border-primary-500 rounded-lg font-semibold text-sm" id="methodCard" onclick="selectPaymentMethod('card')">
+                            <i class="fas fa-credit-card mr-1"></i>Card
                         </button>
-                        <button type="button" class="flex-1 py-4 border-2 border-gray-300 text-gray-700 hover:border-primary-500 rounded-xl font-semibold text-lg" id="methodMobile" onclick="selectPaymentMethod('mobile')">
-                            <i class="fas fa-mobile-alt mr-2"></i>Mobile
+                        <button type="button" class="flex-1 py-2.5 border-2 border-gray-300 text-gray-700 hover:border-primary-500 rounded-lg font-semibold text-sm" id="methodMobile" onclick="selectPaymentMethod('mobile')">
+                            <i class="fas fa-mobile-alt mr-1"></i>Mobile
                         </button>
                     </div>
                 </div>
-                <div id="transactionIdDiv" class="mb-6 hidden">
-                    <label class="block text-gray-700 font-medium mb-2">Transaction ID <span class="text-red-500">*</span></label>
-                    <input type="text" id="transactionIdInput" class="w-full px-4 py-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 text-lg" placeholder="Enter transaction ID">
+                <div id="transactionIdDiv" class="mb-4 hidden">
+                    <label class="block text-gray-700 font-medium mb-1.5 text-sm">Transaction ID <span class="text-red-500">*</span></label>
+                    <input type="text" id="transactionIdInput" class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm" placeholder="Enter transaction ID">
                 </div>
-                <button type="button" id="completeSaleBtn" onclick="completeSale()" class="w-full py-4 bg-green-600 hover:bg-green-700 text-white rounded-xl font-semibold text-xl mb-3">
-                    <span id="btnLoading" class="hidden"><i class="fas fa-spinner fa-spin mr-2"></i>Processing...</span>
-                    <span id="btnText"><i class="fas fa-check mr-2"></i>Complete Sale</span>
+                <button type="button" id="completeSaleBtn" onclick="completeSale()" class="w-full py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold text-lg mt-2">
+                    <span id="btnLoading" class="hidden"><i class="fas fa-spinner fa-spin mr-1"></i>Processing...</span>
+                    <span id="btnText"><i class="fas fa-check mr-1"></i>Complete Sale</span>
                 </button>
             </div>
         </div>
@@ -235,10 +251,45 @@
     </div>
 </div>
 
+<!-- Create Customer Modal -->
+<div id="createCustomerModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+    <div class="bg-white rounded-2xl p-6 max-w-md w-full mx-4">
+        <div class="flex items-center justify-between mb-6">
+            <h2 class="text-xl font-bold text-primary-900">Add New Customer</h2>
+            <button type="button" onclick="hideCreateCustomerModal()" class="text-gray-500 hover:text-gray-700">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+        </div>
+        <form id="createCustomerForm" class="space-y-4">
+            <div>
+                <label class="block text-gray-700 font-medium mb-2 text-sm">Name <span class="text-red-500">*</span></label>
+                <input type="text" id="customerName" required class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm">
+            </div>
+            <div>
+                <label class="block text-gray-700 font-medium mb-2 text-sm">Phone</label>
+                <input type="text" id="customerPhone" class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm">
+            </div>
+            <div>
+                <label class="block text-gray-700 font-medium mb-2 text-sm">Email</label>
+                <input type="email" id="customerEmail" class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm">
+            </div>
+            <div>
+                <label class="block text-gray-700 font-medium mb-2 text-sm">Address</label>
+                <textarea id="customerAddress" rows="2" class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"></textarea>
+            </div>
+            <div class="flex gap-3 pt-2">
+                <button type="button" onclick="hideCreateCustomerModal()" class="flex-1 py-2.5 border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 text-sm">Cancel</button>
+                <button type="submit" class="flex-1 py-2.5 bg-primary-600 text-white rounded-lg font-semibold hover:bg-primary-700 text-sm">Add Customer</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script>
 let cart = [];
 let selectedPaymentMethod = 'cash';
 let productsData = @json($products).map(p => ({...p, selling_price: parseFloat(p.selling_price)}));
+let customersData = @json($customers);
 let currentSaleId = null;
 let isProcessing = false;
 let dashboardData = {
@@ -259,6 +310,7 @@ document.addEventListener('DOMContentLoaded', function() {
     renderCart();
     loadDashboardData();
     setInterval(loadDashboardData, 10000); // Refresh every 10 seconds
+    setupCreateCustomerForm();
 
     // Kiosk Mode
     const kioskModeEnabled = {{ $storeSetting->kiosk_mode_enabled ? 'true' : 'false' }};
@@ -353,6 +405,54 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 });
+
+function showCreateCustomerModal() {
+    document.getElementById('createCustomerModal').classList.remove('hidden');
+}
+
+function hideCreateCustomerModal() {
+    document.getElementById('createCustomerModal').classList.add('hidden');
+    document.getElementById('createCustomerForm').reset();
+}
+
+function setupCreateCustomerForm() {
+    document.getElementById('createCustomerForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const name = document.getElementById('customerName').value;
+        const phone = document.getElementById('customerPhone').value;
+        const email = document.getElementById('customerEmail').value;
+        const address = document.getElementById('customerAddress').value;
+
+        fetch('/customers', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            body: JSON.stringify({name, phone, email, address})
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                customersData.push(data.customer);
+                const select = document.getElementById('customerSelect');
+                const option = document.createElement('option');
+                option.value = data.customer.id;
+                option.textContent = data.customer.name + ' (' + (data.customer.phone || 'No phone') + ')';
+                select.appendChild(option);
+                select.value = data.customer.id;
+                hideCreateCustomerModal();
+                showNotification('Customer added successfully!', 'success');
+            } else {
+                showNotification(data.message || 'Failed to add customer', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('Error adding customer', 'error');
+        });
+    });
+}
 
 async function loadDashboardData() {
     try {
@@ -596,6 +696,8 @@ function completeSale() {
         quantity: item.quantity
     }));
 
+    const customerId = document.getElementById('customerSelect').value;
+
     fetch('/cashier/sale', {
         method: 'POST',
         headers: {
@@ -608,7 +710,8 @@ function completeSale() {
             discount: parseFloat(document.getElementById('discountInput').value) || 0,
             paid,
             payment_method: selectedPaymentMethod,
-            transaction_id: document.getElementById('transactionIdInput').value
+            transaction_id: document.getElementById('transactionIdInput').value,
+            customer_id: customerId ? parseInt(customerId) : null
         })
     })
     .then(r => {
