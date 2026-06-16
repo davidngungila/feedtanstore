@@ -134,13 +134,13 @@
             <div class="card rounded-2xl p-4">
                 <h2 class="text-xl font-bold text-primary-900 mb-3">Payment</h2>
                 <div class="mb-4 p-4 bg-primary-50 rounded-lg text-center">
-                    <p class="text-sm text-primary-600 mb-1">TOTAL</p>
-                    <p class="text-3xl font-bold text-primary-800" id="paymentTotal">TZS 0.00</p>
+                    <p class="text-base text-primary-600 mb-1 font-semibold">TOTAL</p>
+                    <p class="text-xl font-bold text-primary-800 break-words" id="paymentTotal">TZS 0.00</p>
                 </div>
                 <div class="space-y-3 mb-4">
                     <label class="block">
                         <span class="text-gray-700 font-medium mb-1.5 text-sm">Paid Amount</span>
-                        <input type="number" id="paidAmount" class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-base" oninput="calculateChange()" placeholder="Enter amount paid">
+                        <input type="number" id="paidAmount" class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-lg font-semibold" oninput="calculateChange()" placeholder="Enter amount paid">
                     </label>
                     <div class="mt-2">
                         <div class="flex justify-between text-lg font-bold">
@@ -626,15 +626,23 @@ function clearCart() {
     }
 }
 
+function formatNumber(num) {
+    return num.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
+
 function updateTotals() {
     const subtotal = cart.reduce((sum, item) => sum + (parseFloat(item.price) * item.quantity), 0);
     const discount = parseFloat(document.getElementById('discountInput').value) || 0;
     const total = subtotal - discount;
 
-    document.getElementById('subtotal').textContent = 'TZS ' + subtotal.toFixed(2);
-    document.getElementById('discountAmount').textContent = '-TZS ' + discount.toFixed(2);
-    document.getElementById('total').textContent = 'TZS ' + total.toFixed(2);
-    document.getElementById('paymentTotal').textContent = 'TZS ' + total.toFixed(2);
+    document.getElementById('subtotal').textContent = 'TZS ' + formatNumber(subtotal);
+    document.getElementById('discountAmount').textContent = '-TZS ' + formatNumber(discount);
+    document.getElementById('total').textContent = 'TZS ' + formatNumber(total);
+    document.getElementById('paymentTotal').textContent = 'TZS ' + formatNumber(total);
+
+    // Set paid amount automatically to total
+    document.getElementById('paidAmount').value = total;
+    calculateChange();
 }
 
 function selectPaymentMethod(method) {
@@ -663,7 +671,7 @@ function calculateChange() {
     const total = cart.reduce((sum, item) => sum + (parseFloat(item.price) * item.quantity), 0) - (parseFloat(document.getElementById('discountInput').value) || 0);
     const paid = parseFloat(document.getElementById('paidAmount').value) || 0;
     const change = paid - total;
-    document.getElementById('changeAmount').textContent = 'TZS ' + change.toFixed(2);
+    document.getElementById('changeAmount').textContent = 'TZS ' + formatNumber(change);
 }
 
 function completeSale() {
