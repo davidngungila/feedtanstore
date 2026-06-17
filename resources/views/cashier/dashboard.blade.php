@@ -636,6 +636,21 @@ document.addEventListener('fullscreenchange', function() {
     }
 });
 
+// Keep fullscreen mode during printing
+let fullscreenBeforePrint = false;
+
+window.addEventListener('beforeprint', function() {
+    fullscreenBeforePrint = !!document.fullscreenElement;
+});
+
+window.addEventListener('afterprint', function() {
+    if (fullscreenBeforePrint && !document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(err => {
+            console.log('Failed to re-enter fullscreen after print:', err);
+        });
+    }
+});
+
 function setupBarcodeScanner() {
     let barcodeBuffer = '';
     let lastInputTime = 0;
@@ -924,6 +939,9 @@ function completeSale() {
 
 function printReceipt() {
     if (currentSaleId) {
+        // Save current fullscreen state
+        const wasFullscreen = !!document.fullscreenElement;
+        
         // Create an iframe to load and print the receipt
         const iframe = document.createElement('iframe');
         iframe.style.position = 'fixed';
@@ -942,6 +960,13 @@ function printReceipt() {
                 // Remove iframe after printing
                 setTimeout(() => {
                     document.body.removeChild(iframe);
+                    
+                    // Re-enter fullscreen if we were in fullscreen before
+                    if (wasFullscreen && !document.fullscreenElement) {
+                        document.documentElement.requestFullscreen().catch(err => {
+                            console.log('Failed to re-enter fullscreen:', err);
+                        });
+                    }
                 }, 500);
             }, 500);
         };
