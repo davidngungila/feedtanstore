@@ -531,7 +531,7 @@ class ReportController extends Controller
         $startDate = $request->start_date ?? today()->subDays(30)->toDateString();
         $endDate = $request->end_date ?? today()->toDateString();
         
-        $transfers = StockTransfer::with(['product', 'fromLocation', 'toLocation', 'user'])
+        $transfers = StockTransfer::with(['product', 'fromLocation', 'toLocation'])
             ->whereBetween('created_at', [$startDate, $endDate])
             ->latest()
             ->get();
