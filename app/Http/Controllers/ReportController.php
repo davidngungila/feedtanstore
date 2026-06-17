@@ -1341,40 +1341,183 @@ class ReportController extends Controller
     }
 
     // ==================== FeedTan Store Advanced Reports ====================
-    public function branchComparison()
+    public function branchComparison(Request $request)
     {
-        $branches = \App\Models\Branch::all();
+        $startDate = $request->start_date ?? today()->subDays(30)->toDateString();
+        $endDate = $request->end_date ?? today()->toDateString();
         
-        return view('reports.advanced.branch-comparison', compact('branches'));
-    }
-
-    public function branchComparisonPDF()
-    {
-        return $this->generatePDF('reports.advanced.branch-comparison-pdf', $this->branchComparison()->getData(), 'branch-comparison-report.pdf');
-    }
-
-    public function branchProfit()
-    {
-        $branches = \App\Models\Branch::all();
+        // Get daily sales data
+        $period = \Carbon\Carbon::parse($startDate)->toPeriod($endDate);
+        $dailySales = collect();
         
-        return view('reports.advanced.branch-profit', compact('branches'));
-    }
-
-    public function branchProfitPDF()
-    {
-        return $this->generatePDF('reports.advanced.branch-profit-pdf', $this->branchProfit()->getData(), 'branch-profit-report.pdf');
-    }
-
-    public function expansionReadiness()
-    {
-        $branches = \App\Models\Branch::all();
+        foreach ($period as $date) {
+            $dateStr = $date->toDateString();
+            $sales = Sale::whereDate('created_at', $dateStr)->get();
+            $totalSales = $sales->sum('total');
+            $transactions = $sales->count();
+            $totalItems = SaleItem::whereHas('sale', function($q) use ($dateStr) {
+                $q->whereDate('created_at', $dateStr);
+            })->sum('quantity');
+            
+            $dailySales->push([
+                'date' => $dateStr,
+                'sales' => $totalSales,
+                'transactions' => $transactions,
+                'items' => $totalItems,
+                'avg_sale' => $transactions > 0 ? $totalSales / $transactions : 0
+            ]);
+        }
         
-        return view('reports.advanced.expansion-readiness', compact('branches'));
+        // Get payment methods
+        $paymentMethods = Sale::select('payment_method', DB::raw('COUNT(*) as count'), DB::raw('SUM(total) as total'))
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->groupBy('payment_method')
+            ->get();
+            
+        // Total stats
+        $totalSales = $dailySales->sum('sales');
+        $totalTransactions = $dailySales->sum('transactions');
+        $totalItems = $dailySales->sum('items');
+        
+        return view('reports.advanced.branch-comparison', compact('startDate', 'endDate', 'dailySales', 'paymentMethods', 'totalSales', 'totalTransactions', 'totalItems'));
     }
 
-    public function expansionReadinessPDF()
+    public function branchComparisonPDF(Request $request)
     {
-        return $this->generatePDF('reports.advanced.expansion-readiness-pdf', $this->expansionReadiness()->getData(), 'expansion-readiness-report.pdf');
+        return $this->generatePDF('reports.advanced.branch-comparison-pdf', $this->branchComparison($request)->getData(), 'branch-comparison-report.pdf');
+    }
+
+    public function branchProfit(Request $request)
+    {
+        $startDate = $request->start_date ?? today()->startOfMonth()->toDateString();
+        $endDate = $request->end_date ?? today()->toDateString();
+        
+        // Get sales with COGS
+        $sales = Sale::with('items.product')->whereBetween('created_at', [$startDate, $endDate])->get();
+        
+        $totalSales = $sales->sum('total');
+        $totalCOGS = $sales->sum(function($sale) {
+            return $sale->items->sum(function($item) {
+                return $item->quantity * ($item->product->cost_price ?? 0);
+            });
+        });
+        $totalGrossProfit = $totalSales - $totalCOGS;
+        $grossMargin = $totalSales > 0 ? ($totalGrossProfit / $totalSales) * 100 : 0;
+        
+        // Get monthly data
+        $monthlyData = collect();
+        $start = \Carbon\Carbon::parse($startDate);
+        $end = \Carbon\Carbon::parse($endDate);
+        
+        while ($start->lte($end)) {
+            $monthStart = $start->copy()->startOfMonth()->toDateString();
+            $monthEnd = $start->copy()->endOfMonth()->toDateString();
+            
+            $monthSales = Sale::with('items.product')->whereBetween('created_at', [$monthStart, $monthEnd])->get();
+            $monthTotal = $monthSales->sum('total');
+            $monthCOGS = $monthSales->sum(function($sale) {
+                return $sale->items->sum(function($item) {
+                    return $item->quantity * ($item->product->cost_price ?? 0);
+                });
+            });
+            $monthProfit = $monthTotal - $monthCOGS;
+            
+            $monthlyData->push([
+                'month' => $start->format('F Y'),
+                'sales' => $monthTotal,
+                'cogs' => $monthCOGS,
+                'profit' => $monthProfit,
+                'margin' => $monthTotal > 0 ? ($monthProfit / $monthTotal) * 100 : 0
+            ]);
+            
+            $start->addMonth();
+        }
+        
+        return view('reports.advanced.branch-profit', compact('startDate', 'endDate', 'totalSales', 'totalCOGS', 'totalGrossProfit', 'grossMargin', 'monthlyData'));
+    }
+
+    public function branchProfitPDF(Request $request)
+    {
+        return $this->generatePDF('reports.advanced.branch-profit-pdf', $this->branchProfit($request)->getData(), 'branch-profit-report.pdf');
+    }
+
+    public function expansionReadiness(Request $request)
+    {
+        $startDate = $request->start_date ?? today()->subDays(90)->toDateString();
+        $endDate = $request->end_date ?? today()->toDateString();
+        
+        // Get key metrics
+        $salesGrowth = $this->calculateSalesGrowth($startDate, $endDate);
+        $inventoryTurnover = $this->calculateInventoryTurnover($startDate, $endDate);
+        $customerRetention = $this->calculateCustomerRetention($startDate, $endDate);
+        $cashFlowHealth = $this->calculateCashFlowHealth($startDate, $endDate);
+        
+        return view('reports.advanced.expansion-readiness', compact(
+            'startDate', 
+            'endDate', 
+            'salesGrowth', 
+            'inventoryTurnover', 
+            'customerRetention', 
+            'cashFlowHealth'
+        ));
+    }
+    
+    private function calculateSalesGrowth($startDate, $endDate)
+    {
+        $period = \Carbon\Carbon::parse($startDate)->diffInDays($endDate) + 1;
+        $midpoint = \Carbon\Carbon::parse($startDate)->addDays($period / 2);
+        
+        $firstHalfSales = Sale::whereBetween('created_at', [$startDate, $midpoint->toDateString()])->sum('total');
+        $secondHalfSales = Sale::whereBetween('created_at', [$midpoint->toDateString(), $endDate])->sum('total');
+        
+        $growthPercent = $firstHalfSales > 0 ? (($secondHalfSales - $firstHalfSales) / $firstHalfSales) * 100 : 0;
+        
+        return [
+            'first_half' => $firstHalfSales,
+            'second_half' => $secondHalfSales,
+            'growth' => $growthPercent
+        ];
+    }
+    
+    private function calculateInventoryTurnover($startDate, $endDate)
+    {
+        $totalCOGS = Sale::with('items.product')->whereBetween('created_at', [$startDate, $endDate])->get()->sum(function($sale) {
+            return $sale->items->sum(function($item) {
+                return $item->quantity * ($item->product->cost_price ?? 0);
+            });
+        });
+        
+        $avgInventory = Product::sum(DB::raw('quantity * cost_price'));
+        
+        return $avgInventory > 0 ? $totalCOGS / $avgInventory : 0;
+    }
+    
+    private function calculateCustomerRetention($startDate, $endDate)
+    {
+        $totalCustomers = Customer::count();
+        $repeatCustomers = Customer::whereHas('sales', function($q) use ($startDate, $endDate) {
+            $q->whereBetween('created_at', [$startDate, $endDate]);
+        })->count();
+        
+        return $totalCustomers > 0 ? ($repeatCustomers / $totalCustomers) * 100 : 0;
+    }
+    
+    private function calculateCashFlowHealth($startDate, $endDate)
+    {
+        $totalSales = Sale::whereBetween('created_at', [$startDate, $endDate])->sum('total');
+        $totalExpenses = Expense::whereBetween('created_at', [$startDate, $endDate])->sum('amount');
+        $netCashFlow = $totalSales - $totalExpenses;
+        
+        return [
+            'sales' => $totalSales,
+            'expenses' => $totalExpenses,
+            'net' => $netCashFlow
+        ];
+    }
+
+    public function expansionReadinessPDF(Request $request)
+    {
+        return $this->generatePDF('reports.advanced.expansion-readiness-pdf', $this->expansionReadiness($request)->getData(), 'expansion-readiness-report.pdf');
     }
 
     public function memberPurchase(Request $request)
@@ -1382,11 +1525,11 @@ class ReportController extends Controller
         $startDate = $request->start_date ?? today()->startOfMonth()->toDateString();
         $endDate = $request->end_date ?? today()->toDateString();
         
-        $members = Customer::select('customers.*', DB::raw('COUNT(sales.id) as purchase_count'), DB::raw('SUM(sales.total) as total_spent'))
+        $members = Customer::select('customers.id', 'customers.name', 'customers.email', 'customers.phone', DB::raw('COUNT(sales.id) as purchase_count'), DB::raw('SUM(sales.total) as total_spent'))
             ->leftJoin('sales', 'customers.id', '=', 'sales.customer_id')
             ->whereBetween('sales.created_at', [$startDate, $endDate])
             ->where('customers.is_member', true)
-            ->groupBy('customers.id')
+            ->groupBy('customers.id', 'customers.name', 'customers.email', 'customers.phone')
             ->orderBy('total_spent', 'desc')
             ->get();
         
