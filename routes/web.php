@@ -334,105 +334,165 @@ Route::middleware('auth')->group(function () {
         // Sales Reports
         Route::prefix('sales')->name('sales.')->group(function () {
             Route::get('/daily', [\App\Http\Controllers\ReportController::class, 'dailySales'])->name('daily');
+            Route::get('/daily/download', [\App\Http\Controllers\ReportController::class, 'dailySalesPDF'])->name('daily.download');
             Route::get('/by-date', [\App\Http\Controllers\ReportController::class, 'salesByDate'])->name('by-date');
+            Route::get('/by-date/download', [\App\Http\Controllers\ReportController::class, 'salesByDatePDF'])->name('by-date.download');
             Route::get('/hourly', [\App\Http\Controllers\ReportController::class, 'hourlySales'])->name('hourly');
+            Route::get('/hourly/download', [\App\Http\Controllers\ReportController::class, 'hourlySalesPDF'])->name('hourly.download');
             Route::get('/by-product', [\App\Http\Controllers\ReportController::class, 'salesByProduct'])->name('by-product');
+            Route::get('/by-product/download', [\App\Http\Controllers\ReportController::class, 'salesByProductPDF'])->name('by-product.download');
             Route::get('/by-category', [\App\Http\Controllers\ReportController::class, 'salesByCategory'])->name('by-category');
+            Route::get('/by-category/download', [\App\Http\Controllers\ReportController::class, 'salesByCategoryPDF'])->name('by-category.download');
             Route::get('/by-brand', [\App\Http\Controllers\ReportController::class, 'salesByBrand'])->name('by-brand');
+            Route::get('/by-brand/download', [\App\Http\Controllers\ReportController::class, 'salesByBrandPDF'])->name('by-brand.download');
             Route::get('/top-selling', [\App\Http\Controllers\ReportController::class, 'topSelling'])->name('top-selling');
+            Route::get('/top-selling/download', [\App\Http\Controllers\ReportController::class, 'topSellingPDF'])->name('top-selling.download');
             Route::get('/worst-selling', [\App\Http\Controllers\ReportController::class, 'worstSelling'])->name('worst-selling');
+            Route::get('/worst-selling/download', [\App\Http\Controllers\ReportController::class, 'worstSellingPDF'])->name('worst-selling.download');
         });
 
         // Profit Reports
         Route::prefix('profit')->name('profit.')->group(function () {
             Route::get('/gross', [\App\Http\Controllers\ReportController::class, 'grossProfit'])->name('gross');
+            Route::get('/gross/download', [\App\Http\Controllers\ReportController::class, 'grossProfitPDF'])->name('gross.download');
             Route::get('/margin', [\App\Http\Controllers\ReportController::class, 'profitMargin'])->name('margin');
+            Route::get('/margin/download', [\App\Http\Controllers\ReportController::class, 'profitMarginPDF'])->name('margin.download');
             Route::get('/by-category', [\App\Http\Controllers\ReportController::class, 'profitByCategory'])->name('by-category');
+            Route::get('/by-category/download', [\App\Http\Controllers\ReportController::class, 'profitByCategoryPDF'])->name('by-category.download');
             Route::get('/net', [\App\Http\Controllers\ReportController::class, 'netProfit'])->name('net');
+            Route::get('/net/download', [\App\Http\Controllers\ReportController::class, 'netProfitPDF'])->name('net.download');
             Route::get('/loss', [\App\Http\Controllers\ReportController::class, 'lossReport'])->name('loss');
+            Route::get('/loss/download', [\App\Http\Controllers\ReportController::class, 'lossReportPDF'])->name('loss.download');
         });
 
         // Inventory Reports
         Route::prefix('inventory')->name('inventory.')->group(function () {
             Route::get('/current-stock', [\App\Http\Controllers\ReportController::class, 'currentStock'])->name('current-stock');
+            Route::get('/current-stock/download', [\App\Http\Controllers\ReportController::class, 'currentStockPDF'])->name('current-stock.download');
             Route::get('/valuation', [\App\Http\Controllers\ReportController::class, 'inventoryValuation'])->name('valuation');
+            Route::get('/valuation/download', [\App\Http\Controllers\ReportController::class, 'inventoryValuationPDF'])->name('valuation.download');
             Route::get('/movement', [\App\Http\Controllers\ReportController::class, 'stockMovement'])->name('movement');
+            Route::get('/movement/download', [\App\Http\Controllers\ReportController::class, 'stockMovementPDF'])->name('movement.download');
             Route::get('/stock-in', [\App\Http\Controllers\ReportController::class, 'stockIn'])->name('stock-in');
+            Route::get('/stock-in/download', [\App\Http\Controllers\ReportController::class, 'stockInPDF'])->name('stock-in.download');
             Route::get('/stock-out', [\App\Http\Controllers\ReportController::class, 'stockOut'])->name('stock-out');
+            Route::get('/stock-out/download', [\App\Http\Controllers\ReportController::class, 'stockOutPDF'])->name('stock-out.download');
             Route::get('/transfers', [\App\Http\Controllers\ReportController::class, 'stockTransfers'])->name('transfers');
+            Route::get('/transfers/download', [\App\Http\Controllers\ReportController::class, 'stockTransfersPDF'])->name('transfers.download');
             Route::get('/low-stock', [\App\Http\Controllers\ReportController::class, 'lowStock'])->name('low-stock');
+            Route::get('/low-stock/download', [\App\Http\Controllers\ReportController::class, 'lowStockPDF'])->name('low-stock.download');
             Route::get('/out-of-stock', [\App\Http\Controllers\ReportController::class, 'outOfStock'])->name('out-of-stock');
+            Route::get('/out-of-stock/download', [\App\Http\Controllers\ReportController::class, 'outOfStockPDF'])->name('out-of-stock.download');
             Route::get('/overstock', [\App\Http\Controllers\ReportController::class, 'overstock'])->name('overstock');
+            Route::get('/overstock/download', [\App\Http\Controllers\ReportController::class, 'overstockPDF'])->name('overstock.download');
             Route::get('/fast-moving', [\App\Http\Controllers\ReportController::class, 'fastMoving'])->name('fast-moving');
+            Route::get('/fast-moving/download', [\App\Http\Controllers\ReportController::class, 'fastMovingPDF'])->name('fast-moving.download');
             Route::get('/slow-moving', [\App\Http\Controllers\ReportController::class, 'slowMoving'])->name('slow-moving');
+            Route::get('/slow-moving/download', [\App\Http\Controllers\ReportController::class, 'slowMovingPDF'])->name('slow-moving.download');
             Route::get('/dead-stock', [\App\Http\Controllers\ReportController::class, 'deadStock'])->name('dead-stock');
+            Route::get('/dead-stock/download', [\App\Http\Controllers\ReportController::class, 'deadStockPDF'])->name('dead-stock.download');
         });
 
         // Expiry Reports
         Route::prefix('expiry')->name('expiry.')->group(function () {
             Route::get('/soon', [\App\Http\Controllers\ReportController::class, 'expiringSoon'])->name('soon');
+            Route::get('/soon/download', [\App\Http\Controllers\ReportController::class, 'expiringSoonPDF'])->name('soon.download');
             Route::get('/expired', [\App\Http\Controllers\ReportController::class, 'expiredProducts'])->name('expired');
+            Route::get('/expired/download', [\App\Http\Controllers\ReportController::class, 'expiredProductsPDF'])->name('expired.download');
             Route::get('/batch-tracking', [\App\Http\Controllers\ReportController::class, 'batchTracking'])->name('batch-tracking');
+            Route::get('/batch-tracking/download', [\App\Http\Controllers\ReportController::class, 'batchTrackingPDF'])->name('batch-tracking.download');
         });
 
         // Purchasing Reports
         Route::prefix('purchasing')->name('purchasing.')->group(function () {
             Route::get('/summary', [\App\Http\Controllers\ReportController::class, 'purchaseSummary'])->name('summary');
+            Route::get('/summary/download', [\App\Http\Controllers\ReportController::class, 'purchaseSummaryPDF'])->name('summary.download');
             Route::get('/by-supplier', [\App\Http\Controllers\ReportController::class, 'purchaseBySupplier'])->name('by-supplier');
+            Route::get('/by-supplier/download', [\App\Http\Controllers\ReportController::class, 'purchaseBySupplierPDF'])->name('by-supplier.download');
             Route::get('/supplier-performance', [\App\Http\Controllers\ReportController::class, 'supplierPerformance'])->name('supplier-performance');
+            Route::get('/supplier-performance/download', [\App\Http\Controllers\ReportController::class, 'supplierPerformancePDF'])->name('supplier-performance.download');
             Route::get('/vs-sales', [\App\Http\Controllers\ReportController::class, 'purchaseVsSales'])->name('vs-sales');
+            Route::get('/vs-sales/download', [\App\Http\Controllers\ReportController::class, 'purchaseVsSalesPDF'])->name('vs-sales.download');
             Route::get('/purchase-orders', [\App\Http\Controllers\ReportController::class, 'purchaseOrders'])->name('purchase-orders');
+            Route::get('/purchase-orders/download', [\App\Http\Controllers\ReportController::class, 'purchaseOrdersPDF'])->name('purchase-orders.download');
         });
 
         // Cash & Payment Reports
         Route::prefix('cash')->name('cash.')->group(function () {
             Route::get('/cashier-shift', [\App\Http\Controllers\ReportController::class, 'cashierShift'])->name('cashier-shift');
+            Route::get('/cashier-shift/download', [\App\Http\Controllers\ReportController::class, 'cashierShiftPDF'])->name('cashier-shift.download');
             Route::get('/reconciliation', [\App\Http\Controllers\ReportController::class, 'cashReconciliation'])->name('reconciliation');
+            Route::get('/reconciliation/download', [\App\Http\Controllers\ReportController::class, 'cashReconciliationPDF'])->name('reconciliation.download');
             Route::get('/payment-method', [\App\Http\Controllers\ReportController::class, 'paymentMethod'])->name('payment-method');
+            Route::get('/payment-method/download', [\App\Http\Controllers\ReportController::class, 'paymentMethodPDF'])->name('payment-method.download');
             Route::get('/daily-flow', [\App\Http\Controllers\ReportController::class, 'dailyCashFlow'])->name('daily-flow');
+            Route::get('/daily-flow/download', [\App\Http\Controllers\ReportController::class, 'dailyCashFlowPDF'])->name('daily-flow.download');
         });
 
         // Cashier / Staff Reports
         Route::prefix('staff')->name('staff.')->group(function () {
             Route::get('/sales-by-cashier', [\App\Http\Controllers\ReportController::class, 'salesByCashier'])->name('sales-by-cashier');
+            Route::get('/sales-by-cashier/download', [\App\Http\Controllers\ReportController::class, 'salesByCashierPDF'])->name('sales-by-cashier.download');
             Route::get('/transaction-count', [\App\Http\Controllers\ReportController::class, 'transactionCount'])->name('transaction-count');
+            Route::get('/transaction-count/download', [\App\Http\Controllers\ReportController::class, 'transactionCountPDF'])->name('transaction-count.download');
             Route::get('/activity', [\App\Http\Controllers\ReportController::class, 'cashierActivity'])->name('activity');
+            Route::get('/activity/download', [\App\Http\Controllers\ReportController::class, 'cashierActivityPDF'])->name('activity.download');
             Route::get('/discounts', [\App\Http\Controllers\ReportController::class, 'discountReport'])->name('discounts');
+            Route::get('/discounts/download', [\App\Http\Controllers\ReportController::class, 'discountReportPDF'])->name('discounts.download');
             Route::get('/void-transactions', [\App\Http\Controllers\ReportController::class, 'voidTransactions'])->name('void-transactions');
+            Route::get('/void-transactions/download', [\App\Http\Controllers\ReportController::class, 'voidTransactionsPDF'])->name('void-transactions.download');
             Route::get('/refunds', [\App\Http\Controllers\ReportController::class, 'refundReport'])->name('refunds');
+            Route::get('/refunds/download', [\App\Http\Controllers\ReportController::class, 'refundReportPDF'])->name('refunds.download');
         });
 
         // Customer Reports
         Route::prefix('customer')->name('customer.')->group(function () {
             Route::get('/sales', [\App\Http\Controllers\ReportController::class, 'customerSales'])->name('sales');
+            Route::get('/sales/download', [\App\Http\Controllers\ReportController::class, 'customerSalesPDF'])->name('sales.download');
             Route::get('/purchase-history', [\App\Http\Controllers\ReportController::class, 'customerPurchaseHistory'])->name('purchase-history');
+            Route::get('/purchase-history/download', [\App\Http\Controllers\ReportController::class, 'customerPurchaseHistoryPDF'])->name('purchase-history.download');
             Route::get('/loyalty', [\App\Http\Controllers\ReportController::class, 'loyaltyReport'])->name('loyalty');
+            Route::get('/loyalty/download', [\App\Http\Controllers\ReportController::class, 'loyaltyReportPDF'])->name('loyalty.download');
         });
 
         // Security & Audit Reports
         Route::prefix('security')->name('security.')->group(function () {
             Route::get('/audit-log', [\App\Http\Controllers\ReportController::class, 'auditLog'])->name('audit-log');
+            Route::get('/audit-log/download', [\App\Http\Controllers\ReportController::class, 'auditLogPDF'])->name('audit-log.download');
             Route::get('/price-changes', [\App\Http\Controllers\ReportController::class, 'priceChanges'])->name('price-changes');
+            Route::get('/price-changes/download', [\App\Http\Controllers\ReportController::class, 'priceChangesPDF'])->name('price-changes.download');
             Route::get('/inventory-adjustments', [\App\Http\Controllers\ReportController::class, 'inventoryAdjustments'])->name('inventory-adjustments');
+            Route::get('/inventory-adjustments/download', [\App\Http\Controllers\ReportController::class, 'inventoryAdjustmentsPDF'])->name('inventory-adjustments.download');
             Route::get('/user-activity', [\App\Http\Controllers\ReportController::class, 'userActivity'])->name('user-activity');
+            Route::get('/user-activity/download', [\App\Http\Controllers\ReportController::class, 'userActivityPDF'])->name('user-activity.download');
         });
 
         // Management Dashboard Reports
         Route::prefix('management')->name('management.')->group(function () {
             Route::get('/executive', [\App\Http\Controllers\ReportController::class, 'executiveDashboard'])->name('executive');
+            Route::get('/executive/download', [\App\Http\Controllers\ReportController::class, 'executiveDashboardPDF'])->name('executive.download');
             Route::get('/inventory-investment', [\App\Http\Controllers\ReportController::class, 'inventoryInvestment'])->name('inventory-investment');
+            Route::get('/inventory-investment/download', [\App\Http\Controllers\ReportController::class, 'inventoryInvestmentPDF'])->name('inventory-investment.download');
             Route::get('/inventory-turnover', [\App\Http\Controllers\ReportController::class, 'inventoryTurnover'])->name('inventory-turnover');
+            Route::get('/inventory-turnover/download', [\App\Http\Controllers\ReportController::class, 'inventoryTurnoverPDF'])->name('inventory-turnover.download');
             Route::get('/stock-accuracy', [\App\Http\Controllers\ReportController::class, 'stockAccuracy'])->name('stock-accuracy');
+            Route::get('/stock-accuracy/download', [\App\Http\Controllers\ReportController::class, 'stockAccuracyPDF'])->name('stock-accuracy.download');
             Route::get('/business-growth', [\App\Http\Controllers\ReportController::class, 'businessGrowth'])->name('business-growth');
+            Route::get('/business-growth/download', [\App\Http\Controllers\ReportController::class, 'businessGrowthPDF'])->name('business-growth.download');
         });
 
         // FeedTan Store Advanced Reports
         Route::prefix('advanced')->name('advanced.')->group(function () {
             Route::get('/branch-comparison', [\App\Http\Controllers\ReportController::class, 'branchComparison'])->name('branch-comparison');
+            Route::get('/branch-comparison/download', [\App\Http\Controllers\ReportController::class, 'branchComparisonPDF'])->name('branch-comparison.download');
             Route::get('/branch-profit', [\App\Http\Controllers\ReportController::class, 'branchProfit'])->name('branch-profit');
+            Route::get('/branch-profit/download', [\App\Http\Controllers\ReportController::class, 'branchProfitPDF'])->name('branch-profit.download');
             Route::get('/expansion-readiness', [\App\Http\Controllers\ReportController::class, 'expansionReadiness'])->name('expansion-readiness');
+            Route::get('/expansion-readiness/download', [\App\Http\Controllers\ReportController::class, 'expansionReadinessPDF'])->name('expansion-readiness.download');
             Route::get('/member-purchase', [\App\Http\Controllers\ReportController::class, 'memberPurchase'])->name('member-purchase');
+            Route::get('/member-purchase/download', [\App\Http\Controllers\ReportController::class, 'memberPurchasePDF'])->name('member-purchase.download');
             Route::get('/supplier-credit', [\App\Http\Controllers\ReportController::class, 'supplierCredit'])->name('supplier-credit');
+            Route::get('/supplier-credit/download', [\App\Http\Controllers\ReportController::class, 'supplierCreditPDF'])->name('supplier-credit.download');
         });
     });
 

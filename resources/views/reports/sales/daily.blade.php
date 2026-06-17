@@ -8,13 +8,13 @@
         <div class="flex flex-wrap items-center justify-between mb-6 gap-4">
             <h2 class="text-xl font-bold text-primary-900">Daily Sales Summary</h2>
             <div class="flex items-center gap-3">
-                <input type="date" name="date" value="{{ request('date', date('Y-m-d')) }}" class="form-input input-field px-4 py-2" id="date-filter">
+                <input type="date" name="date" value="{{ $date }}" class="form-input input-field px-4 py-2" id="date-filter">
                 <button onclick="filterReport()" class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg font-medium transition-colors">
                     Filter
                 </button>
-                <button class="px-4 py-2 border border-primary-200 rounded-lg text-primary-700 hover:bg-primary-50 font-medium transition-colors">
+                <a href="{{ route('reports.sales.daily.pdf', ['date' => $date]) }}" class="px-4 py-2 border border-primary-200 rounded-lg text-primary-700 hover:bg-primary-50 font-medium transition-colors">
                     Export PDF
-                </button>
+                </a>
             </div>
         </div>
 

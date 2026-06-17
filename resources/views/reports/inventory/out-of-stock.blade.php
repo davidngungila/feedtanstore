@@ -8,9 +8,9 @@
         <div class="flex flex-wrap items-center justify-between mb-6 gap-4">
             <h2 class="text-xl font-bold text-primary-900">Out of Stock Products</h2>
             <div class="flex items-center gap-3">
-                <button class="px-4 py-2 border border-primary-200 rounded-lg text-primary-700 hover:bg-primary-50 font-medium transition-colors">
+                <a href="{{ route('reports.inventory.out-of-stock.pdf') }}" class="px-4 py-2 border border-primary-200 rounded-lg text-primary-700 hover:bg-primary-50 font-medium transition-colors">
                     Export PDF
-                </button>
+                </a>
             </div>
         </div>
 
