@@ -496,16 +496,6 @@ Route::middleware('auth')->group(function () {
         });
     });
 
-    // Security
-    Route::prefix('security')->name('security.')->group(function () {
-        Route::get('/users', function () { return view('security.users'); })->name('users');
-        Route::get('/access', function () { return view('security.access'); })->name('access');
-        Route::get('/audit', function () { return view('security.audit'); })->name('audit');
-        Route::get('/logins', function () { return view('security.logins'); })->name('logins');
-        Route::get('/devices', function () { return view('security.devices'); })->name('devices');
-        Route::get('/settings', function () { return view('security.settings'); })->name('settings');
-    });
-
     // Marketing
     Route::prefix('marketing')->name('marketing.')->group(function () {
         Route::get('/promotions', function () { return view('marketing.promotions'); })->name('promotions');
@@ -548,6 +538,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/devices', [\App\Http\Controllers\SecurityController::class, 'devices'])->name('devices');
         Route::get('/settings', [\App\Http\Controllers\SecurityController::class, 'settings'])->name('settings');
         Route::post('/devices/{id}/revoke', [\App\Http\Controllers\SecurityController::class, 'revokeDevice'])->name('devices.revoke');
+    });
+    
     // VFD Customer Display Routes
     Route::prefix('vfd')->name('vfd.')->group(function () {
         Route::post('/welcome', [\App\Http\Controllers\VFDController::class, 'welcome'])->name('welcome');
