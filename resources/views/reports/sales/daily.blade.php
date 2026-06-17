@@ -27,7 +27,7 @@
                     </div>
                 </div>
                 <p class="text-sm text-primary-700 mb-1">Total Sales</p>
-                <h3 class="text-2xl font-bold text-primary-900">TZS 0.00</h3>
+                <h3 class="text-2xl font-bold text-primary-900">TZS {{ number_format($totalSales, 2) }}</h3>
             </div>
             <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-5">
                 <div class="flex items-center justify-between mb-3">
@@ -36,7 +36,7 @@
                     </div>
                 </div>
                 <p class="text-sm text-blue-700 mb-1">Transactions</p>
-                <h3 class="text-2xl font-bold text-blue-900">0</h3>
+                <h3 class="text-2xl font-bold text-blue-900">{{ $transactionCount }}</h3>
             </div>
             <div class="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-5">
                 <div class="flex items-center justify-between mb-3">
@@ -45,7 +45,7 @@
                     </div>
                 </div>
                 <p class="text-sm text-purple-700 mb-1">Average Sale</p>
-                <h3 class="text-2xl font-bold text-purple-900">TZS 0.00</h3>
+                <h3 class="text-2xl font-bold text-purple-900">TZS {{ number_format($averageSale, 2) }}</h3>
             </div>
             <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-5">
                 <div class="flex items-center justify-between mb-3">
@@ -54,7 +54,7 @@
                     </div>
                 </div>
                 <p class="text-sm text-green-700 mb-1">Items Sold</p>
-                <h3 class="text-2xl font-bold text-green-900">0</h3>
+                <h3 class="text-2xl font-bold text-green-900">{{ $itemsSold }}</h3>
             </div>
         </div>
 
@@ -65,19 +65,19 @@
                 <div class="space-y-3">
                     <div class="flex items-center justify-between">
                         <span class="text-gray-700">Cash</span>
-                        <span class="font-semibold text-primary-900">TZS 0.00</span>
+                        <span class="font-semibold text-primary-900">TZS {{ number_format($cashTotal, 2) }}</span>
                     </div>
                     <div class="flex items-center justify-between">
                         <span class="text-gray-700">Card</span>
-                        <span class="font-semibold text-primary-900">TZS 0.00</span>
+                        <span class="font-semibold text-primary-900">TZS {{ number_format($cardTotal, 2) }}</span>
                     </div>
                     <div class="flex items-center justify-between">
                         <span class="text-gray-700">Mobile Money</span>
-                        <span class="font-semibold text-primary-900">TZS 0.00</span>
+                        <span class="font-semibold text-primary-900">TZS {{ number_format($mobileMoneyTotal, 2) }}</span>
                     </div>
                     <div class="flex items-center justify-between">
                         <span class="text-gray-700">Credit</span>
-                        <span class="font-semibold text-primary-900">TZS 0.00</span>
+                        <span class="font-semibold text-primary-900">TZS {{ number_format($creditTotal, 2) }}</span>
                     </div>
                 </div>
             </div>
@@ -106,11 +106,23 @@
                         </tr>
                     </thead>
                     <tbody class="divide-y">
+                        @foreach($transactions as $transaction)
+                        <tr>
+                            <td class="px-4 py-3">{{ $transaction->invoice_number }}</td>
+                            <td class="px-4 py-3">{{ $transaction->created_at->format('H:i:s') }}</td>
+                            <td class="px-4 py-3">{{ $transaction->customer ? $transaction->customer->name : 'Walk-in' }}</td>
+                            <td class="px-4 py-3">{{ $transaction->user ? $transaction->user->name : 'N/A' }}</td>
+                            <td class="px-4 py-3">{{ ucwords(str_replace('_', ' ', $transaction->payment_method)) }}</td>
+                            <td class="px-4 py-3 text-right font-semibold">TZS {{ number_format($transaction->total, 2) }}</td>
+                        </tr>
+                        @endforeach
+                        @if($transactions->isEmpty())
                         <tr>
                             <td colspan="6" class="px-4 py-8 text-center text-gray-500">
                                 No transactions found for this date
                             </td>
                         </tr>
+                        @endif
                     </tbody>
                 </table>
             </div>

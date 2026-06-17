@@ -22,9 +22,47 @@ use Carbon\Carbon;
 class ReportController extends Controller
 {
     // ==================== Sales Reports ====================
-    public function dailySales()
+    public function dailySales(Request $request)
     {
-        return view('reports.sales.daily');
+        $date = $request->date ?? today()->toDateString();
+        
+        // Get today's sales
+        $todaySales = \App\Models\Sale::whereDate('created_at', $date)->get();
+        $totalSales = $todaySales->sum('total');
+        $transactionCount = $todaySales->count();
+        $averageSale = $transactionCount > 0 ? $totalSales / $transactionCount : 0;
+        $itemsSold = \App\Models\SaleItem::whereHas('sale', function($q) use ($date) {
+            $q->whereDate('created_at', $date);
+        })->sum('quantity');
+        
+        // Get payment methods
+        $paymentMethods = \App\Models\Sale::select('payment_method', \Illuminate\Support\Facades\DB::raw('COUNT(*) as count'), \Illuminate\Support\Facades\DB::raw('SUM(total) as total'))
+            ->whereDate('created_at', $date)
+            ->groupBy('payment_method')
+            ->get();
+        $cashTotal = $paymentMethods->where('payment_method', 'cash')->sum('total');
+        $cardTotal = $paymentMethods->where('payment_method', 'card')->sum('total');
+        $mobileMoneyTotal = $paymentMethods->where('payment_method', 'mobile_money')->sum('total');
+        $creditTotal = $paymentMethods->where('payment_method', 'credit')->sum('total');
+        
+        // Get transactions with relations
+        $transactions = \App\Models\Sale::with(['customer', 'user'])
+            ->whereDate('created_at', $date)
+            ->latest()
+            ->get();
+        
+        return view('reports.sales.daily', compact(
+            'date',
+            'totalSales',
+            'transactionCount',
+            'averageSale',
+            'itemsSold',
+            'cashTotal',
+            'cardTotal',
+            'mobileMoneyTotal',
+            'creditTotal',
+            'transactions'
+        ));
     }
 
     public function salesByDate()
@@ -91,7 +129,15 @@ class ReportController extends Controller
     // ==================== Inventory Reports ====================
     public function currentStock()
     {
-        return view('reports.inventory.current-stock');
+        $products = \App\Models\Product::with(['category', 'brand'])
+            ->orderBy('name')
+            ->get();
+        
+        $totalStockValue = $products->sum(function($product) {
+            return $product->quantity * $product->cost_price;
+        });
+        
+        return view('reports.inventory.current-stock', compact('products', 'totalStockValue'));
     }
 
     public function inventoryValuation()
@@ -121,12 +167,23 @@ class ReportController extends Controller
 
     public function lowStock()
     {
-        return view('reports.inventory.low-stock');
+        $products = \App\Models\Product::with(['category', 'brand'])
+            ->whereColumn('quantity', '<=', 'reorder_level')
+            ->where('quantity', '>', 0)
+            ->orderBy('name')
+            ->get();
+        
+        return view('reports.inventory.low-stock', compact('products'));
     }
 
     public function outOfStock()
     {
-        return view('reports.inventory.out-of-stock');
+        $products = \App\Models\Product::with(['category', 'brand'])
+            ->where('quantity', 0)
+            ->orderBy('name')
+            ->get();
+        
+        return view('reports.inventory.out-of-stock', compact('products'));
     }
 
     public function overstock()

@@ -744,7 +744,7 @@
             <button @click="salesOpen = !salesOpen" class="w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('reports.sales.*') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
               <div class="flex items-center gap-2">
                 <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
-                📊 Sales Reports
+                Sales Reports
               </div>
               <i :class="salesOpen?'fa-solid fa-chevron-up':'fa-solid fa-chevron-down'" class="text-[8px]"></i>
             </button>
@@ -789,7 +789,7 @@
             <button @click="profitOpen = !profitOpen" class="w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('reports.profit.*') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
               <div class="flex items-center gap-2">
                 <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
-                💰 Profit Reports
+                Profit Reports
               </div>
               <i :class="profitOpen?'fa-solid fa-chevron-up':'fa-solid fa-chevron-down'" class="text-[8px]"></i>
             </button>
@@ -822,7 +822,7 @@
             <button @click="inventoryOpen = !inventoryOpen" class="w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('reports.inventory.*') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
               <div class="flex items-center gap-2">
                 <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
-                📦 Inventory Reports
+                Inventory Reports
               </div>
               <i :class="inventoryOpen?'fa-solid fa-chevron-up':'fa-solid fa-chevron-down'" class="text-[8px]"></i>
             </button>
@@ -883,7 +883,7 @@
             <button @click="expiryOpen = !expiryOpen" class="w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('reports.expiry.*') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
               <div class="flex items-center gap-2">
                 <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
-                ⏰ Expiry Reports
+                Expiry Reports
               </div>
               <i :class="expiryOpen?'fa-solid fa-chevron-up':'fa-solid fa-chevron-down'" class="text-[8px]"></i>
             </button>
@@ -908,7 +908,7 @@
             <button @click="purchasingOpen = !purchasingOpen" class="w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('reports.purchasing.*') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
               <div class="flex items-center gap-2">
                 <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
-                🛒 Purchasing Reports
+                Purchasing Reports
               </div>
               <i :class="purchasingOpen?'fa-solid fa-chevron-up':'fa-solid fa-chevron-down'" class="text-[8px]"></i>
             </button>
@@ -941,7 +941,7 @@
             <button @click="cashOpen = !cashOpen" class="w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('reports.cash.*') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
               <div class="flex items-center gap-2">
                 <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
-                💵 Cash & Payment Reports
+                Cash & Payment Reports
               </div>
               <i :class="cashOpen?'fa-solid fa-chevron-up':'fa-solid fa-chevron-down'" class="text-[8px]"></i>
             </button>
@@ -970,7 +970,7 @@
             <button @click="staffOpen = !staffOpen" class="w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('reports.staff.*') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
               <div class="flex items-center gap-2">
                 <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
-                👨‍💼 Cashier / Staff Reports
+                Staff Reports
               </div>
               <i :class="staffOpen?'fa-solid fa-chevron-up':'fa-solid fa-chevron-down'" class="text-[8px]"></i>
             </button>
@@ -1007,7 +1007,7 @@
             <button @click="customerOpen = !customerOpen" class="w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('reports.customer.*') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
               <div class="flex items-center gap-2">
                 <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
-                👥 Customer Reports
+                Customer Reports
               </div>
               <i :class="customerOpen?'fa-solid fa-chevron-up':'fa-solid fa-chevron-down'" class="text-[8px]"></i>
             </button>
@@ -1032,7 +1032,7 @@
             <button @click="securityOpen = !securityOpen" class="w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('reports.security.*') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
               <div class="flex items-center gap-2">
                 <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
-                🔐 Security & Audit Reports
+                Security & Audit Reports
               </div>
               <i :class="securityOpen?'fa-solid fa-chevron-up':'fa-solid fa-chevron-down'" class="text-[8px]"></i>
             </button>
@@ -1061,7 +1061,7 @@
             <button @click="managementOpen = !managementOpen" class="w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('reports.management.*') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
               <div class="flex items-center gap-2">
                 <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
-                📈 Management Dashboard Reports
+                Management Reports
               </div>
               <i :class="managementOpen?'fa-solid fa-chevron-up':'fa-solid fa-chevron-down'" class="text-[8px]"></i>
             </button>
@@ -1094,7 +1094,7 @@
             <button @click="advancedOpen = !advancedOpen" class="w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('reports.advanced.*') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
               <div class="flex items-center gap-2">
                 <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
-                🏪 FeedTan Store Advanced Reports
+         Advanced Reports
               </div>
               <i :class="advancedOpen?'fa-solid fa-chevron-up':'fa-solid fa-chevron-down'" class="text-[8px]"></i>
             </button>
@@ -1113,7 +1113,7 @@
               </a>
               <a href="{{ route('reports.advanced.member-purchase') }}" class="w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs transition-all duration-150 {{ request()->routeIs('reports.advanced.member-purchase') ? 'bg-primary-500/60 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
                 <i class="fa-solid fa-minus text-[4px] flex-shrink-0 ml-2"></i>
-                Member/Shareholder Purchase Report
+                Shareholder Purchase Report
               </a>
               <a href="{{ route('reports.advanced.supplier-credit') }}" class="w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs transition-all duration-150 {{ request()->routeIs('reports.advanced.supplier-credit') ? 'bg-primary-500/60 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
                 <i class="fa-solid fa-minus text-[4px] flex-shrink-0 ml-2"></i>
