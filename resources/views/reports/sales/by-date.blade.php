@@ -21,7 +21,7 @@
                         Filter
                     </button>
                 </form>
-                <a href="{{ route('reports.sales.by-date.pdf', ['start_date' => $startDate, 'end_date' => $endDate]) }}" class="px-4 py-2 border border-primary-200 rounded-lg text-primary-700 hover:bg-primary-50 font-medium transition-colors mt-6">
+                <a href="{{ route('reports.sales.by-date.download', ['start_date' => $startDate, 'end_date' => $endDate]) }}" class="px-4 py-2 border border-primary-200 rounded-lg text-primary-700 hover:bg-primary-50 font-medium transition-colors mt-6">
                     Export PDF
                 </a>
             </div>
