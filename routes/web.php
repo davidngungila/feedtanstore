@@ -300,11 +300,33 @@ Route::middleware('auth')->group(function () {
 
     // HR
     Route::prefix('hr')->name('hr.')->group(function () {
-        Route::get('/employees', function () { return view('hr.employees'); })->name('employees');
-        Route::get('/roles', function () { return view('hr.roles'); })->name('roles');
-        Route::get('/attendance', function () { return view('hr.attendance'); })->name('attendance');
-        Route::get('/shifts', function () { return view('hr.shifts'); })->name('shifts');
-        Route::get('/activity', function () { return view('hr.activity'); })->name('activity');
+        // Employees
+        Route::get('/employees', [\App\Http\Controllers\HRController::class, 'employees'])->name('employees');
+        Route::get('/employees/create', [\App\Http\Controllers\HRController::class, 'createEmployee'])->name('employees.create');
+        Route::post('/employees', [\App\Http\Controllers\HRController::class, 'storeEmployee'])->name('employees.store');
+        Route::get('/employees/{id}/edit', [\App\Http\Controllers\HRController::class, 'editEmployee'])->name('employees.edit');
+        Route::put('/employees/{id}', [\App\Http\Controllers\HRController::class, 'updateEmployee'])->name('employees.update');
+        Route::delete('/employees/{id}', [\App\Http\Controllers\HRController::class, 'deleteEmployee'])->name('employees.delete');
+
+        // Roles & Permissions
+        Route::get('/roles', [\App\Http\Controllers\HRController::class, 'roles'])->name('roles');
+
+        // Attendance
+        Route::get('/attendance', [\App\Http\Controllers\HRController::class, 'attendance'])->name('attendance');
+        Route::post('/attendance/check-in', [\App\Http\Controllers\HRController::class, 'checkIn'])->name('attendance.check-in');
+        Route::post('/attendance/check-out', [\App\Http\Controllers\HRController::class, 'checkOut'])->name('attendance.check-out');
+
+        // Work Shifts
+        Route::get('/shifts', [\App\Http\Controllers\HRController::class, 'shifts'])->name('shifts');
+        Route::get('/shifts/create', [\App\Http\Controllers\HRController::class, 'createShift'])->name('shifts.create');
+        Route::post('/shifts', [\App\Http\Controllers\HRController::class, 'storeShift'])->name('shifts.store');
+        Route::get('/shifts/{id}/edit', [\App\Http\Controllers\HRController::class, 'editShift'])->name('shifts.edit');
+        Route::put('/shifts/{id}', [\App\Http\Controllers\HRController::class, 'updateShift'])->name('shifts.update');
+        Route::post('/shifts/{id}/toggle', [\App\Http\Controllers\HRController::class, 'toggleShift'])->name('shifts.toggle');
+        Route::delete('/shifts/{id}', [\App\Http\Controllers\HRController::class, 'deleteShift'])->name('shifts.delete');
+
+        // Activity Logs
+        Route::get('/activity', [\App\Http\Controllers\HRController::class, 'activity'])->name('activity');
     });
 
     // Security
