@@ -404,7 +404,7 @@ class ReportController extends Controller
         $startDate = $request->start_date ?? today()->subDays(30)->toDateString();
         $endDate = $request->end_date ?? today()->toDateString();
         
-        $adjustments = StockAdjustment::with('product', 'user')
+        $adjustments = StockAdjustment::with('product')
             ->where('type', 'decrease')
             ->whereBetween('created_at', [$startDate, $endDate])
             ->get();
@@ -507,7 +507,7 @@ class ReportController extends Controller
         $startDate = $request->start_date ?? today()->subDays(30)->toDateString();
         $endDate = $request->end_date ?? today()->toDateString();
         
-        $adjustments = StockAdjustment::with(['product', 'user'])
+        $adjustments = StockAdjustment::with(['product'])
             ->where('type', 'decrease')
             ->whereBetween('created_at', [$startDate, $endDate])
             ->latest()
