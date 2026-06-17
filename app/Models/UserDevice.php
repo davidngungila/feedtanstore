@@ -13,6 +13,7 @@ class UserDevice extends Model
         'device_type',
         'browser',
         'ip_address',
+        'user_agent',
         'last_active_at',
         'is_active',
     ];
