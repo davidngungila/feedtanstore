@@ -616,23 +616,35 @@ function toggleFullscreen() {
     const btn = document.getElementById('fullscreenBtn');
     
     if (!document.fullscreenElement) {
+        stayInFullscreen = true;
         document.documentElement.requestFullscreen().catch(err => {
             console.log('Fullscreen request failed:', err);
         });
     } else {
+        stayInFullscreen = false;
         if (document.exitFullscreen) {
             document.exitFullscreen();
         }
     }
 }
 
+let stayInFullscreen = false;
+
 document.addEventListener('fullscreenchange', function() {
     const btn = document.getElementById('fullscreenBtn');
     
     if (document.fullscreenElement) {
         btn.innerHTML = '<i class="fas fa-compress mr-1"></i>Exit Fullscreen';
+        stayInFullscreen = true;
     } else {
         btn.innerHTML = '<i class="fas fa-expand mr-1"></i>Fullscreen';
+        
+        // If we were supposed to stay in fullscreen, re-enter it
+        if (stayInFullscreen) {
+            document.documentElement.requestFullscreen().catch(err => {
+                console.log('Failed to re-enter fullscreen:', err);
+            });
+        }
     }
 });
 
@@ -663,6 +675,7 @@ function setupBarcodeScanner() {
         lastInputTime = now;
 
         if (e.key === 'Enter') {
+            e.preventDefault(); // Prevent default action to keep fullscreen
             if (barcodeBuffer.length > 0) {
                 addProductByBarcode(barcodeBuffer);
             } else {
@@ -676,6 +689,7 @@ function setupBarcodeScanner() {
 
     document.getElementById('barcodeInput').addEventListener('keypress', function(e) {
         if (e.key === 'Enter') {
+            e.preventDefault(); // Prevent default action to keep fullscreen
             addProductByBarcode(this.value);
         }
     });
