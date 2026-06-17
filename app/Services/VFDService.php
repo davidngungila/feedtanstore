@@ -4,12 +4,30 @@ namespace App\Services;
 
 class VFDService
 {
+    private $port;
+    private $baudRate;
+    private $dataBits;
+    private $stopBits;
+    private $parity;
+    private $isWindows;
+
+    public function __construct()
+    {
+        // VFD Configuration - customize these values!
+        $this->port = env('VFD_PORT', 'COM3'); // Windows: COM3, Linux: /dev/ttyUSB0
+        $this->baudRate = env('VFD_BAUD', 9600);
+        $this->dataBits = env('VFD_DATA_BITS', 8);
+        $this->stopBits = env('VFD_STOP_BITS', 1);
+        $this->parity = env('VFD_PARITY', 'none');
+        $this->isWindows = strtoupper(substr(PHP_OS, 0, 3)) === 'WIN';
+    }
+
     /**
      * Display welcome message on VFD
      */
     public function displayWelcome()
     {
-        $message = "\x1B\x40"; // Initialize
+        $message = "\x1B\x40"; // Initialize display
         $message .= "WELCOME\n";
         $message .= "\n";
         $message .= "FEEDTAN STORE";
@@ -22,7 +40,7 @@ class VFDService
      */
     public function displayProduct($productName, $quantity, $price, $total)
     {
-        $message = "\x1B\x40"; // Initialize
+        $message = "\x1B\x40"; // Initialize display
         $message .= $productName . "\n";
         $message .= "\n";
         $message .= "Qty: " . $quantity . "\n";
@@ -37,7 +55,7 @@ class VFDService
      */
     public function displayPayment($total, $paid, $change, $paymentMethod)
     {
-        $message = "\x1B\x40"; // Initialize
+        $message = "\x1B\x40"; // Initialize display
         $message .= "TOTAL\n";
         $message .= "TZS " . number_format($total, 0) . "\n";
         $message .= "\n";
@@ -55,7 +73,7 @@ class VFDService
      */
     public function displayThankYou()
     {
-        $message = "\x1B\x40"; // Initialize
+        $message = "\x1B\x40"; // Initialize display
         $message .= "THANK YOU\n";
         $message .= "\n";
         $message .= "COME AGAIN";
@@ -68,16 +86,60 @@ class VFDService
      */
     private function sendToVFD($message)
     {
-        // For now, we'll log the message for debugging
-        // In production, you'd connect to the serial port using php-serial/php-serial
+        // Log the message for debugging purposes
         \Log::info('VFD Output:', ['message' => $message]);
+
+        try {
+            if ($this->isWindows) {
+                // Windows - Use mode command to configure and file_put_contents to write
+                $this->configureWindowsPort();
+                $handle = fopen($this->port, 'w');
+                if ($handle) {
+                    fwrite($handle, $message);
+                    fclose($handle);
+                } else {
+                    \Log::error('Failed to open VFD port: ' . $this->port);
+                }
+            } else {
+                // Linux - Use stty to configure and file_put_contents to write
+                $this->configureLinuxPort();
+                $handle = fopen($this->port, 'w');
+                if ($handle) {
+                    fwrite($handle, $message);
+                    fclose($handle);
+                } else {
+                    \Log::error('Failed to open VFD port: ' . $this->port);
+                }
+            }
+        } catch (\Exception $e) {
+            \Log::error('VFD Communication Error: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Configure serial port on Windows
+     */
+    private function configureWindowsPort()
+    {
+        $parityCode = ['none' => 'n', 'odd' => 'o', 'even' => 'e'][$this->parity] ?? 'n';
+        $modeCommand = "mode {$this->port} BAUD={$this->baudRate} PARITY={$parityCode} DATA={$this->dataBits} STOP={$this->stopBits}";
+        exec($modeCommand, $output, $resultCode);
+        \Log::info('Windows VFD Port Config:', ['command' => $modeCommand, 'output' => $output, 'code' => $resultCode]);
+    }
+
+    /**
+     * Configure serial port on Linux
+     */
+    private function configureLinuxPort()
+    {
+        $parityArg = [
+            'none' => '-parenb',
+            'odd' => 'parenb parodd',
+            'even' => 'parenb -parodd'
+        ][$this->parity] ?? '-parenb';
         
-        // To use actual serial communication:
-        // $serial = new \PhpSerial\PhpSerial();
-        // $serial->deviceSet("COM3"); // Or /dev/ttyUSB0 on Linux
-        // $serial->confBaudRate(9600);
-        // $serial->deviceOpen();
-        // $serial->sendMessage($message);
-        // $serial->deviceClose();
+        $sttyCommand = "stty -F {$this->port} {$this->baudRate} cs{$this->dataBits} {$this->stopBits} {$parityArg} -cstopb -echo -echoe -echok -echoctl -echoke";
+        exec($sttyCommand, $output, $resultCode);
+        \Log::info('Linux VFD Port Config:', ['command' => $sttyCommand, 'output' => $output, 'code' => $resultCode]);
     }
 }
