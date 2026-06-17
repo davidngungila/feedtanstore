@@ -1528,7 +1528,6 @@ class ReportController extends Controller
         $members = Customer::select('customers.id', 'customers.name', 'customers.email', 'customers.phone', DB::raw('COUNT(sales.id) as purchase_count'), DB::raw('SUM(sales.total) as total_spent'))
             ->leftJoin('sales', 'customers.id', '=', 'sales.customer_id')
             ->whereBetween('sales.created_at', [$startDate, $endDate])
-            ->where('customers.is_member', true)
             ->groupBy('customers.id', 'customers.name', 'customers.email', 'customers.phone')
             ->orderBy('total_spent', 'desc')
             ->get();
