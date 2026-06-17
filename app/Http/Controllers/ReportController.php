@@ -116,7 +116,7 @@ class ReportController extends Controller
         $startDate = $request->start_date ?? today()->subDays(30)->toDateString();
         $endDate = $request->end_date ?? today()->toDateString();
         
-        $products = Product::select('products.*', DB::raw('SUM(sale_items.quantity) as total_qty'), DB::raw('SUM(sale_items.subtotal) as total_sales'))
+        $products = Product::select('products.*', DB::raw('SUM(sale_items.quantity) as total_qty'), DB::raw('SUM(sale_items.total) as total_sales'))
             ->join('sale_items', 'products.id', '=', 'sale_items.product_id')
             ->join('sales', 'sales.id', '=', 'sale_items.sale_id')
             ->whereBetween('sales.created_at', [$startDate, $endDate])
@@ -137,7 +137,7 @@ class ReportController extends Controller
         $startDate = $request->start_date ?? today()->subDays(30)->toDateString();
         $endDate = $request->end_date ?? today()->toDateString();
         
-        $categories = Category::select('categories.*', DB::raw('SUM(sale_items.quantity) as total_qty'), DB::raw('SUM(sale_items.subtotal) as total_sales'))
+        $categories = Category::select('categories.*', DB::raw('SUM(sale_items.quantity) as total_qty'), DB::raw('SUM(sale_items.total) as total_sales'))
             ->leftJoin('products', 'categories.id', '=', 'products.category_id')
             ->join('sale_items', 'products.id', '=', 'sale_items.product_id')
             ->join('sales', 'sales.id', '=', 'sale_items.sale_id')
@@ -159,7 +159,7 @@ class ReportController extends Controller
         $startDate = $request->start_date ?? today()->subDays(30)->toDateString();
         $endDate = $request->end_date ?? today()->toDateString();
         
-        $brands = Brand::select('brands.*', DB::raw('SUM(sale_items.quantity) as total_qty'), DB::raw('SUM(sale_items.subtotal) as total_sales'))
+        $brands = Brand::select('brands.*', DB::raw('SUM(sale_items.quantity) as total_qty'), DB::raw('SUM(sale_items.total) as total_sales'))
             ->leftJoin('products', 'brands.id', '=', 'products.brand_id')
             ->join('sale_items', 'products.id', '=', 'sale_items.product_id')
             ->join('sales', 'sales.id', '=', 'sale_items.sale_id')
@@ -182,7 +182,7 @@ class ReportController extends Controller
         $startDate = $request->start_date ?? today()->subDays(30)->toDateString();
         $endDate = $request->end_date ?? today()->toDateString();
         
-        $products = Product::select('products.*', DB::raw('SUM(sale_items.quantity) as total_qty'), DB::raw('SUM(sale_items.subtotal) as total_sales'))
+        $products = Product::select('products.*', DB::raw('SUM(sale_items.quantity) as total_qty'), DB::raw('SUM(sale_items.total) as total_sales'))
             ->join('sale_items', 'products.id', '=', 'sale_items.product_id')
             ->join('sales', 'sales.id', '=', 'sale_items.sale_id')
             ->whereBetween('sales.created_at', [$startDate, $endDate])
@@ -205,7 +205,7 @@ class ReportController extends Controller
         $startDate = $request->start_date ?? today()->subDays(30)->toDateString();
         $endDate = $request->end_date ?? today()->toDateString();
         
-        $products = Product::select('products.*', DB::raw('COALESCE(SUM(sale_items.quantity), 0) as total_qty'), DB::raw('COALESCE(SUM(sale_items.subtotal), 0) as total_sales'))
+        $products = Product::select('products.*', DB::raw('COALESCE(SUM(sale_items.quantity), 0) as total_qty'), DB::raw('COALESCE(SUM(sale_items.total), 0) as total_sales'))
             ->leftJoin('sale_items', function($join) use ($startDate, $endDate) {
                 $join->on('products.id', '=', 'sale_items.product_id')
                      ->whereHas('sale', function($q) use ($startDate, $endDate) {
@@ -231,7 +231,7 @@ class ReportController extends Controller
         $startDate = $request->start_date ?? today()->subDays(30)->toDateString();
         $endDate = $request->end_date ?? today()->toDateString();
         
-        $products = Product::select('products.*', DB::raw('SUM(sale_items.quantity) as total_qty'), DB::raw('SUM(sale_items.subtotal) as total_sales'), DB::raw('SUM(sale_items.quantity * products.cost_price) as total_cost'))
+        $products = Product::select('products.*', DB::raw('SUM(sale_items.quantity) as total_qty'), DB::raw('SUM(sale_items.total) as total_sales'), DB::raw('SUM(sale_items.quantity * products.cost_price) as total_cost'))
             ->join('sale_items', 'products.id', '=', 'sale_items.product_id')
             ->join('sales', 'sales.id', '=', 'sale_items.sale_id')
             ->whereBetween('sales.created_at', [$startDate, $endDate])
@@ -256,7 +256,7 @@ class ReportController extends Controller
         $startDate = $request->start_date ?? today()->subDays(30)->toDateString();
         $endDate = $request->end_date ?? today()->toDateString();
         
-        $products = Product::select('products.*', DB::raw('SUM(sale_items.quantity) as total_qty'), DB::raw('SUM(sale_items.subtotal) as total_sales'), DB::raw('SUM(sale_items.quantity * products.cost_price) as total_cost'))
+        $products = Product::select('products.*', DB::raw('SUM(sale_items.quantity) as total_qty'), DB::raw('SUM(sale_items.total) as total_sales'), DB::raw('SUM(sale_items.quantity * products.cost_price) as total_cost'))
             ->join('sale_items', 'products.id', '=', 'sale_items.product_id')
             ->join('sales', 'sales.id', '=', 'sale_items.sale_id')
             ->whereBetween('sales.created_at', [$startDate, $endDate])
@@ -282,7 +282,7 @@ class ReportController extends Controller
         $startDate = $request->start_date ?? today()->subDays(30)->toDateString();
         $endDate = $request->end_date ?? today()->toDateString();
         
-        $categories = Category::select('categories.*', DB::raw('SUM(sale_items.subtotal) as total_sales'), DB::raw('SUM(sale_items.quantity * products.cost_price) as total_cost'))
+        $categories = Category::select('categories.*', DB::raw('SUM(sale_items.total) as total_sales'), DB::raw('SUM(sale_items.quantity * products.cost_price) as total_cost'))
             ->leftJoin('products', 'categories.id', '=', 'products.category_id')
             ->join('sale_items', 'products.id', '=', 'sale_items.product_id')
             ->join('sales', 'sales.id', '=', 'sale_items.sale_id')
