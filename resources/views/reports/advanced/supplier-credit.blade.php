@@ -7,7 +7,7 @@
     <div class="card rounded-2xl p-6 mb-6">
         <div class="flex flex-wrap items-center justify-between mb-6 gap-4">
             <h2 class='text-xl font-bold text-primary-900'>Supplier Credit Report</h2>
-            <a href="{{ route('reports.advanced.supplier-credit.pdf') }}" class="px-4 py-2 border border-primary-200 rounded-lg text-primary-700 hover:bg-primary-50 font-medium transition-colors">
+            <a href="{{ route('reports.advanced.supplier-credit.download') }}" class="px-4 py-2 border border-primary-200 rounded-lg text-primary-700 hover:bg-primary-50 font-medium transition-colors">
                 Export PDF
             </a>
         </div>
