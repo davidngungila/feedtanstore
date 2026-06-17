@@ -329,6 +329,113 @@ Route::middleware('auth')->group(function () {
         Route::get('/activity', [\App\Http\Controllers\HRController::class, 'activity'])->name('activity');
     });
 
+    // Reports
+    Route::prefix('reports')->name('reports.')->group(function () {
+        // Sales Reports
+        Route::prefix('sales')->name('sales.')->group(function () {
+            Route::get('/daily', [\App\Http\Controllers\ReportController::class, 'dailySales'])->name('daily');
+            Route::get('/by-date', [\App\Http\Controllers\ReportController::class, 'salesByDate'])->name('by-date');
+            Route::get('/hourly', [\App\Http\Controllers\ReportController::class, 'hourlySales'])->name('hourly');
+            Route::get('/by-product', [\App\Http\Controllers\ReportController::class, 'salesByProduct'])->name('by-product');
+            Route::get('/by-category', [\App\Http\Controllers\ReportController::class, 'salesByCategory'])->name('by-category');
+            Route::get('/by-brand', [\App\Http\Controllers\ReportController::class, 'salesByBrand'])->name('by-brand');
+            Route::get('/top-selling', [\App\Http\Controllers\ReportController::class, 'topSelling'])->name('top-selling');
+            Route::get('/worst-selling', [\App\Http\Controllers\ReportController::class, 'worstSelling'])->name('worst-selling');
+        });
+
+        // Profit Reports
+        Route::prefix('profit')->name('profit.')->group(function () {
+            Route::get('/gross', [\App\Http\Controllers\ReportController::class, 'grossProfit'])->name('gross');
+            Route::get('/margin', [\App\Http\Controllers\ReportController::class, 'profitMargin'])->name('margin');
+            Route::get('/by-category', [\App\Http\Controllers\ReportController::class, 'profitByCategory'])->name('by-category');
+            Route::get('/net', [\App\Http\Controllers\ReportController::class, 'netProfit'])->name('net');
+            Route::get('/loss', [\App\Http\Controllers\ReportController::class, 'lossReport'])->name('loss');
+        });
+
+        // Inventory Reports
+        Route::prefix('inventory')->name('inventory.')->group(function () {
+            Route::get('/current-stock', [\App\Http\Controllers\ReportController::class, 'currentStock'])->name('current-stock');
+            Route::get('/valuation', [\App\Http\Controllers\ReportController::class, 'inventoryValuation'])->name('valuation');
+            Route::get('/movement', [\App\Http\Controllers\ReportController::class, 'stockMovement'])->name('movement');
+            Route::get('/stock-in', [\App\Http\Controllers\ReportController::class, 'stockIn'])->name('stock-in');
+            Route::get('/stock-out', [\App\Http\Controllers\ReportController::class, 'stockOut'])->name('stock-out');
+            Route::get('/transfers', [\App\Http\Controllers\ReportController::class, 'stockTransfers'])->name('transfers');
+            Route::get('/low-stock', [\App\Http\Controllers\ReportController::class, 'lowStock'])->name('low-stock');
+            Route::get('/out-of-stock', [\App\Http\Controllers\ReportController::class, 'outOfStock'])->name('out-of-stock');
+            Route::get('/overstock', [\App\Http\Controllers\ReportController::class, 'overstock'])->name('overstock');
+            Route::get('/fast-moving', [\App\Http\Controllers\ReportController::class, 'fastMoving'])->name('fast-moving');
+            Route::get('/slow-moving', [\App\Http\Controllers\ReportController::class, 'slowMoving'])->name('slow-moving');
+            Route::get('/dead-stock', [\App\Http\Controllers\ReportController::class, 'deadStock'])->name('dead-stock');
+        });
+
+        // Expiry Reports
+        Route::prefix('expiry')->name('expiry.')->group(function () {
+            Route::get('/soon', [\App\Http\Controllers\ReportController::class, 'expiringSoon'])->name('soon');
+            Route::get('/expired', [\App\Http\Controllers\ReportController::class, 'expiredProducts'])->name('expired');
+            Route::get('/batch-tracking', [\App\Http\Controllers\ReportController::class, 'batchTracking'])->name('batch-tracking');
+        });
+
+        // Purchasing Reports
+        Route::prefix('purchasing')->name('purchasing.')->group(function () {
+            Route::get('/summary', [\App\Http\Controllers\ReportController::class, 'purchaseSummary'])->name('summary');
+            Route::get('/by-supplier', [\App\Http\Controllers\ReportController::class, 'purchaseBySupplier'])->name('by-supplier');
+            Route::get('/supplier-performance', [\App\Http\Controllers\ReportController::class, 'supplierPerformance'])->name('supplier-performance');
+            Route::get('/vs-sales', [\App\Http\Controllers\ReportController::class, 'purchaseVsSales'])->name('vs-sales');
+            Route::get('/purchase-orders', [\App\Http\Controllers\ReportController::class, 'purchaseOrders'])->name('purchase-orders');
+        });
+
+        // Cash & Payment Reports
+        Route::prefix('cash')->name('cash.')->group(function () {
+            Route::get('/cashier-shift', [\App\Http\Controllers\ReportController::class, 'cashierShift'])->name('cashier-shift');
+            Route::get('/reconciliation', [\App\Http\Controllers\ReportController::class, 'cashReconciliation'])->name('reconciliation');
+            Route::get('/payment-method', [\App\Http\Controllers\ReportController::class, 'paymentMethod'])->name('payment-method');
+            Route::get('/daily-flow', [\App\Http\Controllers\ReportController::class, 'dailyCashFlow'])->name('daily-flow');
+        });
+
+        // Cashier / Staff Reports
+        Route::prefix('staff')->name('staff.')->group(function () {
+            Route::get('/sales-by-cashier', [\App\Http\Controllers\ReportController::class, 'salesByCashier'])->name('sales-by-cashier');
+            Route::get('/transaction-count', [\App\Http\Controllers\ReportController::class, 'transactionCount'])->name('transaction-count');
+            Route::get('/activity', [\App\Http\Controllers\ReportController::class, 'cashierActivity'])->name('activity');
+            Route::get('/discounts', [\App\Http\Controllers\ReportController::class, 'discountReport'])->name('discounts');
+            Route::get('/void-transactions', [\App\Http\Controllers\ReportController::class, 'voidTransactions'])->name('void-transactions');
+            Route::get('/refunds', [\App\Http\Controllers\ReportController::class, 'refundReport'])->name('refunds');
+        });
+
+        // Customer Reports
+        Route::prefix('customer')->name('customer.')->group(function () {
+            Route::get('/sales', [\App\Http\Controllers\ReportController::class, 'customerSales'])->name('sales');
+            Route::get('/purchase-history', [\App\Http\Controllers\ReportController::class, 'customerPurchaseHistory'])->name('purchase-history');
+            Route::get('/loyalty', [\App\Http\Controllers\ReportController::class, 'loyaltyReport'])->name('loyalty');
+        });
+
+        // Security & Audit Reports
+        Route::prefix('security')->name('security.')->group(function () {
+            Route::get('/audit-log', [\App\Http\Controllers\ReportController::class, 'auditLog'])->name('audit-log');
+            Route::get('/price-changes', [\App\Http\Controllers\ReportController::class, 'priceChanges'])->name('price-changes');
+            Route::get('/inventory-adjustments', [\App\Http\Controllers\ReportController::class, 'inventoryAdjustments'])->name('inventory-adjustments');
+            Route::get('/user-activity', [\App\Http\Controllers\ReportController::class, 'userActivity'])->name('user-activity');
+        });
+
+        // Management Dashboard Reports
+        Route::prefix('management')->name('management.')->group(function () {
+            Route::get('/executive', [\App\Http\Controllers\ReportController::class, 'executiveDashboard'])->name('executive');
+            Route::get('/inventory-investment', [\App\Http\Controllers\ReportController::class, 'inventoryInvestment'])->name('inventory-investment');
+            Route::get('/inventory-turnover', [\App\Http\Controllers\ReportController::class, 'inventoryTurnover'])->name('inventory-turnover');
+            Route::get('/stock-accuracy', [\App\Http\Controllers\ReportController::class, 'stockAccuracy'])->name('stock-accuracy');
+            Route::get('/business-growth', [\App\Http\Controllers\ReportController::class, 'businessGrowth'])->name('business-growth');
+        });
+
+        // FeedTan Store Advanced Reports
+        Route::prefix('advanced')->name('advanced.')->group(function () {
+            Route::get('/branch-comparison', [\App\Http\Controllers\ReportController::class, 'branchComparison'])->name('branch-comparison');
+            Route::get('/branch-profit', [\App\Http\Controllers\ReportController::class, 'branchProfit'])->name('branch-profit');
+            Route::get('/expansion-readiness', [\App\Http\Controllers\ReportController::class, 'expansionReadiness'])->name('expansion-readiness');
+            Route::get('/member-purchase', [\App\Http\Controllers\ReportController::class, 'memberPurchase'])->name('member-purchase');
+            Route::get('/supplier-credit', [\App\Http\Controllers\ReportController::class, 'supplierCredit'])->name('supplier-credit');
+        });
+    });
+
     // Security
     Route::prefix('security')->name('security.')->group(function () {
         Route::get('/users', function () { return view('security.users'); })->name('users');

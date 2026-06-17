@@ -729,11 +729,400 @@
         </div>
       </div>
 
-      <!-- Analytics & Reports -->
-      <a href="{{ route('analytics') }}" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-150 group {{ request()->routeIs('analytics') ? 'bg-primary-600 text-white' : 'text-primary-200 hover:bg-white/10 hover:text-white' }}">
-        <i class="fa-solid fa-chart-line w-4 text-center flex-shrink-0"></i>
-        <span x-show="!sidebarCollapsed" class="font-medium">Analytics & Reports</span>
-      </a>
+      <!-- Reports -->
+      <div x-data="{ open: {{ request()->routeIs('reports.*') ? 'true' : 'false' }} }">
+        <button @click="open = !open" class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-all duration-150 {{ request()->routeIs('reports.*') ? 'bg-white/10 text-white' : 'text-primary-200 hover:bg-white/10 hover:text-white' }}">
+          <div class="flex items-center gap-3">
+            <i class="fa-solid fa-file-invoice w-4 text-center flex-shrink-0"></i>
+            <span x-show="!sidebarCollapsed" class="font-medium">Reports</span>
+          </div>
+          <i x-show="!sidebarCollapsed" :class="open?'fa-solid fa-chevron-up':'fa-solid fa-chevron-down'" class="text-[10px] text-primary-400"></i>
+        </button>
+        <div :class="open?'max-h-[1000px]':'max-h-0'" class="overflow-hidden transition-all duration-300 ml-3" x-show="!sidebarCollapsed">
+          <!-- Sales Reports -->
+          <div x-data="{ salesOpen: false }">
+            <button @click="salesOpen = !salesOpen" class="w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('reports.sales.*') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+              <div class="flex items-center gap-2">
+                <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
+                📊 Sales Reports
+              </div>
+              <i :class="salesOpen?'fa-solid fa-chevron-up':'fa-solid fa-chevron-down'" class="text-[8px]"></i>
+            </button>
+            <div :class="salesOpen?'max-h-[500px]':'max-h-0'" class="overflow-hidden transition-all duration-200 ml-4">
+              <a href="{{ route('reports.sales.daily') }}" class="w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs transition-all duration-150 {{ request()->routeIs('reports.sales.daily') ? 'bg-primary-500/60 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+                <i class="fa-solid fa-minus text-[4px] flex-shrink-0 ml-2"></i>
+                Daily Sales Summary
+              </a>
+              <a href="{{ route('reports.sales.by-date') }}" class="w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs transition-all duration-150 {{ request()->routeIs('reports.sales.by-date') ? 'bg-primary-500/60 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+                <i class="fa-solid fa-minus text-[4px] flex-shrink-0 ml-2"></i>
+                Sales by Date
+              </a>
+              <a href="{{ route('reports.sales.hourly') }}" class="w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs transition-all duration-150 {{ request()->routeIs('reports.sales.hourly') ? 'bg-primary-500/60 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+                <i class="fa-solid fa-minus text-[4px] flex-shrink-0 ml-2"></i>
+                Hourly Sales
+              </a>
+              <a href="{{ route('reports.sales.by-product') }}" class="w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs transition-all duration-150 {{ request()->routeIs('reports.sales.by-product') ? 'bg-primary-500/60 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+                <i class="fa-solid fa-minus text-[4px] flex-shrink-0 ml-2"></i>
+                Sales by Product
+              </a>
+              <a href="{{ route('reports.sales.by-category') }}" class="w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs transition-all duration-150 {{ request()->routeIs('reports.sales.by-category') ? 'bg-primary-500/60 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+                <i class="fa-solid fa-minus text-[4px] flex-shrink-0 ml-2"></i>
+                Sales by Category
+              </a>
+              <a href="{{ route('reports.sales.by-brand') }}" class="w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs transition-all duration-150 {{ request()->routeIs('reports.sales.by-brand') ? 'bg-primary-500/60 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+                <i class="fa-solid fa-minus text-[4px] flex-shrink-0 ml-2"></i>
+                Sales by Brand
+              </a>
+              <a href="{{ route('reports.sales.top-selling') }}" class="w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs transition-all duration-150 {{ request()->routeIs('reports.sales.top-selling') ? 'bg-primary-500/60 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+                <i class="fa-solid fa-minus text-[4px] flex-shrink-0 ml-2"></i>
+                Top Selling Products
+              </a>
+              <a href="{{ route('reports.sales.worst-selling') }}" class="w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs transition-all duration-150 {{ request()->routeIs('reports.sales.worst-selling') ? 'bg-primary-500/60 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+                <i class="fa-solid fa-minus text-[4px] flex-shrink-0 ml-2"></i>
+                Worst Selling Products
+              </a>
+            </div>
+          </div>
+
+          <!-- Profit Reports -->
+          <div x-data="{ profitOpen: false }">
+            <button @click="profitOpen = !profitOpen" class="w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('reports.profit.*') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+              <div class="flex items-center gap-2">
+                <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
+                💰 Profit Reports
+              </div>
+              <i :class="profitOpen?'fa-solid fa-chevron-up':'fa-solid fa-chevron-down'" class="text-[8px]"></i>
+            </button>
+            <div :class="profitOpen?'max-h-[500px]':'max-h-0'" class="overflow-hidden transition-all duration-200 ml-4">
+              <a href="{{ route('reports.profit.gross') }}" class="w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs transition-all duration-150 {{ request()->routeIs('reports.profit.gross') ? 'bg-primary-500/60 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+                <i class="fa-solid fa-minus text-[4px] flex-shrink-0 ml-2"></i>
+                Gross Profit
+              </a>
+              <a href="{{ route('reports.profit.margin') }}" class="w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs transition-all duration-150 {{ request()->routeIs('reports.profit.margin') ? 'bg-primary-500/60 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+                <i class="fa-solid fa-minus text-[4px] flex-shrink-0 ml-2"></i>
+                Profit Margin
+              </a>
+              <a href="{{ route('reports.profit.by-category') }}" class="w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs transition-all duration-150 {{ request()->routeIs('reports.profit.by-category') ? 'bg-primary-500/60 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+                <i class="fa-solid fa-minus text-[4px] flex-shrink-0 ml-2"></i>
+                Profit by Category
+              </a>
+              <a href="{{ route('reports.profit.net') }}" class="w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs transition-all duration-150 {{ request()->routeIs('reports.profit.net') ? 'bg-primary-500/60 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+                <i class="fa-solid fa-minus text-[4px] flex-shrink-0 ml-2"></i>
+                Net Profit
+              </a>
+              <a href="{{ route('reports.profit.loss') }}" class="w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs transition-all duration-150 {{ request()->routeIs('reports.profit.loss') ? 'bg-primary-500/60 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+                <i class="fa-solid fa-minus text-[4px] flex-shrink-0 ml-2"></i>
+                Loss Report
+              </a>
+            </div>
+          </div>
+
+          <!-- Inventory Reports -->
+          <div x-data="{ inventoryOpen: false }">
+            <button @click="inventoryOpen = !inventoryOpen" class="w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('reports.inventory.*') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+              <div class="flex items-center gap-2">
+                <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
+                📦 Inventory Reports
+              </div>
+              <i :class="inventoryOpen?'fa-solid fa-chevron-up':'fa-solid fa-chevron-down'" class="text-[8px]"></i>
+            </button>
+            <div :class="inventoryOpen?'max-h-[500px]':'max-h-0'" class="overflow-hidden transition-all duration-200 ml-4">
+              <a href="{{ route('reports.inventory.current-stock') }}" class="w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs transition-all duration-150 {{ request()->routeIs('reports.inventory.current-stock') ? 'bg-primary-500/60 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+                <i class="fa-solid fa-minus text-[4px] flex-shrink-0 ml-2"></i>
+                Current Stock
+              </a>
+              <a href="{{ route('reports.inventory.valuation') }}" class="w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs transition-all duration-150 {{ request()->routeIs('reports.inventory.valuation') ? 'bg-primary-500/60 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+                <i class="fa-solid fa-minus text-[4px] flex-shrink-0 ml-2"></i>
+                Inventory Valuation
+              </a>
+              <a href="{{ route('reports.inventory.movement') }}" class="w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs transition-all duration-150 {{ request()->routeIs('reports.inventory.movement') ? 'bg-primary-500/60 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+                <i class="fa-solid fa-minus text-[4px] flex-shrink-0 ml-2"></i>
+                Stock Movement
+              </a>
+              <a href="{{ route('reports.inventory.stock-in') }}" class="w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs transition-all duration-150 {{ request()->routeIs('reports.inventory.stock-in') ? 'bg-primary-500/60 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+                <i class="fa-solid fa-minus text-[4px] flex-shrink-0 ml-2"></i>
+                Stock In (Goods Received)
+              </a>
+              <a href="{{ route('reports.inventory.stock-out') }}" class="w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs transition-all duration-150 {{ request()->routeIs('reports.inventory.stock-out') ? 'bg-primary-500/60 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+                <i class="fa-solid fa-minus text-[4px] flex-shrink-0 ml-2"></i>
+                Stock Out
+              </a>
+              <a href="{{ route('reports.inventory.transfers') }}" class="w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs transition-all duration-150 {{ request()->routeIs('reports.inventory.transfers') ? 'bg-primary-500/60 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+                <i class="fa-solid fa-minus text-[4px] flex-shrink-0 ml-2"></i>
+                Stock Transfers
+              </a>
+              <a href="{{ route('reports.inventory.low-stock') }}" class="w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs transition-all duration-150 {{ request()->routeIs('reports.inventory.low-stock') ? 'bg-primary-500/60 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+                <i class="fa-solid fa-minus text-[4px] flex-shrink-0 ml-2"></i>
+                Low Stock
+              </a>
+              <a href="{{ route('reports.inventory.out-of-stock') }}" class="w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs transition-all duration-150 {{ request()->routeIs('reports.inventory.out-of-stock') ? 'bg-primary-500/60 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+                <i class="fa-solid fa-minus text-[4px] flex-shrink-0 ml-2"></i>
+                Out Of Stock
+              </a>
+              <a href="{{ route('reports.inventory.overstock') }}" class="w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs transition-all duration-150 {{ request()->routeIs('reports.inventory.overstock') ? 'bg-primary-500/60 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+                <i class="fa-solid fa-minus text-[4px] flex-shrink-0 ml-2"></i>
+                Overstock
+              </a>
+              <a href="{{ route('reports.inventory.fast-moving') }}" class="w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs transition-all duration-150 {{ request()->routeIs('reports.inventory.fast-moving') ? 'bg-primary-500/60 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+                <i class="fa-solid fa-minus text-[4px] flex-shrink-0 ml-2"></i>
+                Fast Moving Items
+              </a>
+              <a href="{{ route('reports.inventory.slow-moving') }}" class="w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs transition-all duration-150 {{ request()->routeIs('reports.inventory.slow-moving') ? 'bg-primary-500/60 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+                <i class="fa-solid fa-minus text-[4px] flex-shrink-0 ml-2"></i>
+                Slow Moving Items
+              </a>
+              <a href="{{ route('reports.inventory.dead-stock') }}" class="w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs transition-all duration-150 {{ request()->routeIs('reports.inventory.dead-stock') ? 'bg-primary-500/60 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+                <i class="fa-solid fa-minus text-[4px] flex-shrink-0 ml-2"></i>
+                Dead Stock
+              </a>
+            </div>
+          </div>
+
+          <!-- Expiry Reports -->
+          <div x-data="{ expiryOpen: false }">
+            <button @click="expiryOpen = !expiryOpen" class="w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('reports.expiry.*') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+              <div class="flex items-center gap-2">
+                <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
+                ⏰ Expiry Reports
+              </div>
+              <i :class="expiryOpen?'fa-solid fa-chevron-up':'fa-solid fa-chevron-down'" class="text-[8px]"></i>
+            </button>
+            <div :class="expiryOpen?'max-h-[500px]':'max-h-0'" class="overflow-hidden transition-all duration-200 ml-4">
+              <a href="{{ route('reports.expiry.soon') }}" class="w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs transition-all duration-150 {{ request()->routeIs('reports.expiry.soon') ? 'bg-primary-500/60 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+                <i class="fa-solid fa-minus text-[4px] flex-shrink-0 ml-2"></i>
+                Expiring Soon
+              </a>
+              <a href="{{ route('reports.expiry.expired') }}" class="w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs transition-all duration-150 {{ request()->routeIs('reports.expiry.expired') ? 'bg-primary-500/60 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+                <i class="fa-solid fa-minus text-[4px] flex-shrink-0 ml-2"></i>
+                Expired Products
+              </a>
+              <a href="{{ route('reports.expiry.batch-tracking') }}" class="w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs transition-all duration-150 {{ request()->routeIs('reports.expiry.batch-tracking') ? 'bg-primary-500/60 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+                <i class="fa-solid fa-minus text-[4px] flex-shrink-0 ml-2"></i>
+                Batch Tracking
+              </a>
+            </div>
+          </div>
+
+          <!-- Purchasing Reports -->
+          <div x-data="{ purchasingOpen: false }">
+            <button @click="purchasingOpen = !purchasingOpen" class="w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('reports.purchasing.*') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+              <div class="flex items-center gap-2">
+                <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
+                🛒 Purchasing Reports
+              </div>
+              <i :class="purchasingOpen?'fa-solid fa-chevron-up':'fa-solid fa-chevron-down'" class="text-[8px]"></i>
+            </button>
+            <div :class="purchasingOpen?'max-h-[500px]':'max-h-0'" class="overflow-hidden transition-all duration-200 ml-4">
+              <a href="{{ route('reports.purchasing.summary') }}" class="w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs transition-all duration-150 {{ request()->routeIs('reports.purchasing.summary') ? 'bg-primary-500/60 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+                <i class="fa-solid fa-minus text-[4px] flex-shrink-0 ml-2"></i>
+                Purchase Summary
+              </a>
+              <a href="{{ route('reports.purchasing.by-supplier') }}" class="w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs transition-all duration-150 {{ request()->routeIs('reports.purchasing.by-supplier') ? 'bg-primary-500/60 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+                <i class="fa-solid fa-minus text-[4px] flex-shrink-0 ml-2"></i>
+                Purchase by Supplier
+              </a>
+              <a href="{{ route('reports.purchasing.supplier-performance') }}" class="w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs transition-all duration-150 {{ request()->routeIs('reports.purchasing.supplier-performance') ? 'bg-primary-500/60 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+                <i class="fa-solid fa-minus text-[4px] flex-shrink-0 ml-2"></i>
+                Supplier Performance
+              </a>
+              <a href="{{ route('reports.purchasing.vs-sales') }}" class="w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs transition-all duration-150 {{ request()->routeIs('reports.purchasing.vs-sales') ? 'bg-primary-500/60 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+                <i class="fa-solid fa-minus text-[4px] flex-shrink-0 ml-2"></i>
+                Purchase vs Sales
+              </a>
+              <a href="{{ route('reports.purchasing.purchase-orders') }}" class="w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs transition-all duration-150 {{ request()->routeIs('reports.purchasing.purchase-orders') ? 'bg-primary-500/60 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+                <i class="fa-solid fa-minus text-[4px] flex-shrink-0 ml-2"></i>
+                Purchase Orders
+              </a>
+            </div>
+          </div>
+
+          <!-- Cash & Payment Reports -->
+          <div x-data="{ cashOpen: false }">
+            <button @click="cashOpen = !cashOpen" class="w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('reports.cash.*') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+              <div class="flex items-center gap-2">
+                <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
+                💵 Cash & Payment Reports
+              </div>
+              <i :class="cashOpen?'fa-solid fa-chevron-up':'fa-solid fa-chevron-down'" class="text-[8px]"></i>
+            </button>
+            <div :class="cashOpen?'max-h-[500px]':'max-h-0'" class="overflow-hidden transition-all duration-200 ml-4">
+              <a href="{{ route('reports.cash.cashier-shift') }}" class="w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs transition-all duration-150 {{ request()->routeIs('reports.cash.cashier-shift') ? 'bg-primary-500/60 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+                <i class="fa-solid fa-minus text-[4px] flex-shrink-0 ml-2"></i>
+                Cashier Shift Report
+              </a>
+              <a href="{{ route('reports.cash.reconciliation') }}" class="w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs transition-all duration-150 {{ request()->routeIs('reports.cash.reconciliation') ? 'bg-primary-500/60 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+                <i class="fa-solid fa-minus text-[4px] flex-shrink-0 ml-2"></i>
+                Cash Reconciliation
+              </a>
+              <a href="{{ route('reports.cash.payment-method') }}" class="w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs transition-all duration-150 {{ request()->routeIs('reports.cash.payment-method') ? 'bg-primary-500/60 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+                <i class="fa-solid fa-minus text-[4px] flex-shrink-0 ml-2"></i>
+                Payment Method
+              </a>
+              <a href="{{ route('reports.cash.daily-flow') }}" class="w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs transition-all duration-150 {{ request()->routeIs('reports.cash.daily-flow') ? 'bg-primary-500/60 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+                <i class="fa-solid fa-minus text-[4px] flex-shrink-0 ml-2"></i>
+                Daily Cash Flow
+              </a>
+            </div>
+          </div>
+
+          <!-- Cashier / Staff Reports -->
+          <div x-data="{ staffOpen: false }">
+            <button @click="staffOpen = !staffOpen" class="w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('reports.staff.*') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+              <div class="flex items-center gap-2">
+                <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
+                👨‍💼 Cashier / Staff Reports
+              </div>
+              <i :class="staffOpen?'fa-solid fa-chevron-up':'fa-solid fa-chevron-down'" class="text-[8px]"></i>
+            </button>
+            <div :class="staffOpen?'max-h-[500px]':'max-h-0'" class="overflow-hidden transition-all duration-200 ml-4">
+              <a href="{{ route('reports.staff.sales-by-cashier') }}" class="w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs transition-all duration-150 {{ request()->routeIs('reports.staff.sales-by-cashier') ? 'bg-primary-500/60 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+                <i class="fa-solid fa-minus text-[4px] flex-shrink-0 ml-2"></i>
+                Sales by Cashier
+              </a>
+              <a href="{{ route('reports.staff.transaction-count') }}" class="w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs transition-all duration-150 {{ request()->routeIs('reports.staff.transaction-count') ? 'bg-primary-500/60 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+                <i class="fa-solid fa-minus text-[4px] flex-shrink-0 ml-2"></i>
+                Transaction Count by Cashier
+              </a>
+              <a href="{{ route('reports.staff.activity') }}" class="w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs transition-all duration-150 {{ request()->routeIs('reports.staff.activity') ? 'bg-primary-500/60 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+                <i class="fa-solid fa-minus text-[4px] flex-shrink-0 ml-2"></i>
+                Cashier Activity
+              </a>
+              <a href="{{ route('reports.staff.discounts') }}" class="w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs transition-all duration-150 {{ request()->routeIs('reports.staff.discounts') ? 'bg-primary-500/60 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+                <i class="fa-solid fa-minus text-[4px] flex-shrink-0 ml-2"></i>
+                Discount Report
+              </a>
+              <a href="{{ route('reports.staff.void-transactions') }}" class="w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs transition-all duration-150 {{ request()->routeIs('reports.staff.void-transactions') ? 'bg-primary-500/60 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+                <i class="fa-solid fa-minus text-[4px] flex-shrink-0 ml-2"></i>
+                Void Transaction Report
+              </a>
+              <a href="{{ route('reports.staff.refunds') }}" class="w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs transition-all duration-150 {{ request()->routeIs('reports.staff.refunds') ? 'bg-primary-500/60 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+                <i class="fa-solid fa-minus text-[4px] flex-shrink-0 ml-2"></i>
+                Refund Report
+              </a>
+            </div>
+          </div>
+
+          <!-- Customer Reports -->
+          <div x-data="{ customerOpen: false }">
+            <button @click="customerOpen = !customerOpen" class="w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('reports.customer.*') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+              <div class="flex items-center gap-2">
+                <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
+                👥 Customer Reports
+              </div>
+              <i :class="customerOpen?'fa-solid fa-chevron-up':'fa-solid fa-chevron-down'" class="text-[8px]"></i>
+            </button>
+            <div :class="customerOpen?'max-h-[500px]':'max-h-0'" class="overflow-hidden transition-all duration-200 ml-4">
+              <a href="{{ route('reports.customer.sales') }}" class="w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs transition-all duration-150 {{ request()->routeIs('reports.customer.sales') ? 'bg-primary-500/60 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+                <i class="fa-solid fa-minus text-[4px] flex-shrink-0 ml-2"></i>
+                Customer Sales Report
+              </a>
+              <a href="{{ route('reports.customer.purchase-history') }}" class="w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs transition-all duration-150 {{ request()->routeIs('reports.customer.purchase-history') ? 'bg-primary-500/60 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+                <i class="fa-solid fa-minus text-[4px] flex-shrink-0 ml-2"></i>
+                Customer Purchase History
+              </a>
+              <a href="{{ route('reports.customer.loyalty') }}" class="w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs transition-all duration-150 {{ request()->routeIs('reports.customer.loyalty') ? 'bg-primary-500/60 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+                <i class="fa-solid fa-minus text-[4px] flex-shrink-0 ml-2"></i>
+                Loyalty Report
+              </a>
+            </div>
+          </div>
+
+          <!-- Security & Audit Reports -->
+          <div x-data="{ securityOpen: false }">
+            <button @click="securityOpen = !securityOpen" class="w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('reports.security.*') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+              <div class="flex items-center gap-2">
+                <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
+                🔐 Security & Audit Reports
+              </div>
+              <i :class="securityOpen?'fa-solid fa-chevron-up':'fa-solid fa-chevron-down'" class="text-[8px]"></i>
+            </button>
+            <div :class="securityOpen?'max-h-[500px]':'max-h-0'" class="overflow-hidden transition-all duration-200 ml-4">
+              <a href="{{ route('reports.security.audit-log') }}" class="w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs transition-all duration-150 {{ request()->routeIs('reports.security.audit-log') ? 'bg-primary-500/60 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+                <i class="fa-solid fa-minus text-[4px] flex-shrink-0 ml-2"></i>
+                Audit Log Report
+              </a>
+              <a href="{{ route('reports.security.price-changes') }}" class="w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs transition-all duration-150 {{ request()->routeIs('reports.security.price-changes') ? 'bg-primary-500/60 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+                <i class="fa-solid fa-minus text-[4px] flex-shrink-0 ml-2"></i>
+                Price Change Report
+              </a>
+              <a href="{{ route('reports.security.inventory-adjustments') }}" class="w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs transition-all duration-150 {{ request()->routeIs('reports.security.inventory-adjustments') ? 'bg-primary-500/60 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+                <i class="fa-solid fa-minus text-[4px] flex-shrink-0 ml-2"></i>
+                Inventory Adjustment Report
+              </a>
+              <a href="{{ route('reports.security.user-activity') }}" class="w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs transition-all duration-150 {{ request()->routeIs('reports.security.user-activity') ? 'bg-primary-500/60 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+                <i class="fa-solid fa-minus text-[4px] flex-shrink-0 ml-2"></i>
+                User Activity Report
+              </a>
+            </div>
+          </div>
+
+          <!-- Management Dashboard Reports -->
+          <div x-data="{ managementOpen: false }">
+            <button @click="managementOpen = !managementOpen" class="w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('reports.management.*') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+              <div class="flex items-center gap-2">
+                <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
+                📈 Management Dashboard Reports
+              </div>
+              <i :class="managementOpen?'fa-solid fa-chevron-up':'fa-solid fa-chevron-down'" class="text-[8px]"></i>
+            </button>
+            <div :class="managementOpen?'max-h-[500px]':'max-h-0'" class="overflow-hidden transition-all duration-200 ml-4">
+              <a href="{{ route('reports.management.executive') }}" class="w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs transition-all duration-150 {{ request()->routeIs('reports.management.executive') ? 'bg-primary-500/60 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+                <i class="fa-solid fa-minus text-[4px] flex-shrink-0 ml-2"></i>
+                Executive Dashboard
+              </a>
+              <a href="{{ route('reports.management.inventory-investment') }}" class="w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs transition-all duration-150 {{ request()->routeIs('reports.management.inventory-investment') ? 'bg-primary-500/60 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+                <i class="fa-solid fa-minus text-[4px] flex-shrink-0 ml-2"></i>
+                Inventory Investment Report
+              </a>
+              <a href="{{ route('reports.management.inventory-turnover') }}" class="w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs transition-all duration-150 {{ request()->routeIs('reports.management.inventory-turnover') ? 'bg-primary-500/60 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+                <i class="fa-solid fa-minus text-[4px] flex-shrink-0 ml-2"></i>
+                Inventory Turnover Report
+              </a>
+              <a href="{{ route('reports.management.stock-accuracy') }}" class="w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs transition-all duration-150 {{ request()->routeIs('reports.management.stock-accuracy') ? 'bg-primary-500/60 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+                <i class="fa-solid fa-minus text-[4px] flex-shrink-0 ml-2"></i>
+                Stock Accuracy Report
+              </a>
+              <a href="{{ route('reports.management.business-growth') }}" class="w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs transition-all duration-150 {{ request()->routeIs('reports.management.business-growth') ? 'bg-primary-500/60 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+                <i class="fa-solid fa-minus text-[4px] flex-shrink-0 ml-2"></i>
+                Business Growth Report
+              </a>
+            </div>
+          </div>
+
+          <!-- FeedTan Store Advanced Reports -->
+          <div x-data="{ advancedOpen: false }">
+            <button @click="advancedOpen = !advancedOpen" class="w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('reports.advanced.*') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+              <div class="flex items-center gap-2">
+                <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
+                🏪 FeedTan Store Advanced Reports
+              </div>
+              <i :class="advancedOpen?'fa-solid fa-chevron-up':'fa-solid fa-chevron-down'" class="text-[8px]"></i>
+            </button>
+            <div :class="advancedOpen?'max-h-[500px]':'max-h-0'" class="overflow-hidden transition-all duration-200 ml-4">
+              <a href="{{ route('reports.advanced.branch-comparison') }}" class="w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs transition-all duration-150 {{ request()->routeIs('reports.advanced.branch-comparison') ? 'bg-primary-500/60 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+                <i class="fa-solid fa-minus text-[4px] flex-shrink-0 ml-2"></i>
+                Branch Comparison Report
+              </a>
+              <a href="{{ route('reports.advanced.branch-profit') }}" class="w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs transition-all duration-150 {{ request()->routeIs('reports.advanced.branch-profit') ? 'bg-primary-500/60 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+                <i class="fa-solid fa-minus text-[4px] flex-shrink-0 ml-2"></i>
+                Branch Profit Report
+              </a>
+              <a href="{{ route('reports.advanced.expansion-readiness') }}" class="w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs transition-all duration-150 {{ request()->routeIs('reports.advanced.expansion-readiness') ? 'bg-primary-500/60 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+                <i class="fa-solid fa-minus text-[4px] flex-shrink-0 ml-2"></i>
+                Expansion Readiness Report
+              </a>
+              <a href="{{ route('reports.advanced.member-purchase') }}" class="w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs transition-all duration-150 {{ request()->routeIs('reports.advanced.member-purchase') ? 'bg-primary-500/60 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+                <i class="fa-solid fa-minus text-[4px] flex-shrink-0 ml-2"></i>
+                Member/Shareholder Purchase Report
+              </a>
+              <a href="{{ route('reports.advanced.supplier-credit') }}" class="w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs transition-all duration-150 {{ request()->routeIs('reports.advanced.supplier-credit') ? 'bg-primary-500/60 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+                <i class="fa-solid fa-minus text-[4px] flex-shrink-0 ml-2"></i>
+                Supplier Credit Report
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
 
       <!-- System Administration -->
       <div x-data="{ open: {{ request()->routeIs('system.*') ? 'true' : 'false' }} }">
