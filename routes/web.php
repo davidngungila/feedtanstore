@@ -328,13 +328,17 @@ Route::middleware('auth')->group(function () {
 
     // System Administration
     Route::prefix('system')->name('system.')->group(function () {
-        Route::get('/general', function () { return view('system.general'); })->name('general');
-        Route::get('/tax', function () { return view('system.tax'); })->name('tax');
-        Route::get('/receipt', function () { return view('system.receipt'); })->name('receipt');
-        Route::get('/barcode', function () { return view('system.barcode'); })->name('barcode');
-        Route::get('/backup', function () { return view('system.backup'); })->name('backup');
-        Route::get('/database', function () { return view('system.database'); })->name('database');
-        Route::get('/logs', function () { return view('system.logs'); })->name('logs');
+        Route::get('/general', [\App\Http\Controllers\StoreSettingController::class, 'general'])->name('general');
+        Route::get('/tax', [\App\Http\Controllers\StoreSettingController::class, 'tax'])->name('tax');
+        Route::get('/receipt', [\App\Http\Controllers\StoreSettingController::class, 'receipt'])->name('receipt');
+        Route::get('/barcode', [\App\Http\Controllers\StoreSettingController::class, 'barcode'])->name('barcode');
+        Route::get('/backup', [\App\Http\Controllers\StoreSettingController::class, 'backup'])->name('backup');
+        Route::get('/database', [\App\Http\Controllers\StoreSettingController::class, 'database'])->name('database');
+        Route::get('/logs', [\App\Http\Controllers\StoreSettingController::class, 'logs'])->name('logs');
+        Route::post('/update', [\App\Http\Controllers\StoreSettingController::class, 'update'])->name('update');
+        Route::post('/backup/create', [\App\Http\Controllers\StoreSettingController::class, 'createBackup'])->name('backup.create');
+        Route::get('/backup/download/{filename}', [\App\Http\Controllers\StoreSettingController::class, 'downloadBackup'])->name('backup.download');
+        Route::post('/logs/clear', [\App\Http\Controllers\StoreSettingController::class, 'clearLogs'])->name('logs.clear');
     });
 });
 
