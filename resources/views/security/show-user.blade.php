@@ -49,23 +49,23 @@
                         </tr>
                     </thead>
                     <tbody class="divide-y">
-                        @if(count($logs) > 0)
-                            @foreach($logs as $log)
+                        @if($user->actionLogs->count() > 0)
+                            @foreach($user->actionLogs as $log)
                                 <tr>
-                                    <td class="px-4 py-3 text-gray-600">{{ $log['time']->format('Y-m-d H:i:s') }}</td>
+                                    <td class="px-4 py-3 text-gray-600">{{ $log->created_at->format('Y-m-d H:i:s') }}</td>
                                     <td class="px-4 py-3">
                                         <span class="px-2 py-1 text-xs rounded-full 
-                                            @if($log['action'] === 'Login') bg-blue-100 text-blue-800
-                                            @elseif($log['action'] === 'Create') bg-green-100 text-green-800
-                                            @elseif($log['action'] === 'Update') bg-yellow-100 text-yellow-800
+                                            @if($log->action === 'Login') bg-blue-100 text-blue-800
+                                            @elseif($log->action === 'Create') bg-green-100 text-green-800
+                                            @elseif($log->action === 'Update') bg-yellow-100 text-yellow-800
                                             @else bg-gray-100 text-gray-800
                                             @endif
                                         ">
-                                            {{ $log['action'] }}
+                                            {{ $log->action }}
                                         </span>
                                     </td>
-                                    <td class="px-4 py-3 text-gray-600">{{ $log['details'] }}</td>
-                                    <td class="px-4 py-3 text-gray-600">{{ $log['ip'] }}</td>
+                                    <td class="px-4 py-3 text-gray-600">{{ $log->details }}</td>
+                                    <td class="px-4 py-3 text-gray-600">{{ $log->ip_address }}</td>
                                 </tr>
                             @endforeach
                         @else

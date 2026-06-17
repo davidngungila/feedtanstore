@@ -352,35 +352,13 @@ Route::middleware('auth')->group(function () {
         Route::put('/users/{id}', [\App\Http\Controllers\UserController::class, 'update'])->name('users.update');
         Route::delete('/users/{id}', [\App\Http\Controllers\UserController::class, 'destroy'])->name('users.destroy');
         
-        // Access Control
-        Route::get('/access', function () {
-            $roles = ['admin', 'cashier', 'manager', 'accountant'];
-            $permissions = ['create', 'read', 'update', 'delete'];
-            return view('security.access', compact('roles', 'permissions'));
-        })->name('access');
-        
-        // Audit Logs
-        Route::get('/audit', function () {
-            $logs = [];
-            return view('security.audit', compact('logs'));
-        })->name('audit');
-        
-        // Login History
-        Route::get('/logins', function () {
-            $history = [];
-            return view('security.logins', compact('history'));
-        })->name('logins');
-        
-        // Device Management
-        Route::get('/devices', function () {
-            $devices = [];
-            return view('security.devices', compact('devices'));
-        })->name('devices');
-        
-        // Security Settings
-        Route::get('/settings', function () {
-            return view('security.settings');
-        })->name('settings');
+        // Security Pages
+        Route::get('/access', [\App\Http\Controllers\SecurityController::class, 'access'])->name('access');
+        Route::get('/audit', [\App\Http\Controllers\SecurityController::class, 'audit'])->name('audit');
+        Route::get('/logins', [\App\Http\Controllers\SecurityController::class, 'logins'])->name('logins');
+        Route::get('/devices', [\App\Http\Controllers\SecurityController::class, 'devices'])->name('devices');
+        Route::get('/settings', [\App\Http\Controllers\SecurityController::class, 'settings'])->name('settings');
+        Route::post('/devices/{id}/revoke', [\App\Http\Controllers\SecurityController::class, 'revokeDevice'])->name('devices.revoke');
     });
 });
 
