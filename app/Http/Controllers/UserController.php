@@ -77,6 +77,18 @@ class UserController extends Controller
         return redirect()->route('security.users')->with('success', 'User updated successfully!');
     }
 
+    public function show($id)
+    {
+        $user = User::findOrFail($id);
+        // Sample action logs for the user
+        $logs = [
+            ['time' => now()->subHour(), 'action' => 'Login', 'details' => 'Successful login', 'ip' => '127.0.0.1'],
+            ['time' => now()->subHours(3), 'action' => 'Create', 'details' => 'Created new product', 'ip' => '127.0.0.1'],
+            ['time' => now()->subDay(), 'action' => 'Update', 'details' => 'Updated sale information', 'ip' => '192.168.1.1']
+        ];
+        return view('security.show-user', compact('user', 'logs'));
+    }
+
     public function destroy($id)
     {
         $user = User::findOrFail($id);

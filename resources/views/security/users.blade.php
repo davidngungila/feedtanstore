@@ -36,6 +36,9 @@
                                     <span class="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800">{{ $user->role }}</span>
                                 </td>
                                 <td class="px-4 py-3 flex gap-2">
+                                    <a href="{{ route('security.users.show', $user->id) }}" class="text-green-600 hover:text-green-800 font-medium text-sm">
+                                        <i class="fas fa-eye mr-1"></i>View
+                                    </a>
                                     <a href="{{ route('security.users.edit', $user->id) }}" class="text-blue-600 hover:text-blue-800 font-medium text-sm">
                                         <i class="fas fa-edit mr-1"></i>Edit
                                     </a>
