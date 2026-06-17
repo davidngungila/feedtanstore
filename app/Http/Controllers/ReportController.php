@@ -759,10 +759,10 @@ class ReportController extends Controller
         $startDate = $request->start_date ?? today()->startOfMonth()->toDateString();
         $endDate = $request->end_date ?? today()->toDateString();
         
-        $suppliers = Supplier::select('suppliers.*', DB::raw('SUM(purchase_orders.total) as total_purchases'))
+        $suppliers = Supplier::select('suppliers.id', 'suppliers.name', 'suppliers.email', 'suppliers.phone', DB::raw('SUM(purchase_orders.total) as total_purchases'))
             ->leftJoin('purchase_orders', 'suppliers.id', '=', 'purchase_orders.supplier_id')
             ->whereBetween('purchase_orders.created_at', [$startDate, $endDate])
-            ->groupBy('suppliers.id')
+            ->groupBy('suppliers.id', 'suppliers.name', 'suppliers.email', 'suppliers.phone')
             ->orderBy('total_purchases', 'desc')
             ->get();
         
