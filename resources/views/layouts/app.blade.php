@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>FEEDTAN STORE – Store Management System</title>
+    <link rel="icon" type="image/png" href="{{ asset('logo-image-feedtan-store.png') }}" />
 
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -281,10 +282,10 @@
     <!-- Sidebar Header -->
     <div class="flex items-center justify-between p-4 border-b border-white/20 flex-shrink-0">
       <div class="flex items-center gap-3" x-show="!sidebarCollapsed || window.innerWidth<1024">
-        <img src="{{ asset('feedtanstorelogo.png') }}" alt="FEEDTAN STORE" class="w-full h-12 rounded-lg flex-shrink-0 object-contain" style="max-width: 180px; filter: brightness(0) invert(1);">
+        <img src="{{ asset('logo-image-feedtan-store.png') }}" alt="FEEDTAN STORE" class="w-full h-12 rounded-lg flex-shrink-0 object-contain" style="max-width: 180px; filter: brightness(0) invert(1);">
       </div>
       <div x-show="sidebarCollapsed && window.innerWidth>=1024" class="w-10 h-10 rounded-lg flex items-center justify-center mx-auto">
-        <img src="{{ asset('feedtanstorelogo.png') }}" alt="FEEDTAN STORE" class="w-full h-full rounded-lg object-contain" style="filter: brightness(0) invert(1);">
+        <img src="{{ asset('logo-image-feedtan-store.png') }}" alt="FEEDTAN STORE" class="w-full h-full rounded-lg object-contain" style="filter: brightness(0) invert(1);">
       </div>
       <button @click="sidebarCollapsed=!sidebarCollapsed" class="text-primary-300 hover:text-white transition-colors hidden lg:block">
         <i :class="sidebarCollapsed?'fa-solid fa-chevron-right':'fa-solid fa-chevron-left'" class="text-xs"></i>
