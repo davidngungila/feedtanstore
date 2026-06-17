@@ -30,10 +30,10 @@
             @foreach($cancelledSales as $cancelled)
             <tr>
                 <td>{{ $cancelled->created_at->format('Y-m-d H:i') }}</td>
-                <td>{{ $cancelled->sale ? $cancelled->sale->invoice_number : 'N/A' }}</td>
+                <td>{{ $cancelled->invoice_number }}</td>
                 <td>{{ $cancelled->user ? $cancelled->user->name : 'N/A' }}</td>
-                <td>{{ $cancelled->reason }}</td>
-                <td class="text-right">TZS {{ number_format($cancelled->sale ? $cancelled->sale->total : 0, 2) }}</td>
+                <td>{{ $cancelled->cancellation_reason }}</td>
+                <td class="text-right">TZS {{ number_format($cancelled->total, 2) }}</td>
             </tr>
             @endforeach
         </tbody>

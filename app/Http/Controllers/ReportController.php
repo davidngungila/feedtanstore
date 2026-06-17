@@ -1038,10 +1038,7 @@ class ReportController extends Controller
         $startDate = $request->start_date ?? today()->startOfMonth()->toDateString();
         $endDate = $request->end_date ?? today()->toDateString();
         
-        $cancelledSales = \App\Models\CancelledSale::with(['sale', 'user'])
-            ->whereBetween('created_at', [$startDate, $endDate])
-            ->latest()
-            ->get();
+        $cancelledSales = Sale::onlyTrashed()->with(['user'])->whereBetween('created_at', [$startDate, $endDate])->latest()->get();
         
         return view('reports.staff.void-transactions', compact('startDate', 'endDate', 'cancelledSales'));
     }
@@ -1056,10 +1053,7 @@ class ReportController extends Controller
         $startDate = $request->start_date ?? today()->startOfMonth()->toDateString();
         $endDate = $request->end_date ?? today()->toDateString();
         
-        $returns = SaleReturn::with(['sale', 'user', 'items.product'])
-            ->whereBetween('created_at', [$startDate, $endDate])
-            ->latest()
-            ->get();
+        $returns = SaleReturn::with(['sale', 'user'])->whereBetween('created_at', [$startDate, $endDate])->latest()->get();
         
         $totalRefunded = $returns->sum('total');
         

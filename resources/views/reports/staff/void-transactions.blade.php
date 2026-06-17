@@ -37,7 +37,7 @@
                     </div>
                 </div>
                 <p class="text-sm text-blue-700 mb-1">Total Void Amount</p>
-                <h3 class="text-2xl font-bold text-blue-900">TZS {{ number_format($cancelledSales->sum(fn($cs) => $cs->sale ? $cs->sale->total : 0), 2) }}</h3>
+                <h3 class="text-2xl font-bold text-blue-900">TZS {{ number_format($cancelledSales->sum('total'), 2) }}</h3>
             </div>
             <div class="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-5">
                 <div class="flex items-center justify-between mb-3">
@@ -55,7 +55,7 @@
                     </div>
                 </div>
                 <p class="text-sm text-green-700 mb-1">Largest Void</p>
-                <h3 class="text-2xl font-bold text-green-900">TZS {{ number_format($cancelledSales->max(fn($cs) => $cs->sale ? $cs->sale->total : 0), 2) }}</h3>
+                <h3 class="text-2xl font-bold text-green-900">TZS {{ number_format($cancelledSales->max('total'), 2) }}</h3>
             </div>
         </div>
 
@@ -77,10 +77,10 @@
                         @foreach($cancelledSales as $cancelled)
                         <tr>
                             <td class="px-4 py-3">{{ $cancelled->created_at->format('Y-m-d H:i') }}</td>
-                            <td class="px-4 py-3 font-medium">{{ $cancelled->sale ? $cancelled->sale->invoice_number : 'N/A' }}</td>
+                            <td class="px-4 py-3 font-medium">{{ $cancelled->invoice_number }}</td>
                             <td class="px-4 py-3">{{ $cancelled->user ? $cancelled->user->name : 'N/A' }}</td>
-                            <td class="px-4 py-3">{{ $cancelled->reason }}</td>
-                            <td class="px-4 py-3 text-right text-red-600 font-semibold">TZS {{ number_format($cancelled->sale ? $cancelled->sale->total : 0, 2) }}</td>
+                            <td class="px-4 py-3">{{ $cancelled->cancellation_reason }}</td>
+                            <td class="px-4 py-3 text-right text-red-600 font-semibold">TZS {{ number_format($cancelled->total, 2) }}</td>
                         </tr>
                         @endforeach
                     </tbody>
