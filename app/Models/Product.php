@@ -21,6 +21,7 @@ class Product extends Model
         'quantity',
         'reorder_level',
         'expiry_date',
+        'batch_number',
         'image',
         'is_active',
         'is_available_online',
