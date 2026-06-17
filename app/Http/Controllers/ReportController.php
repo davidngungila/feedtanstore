@@ -852,10 +852,28 @@ class ReportController extends Controller
     {
         $date = $request->date ?? today()->toDateString();
         
-        $sales = Sale::whereDate('created_at', $date)->where('payment_method', 'cash')->sum('total');
+        $cashSales = Sale::whereDate('created_at', $date)->where('payment_method', 'cash')->sum('total');
         $expenses = Expense::whereDate('created_at', $date)->sum('amount');
         
-        return view('reports.cash.reconciliation', compact('date', 'sales', 'expenses'));
+        // Get shifts for the date
+        $shifts = WorkShift::whereDate('created_at', $date)->get();
+        $totalOpeningCash = $shifts->sum('opening_cash');
+        $totalClosingCash = $shifts->sum('closing_cash');
+        
+        // Calculate expected cash
+        $expectedCash = $totalOpeningCash + $cashSales - $expenses;
+        $difference = $totalClosingCash - $expectedCash;
+        
+        return view('reports.cash.reconciliation', compact(
+            'date', 
+            'cashSales', 
+            'expenses', 
+            'shifts', 
+            'totalOpeningCash', 
+            'totalClosingCash', 
+            'expectedCash', 
+            'difference'
+        ));
     }
 
     public function cashReconciliationPDF(Request $request)
@@ -873,7 +891,10 @@ class ReportController extends Controller
             ->groupBy('payment_method')
             ->get();
         
-        return view('reports.cash.payment-method', compact('startDate', 'endDate', 'methods'));
+        $totalSales = $methods->sum('total');
+        $totalTransactions = $methods->sum('count');
+        
+        return view('reports.cash.payment-method', compact('startDate', 'endDate', 'methods', 'totalSales', 'totalTransactions'));
     }
 
     public function paymentMethodPDF(Request $request)
@@ -893,7 +914,37 @@ class ReportController extends Controller
         $totalExpenses = $expenses->sum('amount');
         $netCashFlow = $totalIncome - $totalExpenses;
         
-        return view('reports.cash.daily-flow', compact('startDate', 'endDate', 'incomes', 'expenses', 'totalIncome', 'totalExpenses', 'netCashFlow'));
+        // Create daily breakdown
+        $dailyData = collect();
+        $period = \Carbon\Carbon::parse($startDate)->toPeriod($endDate);
+        
+        foreach ($period as $date) {
+            $dateStr = $date->toDateString();
+            $dayIncome = $incomes->filter(function($income) use ($dateStr) {
+                return $income->created_at->toDateString() === $dateStr;
+            })->sum('amount');
+            $dayExpenses = $expenses->filter(function($expense) use ($dateStr) {
+                return $expense->created_at->toDateString() === $dateStr;
+            })->sum('amount');
+            
+            $dailyData->push([
+                'date' => $dateStr,
+                'income' => $dayIncome,
+                'expenses' => $dayExpenses,
+                'net' => $dayIncome - $dayExpenses
+            ]);
+        }
+        
+        return view('reports.cash.daily-flow', compact(
+            'startDate', 
+            'endDate', 
+            'incomes', 
+            'expenses', 
+            'totalIncome', 
+            'totalExpenses', 
+            'netCashFlow',
+            'dailyData'
+        ));
     }
 
     public function dailyCashFlowPDF(Request $request)
@@ -1149,11 +1200,13 @@ class ReportController extends Controller
         
         return view('reports.security.user-activity', compact('startDate', 'endDate', 'logs', 'users', 'userId'));
     }
-
+    
     public function userActivityPDF(Request $request)
     {
         return $this->generatePDF('reports.security.user-activity-pdf', $this->userActivity($request)->getData(), 'user-activity-report.pdf');
     }
+
+
 
     // ==================== Management Dashboard Reports ====================
     public function executiveDashboard(Request $request)
