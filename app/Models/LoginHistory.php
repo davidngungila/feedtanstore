@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class LoginHistory extends Model
 {
+    protected $table = 'login_history';
+
     protected $fillable = [
         'user_id',
         'email',
