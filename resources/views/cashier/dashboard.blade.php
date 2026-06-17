@@ -123,6 +123,9 @@
             <div class="card rounded-2xl p-4">
                 <h2 class="text-lg font-bold text-primary-900 mb-3">Quick Actions</h2>
                 <div class="grid grid-cols-2 gap-2">
+                    <button type="button" onclick="toggleFullscreen()" class="py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-700 text-sm font-medium" id="fullscreenBtn">
+                        <i class="fas fa-expand mr-1"></i>Fullscreen
+                    </button>
                     <button type="button" onclick="holdSale()" class="py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-700 text-sm font-medium">
                         <i class="fas fa-pause mr-1"></i>Hold Sale
                     </button>
@@ -608,6 +611,30 @@ function updateDashboardDisplay() {
 function updateTime() {
     const now = new Date();
 }
+
+function toggleFullscreen() {
+    const btn = document.getElementById('fullscreenBtn');
+    
+    if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(err => {
+            console.log('Fullscreen request failed:', err);
+        });
+    } else {
+        if (document.exitFullscreen) {
+            document.exitFullscreen();
+        }
+    }
+}
+
+document.addEventListener('fullscreenchange', function() {
+    const btn = document.getElementById('fullscreenBtn');
+    
+    if (document.fullscreenElement) {
+        btn.innerHTML = '<i class="fas fa-compress mr-1"></i>Exit Fullscreen';
+    } else {
+        btn.innerHTML = '<i class="fas fa-expand mr-1"></i>Fullscreen';
+    }
+});
 
 function setupBarcodeScanner() {
     let barcodeBuffer = '';
