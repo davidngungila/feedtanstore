@@ -958,10 +958,10 @@ class ReportController extends Controller
         $startDate = $request->start_date ?? today()->startOfMonth()->toDateString();
         $endDate = $request->end_date ?? today()->toDateString();
         
-        $cashiers = User::select('users.*', DB::raw('COUNT(sales.id) as transaction_count'), DB::raw('SUM(sales.total) as total_sales'))
+        $cashiers = User::select('users.id', 'users.name', 'users.email', DB::raw('COUNT(sales.id) as transaction_count'), DB::raw('SUM(sales.total) as total_sales'))
             ->leftJoin('sales', 'users.id', '=', 'sales.user_id')
             ->whereBetween('sales.created_at', [$startDate, $endDate])
-            ->groupBy('users.id')
+            ->groupBy('users.id', 'users.name', 'users.email')
             ->orderBy('total_sales', 'desc')
             ->get();
         
@@ -978,10 +978,10 @@ class ReportController extends Controller
         $startDate = $request->start_date ?? today()->startOfMonth()->toDateString();
         $endDate = $request->end_date ?? today()->toDateString();
         
-        $cashiers = User::select('users.*', DB::raw('COUNT(sales.id) as transaction_count'))
+        $cashiers = User::select('users.id', 'users.name', 'users.email', DB::raw('COUNT(sales.id) as transaction_count'))
             ->leftJoin('sales', 'users.id', '=', 'sales.user_id')
             ->whereBetween('sales.created_at', [$startDate, $endDate])
-            ->groupBy('users.id')
+            ->groupBy('users.id', 'users.name', 'users.email')
             ->orderBy('transaction_count', 'desc')
             ->get();
         
@@ -1077,10 +1077,10 @@ class ReportController extends Controller
         $startDate = $request->start_date ?? today()->startOfMonth()->toDateString();
         $endDate = $request->end_date ?? today()->toDateString();
         
-        $customers = Customer::select('customers.*', DB::raw('COUNT(sales.id) as purchase_count'), DB::raw('SUM(sales.total) as total_spent'))
+        $customers = Customer::select('customers.id', 'customers.name', 'customers.email', 'customers.phone', DB::raw('COUNT(sales.id) as purchase_count'), DB::raw('SUM(sales.total) as total_spent'))
             ->leftJoin('sales', 'customers.id', '=', 'sales.customer_id')
             ->whereBetween('sales.created_at', [$startDate, $endDate])
-            ->groupBy('customers.id')
+            ->groupBy('customers.id', 'customers.name', 'customers.email', 'customers.phone')
             ->orderBy('total_spent', 'desc')
             ->get();
         
@@ -1221,11 +1221,11 @@ class ReportController extends Controller
         $outOfStockCount = Product::where('quantity', 0)->count();
         $totalStockValue = Product::sum(DB::raw('quantity * cost_price'));
         
-        $topProducts = Product::select('products.*', DB::raw('SUM(sale_items.quantity) as total_qty'))
+        $topProducts = Product::select('products.id', 'products.name', DB::raw('SUM(sale_items.quantity) as total_qty'))
             ->join('sale_items', 'products.id', '=', 'sale_items.product_id')
             ->join('sales', 'sales.id', '=', 'sale_items.sale_id')
             ->whereMonth('sales.created_at', $today->month)
-            ->groupBy('products.id')
+            ->groupBy('products.id', 'products.name')
             ->orderBy('total_qty', 'desc')
             ->limit(5)
             ->get();
@@ -1245,9 +1245,9 @@ class ReportController extends Controller
 
     public function inventoryInvestment()
     {
-        $categories = Category::select('categories.*', DB::raw('SUM(products.quantity * products.cost_price) as investment_value'))
+        $categories = Category::select('categories.id', 'categories.name', DB::raw('SUM(products.quantity * products.cost_price) as investment_value'))
             ->leftJoin('products', 'categories.id', '=', 'products.category_id')
-            ->groupBy('categories.id')
+            ->groupBy('categories.id', 'categories.name')
             ->orderBy('investment_value', 'desc')
             ->get();
         
@@ -1266,12 +1266,12 @@ class ReportController extends Controller
         $startDate = $request->start_date ?? today()->startOfYear()->toDateString();
         $endDate = $request->end_date ?? today()->toDateString();
         
-        $categories = Category::select('categories.*', DB::raw('SUM(sale_items.quantity * products.cost_price) as cogs'))
+        $categories = Category::select('categories.id', 'categories.name', DB::raw('SUM(sale_items.quantity * products.cost_price) as cogs'))
             ->leftJoin('products', 'categories.id', '=', 'products.category_id')
             ->join('sale_items', 'products.id', '=', 'sale_items.product_id')
             ->join('sales', 'sales.id', '=', 'sale_items.sale_id')
             ->whereBetween('sales.created_at', [$startDate, $endDate])
-            ->groupBy('categories.id')
+            ->groupBy('categories.id', 'categories.name')
             ->get()
             ->map(function($category) {
                 $avgInventory = Product::where('category_id', $category->id)
