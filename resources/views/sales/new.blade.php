@@ -481,5 +481,61 @@ document.addEventListener('keydown', function(e) {
         barcodeBuffer += e.key;
     }
 });
+
+// VFD Functions
+async function sendToVFD(endpoint, data = {}) {
+    try {
+        const response = await fetch(`/vfd/${endpoint}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+            },
+            body: JSON.stringify(data)
+        });
+        return await response.json();
+    } catch (error) {
+        console.error('VFD error:', error);
+    }
+}
+
+// Override addToCart to send product to VFD
+const originalAddToCart = addToCart;
+window.addToCart = function(productId, productName, price) {
+    originalAddToCart(productId, productName, price);
+    
+    // Find the item in cart to get quantity and total
+    const item = cart.find(i => i.product_id === productId);
+    if (item) {
+        sendToVFD('product', {
+            name: productName,
+            quantity: item.quantity,
+            price: price,
+            total: item.unit_price * item.quantity
+        });
+    }
+};
+
+// Send payment info when sale is submitted
+document.getElementById('saleForm').addEventListener('submit', async function(e) {
+    const total = lastCalculatedTotal;
+    const paid = parseFloat(document.getElementById('paidAmount').value);
+    const change = Math.max(0, paid - total);
+    const paymentMethod = document.getElementById('paymentMethod').value;
+    
+    await sendToVFD('payment', {
+        total: total,
+        paid: paid,
+        change: change,
+        payment_method: paymentMethod
+    });
+    
+    await sendToVFD('thank-you');
+});
+
+// Send welcome message when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    sendToVFD('welcome');
+});
 </script>
 @endsection

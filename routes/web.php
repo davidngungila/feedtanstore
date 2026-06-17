@@ -548,6 +548,12 @@ Route::middleware('auth')->group(function () {
         Route::get('/devices', [\App\Http\Controllers\SecurityController::class, 'devices'])->name('devices');
         Route::get('/settings', [\App\Http\Controllers\SecurityController::class, 'settings'])->name('settings');
         Route::post('/devices/{id}/revoke', [\App\Http\Controllers\SecurityController::class, 'revokeDevice'])->name('devices.revoke');
+    // VFD Customer Display Routes
+    Route::prefix('vfd')->name('vfd.')->group(function () {
+        Route::post('/welcome', [\App\Http\Controllers\VFDController::class, 'welcome'])->name('welcome');
+        Route::post('/product', [\App\Http\Controllers\VFDController::class, 'product'])->name('product');
+        Route::post('/payment', [\App\Http\Controllers\VFDController::class, 'payment'])->name('payment');
+        Route::post('/thank-you', [\App\Http\Controllers\VFDController::class, 'thankYou'])->name('thank-you');
     });
 });
 
