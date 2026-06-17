@@ -340,5 +340,46 @@ Route::middleware('auth')->group(function () {
         Route::get('/backup/download/{filename}', [\App\Http\Controllers\StoreSettingController::class, 'downloadBackup'])->name('backup.download');
         Route::post('/logs/clear', [\App\Http\Controllers\StoreSettingController::class, 'clearLogs'])->name('logs.clear');
     });
+    
+    // Security & Control
+    Route::prefix('security')->name('security.')->group(function () {
+        // User Accounts
+        Route::get('/users', [\App\Http\Controllers\UserController::class, 'index'])->name('users');
+        Route::get('/users/create', [\App\Http\Controllers\UserController::class, 'create'])->name('users.create');
+        Route::post('/users', [\App\Http\Controllers\UserController::class, 'store'])->name('users.store');
+        Route::get('/users/{id}/edit', [\App\Http\Controllers\UserController::class, 'edit'])->name('users.edit');
+        Route::put('/users/{id}', [\App\Http\Controllers\UserController::class, 'update'])->name('users.update');
+        Route::delete('/users/{id}', [\App\Http\Controllers\UserController::class, 'destroy'])->name('users.destroy');
+        
+        // Access Control
+        Route::get('/access', function () {
+            $roles = ['admin', 'cashier', 'manager', 'accountant'];
+            $permissions = ['create', 'read', 'update', 'delete'];
+            return view('security.access', compact('roles', 'permissions'));
+        })->name('access');
+        
+        // Audit Logs
+        Route::get('/audit', function () {
+            $logs = [];
+            return view('security.audit', compact('logs'));
+        })->name('audit');
+        
+        // Login History
+        Route::get('/logins', function () {
+            $history = [];
+            return view('security.logins', compact('history'));
+        })->name('logins');
+        
+        // Device Management
+        Route::get('/devices', function () {
+            $devices = [];
+            return view('security.devices', compact('devices'));
+        })->name('devices');
+        
+        // Security Settings
+        Route::get('/settings', function () {
+            return view('security.settings');
+        })->name('settings');
+    });
 });
 
