@@ -577,7 +577,7 @@ class ReportController extends Controller
 
     public function overstock(Request $request)
     {
-        $threshold = $request->threshold ?? 100;
+        $threshold = (int) ($request->threshold ?? 100);
         
         $products = Product::with(['category', 'brand'])
             ->where('quantity', '>', $threshold)
@@ -594,8 +594,8 @@ class ReportController extends Controller
 
     public function fastMoving(Request $request)
     {
-        $days = $request->days ?? 30;
-        $threshold = $request->threshold ?? 50;
+        $days = (int) ($request->days ?? 30);
+        $threshold = (int) ($request->threshold ?? 50);
         
         $products = Product::select(
                 'products.id',
@@ -625,8 +625,8 @@ class ReportController extends Controller
 
     public function slowMoving(Request $request)
     {
-        $days = $request->days ?? 30;
-        $threshold = $request->threshold ?? 10;
+        $days = (int) ($request->days ?? 30);
+        $threshold = (int) ($request->threshold ?? 10);
         
         $products = Product::select(
                 'products.id',
@@ -659,7 +659,7 @@ class ReportController extends Controller
 
     public function deadStock(Request $request)
     {
-        $days = $request->days ?? 90;
+        $days = (int) ($request->days ?? 90);
         
         $products = Product::select('products.*')
             ->whereDoesntHave('saleItems', function($q) use ($days) {
@@ -682,7 +682,7 @@ class ReportController extends Controller
     // ==================== Expiry Reports ====================
     public function expiringSoon(Request $request)
     {
-        $days = $request->days ?? 30;
+        $days = (int) ($request->days ?? 30);
         
         $products = Product::with(['category', 'brand'])
             ->whereNotNull('expiry_date')
