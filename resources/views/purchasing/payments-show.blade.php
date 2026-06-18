@@ -8,6 +8,10 @@
         <div class="flex items-center justify-between mb-6">
             <h2 class="text-xl font-bold text-primary-900">{{ $payment->payment_number }}</h2>
             <div class="flex gap-3">
+                <a href="{{ route('purchasing.payments.download', $payment) }}" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors flex items-center gap-2">
+                    <i class="fas fa-download"></i>
+                    Download PDF
+                </a>
                 <a href="{{ route('purchasing.payments.edit', $payment) }}" class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors">
                     Edit
                 </a>

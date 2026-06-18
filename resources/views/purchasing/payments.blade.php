@@ -43,6 +43,9 @@
                         <td class="text-gray-600">{{ $payment->transaction_id ?? '-' }}</td>
                         <td class="text-gray-600">{{ $payment->payment_date ? date('M d, Y', strtotime($payment->payment_date)) : '-' }}</td>
                         <td class="flex items-center gap-2">
+                            <a href="{{ route('purchasing.payments.download', $payment) }}" class="text-green-600 hover:text-green-800 p-1" title="Download PDF">
+                                <i class="fas fa-download"></i>
+                            </a>
                             <a href="{{ route('purchasing.payments.show', $payment) }}" class="text-primary-600 hover:text-primary-800 p-1" title="View">
                                 <i class="fas fa-eye"></i>
                             </a>

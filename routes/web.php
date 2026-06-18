@@ -169,6 +169,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/payments/create', [\App\Http\Controllers\SupplierPaymentController::class, 'create'])->name('payments.create');
         Route::post('/payments', [\App\Http\Controllers\SupplierPaymentController::class, 'store'])->name('payments.store');
         Route::get('/payments/{payment}', [\App\Http\Controllers\SupplierPaymentController::class, 'show'])->name('payments.show');
+        Route::get('/payments/{payment}/download', [\App\Http\Controllers\SupplierPaymentController::class, 'downloadPDF'])->name('payments.download');
         Route::get('/payments/{payment}/edit', [\App\Http\Controllers\SupplierPaymentController::class, 'edit'])->name('payments.edit');
         Route::put('/payments/{payment}', [\App\Http\Controllers\SupplierPaymentController::class, 'update'])->name('payments.update');
         Route::delete('/payments/{payment}', [\App\Http\Controllers\SupplierPaymentController::class, 'destroy'])->name('payments.destroy');

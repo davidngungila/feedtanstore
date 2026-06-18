@@ -6,6 +6,7 @@ use App\Models\SupplierPayment;
 use App\Models\Supplier;
 use App\Models\PurchaseOrder;
 use Illuminate\Http\Request;
+use Dompdf\Dompdf;
 
 class SupplierPaymentController extends Controller
 {
@@ -83,5 +84,15 @@ class SupplierPaymentController extends Controller
     {
         $payment->delete();
         return redirect()->route('purchasing.payments')->with('success', 'Supplier Payment deleted successfully!');
+    }
+
+    public function downloadPDF(SupplierPayment $payment)
+    {
+        $payment->load(['supplier', 'purchaseOrder']);
+        $pdf = new Dompdf();
+        $pdf->loadHtml(view('purchasing.payments-pdf', compact('payment'))->render());
+        $pdf->setPaper('A4', 'portrait');
+        $pdf->render();
+        return $pdf->stream($payment->payment_number . '.pdf');
     }
 }
