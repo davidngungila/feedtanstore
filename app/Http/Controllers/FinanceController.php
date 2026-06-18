@@ -49,6 +49,13 @@ class FinanceController extends Controller
         return view('finance.transactions', compact('entries'));
     }
     
+    public function showTransaction(AccountingEntry $entry)
+    {
+        // Get all related entries with the same reference number
+        $relatedEntries = AccountingEntry::where('reference_number', $entry->reference_number)->get();
+        return view('finance.transaction-details', compact('entry', 'relatedEntries'));
+    }
+    
     public function mobileMoneyReconciliation()
     {
         $accounts = MobileMoneyAccount::where('is_active', true)->get();

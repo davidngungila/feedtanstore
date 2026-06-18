@@ -18,6 +18,7 @@
                         <th class="px-4 py-3 text-left text-gray-700">Type</th>
                         <th class="px-4 py-3 text-left text-gray-700">Amount</th>
                         <th class="px-4 py-3 text-left text-gray-700">Description</th>
+                        <th class="px-4 py-3 text-left text-gray-700">Actions</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y">
@@ -34,10 +35,15 @@
                         </td>
                         <td class="px-4 py-3 font-bold">TZS {{ number_format($entry->amount, 2) }}</td>
                         <td class="px-4 py-3">{{ $entry->description }}</td>
+                        <td class="px-4 py-3">
+                            <a href="{{ route('finance.transactions.show', $entry) }}" class="text-primary-600 hover:text-primary-800 text-sm font-medium">
+                                View Details
+                            </a>
+                        </td>
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="7" class="px-4 py-8 text-center text-gray-500">No transactions found.</td>
+                        <td colspan="8" class="px-4 py-8 text-center text-gray-500">No transactions found.</td>
                     </tr>
                     @endforelse
                 </tbody>

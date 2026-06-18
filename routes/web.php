@@ -280,6 +280,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/accounts-receivable', [\App\Http\Controllers\FinanceController::class, 'accountsReceivable'])->name('accounts-receivable');
         Route::get('/accounts-payable', [\App\Http\Controllers\FinanceController::class, 'accountsPayable'])->name('accounts-payable');
         Route::get('/transactions', [\App\Http\Controllers\FinanceController::class, 'transactions'])->name('transactions');
+        Route::get('/transactions/{entry}', [\App\Http\Controllers\FinanceController::class, 'showTransaction'])->name('transactions.show');
         Route::get('/tax-management', [\App\Http\Controllers\FinanceController::class, 'taxManagement'])->name('tax-management');
         // Budgets
         Route::get('/budgets', [\App\Http\Controllers\BudgetController::class, 'index'])->name('budgets');
