@@ -219,8 +219,6 @@
         $activeSection = 'hr';
     } elseif (request()->routeIs('security.*')) {
         $activeSection = 'security';
-    } elseif (request()->routeIs('marketing.*')) {
-        $activeSection = 'marketing';
     }
 @endphp
 <div x-data="{
@@ -743,39 +741,6 @@
           <a href="{{ route('security.settings') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('security.settings') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
             <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
             Security Settings
-          </a>
-        </div>
-      </div>
-
-      <!-- Marketing -->
-      <div>
-        <button @click="toggleSection('marketing')" class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-all duration-150 {{ request()->routeIs('marketing.*') ? 'bg-white/10 text-white' : 'text-primary-200 hover:bg-white/10 hover:text-white' }}">
-          <div class="flex items-center gap-3">
-            <i class="fa-solid fa-bullhorn w-4 text-center flex-shrink-0"></i>
-            <span x-show="!sidebarCollapsed" class="font-medium">Marketing</span>
-          </div>
-          <i x-show="!sidebarCollapsed" :class="activeSection === 'marketing'?'fa-solid fa-chevron-up':'fa-solid fa-chevron-down'" class="text-[10px] text-primary-400"></i>
-        </button>
-        <div :class="activeSection === 'marketing'?'max-h-[2000px]':'max-h-0'" class="overflow-hidden transition-all duration-300 ml-3" x-show="!sidebarCollapsed">
-          <a href="{{ route('marketing.promotions') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('marketing.promotions') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
-            <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
-            Promotions
-          </a>
-          <a href="{{ route('marketing.discounts') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('marketing.discounts') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
-            <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
-            Discounts
-          </a>
-          <a href="{{ route('marketing.ads') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('marketing.ads') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
-            <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
-            Advertisements
-          </a>
-          <a href="{{ route('marketing.campaigns') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('marketing.campaigns') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
-            <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
-            Campaigns
-          </a>
-          <a href="{{ route('marketing.notifications') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('marketing.notifications') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
-            <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
-            Notifications
           </a>
         </div>
       </div>
