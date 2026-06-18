@@ -18,7 +18,7 @@
         <div class="space-y-3 mb-6">
             <div class="flex justify-between items-center py-2 border-b border-gray-100 gap-4">
                 <span class="text-gray-600 flex-shrink-0">Total Sales</span>
-                <span class="font-semibold text-sm md:text-base truncate text-right">TZS {{ number_format($totalSales, 2) }}</span>
+                <span class="font-semibold whitespace-nowrap text-right" style="font-size: clamp(0.75rem, 0.75vw + 0.5rem, 1rem);">TZS {{ number_format($totalSales, 2) }}</span>
             </div>
         </div>
 
@@ -26,39 +26,39 @@
         <div class="space-y-3 mb-6">
             <div class="flex justify-between items-center py-2 border-b border-gray-100 gap-4">
                 <span class="text-gray-600 flex-shrink-0">Total Purchases</span>
-                <span class="font-semibold text-sm md:text-base truncate text-right">TZS {{ number_format($totalPurchases, 2) }}</span>
+                <span class="font-semibold whitespace-nowrap text-right" style="font-size: clamp(0.75rem, 0.75vw + 0.5rem, 1rem);">TZS {{ number_format($totalPurchases, 2) }}</span>
             </div>
         </div>
 
         <div class="flex justify-between items-center py-3 border-t-2 border-primary-200 bg-primary-50 px-3 rounded-lg mb-6 gap-4">
-            <span class="font-bold text-primary-900 text-base md:text-lg flex-shrink-0">Gross Profit</span>
-            <span class="font-bold {{ $grossProfit >= 0 ? 'text-green-700' : 'text-red-700' }} text-base md:text-lg truncate text-right">TZS {{ number_format($grossProfit, 2) }}</span>
+            <span class="font-bold text-primary-900 flex-shrink-0">Gross Profit</span>
+            <span class="font-bold {{ $grossProfit >= 0 ? 'text-green-700' : 'text-red-700' }} whitespace-nowrap text-right" style="font-size: clamp(0.875rem, 1vw + 0.5rem, 1.125rem);">TZS {{ number_format($grossProfit, 2) }}</span>
         </div>
 
         <h2 class="text-xl font-bold text-primary-900 mb-4 pb-3 border-b border-gray-200">Operating Expenses</h2>
         <div class="space-y-3 mb-6">
             <div class="flex justify-between items-center py-2 border-b border-gray-100 gap-4">
                 <span class="text-gray-600 flex-shrink-0">Total Operating Expenses</span>
-                <span class="font-semibold text-sm md:text-base truncate text-right">TZS {{ number_format($totalOperatingExpenses, 2) }}</span>
+                <span class="font-semibold whitespace-nowrap text-right" style="font-size: clamp(0.75rem, 0.75vw + 0.5rem, 1rem);">TZS {{ number_format($totalOperatingExpenses, 2) }}</span>
             </div>
         </div>
 
         <div class="flex justify-between items-center py-3 border-t-2 border-primary-200 bg-primary-50 px-3 rounded-lg mb-6 gap-4">
-            <span class="font-bold text-primary-900 text-base md:text-lg flex-shrink-0">Operating Profit</span>
-            <span class="font-bold {{ $operatingProfit >= 0 ? 'text-green-700' : 'text-red-700' }} text-base md:text-lg truncate text-right">TZS {{ number_format($operatingProfit, 2) }}</span>
+            <span class="font-bold text-primary-900 flex-shrink-0">Operating Profit</span>
+            <span class="font-bold {{ $operatingProfit >= 0 ? 'text-green-700' : 'text-red-700' }} whitespace-nowrap text-right" style="font-size: clamp(0.875rem, 1vw + 0.5rem, 1.125rem);">TZS {{ number_format($operatingProfit, 2) }}</span>
         </div>
 
         <h2 class="text-xl font-bold text-primary-900 mb-4 pb-3 border-b border-gray-200">Other Income</h2>
         <div class="space-y-3 mb-6">
             <div class="flex justify-between items-center py-2 border-b border-gray-100 gap-4">
                 <span class="text-gray-600 flex-shrink-0">Total Other Income</span>
-                <span class="font-semibold text-sm md:text-base truncate text-right">TZS {{ number_format($totalOtherIncome, 2) }}</span>
+                <span class="font-semibold whitespace-nowrap text-right" style="font-size: clamp(0.75rem, 0.75vw + 0.5rem, 1rem);">TZS {{ number_format($totalOtherIncome, 2) }}</span>
             </div>
         </div>
 
         <div class="flex justify-between items-center py-4 border-t-4 border-green-500 bg-green-50 px-4 rounded-lg gap-4">
-            <span class="font-bold text-green-900 text-lg md:text-xl flex-shrink-0">Net Profit</span>
-            <span class="font-bold {{ $netProfit >= 0 ? 'text-green-700' : 'text-red-700' }} text-lg md:text-xl truncate text-right">TZS {{ number_format($netProfit, 2) }}</span>
+            <span class="font-bold text-green-900 flex-shrink-0">Net Profit</span>
+            <span class="font-bold {{ $netProfit >= 0 ? 'text-green-700' : 'text-red-700' }} whitespace-nowrap text-right" style="font-size: clamp(1rem, 1.25vw + 0.5rem, 1.25rem);">TZS {{ number_format($netProfit, 2) }}</span>
         </div>
     </div>
 </div>
