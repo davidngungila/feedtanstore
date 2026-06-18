@@ -6,6 +6,7 @@ use App\Models\GoodsReceivedNote;
 use App\Models\Product;
 use App\Models\Supplier;
 use App\Models\PurchaseOrder;
+use App\Models\AccountingEntry;
 use Illuminate\Http\Request;
 use Dompdf\Dompdf;
 
@@ -82,8 +83,33 @@ class GoodsReceivedNoteController extends Controller
             $po = PurchaseOrder::find($request->purchase_order_id);
             $po->update(['status' => 'received']);
         }
+        
+        $this->createAccountingEntries($grn);
 
         return redirect()->route('purchasing.grn')->with('success', 'Goods Received Note created successfully!');
+    }
+    
+    protected function createAccountingEntries(GoodsReceivedNote $grn)
+    {
+        // Debit Inventory
+        AccountingEntry::create([
+            'reference_number' => $grn->grn_number,
+            'reference_type' => GoodsReceivedNote::class,
+            'account' => 'Inventory',
+            'type' => 'debit',
+            'amount' => $grn->total,
+            'description' => 'Inventory received'
+        ]);
+        
+        // Credit Accounts Payable
+        AccountingEntry::create([
+            'reference_number' => $grn->grn_number,
+            'reference_type' => GoodsReceivedNote::class,
+            'account' => 'Accounts Payable',
+            'type' => 'credit',
+            'amount' => $grn->total,
+            'description' => 'Goods received on credit'
+        ]);
     }
 
     public function show(GoodsReceivedNote $grn)

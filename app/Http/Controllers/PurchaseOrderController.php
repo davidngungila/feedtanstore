@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\PurchaseOrder;
 use App\Models\Product;
 use App\Models\Supplier;
+use App\Models\AccountingEntry;
 use Illuminate\Http\Request;
 use Dompdf\Dompdf;
 
@@ -126,7 +127,7 @@ class PurchaseOrderController extends Controller
             'status' => $request->status,
         ]);
 
-        // If status changed to received, update stock from order items
+        // If status changed to received, update stock from order items and create accounting entries
         if ($oldStatus !== 'received' && $request->status === 'received') {
             foreach ($purchaseOrder->items as $item) {
                 $product = Product::find($item->product_id);
@@ -134,9 +135,34 @@ class PurchaseOrderController extends Controller
                     $product->increment('quantity', $item->quantity);
                 }
             }
+            
+            $this->createAccountingEntries($purchaseOrder);
         }
 
         return redirect()->route('purchasing.orders')->with('success', 'Purchase Order updated successfully!');
+    }
+    
+    protected function createAccountingEntries(PurchaseOrder $purchaseOrder)
+    {
+        // Debit Inventory
+        AccountingEntry::create([
+            'reference_number' => $purchaseOrder->po_number,
+            'reference_type' => PurchaseOrder::class,
+            'account' => 'Inventory',
+            'type' => 'debit',
+            'amount' => $purchaseOrder->total,
+            'description' => 'Inventory received'
+        ]);
+        
+        // Credit Accounts Payable
+        AccountingEntry::create([
+            'reference_number' => $purchaseOrder->po_number,
+            'reference_type' => PurchaseOrder::class,
+            'account' => 'Accounts Payable',
+            'type' => 'credit',
+            'amount' => $purchaseOrder->total,
+            'description' => 'Goods received on credit'
+        ]);
     }
 
     public function destroy(PurchaseOrder $purchaseOrder)
