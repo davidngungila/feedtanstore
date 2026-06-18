@@ -112,7 +112,33 @@ class OnlineOrderController extends Controller
     public function show(OnlineOrder $order)
     {
         $order->load(['items.product', 'rider', 'user']);
-        return view('online.orders-show', compact('order'));
+        $settings = \App\Models\StoreSetting::firstOrCreate();
+        
+        $route = null;
+        if ($settings->openrouteservice_api_key && $order->delivery_latitude && $order->delivery_longitude) {
+            try {
+                $storeLat = $settings->store_latitude ?? -3.3869;
+                $storeLng = $settings->store_longitude ?? 36.6883;
+                
+                $response = \Illuminate\Support\Facades\Http::withHeaders([
+                    'Authorization' => $settings->openrouteservice_api_key,
+                    'Content-Type' => 'application/json'
+                ])->post('https://api.openrouteservice.org/v2/directions/driving-car/geojson', [
+                    'coordinates' => [
+                        [$storeLng, $storeLat],
+                        [$order->delivery_longitude, $order->delivery_latitude]
+                    ]
+                ]);
+                
+                if ($response->successful()) {
+                    $route = $response->json();
+                }
+            } catch (\Exception $e) {
+                // Do nothing if route fails to load
+            }
+        }
+        
+        return view('online.orders-show', compact('order', 'route', 'settings'));
     }
 
     public function edit(OnlineOrder $order)

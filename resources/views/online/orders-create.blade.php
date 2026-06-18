@@ -55,6 +55,19 @@
                             <input type="text" name="delivery_address" id="customerAddress" value="{{ old('delivery_address') }}" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
                         </div>
                     </div>
+                    
+                    <!-- Location Picker -->
+                    <div class="mt-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Delivery Location (Optional)</label>
+                        <div class="flex gap-3 mb-3">
+                            <input type="number" step="0.0000001" name="delivery_latitude" id="deliveryLatitude" value="{{ old('delivery_latitude') }}" class="form-input w-full" placeholder="Latitude">
+                            <input type="number" step="0.0000001" name="delivery_longitude" id="deliveryLongitude" value="{{ old('delivery_longitude') }}" class="form-input w-full" placeholder="Longitude">
+                            <button type="button" id="getCurrentLocationBtn" class="bg-blue-100 text-blue-700 px-4 py-2 rounded-lg hover:bg-blue-200 transition-colors">
+                                <i class="fas fa-location-crosshairs mr-1"></i> Current
+                            </button>
+                        </div>
+                        <div id="createOrderMap" class="w-full h-[300px] rounded-lg border border-gray-300"></div>
+                    </div>
                 </div>
 
                 <!-- Order Details -->
@@ -172,12 +185,63 @@
     </div>
 </div>
 
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 <script>
 let itemIndex = 1;
+let createOrderMap;
+let marker;
 
 document.addEventListener('DOMContentLoaded', function() {
     // Initial setup
     updateOrderSummary();
+    
+    // Initialize location picker map
+    const initialLat = parseFloat(document.getElementById('deliveryLatitude').value) || -3.3869;
+    const initialLng = parseFloat(document.getElementById('deliveryLongitude').value) || 36.6883;
+    createOrderMap = L.map('createOrderMap').setView([initialLat, initialLng], 12);
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(createOrderMap);
+    
+    marker = L.marker([initialLat, initialLng], { draggable: true }).addTo(createOrderMap);
+    
+    marker.on('dragend', function(e) {
+        const pos = marker.getLatLng();
+        document.getElementById('deliveryLatitude').value = pos.lat.toFixed(7);
+        document.getElementById('deliveryLongitude').value = pos.lng.toFixed(7);
+    });
+    
+    createOrderMap.on('click', function(e) {
+        marker.setLatLng(e.latlng);
+        document.getElementById('deliveryLatitude').value = e.latlng.lat.toFixed(7);
+        document.getElementById('deliveryLongitude').value = e.latlng.lng.toFixed(7);
+    });
+    
+    // Update marker when inputs change
+    document.getElementById('deliveryLatitude').addEventListener('input', updateMarkerFromInputs);
+    document.getElementById('deliveryLongitude').addEventListener('input', updateMarkerFromInputs);
+    
+    function updateMarkerFromInputs() {
+        const lat = parseFloat(document.getElementById('deliveryLatitude').value);
+        const lng = parseFloat(document.getElementById('deliveryLongitude').value);
+        if (!isNaN(lat) && !isNaN(lng)) {
+            marker.setLatLng([lat, lng]);
+            createOrderMap.setView([lat, lng], createOrderMap.getZoom());
+        }
+    }
+    
+    // Get current location button
+    document.getElementById('getCurrentLocationBtn').addEventListener('click', function() {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(function(position) {
+                const lat = position.coords.latitude;
+                const lng = position.coords.longitude;
+                document.getElementById('deliveryLatitude').value = lat.toFixed(7);
+                document.getElementById('deliveryLongitude').value = lng.toFixed(7);
+                marker.setLatLng([lat, lng]);
+                createOrderMap.setView([lat, lng], 15);
+            });
+        }
+    });
     
     // Customer select change
     document.getElementById('customerSelect').addEventListener('change', function() {

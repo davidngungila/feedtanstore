@@ -75,36 +75,52 @@
         @if($order->delivery_latitude && $order->delivery_longitude)
             <div class="card rounded-2xl overflow-hidden mb-6">
                 <div class="p-4 border-b">
-                    <h4 class="font-semibold text-primary-900">Delivery Location</h4>
+                    <h4 class="font-semibold text-primary-900">Delivery Location & Route</h4>
                 </div>
                 <div id="order-map" class="w-full h-[400px]"></div>
             </div>
 
-            <script src="https://cdn.jsdelivr.net/npm/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
+            <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
+            <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
             <script>
-                const orderMap = new maplibregl.Map({
-                    container: 'order-map',
-                    style: 'https://demotiles.maplibre.org/style.json',
-                    center: [{{ $order->delivery_longitude }}, {{ $order->delivery_latitude }}],
-                    zoom: 10
-                });
-
-                orderMap.addControl(new maplibregl.NavigationControl());
-
-                const el = document.createElement('div');
-                el.className = 'bg-orange-500 text-white p-3 rounded-full text-sm font-bold shadow-lg';
-                el.innerHTML = '<i class="fas fa-home"></i>';
+                const storeLat = {{ $settings->store_latitude ?? -3.3869 }};
+                const storeLng = {{ $settings->store_longitude ?? 36.6883 }};
+                const orderLat = {{ $order->delivery_latitude }};
+                const orderLng = {{ $order->delivery_longitude }};
+                const route = @json($route);
                 
-                new maplibregl.Marker(el)
-                    .setLngLat([{{ $order->delivery_longitude }}, {{ $order->delivery_latitude }}])
-                    .setPopup(new maplibregl.Popup({ offset: 25 }).setHTML(`
-                        <div class="p-3">
+                const orderMap = L.map('order-map').setView([(storeLat + orderLat) / 2, (storeLng + orderLng) / 2], 12);
+                L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(orderMap);
+                
+                // Add store marker
+                L.marker([storeLat, storeLng])
+                    .addTo(orderMap)
+                    .bindPopup(`<strong>Store</strong>`).openPopup();
+                
+                // Add order marker
+                L.circleMarker([orderLat, orderLng], {
+                    radius: 8,
+                    fillColor: '#f97316',
+                    color: '#fff',
+                    weight: 2,
+                    fillOpacity: 0.8
+                })
+                    .addTo(orderMap)
+                    .bindPopup(`
+                        <div class="p-2">
                             <h4 class="font-bold text-sm">Delivery Location</h4>
                             <p class="text-xs text-gray-600">{{ $order->customer_name }}</p>
                             <p class="text-xs text-gray-500 mt-1">{{ $order->delivery_address }}</p>
                         </div>
-                    `))
-                    .addTo(orderMap);
+                    `);
+                
+                // Add route if available
+                if (route && route.features && route.features.length > 0) {
+                    const coords = route.features[0].geometry.coordinates;
+                    const points = coords.map(c => [c[1], c[0]]);
+                    L.polyline(points, { color: '#3b82f6', weight: 4, opacity: 0.7 }).addTo(orderMap);
+                    orderMap.fitBounds(points, { padding: [50, 50] });
+                }
             </script>
         @endif
 
