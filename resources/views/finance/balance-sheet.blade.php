@@ -23,23 +23,23 @@
             <div class="space-y-3 mb-6">
                 <div class="flex justify-between items-center py-2 border-b border-gray-100 gap-4">
                     <span class="text-gray-600 flex-shrink-0">Cash on Hand</span>
-                    <span class="font-semibold break-all text-right">TZS {{ number_format($cashBalance, 2) }}</span>
+                    <span class="font-semibold text-sm md:text-base truncate text-right">TZS {{ number_format($cashBalance, 2) }}</span>
                 </div>
                 <div class="flex justify-between items-center py-2 border-b border-gray-100 gap-4">
                     <span class="text-gray-600 flex-shrink-0">Bank Balance</span>
-                    <span class="font-semibold break-all text-right">TZS {{ number_format($bankBalance, 2) }}</span>
+                    <span class="font-semibold text-sm md:text-base truncate text-right">TZS {{ number_format($bankBalance, 2) }}</span>
                 </div>
                 <div class="flex justify-between items-center py-2 border-b border-gray-100 gap-4">
                     <span class="text-gray-600 flex-shrink-0">Mobile Money Balance</span>
-                    <span class="font-semibold break-all text-right">TZS {{ number_format($mobileMoneyBalance, 2) }}</span>
+                    <span class="font-semibold text-sm md:text-base truncate text-right">TZS {{ number_format($mobileMoneyBalance, 2) }}</span>
                 </div>
                 <div class="flex justify-between items-center py-2 border-b border-gray-100 gap-4">
                     <span class="text-gray-600 flex-shrink-0">Inventory Value</span>
-                    <span class="font-semibold break-all text-right">TZS {{ number_format($inventoryValue, 2) }}</span>
+                    <span class="font-semibold text-sm md:text-base truncate text-right">TZS {{ number_format($inventoryValue, 2) }}</span>
                 </div>
                 <div class="flex justify-between items-center py-2 border-b border-gray-100 gap-4">
                     <span class="text-gray-600 flex-shrink-0">Accounts Receivable</span>
-                    <span class="font-semibold break-all text-right">TZS {{ number_format($accountsReceivable, 2) }}</span>
+                    <span class="font-semibold text-sm md:text-base truncate text-right">TZS {{ number_format($accountsReceivable, 2) }}</span>
                 </div>
             </div>
 
@@ -49,7 +49,7 @@
             @endphp
             <div class="flex justify-between items-center py-3 border-t-2 border-primary-200 bg-primary-50 px-3 rounded-lg gap-4">
                 <span class="font-bold text-primary-900 flex-shrink-0">Total Assets</span>
-                <span class="font-bold text-primary-900 text-lg break-all text-right">TZS {{ number_format($totalAssets, 2) }}</span>
+                <span class="font-bold text-primary-900 text-base md:text-lg truncate text-right">TZS {{ number_format($totalAssets, 2) }}</span>
             </div>
         </div>
 
@@ -62,7 +62,7 @@
             <div class="space-y-3 mb-6">
                 <div class="flex justify-between items-center py-2 border-b border-gray-100 gap-4">
                     <span class="text-gray-600 flex-shrink-0">Accounts Payable</span>
-                    <span class="font-semibold break-all text-right">TZS {{ number_format($accountsPayable, 2) }}</span>
+                    <span class="font-semibold text-sm md:text-base truncate text-right">TZS {{ number_format($accountsPayable, 2) }}</span>
                 </div>
             </div>
 
@@ -71,11 +71,11 @@
             <div class="space-y-3 mb-6">
                 <div class="flex justify-between items-center py-2 border-b border-gray-100 gap-4">
                     <span class="text-gray-600 flex-shrink-0">Capital</span>
-                    <span class="font-semibold break-all text-right">TZS {{ number_format($totalCapital, 2) }}</span>
+                    <span class="font-semibold text-sm md:text-base truncate text-right">TZS {{ number_format($totalCapital, 2) }}</span>
                 </div>
                 <div class="flex justify-between items-center py-2 border-b border-gray-100 gap-4">
                     <span class="text-gray-600 flex-shrink-0">Retained Earnings</span>
-                    <span class="font-semibold break-all text-right">TZS {{ number_format($retainedEarnings, 2) }}</span>
+                    <span class="font-semibold text-sm md:text-base truncate text-right">TZS {{ number_format($retainedEarnings, 2) }}</span>
                 </div>
             </div>
 
@@ -85,7 +85,7 @@
             @endphp
             <div class="flex justify-between items-center py-3 border-t-2 border-primary-200 bg-primary-50 px-3 rounded-lg gap-4">
                 <span class="font-bold text-primary-900 flex-shrink-0">Total Liabilities & Equity</span>
-                <span class="font-bold text-primary-900 text-lg break-all text-right">TZS {{ number_format($totalLiabilitiesAndEquity, 2) }}</span>
+                <span class="font-bold text-primary-900 text-base md:text-lg truncate text-right">TZS {{ number_format($totalLiabilitiesAndEquity, 2) }}</span>
             </div>
         </div>
     </div>

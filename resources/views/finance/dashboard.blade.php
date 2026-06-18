@@ -11,7 +11,7 @@
                 <h3 class="text-sm font-medium text-gray-600">Total Income</h3>
                 <i class="fas fa-arrow-up text-green-600 text-2xl flex-shrink-0"></i>
             </div>
-            <p class="text-xl md:text-2xl lg:text-3xl font-bold text-gray-800 break-all">TZS {{ number_format($totalIncome, 2) }}</p>
+            <p class="text-lg md:text-xl lg:text-2xl xl:text-3xl font-bold text-gray-800 truncate">TZS {{ number_format($totalIncome, 2) }}</p>
         </div>
         
         <div class="card rounded-2xl p-6 bg-gradient-to-br from-red-50 to-red-100 border border-red-200">
@@ -19,7 +19,7 @@
                 <h3 class="text-sm font-medium text-gray-600">Total Expenses</h3>
                 <i class="fas fa-arrow-down text-red-600 text-2xl flex-shrink-0"></i>
             </div>
-            <p class="text-xl md:text-2xl lg:text-3xl font-bold text-gray-800 break-all">TZS {{ number_format($totalExpenses, 2) }}</p>
+            <p class="text-lg md:text-xl lg:text-2xl xl:text-3xl font-bold text-gray-800 truncate">TZS {{ number_format($totalExpenses, 2) }}</p>
         </div>
         
         <div class="card rounded-2xl p-6 bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200">
@@ -27,7 +27,7 @@
                 <h3 class="text-sm font-medium text-gray-600">Cash on Hand</h3>
                 <i class="fas fa-money-bill text-blue-600 text-2xl flex-shrink-0"></i>
             </div>
-            <p class="text-xl md:text-2xl lg:text-3xl font-bold text-gray-800 break-all">TZS {{ number_format($cashOnHand, 2) }}</p>
+            <p class="text-lg md:text-xl lg:text-2xl xl:text-3xl font-bold text-gray-800 truncate">TZS {{ number_format($cashOnHand, 2) }}</p>
         </div>
         
         <div class="card rounded-2xl p-6 bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200">
@@ -35,7 +35,7 @@
                 <h3 class="text-sm font-medium text-gray-600">Bank & Mobile Balance</h3>
                 <i class="fas fa-university text-purple-600 text-2xl flex-shrink-0"></i>
             </div>
-            <p class="text-xl md:text-2xl lg:text-3xl font-bold text-gray-800 break-all">TZS {{ number_format($bankBalance + $mobileMoneyBalance, 2) }}</p>
+            <p class="text-lg md:text-xl lg:text-2xl xl:text-3xl font-bold text-gray-800 truncate">TZS {{ number_format($bankBalance + $mobileMoneyBalance, 2) }}</p>
         </div>
     </div>
     
