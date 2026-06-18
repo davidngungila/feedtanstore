@@ -6,7 +6,7 @@
 <div class="animate-[fadeIn_0.4s_ease]">
     <!-- Mobile Money Accounts Summary -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-        @foreach($accounts as $account)
+        @forelse($accounts as $account)
             <div class="card rounded-2xl p-6">
                 <div class="flex items-center justify-between mb-4">
                     <div>
@@ -28,7 +28,7 @@
                     </a>
                 </div>
             </div>
-        @endforeach
+        @endforelse
     </div>
     
     <!-- Reconciliation Table -->
