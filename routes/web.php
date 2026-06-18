@@ -14,6 +14,7 @@ Route::get('/sales/receipts/{sale}/download', [\App\Http\Controllers\ReceiptCont
 
 // Public Shop Routes
 Route::get('/shop', [\App\Http\Controllers\OnlineOrderController::class, 'shop'])->name('shop.index');
+Route::get('/shop/product/{product}', [\App\Http\Controllers\OnlineOrderController::class, 'showProduct'])->name('shop.product');
 Route::get('/shop/checkout', function () {
     return view('shop.checkout');
 })->name('shop.checkout');

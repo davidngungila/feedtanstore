@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Feedtan Store - Shop Online</title>
+    <title>{{ $product->name }} - Shop</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -41,94 +41,113 @@
             </div>
         </div>
     </div>
-    
+
     <!-- Main Header -->
     <header class="bg-white shadow-sm sticky top-0 z-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-            <div class="flex items-center gap-3">
+            <a href="{{ route('shop.index') }}" class="flex items-center gap-3">
                 <img src="{{ asset('feedtanstorelogo.png') }}" alt="Feedtan Store" class="h-12">
-            </div>
-            
-            <!-- Desktop Navigation -->
+            </a>
+
             <nav class="hidden md:flex items-center gap-8">
-                <a href="#shop" class="text-gray-700 hover:text-green-600 font-medium">Shop</a>
-                <a href="#products" class="text-gray-700 hover:text-green-600 font-medium">Products</a>
-                <a href="#contact" class="text-gray-700 hover:text-green-600 font-medium">Contact</a>
+                <a href="{{ route('shop.index') }}#shop" class="text-gray-700 hover:text-green-600 font-medium">Shop</a>
+                <a href="{{ route('shop.index') }}#products" class="text-gray-700 hover:text-green-600 font-medium">Products</a>
+                <a href="{{ route('shop.index') }}#contact" class="text-gray-700 hover:text-green-600 font-medium">Contact</a>
             </nav>
-            
+
             <div class="flex items-center gap-4">
+                <a href="{{ route('shop.index') }}" class="flex items-center gap-2 text-gray-700 hover:text-green-600">
+                    <i class="fas fa-arrow-left text-lg"></i>
+                    <span class="hidden sm:inline">Back</span>
+                </a>
                 <button id="cartBtn" class="relative p-2 text-gray-700 hover:text-green-600">
                     <i class="fas fa-shopping-cart text-xl"></i>
                     <span id="cartCount" class="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center hidden">0</span>
                 </button>
-                
-                <!-- Mobile Menu Button -->
-                <button id="mobileMenuBtn" class="md:hidden p-2 text-gray-700 hover:text-green-600">
-                    <i class="fas fa-bars text-xl"></i>
-                </button>
-            </div>
-        </div>
-        
-        <!-- Mobile Navigation -->
-        <div id="mobileMenu" class="md:hidden hidden bg-white border-t border-gray-100">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col gap-4">
-                <a href="#shop" class="text-gray-700 hover:text-green-600 font-medium py-2">Shop</a>
-                <a href="#products" class="text-gray-700 hover:text-green-600 font-medium py-2">Products</a>
-                <a href="#contact" class="text-gray-700 hover:text-green-600 font-medium py-2">Contact</a>
             </div>
         </div>
     </header>
 
-    <!-- Hero Section -->
-    <section id="shop" class="bg-gradient-to-r from-green-600 to-green-700 text-white py-16">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h1 class="text-4xl md:text-5xl font-bold mb-4">Shop Online with Feedtan Store</h1>
-            <p class="text-xl opacity-90 mb-8">Quality products delivered right to your door!</p>
-            <a href="#products" class="inline-block bg-white text-green-700 font-semibold px-8 py-3 rounded-lg hover:bg-gray-100 transition">
-                Browse Products
-            </a>
-        </div>
-    </section>
+    <!-- Product Detail -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+            <!-- Product Images -->
+            <div class="space-y-4">
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden aspect-square flex items-center justify-center p-6">
+                    @php
+                        $primaryImage = $product->images->firstWhere('is_primary', true);
+                        $imageToShow = $primaryImage ? $primaryImage->image_path : $product->image;
+                    @endphp
+                    @if($imageToShow)
+                        <img id="mainImage" src="{{ $imageToShow }}" alt="{{ $product->name }}" class="max-w-full max-h-full object-contain">
+                    @else
+                        <i class="fas fa-box text-8xl text-gray-300"></i>
+                    @endif
+                </div>
 
-    <!-- Products Section -->
-    <section id="products" class="py-12">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center mb-10">
-                <h2 class="text-3xl font-bold text-gray-900 mb-2">Our Products</h2>
-                <p class="text-gray-600">Choose from our wide range of quality products</p>
+                @if($product->images->count() > 1)
+                    <div class="grid grid-cols-4 gap-3">
+                        @foreach($product->images as $image)
+                            <button onclick="changeImage('{{ $image->image_path }}')" class="bg-white rounded-xl shadow-sm border border-gray-100 aspect-square overflow-hidden hover:border-green-500 transition flex items-center justify-center p-2">
+                                <img src="{{ $image->image_path }}" alt="{{ $product->name }}" class="max-w-full max-h-full object-contain">
+                            </button>
+                        @endforeach
+                    </div>
+                @endif
             </div>
-            <div id="productGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            @foreach($products as $product)
-                <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition flex flex-col" id="product-{{ $product->id }}">
-                    <a href="{{ route('shop.product', $product) }}" class="h-48 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center overflow-hidden">
-                        @php
-                            $primaryImage = $product->images->firstWhere('is_primary', true);
-                            $imageToShow = $primaryImage ? $primaryImage->image_path : $product->image;
-                        @endphp
-                        @if($imageToShow)
-                            <img src="{{ $imageToShow }}" alt="{{ $product->name }}" class="max-w-full max-h-full object-contain">
-                        @else
-                            <i class="fas fa-box text-6xl text-gray-400"></i>
+
+            <!-- Product Info -->
+            <div class="space-y-6">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900 mb-2">{{ $product->name }}</h1>
+                    <div class="flex items-center gap-4 text-sm text-gray-500">
+                        @if($product->category)
+                            <span><i class="fas fa-folder mr-2"></i>{{ $product->category->name }}</span>
                         @endif
-                    </a>
-                    <div class="p-5 flex-1 flex flex-col">
-                        <a href="{{ route('shop.product', $product) }}">
-                            <h3 class="font-semibold text-lg text-gray-900 mb-1 hover:text-green-700 transition">{{ $product->name }}</h3>
-                        </a>
-                        <p class="text-xs text-gray-500 mb-3">{{ $product->category->name ?? 'Uncategorized' }} • {{ $product->brand->name ?? 'Generic' }}</p>
-                        <div class="flex items-center justify-between mb-4">
-                            <span class="text-2xl font-bold text-green-700">TZS {{ number_format($product->selling_price, 2) }}</span>
-                            <span class="text-xs text-gray-500">{{ $product->quantity }} in stock</span>
-                        </div>
-                        <button onclick="addToCart({{ $product->id }}, '{{ addslashes($product->name) }}', {{ $product->selling_price }})" class="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition font-medium">
-                            <i class="fas fa-cart-plus mr-2"></i> Add to Cart
-                        </button>
+                        @if($product->brand)
+                            <span><i class="fas fa-tag mr-2"></i>{{ $product->brand->name }}</span>
+                        @endif
+                        <span class="{{ $product->quantity > 0 ? 'text-green-600' : 'text-red-600' }}">
+                            <i class="fas fa-check-circle mr-2"></i>{{ $product->quantity > 0 ? $product->quantity . ' in stock' : 'Out of stock' }}
+                        </span>
                     </div>
                 </div>
-            @endforeach
+
+                <div class="text-4xl font-bold text-green-700">
+                    TZS {{ number_format($product->selling_price, 2) }}
+                </div>
+
+                @if($product->description)
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                        <h3 class="font-semibold text-lg mb-3 text-gray-900">Description</h3>
+                        <p class="text-gray-700">{{ $product->description }}</p>
+                    </div>
+                @endif
+
+                <div class="flex gap-4">
+                    <div class="flex items-center gap-2">
+                        <label class="font-semibold text-gray-900">Qty:</label>
+                        <input type="number" id="quantity" value="1" min="1" max="{{ $product->quantity }}" class="w-20 border border-gray-300 rounded-lg px-3 py-2 text-center focus:outline-none focus:ring-2 focus:ring-green-500">
+                    </div>
+                    <button onclick="addToCart({{ $product->id }}, '{{ addslashes($product->name) }}', {{ $product->selling_price }})" class="flex-1 bg-green-600 text-white py-3 px-8 rounded-lg hover:bg-green-700 transition font-semibold flex items-center justify-center gap-2" {{ $product->quantity <= 0 ? 'disabled' : '' }}>
+                        <i class="fas fa-cart-plus"></i>
+                        Add to Cart
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <a href="{{ route('shop.index') }}" class="bg-gray-200 hover:bg-gray-300 text-gray-900 py-3 px-8 rounded-lg transition font-semibold flex items-center justify-center gap-2">
+                        <i class="fas fa-arrow-left"></i>
+                        Continue Shopping
+                    </a>
+                    <a href="{{ route('shop.checkout') }}" class="bg-blue-600 hover:bg-blue-700 text-white py-3 px-8 rounded-lg transition font-semibold flex items-center justify-center gap-2">
+                        <i class="fas fa-credit-card"></i>
+                        Checkout
+                    </a>
+                </div>
+            </div>
         </div>
-        </div>
-    </section>
+    </main>
 
     <!-- Cart Sidebar -->
     <div id="cartSidebar" class="fixed right-0 top-0 h-full w-full max-w-md bg-white shadow-2xl transform translate-x-full transition-transform duration-300 z-50">
@@ -161,18 +180,6 @@
     <!-- Cart Sidebar Overlay -->
     <div id="cartOverlay" class="fixed inset-0 bg-black bg-opacity-50 hidden z-40" onclick="closeCart()"></div>
 
-    <!-- Floating Action Buttons -->
-    <div class="fixed bottom-6 right-6 flex flex-col gap-4 z-40">
-        <a href="{{ route('shop.checkout') }}" id="floatingCheckoutBtn" class="bg-green-600 text-white p-4 rounded-full shadow-lg hover:bg-green-700 transition flex items-center gap-2 hidden">
-            <i class="fas fa-credit-card text-xl"></i>
-            <span class="text-sm font-semibold hidden md:inline">Checkout</span>
-        </a>
-        <a href="https://wa.me/255700000000" target="_blank" class="bg-green-500 text-white p-4 rounded-full shadow-lg hover:bg-green-600 transition flex items-center gap-2">
-            <i class="fab fa-whatsapp text-xl"></i>
-            <span class="text-sm font-semibold hidden md:inline">Book on WhatsApp</span>
-        </a>
-    </div>
-
     <!-- Footer -->
     <footer class="bg-gray-900 text-white py-10">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -184,8 +191,8 @@
                 <div>
                     <h4 class="font-semibold text-lg mb-4">Quick Links</h4>
                     <ul class="space-y-2 text-gray-400">
-                        <li><a href="#shop" class="hover:text-white transition">Shop</a></li>
-                        <li><a href="#products" class="hover:text-white transition">Products</a></li>
+                        <li><a href="{{ route('shop.index') }}#shop" class="hover:text-white transition">Shop</a></li>
+                        <li><a href="{{ route('shop.index') }}#products" class="hover:text-white transition">Products</a></li>
                     </ul>
                 </div>
                 <div id="contact">
@@ -212,12 +219,17 @@
             }
         }
 
+        function changeImage(imageSrc) {
+            document.getElementById('mainImage').src = imageSrc;
+        }
+
         function addToCart(id, name, price) {
+            const quantity = parseInt(document.getElementById('quantity').value) || 1;
             const existing = cart.find(item => item.id === id);
             if (existing) {
-                existing.quantity += 1;
+                existing.quantity += quantity;
             } else {
-                cart.push({ id, name, price, quantity: 1 });
+                cart.push({ id, name, price, quantity });
             }
             saveCart();
             updateCartDisplay();
@@ -257,7 +269,6 @@
             const cartFooter = document.getElementById('cartFooter');
             const emptyCart = document.getElementById('emptyCart');
             const cartTotal = document.getElementById('cartTotal');
-            const floatingCheckoutBtn = document.getElementById('floatingCheckoutBtn');
 
             const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
             
@@ -266,7 +277,6 @@
                 cartCount.classList.remove('hidden');
                 emptyCart.classList.add('hidden');
                 cartFooter.classList.remove('hidden');
-                floatingCheckoutBtn.classList.remove('hidden');
                 
                 let itemsHtml = '';
                 cart.forEach(item => {
@@ -301,7 +311,6 @@
                 cartCount.classList.add('hidden');
                 emptyCart.classList.remove('hidden');
                 cartFooter.classList.add('hidden');
-                floatingCheckoutBtn.classList.add('hidden');
                 cartItemsList.innerHTML = '';
             }
         }
@@ -317,20 +326,6 @@
         }
 
         document.getElementById('cartBtn').addEventListener('click', openCart);
-        
-        // Mobile menu toggle
-        document.getElementById('mobileMenuBtn').addEventListener('click', function() {
-            const mobileMenu = document.getElementById('mobileMenu');
-            mobileMenu.classList.toggle('hidden');
-        });
-        
-        // Close mobile menu when clicking on links
-        const mobileLinks = document.querySelectorAll('#mobileMenu a');
-        mobileLinks.forEach(link => {
-            link.addEventListener('click', function() {
-                document.getElementById('mobileMenu').classList.add('hidden');
-            });
-        });
 
         initCart();
     </script>

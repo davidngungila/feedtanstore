@@ -69,11 +69,17 @@ class OnlineOrderController extends Controller
         $products = Product::where('is_active', true)
             ->where('is_available_online', true)
             ->where('quantity', '>', 0)
-            ->with(['category', 'brand'])
+            ->with(['category', 'brand', 'images'])
             ->latest()
             ->get();
 
         return view('shop.index', compact('products'));
+    }
+
+    public function showProduct(Product $product)
+    {
+        $product->load(['category', 'brand', 'images']);
+        return view('shop.product', compact('product'));
     }
 
     public function create()
@@ -368,6 +374,7 @@ class OnlineOrderController extends Controller
             'delivery_latitude' => 'nullable|numeric',
             'delivery_longitude' => 'nullable|numeric',
             'delivery_fee' => 'nullable|numeric|min:0',
+            'payment_method' => 'nullable|in:cash,online,bank',
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
             'items.*.quantity' => 'required|integer|min:1'
@@ -407,6 +414,7 @@ class OnlineOrderController extends Controller
             'delivery_longitude' => $request->delivery_longitude,
             'status' => 'pending',
             'payment_status' => 'pending',
+            'payment_method' => $request->payment_method,
             'subtotal' => $subtotal,
             'delivery_fee' => $deliveryFee,
             'total' => $total,

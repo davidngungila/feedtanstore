@@ -30,6 +30,20 @@
                     +255 700 000 000
                 </span>
             </div>
+            <div class="flex items-center gap-4 text-sm">
+                <a href="#" class="hover:text-green-200 transition">
+                    <i class="fab fa-whatsapp text-lg"></i>
+                </a>
+                <a href="#" class="hover:text-green-200 transition">
+                    <i class="fab fa-facebook text-lg"></i>
+                </a>
+                <a href="#" class="hover:text-green-200 transition">
+                    <i class="fab fa-instagram text-lg"></i>
+                </a>
+                <a href="#" class="hover:text-green-200 transition">
+                    <i class="fab fa-twitter text-lg"></i>
+                </a>
+            </div>
         </div>
     </div>
     
@@ -71,6 +85,20 @@
                 <div>
                     <p class="text-gray-500">Phone</p>
                     <p class="font-semibold text-gray-900">{{ $order->customer_phone }}</p>
+                </div>
+                <div>
+                    <p class="text-gray-500">Payment Method</p>
+                    <p class="font-semibold text-gray-900">
+                        @if($order->payment_method === 'cash')
+                            Cash
+                        @elseif($order->payment_method === 'online')
+                            Online Payment
+                        @elseif($order->payment_method === 'bank')
+                            Bank Transfer
+                        @else
+                            N/A
+                        @endif
+                    </p>
                 </div>
                 <div>
                     <p class="text-gray-500">Payment Status</p>
