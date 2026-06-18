@@ -233,7 +233,6 @@
             }
             saveCart();
             updateCartDisplay();
-            openCart();
         }
 
         function removeFromCart(id) {
