@@ -45,7 +45,8 @@ class StoreSettingController extends Controller
             'barcode_type' => 'nullable|string|max:255',
             'barcode_width' => 'nullable|integer|min:100|max:1000',
             'barcode_height' => 'nullable|integer|min:50|max:500',
-            'barcode_show_text' => 'boolean'
+            'barcode_show_text' => 'boolean',
+            'openrouteservice_api_key' => 'nullable|string'
         ]);
 
         $data = $request->all();

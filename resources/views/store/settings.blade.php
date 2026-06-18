@@ -67,6 +67,21 @@
                 </div>
             </div>
 
+            <!-- Map / OpenRouteService Section -->
+            <div class="mb-8">
+                <h3 class="text-lg font-semibold text-primary-900 mb-4 border-b border-gray-200 pb-2">
+                    <i class="fas fa-map mr-2"></i>
+                    Map & OpenRouteService
+                </h3>
+                <div class="p-4 bg-gray-50 rounded-xl border border-gray-200">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">OpenRouteService API Key</label>
+                        <input type="text" name="openrouteservice_api_key" value="{{ $settings->openrouteservice_api_key }}" class="form-input w-full" placeholder="Enter your OpenRouteService API key">
+                        <p class="text-xs text-gray-500 mt-2">Get your API key from <a href="https://openrouteservice.org/dev/#/api-docs" target="_blank" class="text-primary-600 hover:underline">openrouteservice.org</a></p>
+                    </div>
+                </div>
+            </div>
+            
             <!-- Kiosk Mode Section -->
             <div class="mb-8">
                 <h3 class="text-lg font-semibold text-primary-900 mb-4 border-b border-gray-200 pb-2">
