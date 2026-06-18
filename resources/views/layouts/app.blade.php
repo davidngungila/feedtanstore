@@ -1392,7 +1392,7 @@
     </header>
 
     <!-- PAGES CONTAINER -->
-    <main class="flex-1 overflow-y-auto p-4 lg:p-6 main-bg">
+    <main class="flex-1 overflow-y-auto overflow-x-auto p-4 lg:p-6 main-bg min-w-0">
       @yield('content')
     </main>
   </div>
