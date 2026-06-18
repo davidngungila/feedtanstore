@@ -181,6 +181,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const kioskOptions = document.getElementById('kioskOptions');
     
     if (kioskModeCheckbox) {
+        // Set initial display
+        kioskOptions.style.display = kioskModeCheckbox.checked ? 'block' : 'none';
+        
         kioskModeCheckbox.addEventListener('change', function() {
             kioskOptions.style.display = this.checked ? 'block' : 'none';
         });
