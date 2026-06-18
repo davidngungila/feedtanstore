@@ -67,9 +67,15 @@ class DeliveryManagementController extends Controller
         return view('online.delivery-map', compact('activeOrders', 'riders', 'routes', 'storeLat', 'storeLng', 'statusFilter', 'allStatuses'));
     }
 
-    public function customerMap()
+    public function customerMap(Request $request)
     {
+        $statusFilter = $request->input('status', ['pending', 'confirmed', 'preparing', 'ready', 'out_for_delivery', 'delivered', 'cancelled']);
+        if (!is_array($statusFilter)) {
+            $statusFilter = [$statusFilter];
+        }
+        
         $orders = OnlineOrder::with(['items', 'rider'])
+            ->whereIn('status', $statusFilter)
             ->whereNotNull('delivery_latitude')
             ->whereNotNull('delivery_longitude')
             ->latest()
@@ -105,6 +111,7 @@ class DeliveryManagementController extends Controller
             }
         }
 
-        return view('online.customer-locations', compact('orders', 'routes', 'storeLat', 'storeLng'));
+        $allStatuses = ['pending', 'confirmed', 'preparing', 'ready', 'out_for_delivery', 'delivered', 'cancelled'];
+        return view('online.customer-locations', compact('orders', 'routes', 'storeLat', 'storeLng', 'statusFilter', 'allStatuses'));
     }
 }
