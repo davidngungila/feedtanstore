@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Expense;
+use App\Models\Budget;
 use App\Models\BankAccount;
 use App\Models\MobileMoneyAccount;
 use App\Models\AccountingEntry;
@@ -13,7 +14,7 @@ class ExpenseController extends Controller
 {
     public function index()
     {
-        $expenses = Expense::with(['user', 'bankAccount', 'mobileMoneyAccount'])->latest()->get();
+        $expenses = Expense::with(['user', 'bankAccount', 'mobileMoneyAccount', 'budget'])->latest()->get();
         return view('finance.expenses', compact('expenses'));
     }
 
@@ -21,7 +22,8 @@ class ExpenseController extends Controller
     {
         $bankAccounts = BankAccount::where('is_active', true)->get();
         $mobileMoneyAccounts = MobileMoneyAccount::where('is_active', true)->get();
-        return view('finance.expenses-create', compact('bankAccounts', 'mobileMoneyAccounts'));
+        $budgets = Budget::where('is_active', true)->get();
+        return view('finance.expenses-create', compact('bankAccounts', 'mobileMoneyAccounts', 'budgets'));
     }
 
     public function store(Request $request)
@@ -33,7 +35,8 @@ class ExpenseController extends Controller
             'amount' => 'required|numeric|min:0',
             'payment_method' => 'required|string',
             'bank_account_id' => 'nullable|exists:bank_accounts,id',
-            'mobile_money_account_id' => 'nullable|exists:mobile_money_accounts,id'
+            'mobile_money_account_id' => 'nullable|exists:mobile_money_accounts,id',
+            'budget_id' => 'nullable|exists:budgets,id'
         ]);
 
         $expense = Expense::create([
@@ -45,6 +48,7 @@ class ExpenseController extends Controller
             'payment_method' => $request->payment_method,
             'bank_account_id' => $request->bank_account_id,
             'mobile_money_account_id' => $request->mobile_money_account_id,
+            'budget_id' => $request->budget_id,
             'user_id' => Auth::id()
         ]);
 
@@ -55,7 +59,7 @@ class ExpenseController extends Controller
     
     public function show(Expense $expense)
     {
-        $expense->load(['user', 'bankAccount', 'mobileMoneyAccount']);
+        $expense->load(['user', 'bankAccount', 'mobileMoneyAccount', 'budget']);
         $entries = AccountingEntry::where('reference_number', $expense->reference_number)->get();
         return view('finance.expenses-show', compact('expense', 'entries'));
     }
@@ -64,7 +68,8 @@ class ExpenseController extends Controller
     {
         $bankAccounts = BankAccount::where('is_active', true)->get();
         $mobileMoneyAccounts = MobileMoneyAccount::where('is_active', true)->get();
-        return view('finance.expenses-edit', compact('expense', 'bankAccounts', 'mobileMoneyAccounts'));
+        $budgets = Budget::where('is_active', true)->get();
+        return view('finance.expenses-edit', compact('expense', 'bankAccounts', 'mobileMoneyAccounts', 'budgets'));
     }
     
     public function update(Request $request, Expense $expense)
@@ -76,7 +81,8 @@ class ExpenseController extends Controller
             'amount' => 'required|numeric|min:0',
             'payment_method' => 'required|string',
             'bank_account_id' => 'nullable|exists:bank_accounts,id',
-            'mobile_money_account_id' => 'nullable|exists:mobile_money_accounts,id'
+            'mobile_money_account_id' => 'nullable|exists:mobile_money_accounts,id',
+            'budget_id' => 'nullable|exists:budgets,id'
         ]);
         
         // Reverse old accounting entries
@@ -91,6 +97,7 @@ class ExpenseController extends Controller
             'payment_method' => $request->payment_method,
             'bank_account_id' => $request->bank_account_id,
             'mobile_money_account_id' => $request->mobile_money_account_id,
+            'budget_id' => $request->budget_id,
         ]);
         
         // Create new entries

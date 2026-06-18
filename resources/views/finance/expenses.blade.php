@@ -25,6 +25,7 @@
                         <th class="px-4 py-3 text-left text-gray-700">Date</th>
                         <th class="px-4 py-3 text-left text-gray-700">Reference No</th>
                         <th class="px-4 py-3 text-left text-gray-700">Category</th>
+                        <th class="px-4 py-3 text-left text-gray-700">Budget</th>
                         <th class="px-4 py-3 text-left text-gray-700">Description</th>
                         <th class="px-4 py-3 text-left text-gray-700">Amount</th>
                         <th class="px-4 py-3 text-left text-gray-700">Payment Method</th>
@@ -38,6 +39,7 @@
                         <td class="px-4 py-3">{{ $expense->date->format('d/m/Y') }}</td>
                         <td class="px-4 py-3 font-semibold">{{ $expense->reference_number }}</td>
                         <td class="px-4 py-3">{{ $expense->category }}</td>
+                        <td class="px-4 py-3">{{ $expense->budget ? $expense->budget->name : 'No Budget' }}</td>
                         <td class="px-4 py-3">{{ $expense->description ?? 'N/A' }}</td>
                         <td class="px-4 py-3 font-bold text-red-700">TZS {{ number_format($expense->amount, 2) }}</td>
                         <td class="px-4 py-3">{{ $expense->payment_method }}</td>
@@ -60,7 +62,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="8" class="px-4 py-8 text-center text-gray-500">No expenses found.</td>
+                        <td colspan="9" class="px-4 py-8 text-center text-gray-500">No expenses found.</td>
                     </tr>
                     @endforelse
                 </tbody>

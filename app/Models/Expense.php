@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 
 class Expense extends Model {
-    protected $fillable = ['reference_number', 'date', 'category', 'description', 'amount', 'payment_method', 'bank_account_id', 'mobile_money_account_id', 'user_id'];
+    protected $fillable = ['reference_number', 'date', 'category', 'description', 'amount', 'payment_method', 'bank_account_id', 'mobile_money_account_id', 'user_id', 'budget_id'];
     
     protected $casts = [
         'date' => 'date',
@@ -21,5 +21,9 @@ class Expense extends Model {
     
     public function mobileMoneyAccount() {
         return $this->belongsTo(MobileMoneyAccount::class);
+    }
+
+    public function budget() {
+        return $this->belongsTo(Budget::class);
     }
 }

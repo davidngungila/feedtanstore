@@ -275,6 +275,15 @@ Route::middleware('auth')->group(function () {
         // Income Statement
         Route::get('/income-statement', [\App\Http\Controllers\FinanceController::class, 'incomeStatement'])->name('income-statement');
         
+        // Budgets
+        Route::get('/budgets', [\App\Http\Controllers\BudgetController::class, 'index'])->name('budgets');
+        Route::get('/budgets/create', [\App\Http\Controllers\BudgetController::class, 'create'])->name('budgets.create');
+        Route::post('/budgets', [\App\Http\Controllers\BudgetController::class, 'store'])->name('budgets.store');
+        Route::get('/budgets/{budget}', [\App\Http\Controllers\BudgetController::class, 'show'])->name('budgets.show');
+        Route::get('/budgets/{budget}/edit', [\App\Http\Controllers\BudgetController::class, 'edit'])->name('budgets.edit');
+        Route::put('/budgets/{budget}', [\App\Http\Controllers\BudgetController::class, 'update'])->name('budgets.update');
+        Route::delete('/budgets/{budget}', [\App\Http\Controllers\BudgetController::class, 'destroy'])->name('budgets.destroy');
+        
         // Other Finance Pages
         Route::get('/mobile-money-reconciliation', [\App\Http\Controllers\FinanceController::class, 'mobileMoneyReconciliation'])->name('mobile-money-reconciliation');
         Route::get('/accounts-receivable', [\App\Http\Controllers\FinanceController::class, 'accountsReceivable'])->name('accounts-receivable');

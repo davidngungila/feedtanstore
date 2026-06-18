@@ -26,6 +26,10 @@
                 <div class="font-semibold">{{ $expense->category }}</div>
             </div>
             <div>
+                <div class="text-sm text-gray-600 mb-1">Budget</div>
+                <div class="font-semibold">{{ $expense->budget ? $expense->budget->name : 'No Budget' }}</div>
+            </div>
+            <div>
                 <div class="text-sm text-gray-600 mb-1">Amount</div>
                 <div class="font-bold text-red-700 text-2xl">TZS {{ number_format($expense->amount, 2) }}</div>
             </div>
