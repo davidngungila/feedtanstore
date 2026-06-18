@@ -15,7 +15,7 @@
     <!-- Balance Sheet -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <!-- Assets Section -->
-        <div class="card rounded-2xl p-6">
+        <div class="card rounded-2xl p-6 min-w-[300px]">
             <h2 class="text-xl font-bold text-primary-900 mb-4 pb-3 border-b border-gray-200">Assets</h2>
             
             <!-- Current Assets -->
@@ -23,23 +23,23 @@
             <div class="space-y-3 mb-6">
                 <div class="flex justify-between items-center py-2 border-b border-gray-100 gap-4">
                     <span class="text-gray-600 flex-shrink-0">Cash on Hand</span>
-                    <span class="font-semibold whitespace-nowrap text-right" style="font-size: clamp(0.75rem, 0.75vw + 0.5rem, 1rem);">TZS {{ number_format($cashBalance, 2) }}</span>
+                    <span class="font-semibold whitespace-nowrap text-right" style="font-size: clamp(0.625rem, 1vw + 0.5rem, 1rem);">TZS {{ number_format($cashBalance, 2) }}</span>
                 </div>
                 <div class="flex justify-between items-center py-2 border-b border-gray-100 gap-4">
                     <span class="text-gray-600 flex-shrink-0">Bank Balance</span>
-                    <span class="font-semibold whitespace-nowrap text-right" style="font-size: clamp(0.75rem, 0.75vw + 0.5rem, 1rem);">TZS {{ number_format($bankBalance, 2) }}</span>
+                    <span class="font-semibold whitespace-nowrap text-right" style="font-size: clamp(0.625rem, 1vw + 0.5rem, 1rem);">TZS {{ number_format($bankBalance, 2) }}</span>
                 </div>
                 <div class="flex justify-between items-center py-2 border-b border-gray-100 gap-4">
                     <span class="text-gray-600 flex-shrink-0">Mobile Money Balance</span>
-                    <span class="font-semibold whitespace-nowrap text-right" style="font-size: clamp(0.75rem, 0.75vw + 0.5rem, 1rem);">TZS {{ number_format($mobileMoneyBalance, 2) }}</span>
+                    <span class="font-semibold whitespace-nowrap text-right" style="font-size: clamp(0.625rem, 1vw + 0.5rem, 1rem);">TZS {{ number_format($mobileMoneyBalance, 2) }}</span>
                 </div>
                 <div class="flex justify-between items-center py-2 border-b border-gray-100 gap-4">
                     <span class="text-gray-600 flex-shrink-0">Inventory Value</span>
-                    <span class="font-semibold whitespace-nowrap text-right" style="font-size: clamp(0.75rem, 0.75vw + 0.5rem, 1rem);">TZS {{ number_format($inventoryValue, 2) }}</span>
+                    <span class="font-semibold whitespace-nowrap text-right" style="font-size: clamp(0.625rem, 1vw + 0.5rem, 1rem);">TZS {{ number_format($inventoryValue, 2) }}</span>
                 </div>
                 <div class="flex justify-between items-center py-2 border-b border-gray-100 gap-4">
                     <span class="text-gray-600 flex-shrink-0">Accounts Receivable</span>
-                    <span class="font-semibold whitespace-nowrap text-right" style="font-size: clamp(0.75rem, 0.75vw + 0.5rem, 1rem);">TZS {{ number_format($accountsReceivable, 2) }}</span>
+                    <span class="font-semibold whitespace-nowrap text-right" style="font-size: clamp(0.625rem, 1vw + 0.5rem, 1rem);">TZS {{ number_format($accountsReceivable, 2) }}</span>
                 </div>
             </div>
 
@@ -49,12 +49,12 @@
             @endphp
             <div class="flex justify-between items-center py-3 border-t-2 border-primary-200 bg-primary-50 px-3 rounded-lg gap-4">
                 <span class="font-bold text-primary-900 flex-shrink-0">Total Assets</span>
-                <span class="font-bold text-primary-900 whitespace-nowrap text-right" style="font-size: clamp(0.875rem, 1vw + 0.5rem, 1.125rem);">TZS {{ number_format($totalAssets, 2) }}</span>
+                <span class="font-bold text-primary-900 whitespace-nowrap text-right" style="font-size: clamp(0.75rem, 1.1vw + 0.5rem, 1.125rem);">TZS {{ number_format($totalAssets, 2) }}</span>
             </div>
         </div>
 
         <!-- Liabilities & Equity Section -->
-        <div class="card rounded-2xl p-6">
+        <div class="card rounded-2xl p-6 min-w-[300px]">
             <h2 class="text-xl font-bold text-primary-900 mb-4 pb-3 border-b border-gray-200">Liabilities & Equity</h2>
             
             <!-- Liabilities -->
@@ -62,7 +62,7 @@
             <div class="space-y-3 mb-6">
                 <div class="flex justify-between items-center py-2 border-b border-gray-100 gap-4">
                     <span class="text-gray-600 flex-shrink-0">Accounts Payable</span>
-                    <span class="font-semibold whitespace-nowrap text-right" style="font-size: clamp(0.75rem, 0.75vw + 0.5rem, 1rem);">TZS {{ number_format($accountsPayable, 2) }}</span>
+                    <span class="font-semibold whitespace-nowrap text-right" style="font-size: clamp(0.625rem, 1vw + 0.5rem, 1rem);">TZS {{ number_format($accountsPayable, 2) }}</span>
                 </div>
             </div>
 
@@ -71,11 +71,11 @@
             <div class="space-y-3 mb-6">
                 <div class="flex justify-between items-center py-2 border-b border-gray-100 gap-4">
                     <span class="text-gray-600 flex-shrink-0">Capital</span>
-                    <span class="font-semibold whitespace-nowrap text-right" style="font-size: clamp(0.75rem, 0.75vw + 0.5rem, 1rem);">TZS {{ number_format($totalCapital, 2) }}</span>
+                    <span class="font-semibold whitespace-nowrap text-right" style="font-size: clamp(0.625rem, 1vw + 0.5rem, 1rem);">TZS {{ number_format($totalCapital, 2) }}</span>
                 </div>
                 <div class="flex justify-between items-center py-2 border-b border-gray-100 gap-4">
                     <span class="text-gray-600 flex-shrink-0">Retained Earnings</span>
-                    <span class="font-semibold whitespace-nowrap text-right" style="font-size: clamp(0.75rem, 0.75vw + 0.5rem, 1rem);">TZS {{ number_format($retainedEarnings, 2) }}</span>
+                    <span class="font-semibold whitespace-nowrap text-right" style="font-size: clamp(0.625rem, 1vw + 0.5rem, 1rem);">TZS {{ number_format($retainedEarnings, 2) }}</span>
                 </div>
             </div>
 
@@ -85,7 +85,7 @@
             @endphp
             <div class="flex justify-between items-center py-3 border-t-2 border-primary-200 bg-primary-50 px-3 rounded-lg gap-4">
                 <span class="font-bold text-primary-900 flex-shrink-0">Total Liabilities & Equity</span>
-                <span class="font-bold text-primary-900 whitespace-nowrap text-right" style="font-size: clamp(0.875rem, 1vw + 0.5rem, 1.125rem);">TZS {{ number_format($totalLiabilitiesAndEquity, 2) }}</span>
+                <span class="font-bold text-primary-900 whitespace-nowrap text-right" style="font-size: clamp(0.75rem, 1.1vw + 0.5rem, 1.125rem);">TZS {{ number_format($totalLiabilitiesAndEquity, 2) }}</span>
             </div>
         </div>
     </div>
