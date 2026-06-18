@@ -10,12 +10,12 @@ class BankAccountController extends Controller
     public function index()
     {
         $bankAccounts = BankAccount::all();
-        return view('finance.bank-accounts', compact('bankAccounts'));
+        return view('finance.bank', compact('bankAccounts'));
     }
 
     public function create()
     {
-        return view('finance.bank-accounts-create');
+        return view('finance.bank-create');
     }
 
     public function store(Request $request)

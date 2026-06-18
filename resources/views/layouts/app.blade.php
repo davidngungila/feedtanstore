@@ -524,6 +524,10 @@
           <i x-show="!sidebarCollapsed" :class="activeSection === 'finance'?'fa-solid fa-chevron-up':'fa-solid fa-chevron-down'" class="text-[10px] text-primary-400"></i>
         </button>
         <div :class="activeSection === 'finance'?'max-h-[500px]':'max-h-0'" class="overflow-hidden transition-all duration-300 ml-3" x-show="!sidebarCollapsed">
+          <a href="{{ route('finance.dashboard') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('finance.dashboard') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+            <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
+            Dashboard
+          </a>
           <a href="{{ route('finance.payments') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('finance.payments') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
             <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
             Payments
@@ -544,13 +548,41 @@
             <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
             Bank Accounts
           </a>
-          <a href="{{ route('finance.mobile-money') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('finance.mobile-money') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+          <a href="{{ route('finance.mobile-money-reconciliation') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('finance.mobile-money-reconciliation') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
             <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
             Mobile Money Reconciliation
+          </a>
+          <a href="{{ route('finance.accounts-receivable') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('finance.accounts-receivable') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+            <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
+            Accounts Receivable
+          </a>
+          <a href="{{ route('finance.accounts-payable') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('finance.accounts-payable') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+            <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
+            Accounts Payable
+          </a>
+          <a href="{{ route('finance.transactions') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('finance.transactions') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+            <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
+            Transactions
+          </a>
+          <a href="{{ route('finance.tax-management') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('finance.tax-management') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+            <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
+            Tax Management
+          </a>
+          <a href="{{ route('finance.budgets') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('finance.budgets') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+            <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
+            Budgets
+          </a>
+          <a href="{{ route('finance.assets') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('finance.assets') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+            <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
+            Assets
           </a>
           <a href="{{ route('finance.reports') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('finance.reports') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
             <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
             Financial Reports
+          </a>
+          <a href="{{ route('finance.settings') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('finance.settings') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+            <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
+            Settings
           </a>
         </div>
       </div>

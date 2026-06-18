@@ -206,6 +206,7 @@ Route::middleware('auth')->group(function () {
 
     // Finance
     Route::prefix('finance')->name('finance.')->group(function () {
+        Route::get('/', function () { return view('finance.dashboard'); })->name('dashboard');
         Route::get('/payments', function () { return view('finance.payments'); })->name('payments');
         
         Route::get('/expenses', [\App\Http\Controllers\ExpenseController::class, 'index'])->name('expenses');
@@ -233,6 +234,15 @@ Route::middleware('auth')->group(function () {
         Route::get('/mobile-money/{mobileMoneyAccount}/edit', [\App\Http\Controllers\MobileMoneyAccountController::class, 'edit'])->name('mobile-money.edit');
         Route::put('/mobile-money/{mobileMoneyAccount}', [\App\Http\Controllers\MobileMoneyAccountController::class, 'update'])->name('mobile-money.update');
         Route::delete('/mobile-money/{mobileMoneyAccount}', [\App\Http\Controllers\MobileMoneyAccountController::class, 'destroy'])->name('mobile-money.destroy');
+        
+        Route::get('/mobile-money-reconciliation', function () { return view('finance.mobile-money-reconciliation'); })->name('mobile-money-reconciliation');
+        Route::get('/accounts-receivable', function () { return view('finance.accounts-receivable'); })->name('accounts-receivable');
+        Route::get('/accounts-payable', function () { return view('finance.accounts-payable'); })->name('accounts-payable');
+        Route::get('/transactions', function () { return view('finance.transactions'); })->name('transactions');
+        Route::get('/tax-management', function () { return view('finance.tax-management'); })->name('tax-management');
+        Route::get('/budgets', function () { return view('finance.budgets'); })->name('budgets');
+        Route::get('/assets', function () { return view('finance.assets'); })->name('assets');
+        Route::get('/settings', function () { return view('finance.settings'); })->name('settings');
         
         Route::get('/reports', [\App\Http\Controllers\FinancialReportController::class, 'index'])->name('reports');
     });
