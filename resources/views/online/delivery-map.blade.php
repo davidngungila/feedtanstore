@@ -8,6 +8,27 @@
         <h1 class="text-xl font-bold" :class="darkMode?'text-white':'text-primary-900'">Delivery Tracking Map</h1>
     </div>
 
+    <!-- Filter Section -->
+    <div class="card rounded-2xl p-4">
+        <h3 class="font-semibold mb-3">Filter by Status</h3>
+        <form action="{{ route('online.delivery.map') }}" method="GET" class="flex flex-wrap gap-2">
+            @foreach($allStatuses as $status)
+                @php
+                    $statusLabel = ucwords(str_replace('_', ' ', $status));
+                    $isChecked = in_array($status, $statusFilter);
+                @endphp
+                <label class="flex items-center gap-2 px-3 py-2 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors">
+                    <input type="checkbox" name="status[]" value="{{ $status }}" {{ $isChecked ? 'checked' : '' }} class="rounded text-primary-600 focus:ring-primary-500">
+                    <span class="text-sm">{{ $statusLabel }}</span>
+                </label>
+            @endforeach
+            <div class="flex gap-2 ml-auto">
+                <a href="{{ route('online.delivery.map') }}" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg transition-colors">Reset</a>
+                <button type="submit" class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors">Apply Filter</button>
+            </div>
+        </form>
+    </div>
+
     <div class="card rounded-2xl overflow-hidden">
         <div id="map" class="w-full h-[500px]"></div>
     </div>
