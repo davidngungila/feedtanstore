@@ -18,8 +18,21 @@
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             @foreach($products as $product)
             <div class="border rounded-lg p-4 hover:shadow-lg transition-shadow">
+                <a href="{{ route('online.catalog.show', $product) }}" class="block">
+                    <div class="h-40 bg-gray-100 rounded-lg mb-3 flex items-center justify-center overflow-hidden">
+                        @php
+                            $primaryImage = $product->images->firstWhere('is_primary', true);
+                            $imageToShow = $primaryImage ? $primaryImage->image_path : $product->image;
+                        @endphp
+                        @if($imageToShow)
+                            <img src="{{ $imageToShow }}" alt="{{ $product->name }}" class="max-h-full max-w-full object-contain">
+                        @else
+                            <i class="fas fa-box text-4xl text-gray-400"></i>
+                        @endif
+                    </div>
+                </a>
                 <div class="flex justify-between items-start mb-2">
-                    <h3 class="font-semibold text-primary-900">{{ $product->name }}</h3>
+                    <a href="{{ route('online.catalog.show', $product) }}" class="font-semibold text-primary-900 hover:text-primary-700">{{ $product->name }}</a>
                     <form action="{{ route('online.catalog.toggle', $product) }}" method="POST">
                         @csrf
                         <button type="submit" class="px-2 py-1 text-xs rounded-full

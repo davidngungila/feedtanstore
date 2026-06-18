@@ -249,7 +249,11 @@ Route::middleware('auth')->group(function () {
         Route::post('/orders/{order}/assign-rider', [\App\Http\Controllers\OnlineOrderController::class, 'assignRider'])->name('orders.assign-rider');
         
         Route::get('/catalog', [\App\Http\Controllers\ProductCatalogController::class, 'index'])->name('catalog');
+        Route::get('/catalog/{product}', [\App\Http\Controllers\ProductCatalogController::class, 'show'])->name('catalog.show');
         Route::post('/catalog/{product}/toggle', [\App\Http\Controllers\ProductCatalogController::class, 'toggleOnlineStatus'])->name('catalog.toggle');
+        Route::post('/catalog/{product}/images', [\App\Http\Controllers\ProductCatalogController::class, 'uploadImage'])->name('catalog.images.upload');
+        Route::delete('/catalog/{product}/images/{image}', [\App\Http\Controllers\ProductCatalogController::class, 'deleteImage'])->name('catalog.images.delete');
+        Route::post('/catalog/{product}/images/{image}/primary', [\App\Http\Controllers\ProductCatalogController::class, 'setPrimaryImage'])->name('catalog.images.primary');
         
         Route::get('/delivery', [\App\Http\Controllers\DeliveryManagementController::class, 'index'])->name('delivery');
         
