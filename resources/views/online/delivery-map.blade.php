@@ -61,8 +61,8 @@
         .bindPopup("<b>Store</b>")
         .openPopup();
     
-    // Add markers and routes for active orders
-    @foreach($activeOrders as $index => $order)
+    // Add markers and routes for ALL orders
+    @foreach($allOrders as $order)
         // Add order marker
         const orderMarker_{{ $order->id }} = L.circleMarker([{{ $order->delivery_latitude }}, {{ $order->delivery_longitude }}], {
             radius: 8,
@@ -84,7 +84,7 @@
         if (routes['{{ $order->id }}']) {
             const coords = routes['{{ $order->id }}'].features[0].geometry.coordinates;
             const points = coords.map(c => [c[1], c[0]]);
-            L.polyline(points, { color: '#3b82f6', weight: 4, opacity: 0.7 }).addTo(map);
+            L.polyline(points, { color: statusColors['{{ $order->status }}'], weight: 3, opacity: 0.7 }).addTo(map);
         }
     @endforeach
     

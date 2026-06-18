@@ -25,8 +25,16 @@ class DeliveryManagementController extends Controller
             $statusFilter = [$statusFilter];
         }
         
+        // Get filtered orders for any list display (if needed)
         $activeOrders = OnlineOrder::with(['items', 'rider'])
             ->whereIn('status', $statusFilter)
+            ->whereNotNull('delivery_latitude')
+            ->whereNotNull('delivery_longitude')
+            ->latest()
+            ->get();
+            
+        // Get ALL orders with location data for the map
+        $allOrders = OnlineOrder::with(['items', 'rider'])
             ->whereNotNull('delivery_latitude')
             ->whereNotNull('delivery_longitude')
             ->latest()
@@ -42,7 +50,8 @@ class DeliveryManagementController extends Controller
         $routes = [];
         
         if ($settings->openrouteservice_api_key) {
-            foreach ($activeOrders as $order) {
+            // Generate routes for ALL orders for the map
+            foreach ($allOrders as $order) {
                 try {
                     $response = Http::withHeaders([
                         'Authorization' => $settings->openrouteservice_api_key,
@@ -64,7 +73,7 @@ class DeliveryManagementController extends Controller
         }
 
         $allStatuses = ['pending', 'confirmed', 'preparing', 'ready', 'out_for_delivery', 'delivered', 'cancelled'];
-        return view('online.delivery-map', compact('activeOrders', 'riders', 'routes', 'storeLat', 'storeLng', 'statusFilter', 'allStatuses'));
+        return view('online.delivery-map', compact('activeOrders', 'allOrders', 'riders', 'routes', 'storeLat', 'storeLng', 'statusFilter', 'allStatuses'));
     }
 
     public function customerMap(Request $request)
@@ -74,8 +83,16 @@ class DeliveryManagementController extends Controller
             $statusFilter = [$statusFilter];
         }
         
-        $orders = OnlineOrder::with(['items', 'rider'])
+        // Get filtered orders for any list display (if needed)
+        $filteredOrders = OnlineOrder::with(['items', 'rider'])
             ->whereIn('status', $statusFilter)
+            ->whereNotNull('delivery_latitude')
+            ->whereNotNull('delivery_longitude')
+            ->latest()
+            ->get();
+            
+        // Get ALL orders with location data for the map
+        $allOrders = OnlineOrder::with(['items', 'rider'])
             ->whereNotNull('delivery_latitude')
             ->whereNotNull('delivery_longitude')
             ->latest()
@@ -90,7 +107,8 @@ class DeliveryManagementController extends Controller
         $routes = [];
         
         if ($settings->openrouteservice_api_key) {
-            foreach ($orders as $order) {
+            // Generate routes for ALL orders for the map
+            foreach ($allOrders as $order) {
                 try {
                     $response = Http::withHeaders([
                         'Authorization' => $settings->openrouteservice_api_key,
@@ -112,6 +130,6 @@ class DeliveryManagementController extends Controller
         }
 
         $allStatuses = ['pending', 'confirmed', 'preparing', 'ready', 'out_for_delivery', 'delivered', 'cancelled'];
-        return view('online.customer-locations', compact('orders', 'routes', 'storeLat', 'storeLng', 'statusFilter', 'allStatuses'));
+        return view('online.customer-locations', compact('filteredOrders', 'allOrders', 'routes', 'storeLat', 'storeLng', 'statusFilter', 'allStatuses'));
     }
 }

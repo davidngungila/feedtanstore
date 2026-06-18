@@ -94,8 +94,8 @@
         .addTo(map)
         .bindPopup("<b>Store</b>");
     
-    // Add markers and routes for orders
-    @foreach($orders as $index => $order)
+    // Add markers and routes for ALL orders
+    @foreach($allOrders as $order)
         const orderMarker_{{ $order->id }} = L.circleMarker([{{ $order->delivery_latitude }}, {{ $order->delivery_longitude }}], {
             radius: 8,
             fillColor: statusColors['{{ $order->status }}'],
