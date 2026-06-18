@@ -90,7 +90,27 @@
                 const route = @json($route);
                 
                 const orderMap = L.map('order-map').setView([(storeLat + orderLat) / 2, (storeLng + orderLng) / 2], 12);
-                L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(orderMap);
+                
+                // OpenStreetMap base layer
+                const osmLayer = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                });
+                
+                // World Imagery base layer (Esri)
+                const worldImageryLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+                    attribution: 'Tiles &copy; Esri &mdash; Source: Esri, DigitalGlobe, GeoEye, i-cubed, USDA, USGS, AEX, Getmapping, Aerogrid, IGN, IGP, swisstopo, and the GIS User Community'
+                });
+                
+                // Add OSM as default
+                osmLayer.addTo(orderMap);
+                
+                // Layer control
+                const baseLayers = {
+                    'OpenStreetMap': osmLayer,
+                    'World Imagery': worldImageryLayer
+                };
+                
+                L.control.layers(baseLayers).addTo(orderMap);
                 
                 // Add store marker
                 L.marker([storeLat, storeLng])

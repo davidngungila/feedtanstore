@@ -203,7 +203,27 @@ document.addEventListener('DOMContentLoaded', function() {
     const initialLat = parseFloat(document.getElementById('deliveryLatitude').value) || -3.3869;
     const initialLng = parseFloat(document.getElementById('deliveryLongitude').value) || 36.6883;
     editOrderMap = L.map('editOrderMap').setView([initialLat, initialLng], 12);
-    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(editOrderMap);
+    
+    // OpenStreetMap base layer
+    const osmLayer = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    });
+    
+    // World Imagery base layer (Esri)
+    const worldImageryLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        attribution: 'Tiles &copy; Esri &mdash; Source: Esri, DigitalGlobe, GeoEye, i-cubed, USDA, USGS, AEX, Getmapping, Aerogrid, IGN, IGP, swisstopo, and the GIS User Community'
+    });
+    
+    // Add OSM as default
+    osmLayer.addTo(editOrderMap);
+    
+    // Layer control
+    const baseLayers = {
+        'OpenStreetMap': osmLayer,
+        'World Imagery': worldImageryLayer
+    };
+    
+    L.control.layers(baseLayers).addTo(editOrderMap);
     
     marker = L.marker([initialLat, initialLng], { draggable: true }).addTo(editOrderMap);
     
