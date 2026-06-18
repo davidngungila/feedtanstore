@@ -15,7 +15,11 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
                 <div class="text-sm text-gray-600 mb-1">Reference Number</div>
-                <div class="font-semibold text-lg">{{ $entry->reference_number }}</div>
+                <div class="font-semibold text-lg">
+                    <a href="{{ route('finance.transactions.show', $entry) }}" class="text-primary-600 hover:text-primary-800">
+                        {{ $entry->reference_number }}
+                    </a>
+                </div>
             </div>
             <div>
                 <div class="text-sm text-gray-600 mb-1">Date & Time</div>
@@ -55,6 +59,7 @@
                 <thead class="bg-gray-50">
                     <tr>
                         <th class="px-4 py-3 text-left text-gray-700">Date</th>
+                        <th class="px-4 py-3 text-left text-gray-700">Reference No</th>
                         <th class="px-4 py-3 text-left text-gray-700">Account</th>
                         <th class="px-4 py-3 text-left text-gray-700">Type</th>
                         <th class="px-4 py-3 text-left text-gray-700">Amount</th>
@@ -65,6 +70,11 @@
                     @foreach($relatedEntries as $related)
                     <tr class="{{ $related->id === $entry->id ? 'bg-primary-50' : '' }}">
                         <td class="px-4 py-3">{{ $related->created_at->format('d/m/Y H:i') }}</td>
+                        <td class="px-4 py-3">
+                            <a href="{{ route('finance.transactions.show', $related) }}" class="text-primary-600 hover:text-primary-800 font-semibold">
+                                {{ $related->reference_number }}
+                            </a>
+                        </td>
                         <td class="px-4 py-3 font-medium">{{ $related->account }}</td>
                         <td class="px-4 py-3">
                             <span class="px-2 py-1 rounded-full text-xs font-bold {{ $related->type === 'debit' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800' }}">
