@@ -13,7 +13,7 @@
             </div>
         @endif
 
-        <form action="{{ route('settings.update') }}" method="POST">
+        <form action="{{ route('store.settings.update') }}" method="POST">
             @csrf
             @method('PUT')
 
