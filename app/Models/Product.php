@@ -60,4 +60,9 @@ class Product extends Model
     {
         return $this->hasMany(ProductImage::class)->orderBy('order');
     }
+
+    public function onlineOrderItems(): HasMany
+    {
+        return $this->hasMany(OnlineOrderItem::class);
+    }
 }

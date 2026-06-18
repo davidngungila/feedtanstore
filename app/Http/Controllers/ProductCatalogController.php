@@ -18,7 +18,7 @@ class ProductCatalogController extends Controller
 
     public function show(Product $product)
     {
-        $product->load(['category', 'brand', 'unit', 'images']);
+        $product->load(['category', 'brand', 'unit', 'images', 'onlineOrderItems.order']);
         return view('online.catalog-show', compact('product'));
     }
 

@@ -150,6 +150,51 @@
                 @endif
             </div>
         </div>
+
+        <!-- Product Orders -->
+        @if($product->onlineOrderItems->count() > 0)
+            <div class="card rounded-2xl p-6 mt-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-xl font-bold text-primary-900">Orders for this product</h2>
+                    <span class="text-gray-500">{{ $product->onlineOrderItems->count() }} total</span>
+                </div>
+                
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order #</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            @foreach($product->onlineOrderItems->sortByDesc('id') as $item)
+                                <tr>
+                                    <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">{{ $item->order->order_number }}</td>
+                                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">{{ $item->order->customer_name }}</td>
+                                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">{{ $item->quantity }}</td>
+                                    <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">TZS {{ number_format($item->total, 2) }}</td>
+                                    <td class="px-4 py-3 whitespace-nowrap">
+                                        <span class="px-2 py-1 text-xs rounded-full {{ $item->order->status === 'delivered' ? 'bg-green-100 text-green-800' : ($item->order->status === 'cancelled' ? 'bg-red-100 text-red-800' : 'bg-blue-100 text-blue-800') }}">
+                                            {{ ucwords(str_replace('_', ' ', $item->order->status)) }}
+                                        </span>
+                                    </td>
+                                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">{{ $item->order->created_at->format('M d, Y') }}</td>
+                                    <td class="px-4 py-3 whitespace-nowrap text-sm">
+                                        <a href="{{ route('online.orders.show', $item->order->id) }}" class="text-primary-600 hover:text-primary-900 font-medium">View</a>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        @endif
     </div>
 </div>
 @endsection
