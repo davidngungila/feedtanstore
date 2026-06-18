@@ -226,7 +226,7 @@
             <a href="{{ route('shop.tracking.pdf', $order->order_number) }}" class="inline-flex items-center gap-2 bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700 transition">
                 <i class="fas fa-download"></i> Download PDF
             </a>
-            <a href="{{ route('tracking.show', $order->order_number) }}" class="inline-flex items-center gap-2 bg-purple-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-purple-700 transition">
+            <a href="{{ route('online.tracking.show', $order->order_number) }}" class="inline-flex items-center gap-2 bg-purple-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-purple-700 transition">
                 <i class="fas fa-map-marked-alt"></i> Track Delivery
             </a>
             <a href="{{ route('shop.index') }}" class="inline-flex items-center gap-2 bg-green-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-green-700 transition">
