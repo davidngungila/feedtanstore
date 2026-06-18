@@ -53,6 +53,25 @@ class StoreSettingController extends Controller
 
         $data = $request->all();
         
+        // Handle checkbox fields - default to false if not present in request
+        $checkboxFields = [
+            'tax_enabled',
+            'receipt_show_logo',
+            'receipt_show_tax',
+            'enable_loyalty',
+            'kiosk_mode_enabled',
+            'kiosk_force_fullscreen',
+            'kiosk_block_right_click',
+            'kiosk_prevent_tab_switch',
+            'kiosk_lock_keyboard_shortcuts',
+            'kiosk_auto_focus_cashier',
+            'barcode_show_text'
+        ];
+        
+        foreach ($checkboxFields as $field) {
+            $data[$field] = $request->has($field) ? true : false;
+        }
+        
         // Handle logo upload
         if ($request->hasFile('store_logo')) {
             // Delete old logo if exists

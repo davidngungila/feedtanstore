@@ -46,41 +46,6 @@
         </div>
     </div>
 
-    <!-- Map/OpenRouteService Status -->
-    @php
-        $settings = \App\Models\StoreSetting::firstOrCreate();
-    @endphp
-    <div class="card rounded-2xl p-5">
-        <h3 class="font-bold text-sm mb-4" :class="darkMode?'text-white':'text-primary-900'">🗺️ OpenRouteService Status</h3>
-        @if($settings->openrouteservice_api_key)
-            <div class="flex items-center gap-3 p-4 rounded-xl bg-green-50 dark:bg-green-900/20">
-                <div class="w-10 h-10 rounded-lg bg-green-200 flex items-center justify-center">
-                    <i class="fa-solid fa-check-circle text-green-700 text-xl"></i>
-                </div>
-                <div class="flex-1">
-                    <p class="text-sm font-semibold text-green-800">API Key is configured!</p>
-                    <p class="text-xs text-green-600 mt-1">Route optimization and delivery maps are active.</p>
-                </div>
-                <a href="{{ route('store.settings') }}" class="text-xs text-green-700 hover:text-green-800 font-medium">
-                    <i class="fa-solid fa-gear mr-1"></i>Edit Settings
-                </a>
-            </div>
-        @else
-            <div class="flex items-center gap-3 p-4 rounded-xl bg-amber-50 dark:bg-amber-900/20">
-                <div class="w-10 h-10 rounded-lg bg-amber-200 flex items-center justify-center">
-                    <i class="fa-solid fa-exclamation-triangle text-amber-700 text-xl"></i>
-                </div>
-                <div class="flex-1">
-                    <p class="text-sm font-semibold text-amber-800">API Key not configured</p>
-                    <p class="text-xs text-amber-600 mt-1">Add your OpenRouteService API key to enable delivery maps and route optimization.</p>
-                </div>
-                <a href="{{ route('store.settings') }}" class="text-xs bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
-                    <i class="fa-solid fa-gear mr-1"></i>Add Key
-                </a>
-            </div>
-        @endif
-    </div>
-
     <!-- KPI Cards -->
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <div class="stat-card card" style="animation-delay:0s">
