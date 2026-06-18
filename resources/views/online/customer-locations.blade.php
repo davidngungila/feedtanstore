@@ -47,18 +47,16 @@
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 <script>
-    const map = new maplibregl.Map({
-        container: 'customer-map',
-        style: 'https://demotiles.maplibre.org/style.json',
-        center: [35.5296, -6.3690],
-        zoom: 6
-    });
-
-    map.addControl(new maplibregl.NavigationControl());
-    map.addControl(new maplibregl.FullscreenControl());
-
+    const storeLat = {{ $storeLat }};
+    const storeLng = {{ $storeLng }};
+    const routes = @json($routes);
+    
+    const map = L.map('customer-map').setView([storeLat, storeLng], 10);
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+    
     // Order status to color mapping
     const statusColors = {
         'pending': '#eab308',
@@ -69,102 +67,36 @@
         'delivered': '#22c55e',
         'cancelled': '#ef4444'
     };
-
-    const coordinates = [
-        @foreach($orders as $order)
-            [{{ $order->delivery_longitude }}, {{ $order->delivery_latitude }}],
-        @endforeach
-    ];
-
-    map.on('load', function() {
-        // Add line layer connecting all customer locations
-        if (coordinates.length > 1) {
-            map.addSource('customer-route', {
-                'type': 'geojson',
-                'data': {
-                    'type': 'Feature',
-                    'properties': {},
-                    'geometry': {
-                        'type': 'LineString',
-                        'coordinates': coordinates
-                    }
-                }
-            });
-
-            map.addLayer({
-                'id': 'customer-route',
-                'type': 'line',
-                'source': 'customer-route',
-                'layout': {
-                    'line-join': 'round',
-                    'line-cap': 'round'
-                },
-                'paint': {
-                    'line-color': '#3b82f6',
-                    'line-width': 4,
-                    'line-opacity': 0.7
-                }
-            });
-        }
-    });
-
-    // Add markers for all customer locations
+    
+    // Add store marker
+    L.marker([storeLat, storeLng])
+        .addTo(map)
+        .bindPopup("<b>Store</b>");
+    
+    // Add markers and routes for orders
     @foreach($orders as $index => $order)
-        (function() {
-            const el = document.createElement('div');
-            el.className = 'w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white shadow-lg border-2 border-white cursor-pointer';
-            el.style.backgroundColor = statusColors['{{ $order->status }}'];
-            el.innerHTML = '{{ $index + 1 }}';
-            
-            const marker = new maplibregl.Marker(el)
-                .setLngLat([{{ $order->delivery_longitude }}, {{ $order->delivery_latitude }}])
-                .setPopup(new maplibregl.Popup({ offset: 25, maxWidth: '300px' }).setHTML(`
-                    <div class="p-4 min-w-[280px]">
-                        <!-- Order Number -->
-                        <div class="flex items-center justify-between mb-3 pb-2 border-b border-gray-100">
-                            <h4 class="font-bold text-base text-gray-900 m-0">Order #{{ $order->order_number }}</h4>
-                            <span class="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs font-semibold">#{{ $index + 1 }}</span>
-                        </div>
-
-                        <!-- Details Grid -->
-                        <div class="grid grid-cols-1 gap-2 text-sm mb-3">
-                            <div class="flex gap-2">
-                                <span class="text-gray-500 font-medium min-w-[70px]">Customer:</span>
-                                <span class="text-gray-900 font-medium">{{ $order->customer_name }}</span>
-                            </div>
-                            <div class="flex gap-2">
-                                <span class="text-gray-500 font-medium min-w-[70px]">Phone:</span>
-                                <a href="tel:{{ $order->customer_phone }}" class="text-blue-600 hover:text-blue-800">{{ $order->customer_phone }}</a>
-                            </div>
-                            <div class="flex gap-2">
-                                <span class="text-gray-500 font-medium min-w-[70px]">Address:</span>
-                                <span class="text-gray-700">{{ $order->delivery_address }}</span>
-                            </div>
-                            <div class="flex gap-2">
-                                <span class="text-gray-500 font-medium min-w-[70px]">Status:</span>
-                                <span class="px-2 py-0.5 rounded-full text-xs font-semibold" style="background-color: ${statusColors['{{ $order->status }}']}20; color: ${statusColors['{{ $order->status }}']}">{{ ucwords(str_replace('_', ' ', $order->status)) }}</span>
-                            </div>
-                            <div class="flex gap-2">
-                                <span class="text-gray-500 font-medium min-w-[70px]">Total:</span>
-                                <span class="text-green-700 font-bold text-base">TZS {{ number_format($order->total, 2) }}</span>
-                            </div>
-                            <div class="flex gap-2">
-                                <span class="text-gray-500 font-medium min-w-[70px]">Date:</span>
-                                <span class="text-gray-500 text-xs">{{ $order->created_at->format('d/m/Y H:i') }}</span>
-                            </div>
-                        </div>
-
-                        <!-- View Order Button -->
-                        <div class="pt-2 border-t border-gray-100">
-                            <a href="{{ route('online.orders.show', $order) }}" class="w-full inline-flex items-center justify-center gap-1 bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg font-medium text-sm transition-colors">
-                                <i class="fas fa-eye"></i>
-                                View Order
-                            </a>
-                        </div>
-                    </div>
-                `))
-                .addTo(map);
-        })();
+        const orderMarker_{{ $order->id }} = L.circleMarker([{{ $order->delivery_latitude }}, {{ $order->delivery_longitude }}], {
+            radius: 8,
+            fillColor: statusColors['{{ $order->status }}'],
+            color: '#fff',
+            weight: 2,
+            fillOpacity: 0.8
+        }).addTo(map).bindPopup(`
+            <div class="p-2 min-w-[250px]">
+                <h4 class="font-bold text-base text-gray-900 mb-1">Order #{{ $order->order_number }}</h4>
+                <p class="text-sm text-gray-700 mb-1"><strong>Customer:</strong> {{ $order->customer_name }}</p>
+                <p class="text-sm text-gray-700 mb-1"><strong>Phone:</strong> <a href="tel:{{ $order->customer_phone }}">{{ $order->customer_phone }}</a></p>
+                <p class="text-sm text-gray-700 mb-2"><strong>Address:</strong> {{ $order->delivery_address }}</p>
+                <a href="{{ route('online.orders.show', $order) }}" class="text-primary-600 hover:underline text-sm">View Order</a>
+            </div>
+        `);
+        
+        // Add route if available
+        if (routes['{{ $order->id }}']) {
+            const coords = routes['{{ $order->id }}'].features[0].geometry.coordinates;
+            const points = coords.map(c => [c[1], c[0]]);
+            L.polyline(points, { color: statusColors['{{ $order->status }}'], weight: 3, opacity: 0.7 }).addTo(map);
+        }
     @endforeach
 </script>
 @endsection
