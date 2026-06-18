@@ -116,14 +116,8 @@ class CashierController extends Controller
             'discount' => 'nullable|numeric',
             'paid' => 'required|numeric|min:0',
             'payment_method' => 'required|string|in:cash,card,mobile',
-            'transaction_id' => 'nullable|string',
             'customer_id' => 'nullable|exists:customers,id'
         ]);
-        
-        // Validate transaction_id only for non-cash payments
-        if ($data['payment_method'] !== 'cash' && empty($data['transaction_id'])) {
-            return response()->json(['error' => 'Transaction ID required for card/mobile payments'], 422);
-        }
 
         // Check stock availability
         foreach ($data['items'] as $item) {
@@ -161,7 +155,7 @@ class CashierController extends Controller
             'payment_method' => $data['payment_method'],
             'type' => 'cash',
             'status' => 'completed',
-            'notes' => $data['transaction_id'] ?? ''
+            'notes' => ''
         ]);
 
         foreach ($data['items'] as $itemData) {

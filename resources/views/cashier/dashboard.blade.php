@@ -181,10 +181,7 @@
                         </button>
                     </div>
                 </div>
-                <div id="transactionIdDiv" class="mb-4 hidden">
-                    <label class="block text-gray-700 font-medium mb-1.5 text-sm">Transaction ID <span class="text-red-500">*</span></label>
-                    <input type="text" id="transactionIdInput" class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm" placeholder="Enter transaction ID">
-                </div>
+
                 <button type="button" id="completeSaleBtn" onclick="completeSale()" class="w-full py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold text-lg mt-2">
                     <span id="btnLoading" class="hidden"><i class="fas fa-spinner fa-spin mr-1"></i>Processing...</span>
                     <span id="btnText"><i class="fas fa-check mr-1"></i>Complete Sale</span>
@@ -842,12 +839,6 @@ function selectPaymentMethod(method) {
 
     document.getElementById('method' + method.charAt(0).toUpperCase() + method.slice(1)).classList.remove('border-gray-300', 'text-gray-700');
     document.getElementById('method' + method.charAt(0).toUpperCase() + method.slice(1)).classList.add('border-primary-600', 'bg-primary-600', 'text-white');
-
-    if (method === 'card' || method === 'mobile') {
-        document.getElementById('transactionIdDiv').classList.remove('hidden');
-    } else {
-        document.getElementById('transactionIdDiv').classList.add('hidden');
-    }
 }
 
 function setPaidAmount(amount) {
@@ -886,11 +877,6 @@ function completeSale() {
         return;
     }
 
-    if ((selectedPaymentMethod === 'card' || selectedPaymentMethod === 'mobile') && !document.getElementById('transactionIdInput').value) {
-        showNotification('Transaction ID required!', 'error');
-        return;
-    }
-
     isProcessing = true;
     document.getElementById('loadingOverlay').classList.remove('hidden');
 
@@ -917,7 +903,6 @@ function completeSale() {
             discount_value: discountValue,
             paid,
             payment_method: selectedPaymentMethod,
-            transaction_id: document.getElementById('transactionIdInput').value,
             customer_id: customerId ? parseInt(customerId) : null
         })
     })
@@ -1046,7 +1031,6 @@ function newSale() {
     document.getElementById('paidAmount').value = '';
     document.getElementById('discountInput').value = '';
     document.getElementById('discountType').value = 'amount';
-    document.getElementById('transactionIdInput').value = '';
     selectCustomer(null, '');
     selectPaymentMethod('cash');
     renderCart();

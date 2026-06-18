@@ -123,13 +123,7 @@
                         </select>
                     </div>
 
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Sale Type</label>
-                        <select name="type" id="saleType" class="w-full px-4 py-2 border border-gray-300 rounded-lg" onchange="handleSaleTypeChange()">
-                            <option value="cash">Cash Sale</option>
-                            <option value="credit">Credit Sale</option>
-                        </select>
-                    </div>
+
 
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Paid Amount</label>
@@ -414,14 +408,11 @@ function updateTotals() {
     const discount = calculateDiscount(subtotal);
     lastCalculatedTotal = subtotal - discount;
     
-    // Auto-fill paid amount for cash sales
-    const saleType = document.getElementById('saleType').value;
-    if (saleType === 'cash') {
-        const paidInput = document.getElementById('paidAmount');
-        if (parseFloat(paidInput.value) === originalPaidAmount || originalPaidAmount === 0) {
-            paidInput.value = lastCalculatedTotal.toFixed(2);
-            originalPaidAmount = lastCalculatedTotal;
-        }
+    // Auto-fill paid amount
+    const paidInput = document.getElementById('paidAmount');
+    if (parseFloat(paidInput.value) === originalPaidAmount || originalPaidAmount === 0) {
+        paidInput.value = lastCalculatedTotal.toFixed(2);
+        originalPaidAmount = lastCalculatedTotal;
     }
     
     const paid = parseFloat(document.getElementById('paidAmount').value) || 0;
@@ -433,21 +424,7 @@ function updateTotals() {
     document.getElementById('change').textContent = 'TZS ' + change.toFixed(2);
 }
 
-function handleSaleTypeChange() {
-    const saleType = document.getElementById('saleType').value;
-    const paidInput = document.getElementById('paidAmount');
-    
-    if (saleType === 'credit') {
-        paidInput.value = '0.00';
-        originalPaidAmount = 0;
-    } else {
-        // For cash sales, auto-fill with total
-        paidInput.value = lastCalculatedTotal.toFixed(2);
-        originalPaidAmount = lastCalculatedTotal;
-    }
-    
-    updateTotals();
-}
+
 
 function handlePaidChange() {
     const currentPaid = parseFloat(document.getElementById('paidAmount').value) || 0;

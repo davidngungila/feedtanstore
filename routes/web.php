@@ -70,13 +70,7 @@ Route::middleware('auth')->group(function () {
         Route::put('/discounts/{discount}', [\App\Http\Controllers\DiscountController::class, 'update'])->name('discounts.update');
         Route::post('/discounts/{discount}/toggle', [\App\Http\Controllers\DiscountController::class, 'toggleActive'])->name('discounts.toggle');
         Route::delete('/discounts/{discount}', [\App\Http\Controllers\DiscountController::class, 'destroy'])->name('discounts.destroy');
-        Route::get('/credit', [\App\Http\Controllers\CreditSaleController::class, 'index'])->name('credit');
-        Route::get('/credit/{id}', [\App\Http\Controllers\CreditSaleController::class, 'show'])->name('credit.show');
-        Route::get('/credit/{id}/edit', [\App\Http\Controllers\CreditSaleController::class, 'edit'])->name('credit.edit');
-        Route::put('/credit/{id}', [\App\Http\Controllers\CreditSaleController::class, 'update'])->name('credit.update');
-        Route::delete('/credit/{id}', [\App\Http\Controllers\CreditSaleController::class, 'destroy'])->name('credit.destroy');
-        Route::get('/credit/{id}/payment', [\App\Http\Controllers\CreditSaleController::class, 'addPayment'])->name('credit.payment');
-        Route::post('/credit/{id}/payment', [\App\Http\Controllers\CreditSaleController::class, 'storePayment'])->name('credit.payment.store');
+
         Route::get('/receipts', [\App\Http\Controllers\ReceiptController::class, 'index'])->name('receipts');
         Route::get('/receipts/{sale}', [\App\Http\Controllers\ReceiptController::class, 'show'])->name('receipts.show');
         Route::get('/receipts/{sale}/print', [\App\Http\Controllers\ReceiptController::class, 'print'])->name('receipts.print');
