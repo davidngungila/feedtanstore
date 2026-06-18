@@ -19,6 +19,7 @@ Route::get('/shop/checkout', function () {
     return view('shop.checkout');
 })->name('shop.checkout');
 Route::get('/shop/tracking/{orderNumber}', [\App\Http\Controllers\OnlineOrderController::class, 'showTracking'])->name('shop.tracking');
+Route::get('/shop/tracking/{orderNumber}/pdf', [\App\Http\Controllers\OnlineOrderController::class, 'downloadTrackingPDF'])->name('shop.tracking.pdf');
 Route::post('/api/shop/orders', [\App\Http\Controllers\OnlineOrderController::class, 'placeOrder']);
 Route::get('/api/shop/orders/{orderNumber}/payment-status', [\App\Http\Controllers\OnlineOrderController::class, 'checkPaymentStatus'])->name('shop.payment-status');
 

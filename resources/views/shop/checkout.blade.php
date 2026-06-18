@@ -129,7 +129,7 @@
                     
                     <!-- Location Capture -->
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Delivery Location *</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Delivery Location</label>
                         <div id="locationContainer" class="p-6 bg-gray-50 border border-gray-200 rounded-xl">
                             <div class="flex items-start gap-4">
                                 <i id="locationIcon" class="fas fa-spinner fa-spin text-blue-600 text-2xl mt-1"></i>
@@ -390,15 +390,7 @@
         document.getElementById('checkoutForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
-            // Ensure we have location
-            const needDelivery = document.querySelector('input[name="need_delivery"]:checked').value;
-            if (needDelivery === 'yes' && (!userLocation.lat || !userLocation.lng)) {
-                alert('Please allow location access to proceed with delivery.');
-                getUserLocation();
-                return;
-            }
-            
-            // Even if pickup, still try to capture location for analytics
+            // Try to capture location for analytics, but don't require it
             if (!userLocation.lat || !userLocation.lng) {
                 getUserLocation();
             }

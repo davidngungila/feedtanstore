@@ -528,4 +528,14 @@ class OnlineOrderController extends Controller
         $order = OnlineOrder::where('order_number', $orderNumber)->with(['items', 'rider', 'statusHistory'])->firstOrFail();
         return view('shop.tracking', compact('order'));
     }
+
+    public function downloadTrackingPDF($orderNumber)
+    {
+        $order = OnlineOrder::where('order_number', $orderNumber)->with(['items.product', 'rider', 'user'])->firstOrFail();
+        $pdf = new Dompdf();
+        $pdf->loadHtml(view('online.orders-pdf', compact('order'))->render());
+        $pdf->setPaper('A4', 'portrait');
+        $pdf->render();
+        return $pdf->stream($order->order_number . '.pdf');
+    }
 }
