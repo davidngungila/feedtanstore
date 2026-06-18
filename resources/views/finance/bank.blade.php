@@ -47,13 +47,16 @@
                         </td>
                         <td class="px-4 py-3">
                             <div class="flex items-center gap-2">
-                                <a href="{{ route('finance.bank.edit', $account) }}" class="text-primary-600 hover:text-primary-800 transition-colors">
+                                <a href="{{ route('finance.bank.show', $account) }}" class="text-blue-600 hover:text-blue-800 transition-colors" title="View">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="{{ route('finance.bank.edit', $account) }}" class="text-primary-600 hover:text-primary-800 transition-colors" title="Edit">
                                     <i class="fas fa-edit"></i>
                                 </a>
                                 <form action="{{ route('finance.bank.destroy', $account) }}" method="POST" onsubmit="return confirm('Are you sure?')">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" class="text-red-600 hover:text-red-800 transition-colors">
+                                    <button type="submit" class="text-red-600 hover:text-red-800 transition-colors" title="Delete">
                                         <i class="fas fa-trash"></i>
                                     </button>
                                 </form>

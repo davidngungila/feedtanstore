@@ -17,6 +17,11 @@ class MobileMoneyAccountController extends Controller
     {
         return view('finance.mobile-money-create');
     }
+    
+    public function show(MobileMoneyAccount $mobileMoneyAccount)
+    {
+        return view('finance.mobile-money-show', compact('mobileMoneyAccount'));
+    }
 
     public function store(Request $request)
     {

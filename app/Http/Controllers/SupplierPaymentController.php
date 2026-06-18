@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\SupplierPayment;
 use App\Models\Supplier;
 use App\Models\PurchaseOrder;
+use App\Models\AccountingEntry;
 use Illuminate\Http\Request;
 use Dompdf\Dompdf;
 
@@ -36,7 +37,7 @@ class SupplierPaymentController extends Controller
 
         $paymentNumber = 'PAY-' . date('YmdHis');
 
-        SupplierPayment::create([
+        $payment = SupplierPayment::create([
             'payment_number' => $paymentNumber,
             'supplier_id' => $request->supplier_id,
             'purchase_order_id' => $request->purchase_order_id,
@@ -47,7 +48,39 @@ class SupplierPaymentController extends Controller
             'status' => 'completed',
         ]);
 
+        $this->createAccountingEntries($payment);
+
         return redirect()->route('purchasing.payments')->with('success', 'Supplier Payment created successfully!');
+    }
+    
+    protected function createAccountingEntries(SupplierPayment $payment)
+    {
+        // Debit Accounts Payable
+        AccountingEntry::create([
+            'reference_number' => $payment->payment_number,
+            'reference_type' => SupplierPayment::class,
+            'account' => 'Accounts Payable',
+            'type' => 'debit',
+            'amount' => $payment->amount,
+            'description' => 'Supplier payment'
+        ]);
+        
+        // Credit the payment source
+        $account = 'Cash';
+        if (in_array($payment->payment_method, ['bank_transfer', 'card'])) {
+            $account = 'Bank Account';
+        } elseif ($payment->payment_method == 'mobile_money') {
+            $account = 'Mobile Money';
+        }
+        
+        AccountingEntry::create([
+            'reference_number' => $payment->payment_number,
+            'reference_type' => SupplierPayment::class,
+            'account' => $account,
+            'type' => 'credit',
+            'amount' => $payment->amount,
+            'description' => 'Supplier payment made'
+        ]);
     }
 
     public function show(SupplierPayment $payment)

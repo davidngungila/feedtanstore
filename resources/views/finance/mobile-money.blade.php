@@ -1,12 +1,12 @@
 @extends('layouts.app')
 
-@section('page-title', 'Mobile Money Reconciliation')
+@section('page-title', 'Mobile Money Accounts')
 
 @section('content')
 <div class="animate-[fadeIn_0.4s_ease]">
     <div class="card rounded-2xl p-6">
         <div class="flex items-center justify-between mb-6">
-            <h2 class="text-xl font-bold text-primary-900">Mobile Money Reconciliation</h2>
+            <h2 class="text-xl font-bold text-primary-900">Mobile Money Accounts</h2>
             <a href="{{ route('finance.mobile-money.create') }}" class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors">
                 <i class="fas fa-plus mr-2"></i>Add Mobile Money Account
             </a>
@@ -45,13 +45,16 @@
                         </td>
                         <td class="px-4 py-3">
                             <div class="flex items-center gap-2">
-                                <a href="{{ route('finance.mobile-money.edit', $account) }}" class="text-primary-600 hover:text-primary-800 transition-colors">
+                                <a href="{{ route('finance.mobile-money.show', $account) }}" class="text-blue-600 hover:text-blue-800 transition-colors" title="View">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="{{ route('finance.mobile-money.edit', $account) }}" class="text-primary-600 hover:text-primary-800 transition-colors" title="Edit">
                                     <i class="fas fa-edit"></i>
                                 </a>
                                 <form action="{{ route('finance.mobile-money.destroy', $account) }}" method="POST" onsubmit="return confirm('Are you sure?')">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" class="text-red-600 hover:text-red-800 transition-colors">
+                                    <button type="submit" class="text-red-600 hover:text-red-800 transition-colors" title="Delete">
                                         <i class="fas fa-trash"></i>
                                     </button>
                                 </form>

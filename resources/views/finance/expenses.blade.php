@@ -29,6 +29,7 @@
                         <th class="px-4 py-3 text-left text-gray-700">Amount</th>
                         <th class="px-4 py-3 text-left text-gray-700">Payment Method</th>
                         <th class="px-4 py-3 text-left text-gray-700">Added By</th>
+                        <th class="px-4 py-3 text-left text-gray-700">Actions</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y">
@@ -41,10 +42,25 @@
                         <td class="px-4 py-3 font-bold text-red-700">TZS {{ number_format($expense->amount, 2) }}</td>
                         <td class="px-4 py-3">{{ $expense->payment_method }}</td>
                         <td class="px-4 py-3">{{ $expense->user->name }}</td>
+                        <td class="px-4 py-3 flex gap-2">
+                            <a href="{{ route('finance.expenses.show', $expense) }}" class="text-blue-600 hover:text-blue-800" title="View">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <a href="{{ route('finance.expenses.edit', $expense) }}" class="text-primary-600 hover:text-primary-800" title="Edit">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <form action="{{ route('finance.expenses.destroy', $expense) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this expense?')">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="text-red-600 hover:text-red-800" title="Delete">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
+                        </td>
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="7" class="px-4 py-8 text-center text-gray-500">No expenses found.</td>
+                        <td colspan="8" class="px-4 py-8 text-center text-gray-500">No expenses found.</td>
                     </tr>
                     @endforelse
                 </tbody>

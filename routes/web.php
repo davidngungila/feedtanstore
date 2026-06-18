@@ -209,36 +209,52 @@ Route::middleware('auth')->group(function () {
         Route::get('/', function () { return view('finance.dashboard'); })->name('dashboard');
         Route::get('/payments', function () { return view('finance.payments'); })->name('payments');
         
+        // Expenses
         Route::get('/expenses', [\App\Http\Controllers\ExpenseController::class, 'index'])->name('expenses');
         Route::get('/expenses/create', [\App\Http\Controllers\ExpenseController::class, 'create'])->name('expenses.create');
         Route::post('/expenses', [\App\Http\Controllers\ExpenseController::class, 'store'])->name('expenses.store');
+        Route::get('/expenses/{expense}', [\App\Http\Controllers\ExpenseController::class, 'show'])->name('expenses.show');
+        Route::get('/expenses/{expense}/edit', [\App\Http\Controllers\ExpenseController::class, 'edit'])->name('expenses.edit');
+        Route::put('/expenses/{expense}', [\App\Http\Controllers\ExpenseController::class, 'update'])->name('expenses.update');
+        Route::delete('/expenses/{expense}', [\App\Http\Controllers\ExpenseController::class, 'destroy'])->name('expenses.destroy');
         
+        // Income
         Route::get('/income', [\App\Http\Controllers\IncomeController::class, 'index'])->name('income');
         Route::get('/income/create', [\App\Http\Controllers\IncomeController::class, 'create'])->name('income.create');
         Route::post('/income', [\App\Http\Controllers\IncomeController::class, 'store'])->name('income.store');
+        Route::get('/income/{income}', [\App\Http\Controllers\IncomeController::class, 'show'])->name('income.show');
+        Route::get('/income/{income}/edit', [\App\Http\Controllers\IncomeController::class, 'edit'])->name('income.edit');
+        Route::put('/income/{income}', [\App\Http\Controllers\IncomeController::class, 'update'])->name('income.update');
+        Route::delete('/income/{income}', [\App\Http\Controllers\IncomeController::class, 'destroy'])->name('income.destroy');
         
+        // Cash Management
         Route::get('/cash', [\App\Http\Controllers\CashManagementController::class, 'index'])->name('cash');
         Route::get('/cash/create', [\App\Http\Controllers\CashManagementController::class, 'create'])->name('cash.create');
         Route::post('/cash', [\App\Http\Controllers\CashManagementController::class, 'store'])->name('cash.store');
         
+        // Bank Accounts
         Route::get('/bank', [\App\Http\Controllers\BankAccountController::class, 'index'])->name('bank');
         Route::get('/bank/create', [\App\Http\Controllers\BankAccountController::class, 'create'])->name('bank.create');
         Route::post('/bank', [\App\Http\Controllers\BankAccountController::class, 'store'])->name('bank.store');
+        Route::get('/bank/{bankAccount}', [\App\Http\Controllers\BankAccountController::class, 'show'])->name('bank.show');
         Route::get('/bank/{bankAccount}/edit', [\App\Http\Controllers\BankAccountController::class, 'edit'])->name('bank.edit');
         Route::put('/bank/{bankAccount}', [\App\Http\Controllers\BankAccountController::class, 'update'])->name('bank.update');
         Route::delete('/bank/{bankAccount}', [\App\Http\Controllers\BankAccountController::class, 'destroy'])->name('bank.destroy');
         
+        // Mobile Money
         Route::get('/mobile-money', [\App\Http\Controllers\MobileMoneyAccountController::class, 'index'])->name('mobile-money');
         Route::get('/mobile-money/create', [\App\Http\Controllers\MobileMoneyAccountController::class, 'create'])->name('mobile-money.create');
         Route::post('/mobile-money', [\App\Http\Controllers\MobileMoneyAccountController::class, 'store'])->name('mobile-money.store');
+        Route::get('/mobile-money/{mobileMoneyAccount}', [\App\Http\Controllers\MobileMoneyAccountController::class, 'show'])->name('mobile-money.show');
         Route::get('/mobile-money/{mobileMoneyAccount}/edit', [\App\Http\Controllers\MobileMoneyAccountController::class, 'edit'])->name('mobile-money.edit');
         Route::put('/mobile-money/{mobileMoneyAccount}', [\App\Http\Controllers\MobileMoneyAccountController::class, 'update'])->name('mobile-money.update');
         Route::delete('/mobile-money/{mobileMoneyAccount}', [\App\Http\Controllers\MobileMoneyAccountController::class, 'destroy'])->name('mobile-money.destroy');
         
+        // Other Finance Pages
         Route::get('/mobile-money-reconciliation', function () { return view('finance.mobile-money-reconciliation'); })->name('mobile-money-reconciliation');
         Route::get('/accounts-receivable', function () { return view('finance.accounts-receivable'); })->name('accounts-receivable');
         Route::get('/accounts-payable', function () { return view('finance.accounts-payable'); })->name('accounts-payable');
-        Route::get('/transactions', function () { return view('finance.transactions'); })->name('transactions');
+        Route::get('/transactions', [\App\Http\Controllers\FinanceController::class, 'transactions'])->name('transactions');
         Route::get('/tax-management', function () { return view('finance.tax-management'); })->name('tax-management');
         Route::get('/budgets', function () { return view('finance.budgets'); })->name('budgets');
         Route::get('/assets', function () { return view('finance.assets'); })->name('assets');

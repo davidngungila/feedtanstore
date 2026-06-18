@@ -17,6 +17,11 @@ class BankAccountController extends Controller
     {
         return view('finance.bank-create');
     }
+    
+    public function show(BankAccount $bankAccount)
+    {
+        return view('finance.bank-show', compact('bankAccount'));
+    }
 
     public function store(Request $request)
     {
