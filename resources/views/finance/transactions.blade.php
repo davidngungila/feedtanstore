@@ -13,7 +13,6 @@
                     <tr>
                         <th class="px-4 py-3 text-left text-gray-700">Date</th>
                         <th class="px-4 py-3 text-left text-gray-700">Reference No</th>
-                        <th class="px-4 py-3 text-left text-gray-700">Reference Type</th>
                         <th class="px-4 py-3 text-left text-gray-700">Account</th>
                         <th class="px-4 py-3 text-left text-gray-700">Type</th>
                         <th class="px-4 py-3 text-left text-gray-700">Amount</th>
@@ -26,7 +25,6 @@
                     <tr>
                         <td class="px-4 py-3">{{ $entry->created_at->format('d/m/Y H:i') }}</td>
                         <td class="px-4 py-3 font-semibold">{{ $entry->reference_number }}</td>
-                        <td class="px-4 py-3">{{ $entry->reference_type }}</td>
                         <td class="px-4 py-3 font-medium">{{ $entry->account }}</td>
                         <td class="px-4 py-3">
                             <span class="px-2 py-1 rounded-full text-xs font-bold {{ $entry->type === 'debit' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800' }}">
@@ -43,7 +41,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="8" class="px-4 py-8 text-center text-gray-500">No transactions found.</td>
+                        <td colspan="7" class="px-4 py-8 text-center text-gray-500">No transactions found.</td>
                     </tr>
                     @endforelse
                 </tbody>
