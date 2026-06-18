@@ -29,7 +29,6 @@ class CarouselController extends Controller
             'background_color' => 'nullable|string|max:50',
             'gradient_color' => 'nullable|string|max:50',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'is_active' => 'boolean',
             'order' => 'nullable|integer',
         ]);
 
@@ -60,12 +59,11 @@ class CarouselController extends Controller
             'background_color' => 'nullable|string|max:50',
             'gradient_color' => 'nullable|string|max:50',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'is_active' => 'boolean',
             'order' => 'nullable|integer',
         ]);
 
         $data = $validated;
-        $data['is_active'] = $request->boolean('is_active', true);
+        $data['is_active'] = $request->boolean('is_active', $carousel->is_active);
 
         if ($request->hasFile('image')) {
             if ($carousel->image) {
