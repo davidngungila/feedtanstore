@@ -576,6 +576,18 @@
             <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
             Assets
           </a>
+          <a href="{{ route('finance.shareholders') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('finance.shareholders') || request()->routeIs('finance.shareholders.*') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+            <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
+            Shareholders
+          </a>
+          <a href="{{ route('finance.balance-sheet') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('finance.balance-sheet') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+            <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
+            Balance Sheet
+          </a>
+          <a href="{{ route('finance.income-statement') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('finance.income-statement') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+            <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
+            Income Statement
+          </a>
           <a href="{{ route('finance.reports') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('finance.reports') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
             <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
             Financial Reports

@@ -250,6 +250,31 @@ Route::middleware('auth')->group(function () {
         Route::put('/mobile-money/{mobileMoneyAccount}', [\App\Http\Controllers\MobileMoneyAccountController::class, 'update'])->name('mobile-money.update');
         Route::delete('/mobile-money/{mobileMoneyAccount}', [\App\Http\Controllers\MobileMoneyAccountController::class, 'destroy'])->name('mobile-money.destroy');
         
+        // Capital Management
+        Route::get('/capital', [\App\Http\Controllers\CapitalController::class, 'index'])->name('capital');
+        Route::get('/capital/create', [\App\Http\Controllers\CapitalController::class, 'create'])->name('capital.create');
+        Route::post('/capital', [\App\Http\Controllers\CapitalController::class, 'store'])->name('capital.store');
+        Route::get('/capital/{capital}', [\App\Http\Controllers\CapitalController::class, 'show'])->name('capital.show');
+        Route::get('/capital/{capital}/edit', [\App\Http\Controllers\CapitalController::class, 'edit'])->name('capital.edit');
+        Route::put('/capital/{capital}', [\App\Http\Controllers\CapitalController::class, 'update'])->name('capital.update');
+        Route::delete('/capital/{capital}', [\App\Http\Controllers\CapitalController::class, 'destroy'])->name('capital.destroy');
+
+        // Shareholders Management
+        Route::get('/shareholders', [\App\Http\Controllers\ShareholderController::class, 'index'])->name('shareholders');
+        Route::get('/shareholders/create', [\App\Http\Controllers\ShareholderController::class, 'create'])->name('shareholders.create');
+        Route::post('/shareholders', [\App\Http\Controllers\ShareholderController::class, 'store'])->name('shareholders.store');
+        Route::get('/shareholders/{shareholder}', [\App\Http\Controllers\ShareholderController::class, 'show'])->name('shareholders.show');
+        Route::get('/shareholders/{shareholder}/edit', [\App\Http\Controllers\ShareholderController::class, 'edit'])->name('shareholders.edit');
+        Route::put('/shareholders/{shareholder}', [\App\Http\Controllers\ShareholderController::class, 'update'])->name('shareholders.update');
+        Route::delete('/shareholders/{shareholder}', [\App\Http\Controllers\ShareholderController::class, 'destroy'])->name('shareholders.destroy');
+        Route::get('/shareholders/{shareholder}/add-share', [\App\Http\Controllers\ShareholderController::class, 'addShare'])->name('shareholders.add-share');
+        Route::post('/shareholders/{shareholder}/shares', [\App\Http\Controllers\ShareholderController::class, 'storeShare'])->name('shareholders.store-share');
+        
+        // Balance Sheet
+        Route::get('/balance-sheet', [\App\Http\Controllers\FinanceController::class, 'balanceSheet'])->name('balance-sheet');
+        // Income Statement
+        Route::get('/income-statement', [\App\Http\Controllers\FinanceController::class, 'incomeStatement'])->name('income-statement');
+        
         // Other Finance Pages
         Route::get('/mobile-money-reconciliation', [\App\Http\Controllers\FinanceController::class, 'mobileMoneyReconciliation'])->name('mobile-money-reconciliation');
         Route::get('/accounts-receivable', [\App\Http\Controllers\FinanceController::class, 'accountsReceivable'])->name('accounts-receivable');

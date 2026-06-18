@@ -33,7 +33,8 @@ class StoreSetting extends Model
         'barcode_show_text',
         'openrouteservice_api_key',
         'store_latitude',
-        'store_longitude'
+        'store_longitude',
+        'share_price'
     ];
     
     protected $casts = [

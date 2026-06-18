@@ -64,6 +64,10 @@
                         <option value="UGX" {{ $settings->currency === 'UGX' ? 'selected' : '' }}>Ugandan Shilling (UGX)</option>
                     </select>
                 </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Share Price (TZS)</label>
+                    <input type="number" step="0.01" name="share_price" value="{{ $settings->share_price }}" class="form-input w-full">
+                </div>
                 <div class="md:col-span-2">
                     <label class="block text-sm font-semibold text-gray-700 mb-2">Address</label>
                     <textarea name="store_address" rows="4" class="form-input w-full">{{ $settings->store_address }}</textarea>

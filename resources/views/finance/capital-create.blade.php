@@ -1,0 +1,50 @@
+@extends('layouts.app')
+
+@section('page-title', 'Add Capital')
+
+@section('content')
+<div class="animate-[fadeIn_0.4s_ease]">
+    <div class="card rounded-2xl p-6">
+        <div class="flex items-center justify-between mb-6">
+            <h2 class="text-xl font-bold text-primary-900">Add Capital</h2>
+            <a href="{{ route('finance.capital') }}" class="text-primary-600 hover:text-primary-800 font-medium">
+                <i class="fas fa-arrow-left mr-2"></i>Back
+            </a>
+        </div>
+
+        <form action="{{ route('finance.capital.store') }}" method="POST">
+            @csrf
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Date *</label>
+                    <input type="date" name="date" value="{{ old('date', date('Y-m-d')) }}" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Transaction Type *</label>
+                    <select name="transaction_type" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                        <option value="add" {{ old('transaction_type') === 'add' ? 'selected' : '' }}>Add Capital</option>
+                        <option value="withdraw" {{ old('transaction_type') === 'withdraw' ? 'selected' : '' }}>Withdraw Capital</option>
+                    </select>
+                </div>
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Amount *</label>
+                    <input type="number" step="0.01" name="amount" value="{{ old('amount') }}" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                </div>
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                    <textarea name="description" rows="3" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">{{ old('description') }}</textarea>
+                </div>
+            </div>
+
+            <div class="mt-8 flex justify-end gap-3">
+                <a href="{{ route('finance.capital') }}" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
+                    Cancel
+                </a>
+                <button type="submit" class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors">
+                    Save Capital
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+@endsection

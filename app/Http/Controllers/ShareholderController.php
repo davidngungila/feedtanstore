@@ -1,0 +1,136 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Shareholder;
+use App\Models\Share;
+use App\Models\Capital;
+use App\Models\AccountingEntry;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+
+class ShareholderController extends Controller
+{
+    public function index()
+    {
+        $shareholders = Shareholder::with('shares')->get();
+        $totalShares = Share::sum('number_of_shares');
+        $totalInvestment = Share::sum('total_amount');
+        
+        return view('finance.shareholders', compact('shareholders', 'totalShares', 'totalInvestment'));
+    }
+
+    public function create()
+    {
+        return view('finance.shareholder-create');
+    }
+
+    public function store(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'nullable|email',
+            'phone' => 'nullable|string|max:20',
+            'address' => 'nullable|string',
+        ]);
+
+        Shareholder::create($request->all());
+
+        return redirect()->route('finance.shareholders')->with('success', 'Shareholder added successfully!');
+    }
+
+    public function show(Shareholder $shareholder)
+    {
+        return view('finance.shareholder-show', compact('shareholder'));
+    }
+
+    public function edit(Shareholder $shareholder)
+    {
+        return view('finance.shareholder-edit', compact('shareholder'));
+    }
+
+    public function update(Request $request, Shareholder $shareholder)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'nullable|email',
+            'phone' => 'nullable|string|max:20',
+            'address' => 'nullable|string',
+        ]);
+
+        $shareholder->update($request->all());
+
+        return redirect()->route('finance.shareholders')->with('success', 'Shareholder updated successfully!');
+    }
+
+    public function destroy(Shareholder $shareholder)
+    {
+        $shareholder->delete();
+        return redirect()->route('finance.shareholders')->with('success', 'Shareholder deleted successfully!');
+    }
+
+    // Share management
+    public function addShare(Shareholder $shareholder)
+    {
+        $storeSettings = \App\Models\StoreSetting::first();
+        return view('finance.share-add', compact('shareholder', 'storeSettings'));
+    }
+
+    public function storeShare(Request $request, Shareholder $shareholder)
+    {
+        $request->validate([
+            'number_of_shares' => 'required|integer|min:1',
+            'share_price' => 'required|numeric|min:0',
+            'date' => 'required|date',
+            'description' => 'nullable|string',
+        ]);
+
+        $totalAmount = $request->number_of_shares * $request->share_price;
+
+        $share = $shareholder->shares()->create([
+            'number_of_shares' => $request->number_of_shares,
+            'share_price' => $request->share_price,
+            'total_amount' => $totalAmount,
+            'date' => $request->date,
+            'description' => $request->description,
+        ]);
+
+        // Create capital entry
+        $capital = Capital::create([
+            'amount' => $totalAmount,
+            'description' => $request->description ?? "Shares issued to {$shareholder->name}",
+            'transaction_type' => 'add',
+            'date' => $request->date,
+            'user_id' => Auth::id(),
+        ]);
+
+        // Create accounting entries
+        $this->createCapitalAccountingEntries($capital);
+
+        return redirect()->route('finance.shareholders.show', $shareholder)->with('success', 'Shares added successfully!');
+    }
+
+    protected function createCapitalAccountingEntries(Capital $capital)
+    {
+        if ($capital->transaction_type === 'add') {
+            // Debit cash/bank, credit capital
+            AccountingEntry::create([
+                'reference_number' => 'CAP-' . $capital->id,
+                'reference_type' => Capital::class,
+                'account' => 'Cash',
+                'type' => 'debit',
+                'amount' => $capital->amount,
+                'description' => $capital->description ?: 'Capital added',
+            ]);
+
+            AccountingEntry::create([
+                'reference_number' => 'CAP-' . $capital->id,
+                'reference_type' => Capital::class,
+                'account' => 'Capital',
+                'type' => 'credit',
+                'amount' => $capital->amount,
+                'description' => $capital->description ?: 'Capital added',
+            ]);
+        }
+    }
+}

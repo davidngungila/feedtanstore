@@ -12,6 +12,7 @@ use App\Models\Sale;
 use App\Models\PurchaseOrder;
 use App\Models\Income;
 use App\Models\Expense;
+use App\Models\Capital;
 
 class FinanceController extends Controller
 {
@@ -110,5 +111,85 @@ class FinanceController extends Controller
     public function settings()
     {
         return view('finance.settings');
+    }
+
+    public function balanceSheet()
+    {
+        // Calculate Assets
+        $cashBalance = 0;
+        foreach (AccountingEntry::where('account', 'Cash')->get() as $entry) {
+            if ($entry->type === 'debit') {
+                $cashBalance += $entry->amount;
+            } else {
+                $cashBalance -= $entry->amount;
+            }
+        }
+
+        $bankBalance = BankAccount::where('is_active', true)->sum('balance');
+        $mobileMoneyBalance = MobileMoneyAccount::where('is_active', true)->sum('balance');
+        $inventoryValue = 0;
+        foreach (\App\Models\Product::all() as $product) {
+            $inventoryValue += $product->quantity * ($product->cost_price ?? 0);
+        }
+
+        // Calculate Liabilities
+        $accountsReceivable = 0;
+        foreach (Sale::where('type', 'credit')->get() as $sale) {
+            $accountsReceivable += ($sale->total - $sale->paid);
+        }
+
+        $accountsPayable = 0;
+        foreach (PurchaseOrder::where('status', 'received')->get() as $po) {
+            $paid = SupplierPayment::where('purchase_order_id', $po->id)->sum('amount');
+            $accountsPayable += ($po->total - $paid);
+        }
+
+        // Calculate Equity
+        $totalCapital = 0;
+        foreach (Capital::all() as $capital) {
+            if ($capital->transaction_type === 'add') {
+                $totalCapital += $capital->amount;
+            } else {
+                $totalCapital -= $capital->amount;
+            }
+        }
+
+        $totalIncome = Income::sum('amount');
+        $totalExpenses = Expense::sum('amount');
+        $retainedEarnings = $totalIncome - $totalExpenses;
+
+        return view('finance.balance-sheet', compact(
+            'cashBalance',
+            'bankBalance',
+            'mobileMoneyBalance',
+            'inventoryValue',
+            'accountsReceivable',
+            'accountsPayable',
+            'totalCapital',
+            'retainedEarnings'
+        ));
+    }
+
+    public function incomeStatement()
+    {
+        $totalSales = Sale::where('status', 'completed')->sum('total');
+        $totalPurchases = PurchaseOrder::where('status', 'received')->sum('total');
+        $grossProfit = $totalSales - $totalPurchases;
+        
+        $totalOperatingExpenses = Expense::sum('amount');
+        $totalOtherIncome = Income::sum('amount');
+        
+        $operatingProfit = $grossProfit - $totalOperatingExpenses;
+        $netProfit = $operatingProfit + $totalOtherIncome;
+
+        return view('finance.income-statement', compact(
+            'totalSales',
+            'totalPurchases',
+            'grossProfit',
+            'totalOperatingExpenses',
+            'totalOtherIncome',
+            'operatingProfit',
+            'netProfit'
+        ));
     }
 }

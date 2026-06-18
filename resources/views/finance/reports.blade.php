@@ -43,6 +43,19 @@
         </div>
     </div>
     
+    <!-- Quick Links -->
+    <div class="card rounded-2xl p-6 mb-6">
+        <h2 class="text-xl font-bold text-primary-900 mb-4">Quick Links</h2>
+        <div class="flex flex-wrap gap-4">
+            <a href="{{ route('finance.balance-sheet') }}" class="px-6 py-3 bg-gradient-to-r from-yellow-500 to-yellow-600 text-white rounded-lg font-semibold hover:from-yellow-600 hover:to-yellow-700 transition-all shadow-md">
+                <i class="fas fa-balance-scale mr-2"></i> View Balance Sheet
+            </a>
+            <a href="{{ route('finance.income-statement') }}" class="px-6 py-3 bg-gradient-to-r from-indigo-500 to-indigo-600 text-white rounded-lg font-semibold hover:from-indigo-600 hover:to-indigo-700 transition-all shadow-md">
+                <i class="fas fa-chart-pie mr-2"></i> View Income Statement
+            </a>
+        </div>
+    </div>
+    
     <!-- Recent Transactions -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div class="card rounded-2xl p-6">

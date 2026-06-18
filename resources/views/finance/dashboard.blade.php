@@ -89,6 +89,16 @@
                     <h4 class="font-semibold">Add Expense</h4>
                 </a>
                 
+                <a href="{{ route('finance.balance-sheet') }}" class="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                    <i class="fas fa-balance-scale text-yellow-500 mb-2 text-xl"></i>
+                    <h4 class="font-semibold">Balance Sheet</h4>
+                </a>
+                
+                <a href="{{ route('finance.income-statement') }}" class="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                    <i class="fas fa-chart-pie text-indigo-500 mb-2 text-xl"></i>
+                    <h4 class="font-semibold">Income Statement</h4>
+                </a>
+                
                 <a href="{{ route('finance.reports') }}" class="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
                     <i class="fas fa-chart-line text-blue-500 mb-2 text-xl"></i>
                     <h4 class="font-semibold">View Reports</h4>
