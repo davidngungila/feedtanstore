@@ -206,7 +206,7 @@ Route::middleware('auth')->group(function () {
 
     // Finance
     Route::prefix('finance')->name('finance.')->group(function () {
-        Route::get('/', function () { return view('finance.dashboard'); })->name('dashboard');
+        Route::get('/', [\App\Http\Controllers\FinanceController::class, 'dashboard'])->name('dashboard');
         Route::get('/payments', function () { return view('finance.payments'); })->name('payments');
         
         // Expenses
@@ -251,16 +251,16 @@ Route::middleware('auth')->group(function () {
         Route::delete('/mobile-money/{mobileMoneyAccount}', [\App\Http\Controllers\MobileMoneyAccountController::class, 'destroy'])->name('mobile-money.destroy');
         
         // Other Finance Pages
-        Route::get('/mobile-money-reconciliation', function () { return view('finance.mobile-money-reconciliation'); })->name('mobile-money-reconciliation');
-        Route::get('/accounts-receivable', function () { return view('finance.accounts-receivable'); })->name('accounts-receivable');
-        Route::get('/accounts-payable', function () { return view('finance.accounts-payable'); })->name('accounts-payable');
+        Route::get('/mobile-money-reconciliation', [\App\Http\Controllers\FinanceController::class, 'mobileMoneyReconciliation'])->name('mobile-money-reconciliation');
+        Route::get('/accounts-receivable', [\App\Http\Controllers\FinanceController::class, 'accountsReceivable'])->name('accounts-receivable');
+        Route::get('/accounts-payable', [\App\Http\Controllers\FinanceController::class, 'accountsPayable'])->name('accounts-payable');
         Route::get('/transactions', [\App\Http\Controllers\FinanceController::class, 'transactions'])->name('transactions');
-        Route::get('/tax-management', function () { return view('finance.tax-management'); })->name('tax-management');
-        Route::get('/budgets', function () { return view('finance.budgets'); })->name('budgets');
-        Route::get('/assets', function () { return view('finance.assets'); })->name('assets');
-        Route::get('/settings', function () { return view('finance.settings'); })->name('settings');
+        Route::get('/tax-management', [\App\Http\Controllers\FinanceController::class, 'taxManagement'])->name('tax-management');
+        Route::get('/budgets', [\App\Http\Controllers\FinanceController::class, 'budgets'])->name('budgets');
+        Route::get('/assets', [\App\Http\Controllers\FinanceController::class, 'assets'])->name('assets');
+        Route::get('/settings', [\App\Http\Controllers\FinanceController::class, 'settings'])->name('settings');
         
-        Route::get('/reports', [\App\Http\Controllers\FinancialReportController::class, 'index'])->name('reports');
+        Route::get('/reports', [\App\Http\Controllers\FinanceController::class, 'reports'])->name('reports');
     });
 
     // Online Sales
