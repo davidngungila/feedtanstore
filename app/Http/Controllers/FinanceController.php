@@ -110,8 +110,7 @@ class FinanceController extends Controller
     
     public function settings()
     {
-        $settings = \App\Models\StoreSetting::firstOrCreate();
-        return view('finance.settings', compact('settings'));
+        return view('finance.settings');
     }
 
     public function balanceSheet()

@@ -27,7 +27,7 @@
             </div>
             <div>
                 <div class="text-sm text-gray-600 mb-1">Budget</div>
-                <div class="font-semibold">{{ $expense->budget ? $expense->budget->name : 'No Budget' }}</div>
+                <div class="font-semibold">{{ $expense->budget ? $expense->budget->name : 'No budget' }}</div>
             </div>
             <div>
                 <div class="text-sm text-gray-600 mb-1">Amount</div>

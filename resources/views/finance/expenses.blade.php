@@ -39,7 +39,7 @@
                         <td class="px-4 py-3">{{ $expense->date->format('d/m/Y') }}</td>
                         <td class="px-4 py-3 font-semibold">{{ $expense->reference_number }}</td>
                         <td class="px-4 py-3">{{ $expense->category }}</td>
-                        <td class="px-4 py-3">{{ $expense->budget ? $expense->budget->name : 'No Budget' }}</td>
+                        <td class="px-4 py-3">{{ $expense->budget ? $expense->budget->name : 'N/A' }}</td>
                         <td class="px-4 py-3">{{ $expense->description ?? 'N/A' }}</td>
                         <td class="px-4 py-3 font-bold text-red-700">TZS {{ number_format($expense->amount, 2) }}</td>
                         <td class="px-4 py-3">{{ $expense->payment_method }}</td>

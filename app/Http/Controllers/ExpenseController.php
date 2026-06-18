@@ -3,10 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Expense;
-use App\Models\Budget;
 use App\Models\BankAccount;
 use App\Models\MobileMoneyAccount;
 use App\Models\AccountingEntry;
+use App\Models\Budget;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -22,7 +22,7 @@ class ExpenseController extends Controller
     {
         $bankAccounts = BankAccount::where('is_active', true)->get();
         $mobileMoneyAccounts = MobileMoneyAccount::where('is_active', true)->get();
-        $budgets = Budget::where('is_active', true)->get();
+        $budgets = Budget::all();
         return view('finance.expenses-create', compact('bankAccounts', 'mobileMoneyAccounts', 'budgets'));
     }
 
@@ -68,7 +68,7 @@ class ExpenseController extends Controller
     {
         $bankAccounts = BankAccount::where('is_active', true)->get();
         $mobileMoneyAccounts = MobileMoneyAccount::where('is_active', true)->get();
-        $budgets = Budget::where('is_active', true)->get();
+        $budgets = Budget::all();
         return view('finance.expenses-edit', compact('expense', 'bankAccounts', 'mobileMoneyAccounts', 'budgets'));
     }
     

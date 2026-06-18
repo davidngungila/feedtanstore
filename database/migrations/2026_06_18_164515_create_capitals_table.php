@@ -13,11 +13,6 @@ return new class extends Migration
     {
         Schema::create('capitals', function (Blueprint $table) {
             $table->id();
-            $table->decimal('amount', 10, 2);
-            $table->string('description')->nullable();
-            $table->string('transaction_type'); // 'add' or 'withdraw'
-            $table->date('date');
-            $table->foreignId('user_id')->constrained();
             $table->timestamps();
         });
     }

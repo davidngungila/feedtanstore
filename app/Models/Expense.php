@@ -22,7 +22,7 @@ class Expense extends Model {
     public function mobileMoneyAccount() {
         return $this->belongsTo(MobileMoneyAccount::class);
     }
-
+    
     public function budget() {
         return $this->belongsTo(Budget::class);
     }
