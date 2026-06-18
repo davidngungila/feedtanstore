@@ -94,17 +94,30 @@
         @else
             <div id="carousel" class="flex transition-transform duration-500 ease-in-out">
                 @foreach($slides as $slide)
-                <div class="min-w-full text-white py-20" style="background: linear-gradient(to right, {{ $slide->background_color ?? '#22c55e' }}, {{ $slide->gradient_color ?? '#16a34a' }});">
-                    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-                        <h1 class="text-4xl md:text-6xl font-bold mb-6">{{ $slide->title }}</h1>
-                        @if($slide->subtitle)
-                            <p class="text-xl opacity-90 mb-8 max-w-2xl mx-auto">{{ $slide->subtitle }}</p>
-                        @endif
-                        @if($slide->button_text)
-                            <a href="{{ $slide->button_url ?? '#products' }}" class="inline-block bg-white font-semibold px-10 py-4 rounded-xl hover:bg-gray-100 transition transform hover:scale-105 shadow-lg" style="color: {{ $slide->background_color ?? '#16a34a' }}">
-                                <i class="fas fa-arrow-right mr-2"></i> {{ $slide->button_text }}
-                            </a>
-                        @endif
+                <div class="min-w-full text-white py-12 md:py-20" style="background: linear-gradient(to right, {{ $slide->background_color ?? '#22c55e' }}, {{ $slide->gradient_color ?? '#16a34a' }});">
+                    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                        <div class="flex flex-col md:flex-row items-center justify-center gap-8">
+                            @if($slide->image)
+                                <div class="flex-1 max-w-md w-full">
+                                    <img 
+                                        src="{{ asset('storage/' . $slide->image) }}" 
+                                        alt="{{ $slide->title }}"
+                                        class="w-full h-auto max-h-64 md:max-h-96 object-contain rounded-xl shadow-xl"
+                                    >
+                                </div>
+                            @endif
+                            <div class="flex-1 text-center md:text-left">
+                                <h1 class="text-3xl md:text-5xl font-bold mb-4">{{ $slide->title }}</h1>
+                                @if($slide->subtitle)
+                                    <p class="text-lg md:text-xl opacity-90 mb-6 max-w-lg">{{ $slide->subtitle }}</p>
+                                @endif
+                                @if($slide->button_text)
+                                    <a href="{{ $slide->button_url ?? '#products' }}" class="inline-block bg-white font-semibold px-8 py-3 md:px-10 md:py-4 rounded-xl hover:bg-gray-100 transition transform hover:scale-105 shadow-lg" style="color: {{ $slide->background_color ?? '#16a34a' }}">
+                                        <i class="fas fa-arrow-right mr-2"></i> {{ $slide->button_text }}
+                                    </a>
+                                @endif
+                            </div>
+                        </div>
                     </div>
                 </div>
                 @endforeach
