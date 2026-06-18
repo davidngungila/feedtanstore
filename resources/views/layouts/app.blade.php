@@ -311,7 +311,7 @@
           </div>
           <i x-show="!sidebarCollapsed" :class="activeSection === 'analytics'?'fa-solid fa-chevron-up':'fa-solid fa-chevron-down'" class="text-[10px] text-primary-400"></i>
         </button>
-        <div :class="activeSection === 'analytics'?'max-h-[500px]':'max-h-0'" class="overflow-hidden transition-all duration-300 ml-3" x-show="!sidebarCollapsed">
+        <div :class="activeSection === 'analytics'?'max-h-[2000px]':'max-h-0'" class="overflow-hidden transition-all duration-300 ml-3" x-show="!sidebarCollapsed">
           <a href="{{ route('dashboard.sales') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('dashboard.sales') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
             <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
             Sales Analytics
@@ -340,7 +340,7 @@
           </div>
           <i x-show="!sidebarCollapsed" :class="activeSection === 'sales'?'fa-solid fa-chevron-up':'fa-solid fa-chevron-down'" class="text-[10px] text-primary-400"></i>
         </button>
-        <div :class="activeSection === 'sales'?'max-h-[500px]':'max-h-0'" class="overflow-hidden transition-all duration-300 ml-3" x-show="!sidebarCollapsed">
+        <div :class="activeSection === 'sales'?'max-h-[2000px]':'max-h-0'" class="overflow-hidden transition-all duration-300 ml-3" x-show="!sidebarCollapsed">
           <a href="{{ route('sales.new') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('sales.new') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
             <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
             New Sale (POS)
@@ -382,7 +382,7 @@
           </div>
           <i x-show="!sidebarCollapsed" :class="activeSection === 'inventory'?'fa-solid fa-chevron-up':'fa-solid fa-chevron-down'" class="text-[10px] text-primary-400"></i>
         </button>
-        <div :class="activeSection === 'inventory'?'max-h-[500px]':'max-h-0'" class="overflow-hidden transition-all duration-300 ml-3" x-show="!sidebarCollapsed">
+        <div :class="activeSection === 'inventory'?'max-h-[2000px]':'max-h-0'" class="overflow-hidden transition-all duration-300 ml-3" x-show="!sidebarCollapsed">
           <a href="{{ route('inventory.products') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('inventory.products') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
             <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
             Products
@@ -457,7 +457,7 @@
           </div>
           <i x-show="!sidebarCollapsed" :class="activeSection === 'purchasing'?'fa-solid fa-chevron-up':'fa-solid fa-chevron-down'" class="text-[10px] text-primary-400"></i>
         </button>
-        <div :class="activeSection === 'purchasing'?'max-h-[500px]':'max-h-0'" class="overflow-hidden transition-all duration-300 ml-3" x-show="!sidebarCollapsed">
+        <div :class="activeSection === 'purchasing'?'max-h-[2000px]':'max-h-0'" class="overflow-hidden transition-all duration-300 ml-3" x-show="!sidebarCollapsed">
           <a href="{{ route('purchasing.suppliers') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('purchasing.suppliers') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
             <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
             Suppliers
@@ -490,7 +490,7 @@
           </div>
           <i x-show="!sidebarCollapsed" :class="activeSection === 'customers'?'fa-solid fa-chevron-up':'fa-solid fa-chevron-down'" class="text-[10px] text-primary-400"></i>
         </button>
-        <div :class="activeSection === 'customers'?'max-h-[500px]':'max-h-0'" class="overflow-hidden transition-all duration-300 ml-3" x-show="!sidebarCollapsed">
+        <div :class="activeSection === 'customers'?'max-h-[2000px]':'max-h-0'" class="overflow-hidden transition-all duration-300 ml-3" x-show="!sidebarCollapsed">
           <a href="{{ route('customers.list') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('customers.list') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
             <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
             Customer List
@@ -523,7 +523,7 @@
           </div>
           <i x-show="!sidebarCollapsed" :class="activeSection === 'finance'?'fa-solid fa-chevron-up':'fa-solid fa-chevron-down'" class="text-[10px] text-primary-400"></i>
         </button>
-        <div :class="activeSection === 'finance'?'max-h-[500px]':'max-h-0'" class="overflow-hidden transition-all duration-300 ml-3" x-show="!sidebarCollapsed">
+        <div :class="activeSection === 'finance'?'max-h-[2000px]':'max-h-0'" class="overflow-hidden transition-all duration-300 ml-3" x-show="!sidebarCollapsed">
           <a href="{{ route('finance.dashboard') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('finance.dashboard') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
             <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
             Dashboard
@@ -608,7 +608,7 @@
           </div>
           <i x-show="!sidebarCollapsed" :class="activeSection === 'online'?'fa-solid fa-chevron-up':'fa-solid fa-chevron-down'" class="text-[10px] text-primary-400"></i>
         </button>
-        <div :class="activeSection === 'online'?'max-h-[500px]':'max-h-0'" class="overflow-hidden transition-all duration-300 ml-3" x-show="!sidebarCollapsed">
+        <div :class="activeSection === 'online'?'max-h-[2000px]':'max-h-0'" class="overflow-hidden transition-all duration-300 ml-3" x-show="!sidebarCollapsed">
           <a href="{{ route('online.orders') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('online.orders') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
             <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
             Online Orders
@@ -649,7 +649,7 @@
           </div>
           <i x-show="!sidebarCollapsed" :class="activeSection === 'store'?'fa-solid fa-chevron-up':'fa-solid fa-chevron-down'" class="text-[10px] text-primary-400"></i>
         </button>
-        <div :class="activeSection === 'store'?'max-h-[500px]':'max-h-0'" class="overflow-hidden transition-all duration-300 ml-3" x-show="!sidebarCollapsed">
+        <div :class="activeSection === 'store'?'max-h-[2000px]':'max-h-0'" class="overflow-hidden transition-all duration-300 ml-3" x-show="!sidebarCollapsed">
           <a href="{{ route('store.profile') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('store.profile') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
             <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
             Store Profile
@@ -682,7 +682,7 @@
           </div>
           <i x-show="!sidebarCollapsed" :class="activeSection === 'hr'?'fa-solid fa-chevron-up':'fa-solid fa-chevron-down'" class="text-[10px] text-primary-400"></i>
         </button>
-        <div :class="activeSection === 'hr'?'max-h-[500px]':'max-h-0'" class="overflow-hidden transition-all duration-300 ml-3" x-show="!sidebarCollapsed">
+        <div :class="activeSection === 'hr'?'max-h-[2000px]':'max-h-0'" class="overflow-hidden transition-all duration-300 ml-3" x-show="!sidebarCollapsed">
           <a href="{{ route('hr.employees') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('hr.employees') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
             <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
             Employees
@@ -715,7 +715,7 @@
           </div>
           <i x-show="!sidebarCollapsed" :class="activeSection === 'security'?'fa-solid fa-chevron-up':'fa-solid fa-chevron-down'" class="text-[10px] text-primary-400"></i>
         </button>
-        <div :class="activeSection === 'security'?'max-h-[500px]':'max-h-0'" class="overflow-hidden transition-all duration-300 ml-3" x-show="!sidebarCollapsed">
+        <div :class="activeSection === 'security'?'max-h-[2000px]':'max-h-0'" class="overflow-hidden transition-all duration-300 ml-3" x-show="!sidebarCollapsed">
           <a href="{{ route('security.users') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('security.users') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
             <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
             User Accounts
@@ -752,7 +752,7 @@
           </div>
           <i x-show="!sidebarCollapsed" :class="activeSection === 'marketing'?'fa-solid fa-chevron-up':'fa-solid fa-chevron-down'" class="text-[10px] text-primary-400"></i>
         </button>
-        <div :class="activeSection === 'marketing'?'max-h-[500px]':'max-h-0'" class="overflow-hidden transition-all duration-300 ml-3" x-show="!sidebarCollapsed">
+        <div :class="activeSection === 'marketing'?'max-h-[2000px]':'max-h-0'" class="overflow-hidden transition-all duration-300 ml-3" x-show="!sidebarCollapsed">
           <a href="{{ route('marketing.promotions') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('marketing.promotions') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
             <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
             Promotions
@@ -795,7 +795,7 @@
               </div>
               <i :class="salesOpen?'fa-solid fa-chevron-up':'fa-solid fa-chevron-down'" class="text-[8px]"></i>
             </button>
-            <div :class="salesOpen?'max-h-[500px]':'max-h-0'" class="overflow-hidden transition-all duration-200 ml-4">
+            <div :class="salesOpen?'max-h-[2000px]':'max-h-0'" class="overflow-hidden transition-all duration-200 ml-4">
               <a href="{{ route('reports.sales.daily') }}" class="w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs transition-all duration-150 {{ request()->routeIs('reports.sales.daily') ? 'bg-primary-500/60 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
                 <i class="fa-solid fa-minus text-[4px] flex-shrink-0 ml-2"></i>
                 Daily Sales Summary
@@ -840,7 +840,7 @@
               </div>
               <i :class="profitOpen?'fa-solid fa-chevron-up':'fa-solid fa-chevron-down'" class="text-[8px]"></i>
             </button>
-            <div :class="profitOpen?'max-h-[500px]':'max-h-0'" class="overflow-hidden transition-all duration-200 ml-4">
+            <div :class="profitOpen?'max-h-[2000px]':'max-h-0'" class="overflow-hidden transition-all duration-200 ml-4">
               <a href="{{ route('reports.profit.gross') }}" class="w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs transition-all duration-150 {{ request()->routeIs('reports.profit.gross') ? 'bg-primary-500/60 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
                 <i class="fa-solid fa-minus text-[4px] flex-shrink-0 ml-2"></i>
                 Gross Profit
@@ -873,7 +873,7 @@
               </div>
               <i :class="inventoryOpen?'fa-solid fa-chevron-up':'fa-solid fa-chevron-down'" class="text-[8px]"></i>
             </button>
-            <div :class="inventoryOpen?'max-h-[500px]':'max-h-0'" class="overflow-hidden transition-all duration-200 ml-4">
+            <div :class="inventoryOpen?'max-h-[2000px]':'max-h-0'" class="overflow-hidden transition-all duration-200 ml-4">
               <a href="{{ route('reports.inventory.current-stock') }}" class="w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs transition-all duration-150 {{ request()->routeIs('reports.inventory.current-stock') ? 'bg-primary-500/60 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
                 <i class="fa-solid fa-minus text-[4px] flex-shrink-0 ml-2"></i>
                 Current Stock
@@ -934,7 +934,7 @@
               </div>
               <i :class="expiryOpen?'fa-solid fa-chevron-up':'fa-solid fa-chevron-down'" class="text-[8px]"></i>
             </button>
-            <div :class="expiryOpen?'max-h-[500px]':'max-h-0'" class="overflow-hidden transition-all duration-200 ml-4">
+            <div :class="expiryOpen?'max-h-[2000px]':'max-h-0'" class="overflow-hidden transition-all duration-200 ml-4">
               <a href="{{ route('reports.expiry.soon') }}" class="w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs transition-all duration-150 {{ request()->routeIs('reports.expiry.soon') ? 'bg-primary-500/60 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
                 <i class="fa-solid fa-minus text-[4px] flex-shrink-0 ml-2"></i>
                 Expiring Soon
@@ -959,7 +959,7 @@
               </div>
               <i :class="purchasingOpen?'fa-solid fa-chevron-up':'fa-solid fa-chevron-down'" class="text-[8px]"></i>
             </button>
-            <div :class="purchasingOpen?'max-h-[500px]':'max-h-0'" class="overflow-hidden transition-all duration-200 ml-4">
+            <div :class="purchasingOpen?'max-h-[2000px]':'max-h-0'" class="overflow-hidden transition-all duration-200 ml-4">
               <a href="{{ route('reports.purchasing.summary') }}" class="w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs transition-all duration-150 {{ request()->routeIs('reports.purchasing.summary') ? 'bg-primary-500/60 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
                 <i class="fa-solid fa-minus text-[4px] flex-shrink-0 ml-2"></i>
                 Purchase Summary
@@ -992,7 +992,7 @@
               </div>
               <i :class="cashOpen?'fa-solid fa-chevron-up':'fa-solid fa-chevron-down'" class="text-[8px]"></i>
             </button>
-            <div :class="cashOpen?'max-h-[500px]':'max-h-0'" class="overflow-hidden transition-all duration-200 ml-4">
+            <div :class="cashOpen?'max-h-[2000px]':'max-h-0'" class="overflow-hidden transition-all duration-200 ml-4">
               <a href="{{ route('reports.cash.cashier-shift') }}" class="w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs transition-all duration-150 {{ request()->routeIs('reports.cash.cashier-shift') ? 'bg-primary-500/60 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
                 <i class="fa-solid fa-minus text-[4px] flex-shrink-0 ml-2"></i>
                 Cashier Shift Report
@@ -1021,7 +1021,7 @@
               </div>
               <i :class="staffOpen?'fa-solid fa-chevron-up':'fa-solid fa-chevron-down'" class="text-[8px]"></i>
             </button>
-            <div :class="staffOpen?'max-h-[500px]':'max-h-0'" class="overflow-hidden transition-all duration-200 ml-4">
+            <div :class="staffOpen?'max-h-[2000px]':'max-h-0'" class="overflow-hidden transition-all duration-200 ml-4">
               <a href="{{ route('reports.staff.sales-by-cashier') }}" class="w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs transition-all duration-150 {{ request()->routeIs('reports.staff.sales-by-cashier') ? 'bg-primary-500/60 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
                 <i class="fa-solid fa-minus text-[4px] flex-shrink-0 ml-2"></i>
                 Sales by Cashier
@@ -1058,7 +1058,7 @@
               </div>
               <i :class="customerOpen?'fa-solid fa-chevron-up':'fa-solid fa-chevron-down'" class="text-[8px]"></i>
             </button>
-            <div :class="customerOpen?'max-h-[500px]':'max-h-0'" class="overflow-hidden transition-all duration-200 ml-4">
+            <div :class="customerOpen?'max-h-[2000px]':'max-h-0'" class="overflow-hidden transition-all duration-200 ml-4">
               <a href="{{ route('reports.customer.sales') }}" class="w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs transition-all duration-150 {{ request()->routeIs('reports.customer.sales') ? 'bg-primary-500/60 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
                 <i class="fa-solid fa-minus text-[4px] flex-shrink-0 ml-2"></i>
                 Customer Sales Report
@@ -1083,7 +1083,7 @@
               </div>
               <i :class="securityOpen?'fa-solid fa-chevron-up':'fa-solid fa-chevron-down'" class="text-[8px]"></i>
             </button>
-            <div :class="securityOpen?'max-h-[500px]':'max-h-0'" class="overflow-hidden transition-all duration-200 ml-4">
+            <div :class="securityOpen?'max-h-[2000px]':'max-h-0'" class="overflow-hidden transition-all duration-200 ml-4">
               <a href="{{ route('reports.security.audit-log') }}" class="w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs transition-all duration-150 {{ request()->routeIs('reports.security.audit-log') ? 'bg-primary-500/60 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
                 <i class="fa-solid fa-minus text-[4px] flex-shrink-0 ml-2"></i>
                 Audit Log Report
@@ -1112,7 +1112,7 @@
               </div>
               <i :class="managementOpen?'fa-solid fa-chevron-up':'fa-solid fa-chevron-down'" class="text-[8px]"></i>
             </button>
-            <div :class="managementOpen?'max-h-[500px]':'max-h-0'" class="overflow-hidden transition-all duration-200 ml-4">
+            <div :class="managementOpen?'max-h-[2000px]':'max-h-0'" class="overflow-hidden transition-all duration-200 ml-4">
               <a href="{{ route('reports.management.executive') }}" class="w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs transition-all duration-150 {{ request()->routeIs('reports.management.executive') ? 'bg-primary-500/60 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
                 <i class="fa-solid fa-minus text-[4px] flex-shrink-0 ml-2"></i>
                 Executive Dashboard
@@ -1145,7 +1145,7 @@
               </div>
               <i :class="advancedOpen?'fa-solid fa-chevron-up':'fa-solid fa-chevron-down'" class="text-[8px]"></i>
             </button>
-            <div :class="advancedOpen?'max-h-[500px]':'max-h-0'" class="overflow-hidden transition-all duration-200 ml-4">
+            <div :class="advancedOpen?'max-h-[2000px]':'max-h-0'" class="overflow-hidden transition-all duration-200 ml-4">
               <a href="{{ route('reports.advanced.branch-comparison') }}" class="w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs transition-all duration-150 {{ request()->routeIs('reports.advanced.branch-comparison') ? 'bg-primary-500/60 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
                 <i class="fa-solid fa-minus text-[4px] flex-shrink-0 ml-2"></i>
                 Branch Comparison Report
@@ -1180,7 +1180,7 @@
           </div>
           <i x-show="!sidebarCollapsed" :class="open?'fa-solid fa-chevron-up':'fa-solid fa-chevron-down'" class="text-[10px] text-primary-400"></i>
         </button>
-        <div :class="open?'max-h-[500px]':'max-h-0'" class="overflow-hidden transition-all duration-300 ml-3" x-show="!sidebarCollapsed">
+        <div :class="open?'max-h-[2000px]':'max-h-0'" class="overflow-hidden transition-all duration-300 ml-3" x-show="!sidebarCollapsed">
           <a href="{{ route('system.general') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('system.general') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
             <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
             General Settings
