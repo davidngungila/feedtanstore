@@ -30,21 +30,19 @@
                     $primaryImage = $product->images->firstWhere('is_primary', true);
                     $imageToShow = $primaryImage ? $primaryImage->image_path : $product->image;
                 @endphp
-                @if($imageToShow)
-                    <div class="bg-gray-100 rounded-lg aspect-square flex items-center justify-center overflow-hidden mb-4">
-                        <img src="{{ $imageToShow }}" alt="{{ $product->name }}" class="max-h-full max-w-full object-contain">
-                    </div>
-                @else
-                    <div class="bg-gray-100 rounded-lg aspect-square flex items-center justify-center mb-4">
+                <div id="main-image-container" class="bg-gray-100 rounded-lg aspect-square flex items-center justify-center overflow-hidden mb-4">
+                    @if($imageToShow)
+                        <img id="main-image" src="{{ $imageToShow }}" alt="{{ $product->name }}" class="max-h-full max-w-full object-contain">
+                    @else
                         <i class="fas fa-box text-8xl text-gray-400"></i>
-                    </div>
-                @endif
+                    @endif
+                </div>
 
-                @if($product->images->count() > 1)
+                @if($product->images->count() > 0)
                     <div class="grid grid-cols-4 gap-3">
                         @foreach($product->images as $image)
                             <div class="relative">
-                                <div class="bg-gray-100 rounded-lg aspect-square flex items-center justify-center overflow-hidden cursor-pointer hover:ring-2 hover:ring-primary-500 @if($image->is_primary) ring-2 ring-primary-500 @endif">
+                                <div onclick="document.getElementById('main-image').src='{{ $image->image_path }}'" class="bg-gray-100 rounded-lg aspect-square flex items-center justify-center overflow-hidden cursor-pointer hover:ring-2 hover:ring-primary-500 @if($image->is_primary) ring-2 ring-primary-500 @endif">
                                     <img src="{{ $image->image_path }}" alt="{{ $product->name }}" class="max-h-full max-w-full object-contain">
                                 </div>
                                 @if(!$image->is_primary)
