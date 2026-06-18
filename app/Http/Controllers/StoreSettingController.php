@@ -22,12 +22,12 @@ class StoreSettingController extends Controller
         $settings = StoreSetting::firstOrCreate();
         
         $request->validate([
-            'store_name' => 'required|string|max:255',
+            'store_name' => 'sometimes|required|string|max:255',
             'store_email' => 'nullable|email|max:255',
             'store_phone' => 'nullable|string|max:255',
             'store_address' => 'nullable|string',
             'store_logo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'currency' => 'required|string|max:10',
+            'currency' => 'sometimes|required|string|max:10',
             'tax_rate' => 'nullable|numeric|min:0|max:100',
             'tax_name' => 'nullable|string|max:255',
             'tax_enabled' => 'boolean',
