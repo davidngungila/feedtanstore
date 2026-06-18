@@ -14,16 +14,27 @@
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
-    <!-- Header -->
+    <!-- Top Header -->
+    <div class="bg-gradient-to-r from-green-600 to-green-700 text-white py-2">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
+            <div class="flex items-center gap-4 text-sm">
+                <span class="flex items-center gap-2">
+                    <i class="fas fa-phone"></i>
+                    +255 700 000 000
+                </span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Main Header -->
     <header class="bg-white shadow-sm sticky top-0 z-50">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
             <a href="{{ route('shop.index') }}" class="flex items-center gap-3">
-                <img src="{{ asset('feedtanstorelogo.png') }}" alt="Feedtan Store" class="h-10">
-                <span class="text-xl font-bold text-gray-900">Feedtan Store</span>
+                <img src="{{ asset('feedtanstorelogo.png') }}" alt="Feedtan Store" class="h-12">
             </a>
-            <a href="{{ route('shop.index') }}" class="text-gray-600 hover:text-gray-900">
-                <i class="fas fa-arrow-left mr-2"></i>
-                Back to Shop
+            <a href="{{ route('shop.index') }}" class="text-gray-600 hover:text-gray-900 font-medium flex items-center gap-2">
+                <i class="fas fa-arrow-left"></i>
+                <span class="hidden sm:inline">Back to Shop</span>
             </a>
         </div>
     </header>

@@ -16,23 +16,56 @@
     </style>
 </head>
 <body class="bg-gray-50">
-    <!-- Header -->
+    <!-- Top Header -->
+    <div class="bg-gradient-to-r from-green-600 to-green-700 text-white py-2">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
+            <div class="flex items-center gap-4 text-sm">
+                <span class="flex items-center gap-2">
+                    <i class="fas fa-phone"></i>
+                    +255 700 000 000
+                </span>
+                <span class="hidden sm:flex items-center gap-2">
+                    <i class="fas fa-envelope"></i>
+                    info@feedtanstore.com
+                </span>
+            </div>
+            <div class="text-sm font-medium">Free Delivery on Orders Over TZS 50,000</div>
+        </div>
+    </div>
+    
+    <!-- Main Header -->
     <header class="bg-white shadow-sm sticky top-0 z-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
             <div class="flex items-center gap-3">
-                <img src="{{ asset('feedtanstorelogo.png') }}" alt="Feedtan Store" class="h-10">
-                <span class="text-xl font-bold text-gray-900">Feedtan Store</span>
+                <img src="{{ asset('feedtanstorelogo.png') }}" alt="Feedtan Store" class="h-12">
             </div>
-            <nav class="hidden md:flex items-center gap-6">
+            
+            <!-- Desktop Navigation -->
+            <nav class="hidden md:flex items-center gap-8">
                 <a href="#shop" class="text-gray-700 hover:text-green-600 font-medium">Shop</a>
                 <a href="#products" class="text-gray-700 hover:text-green-600 font-medium">Products</a>
                 <a href="#contact" class="text-gray-700 hover:text-green-600 font-medium">Contact</a>
             </nav>
+            
             <div class="flex items-center gap-4">
                 <button id="cartBtn" class="relative p-2 text-gray-700 hover:text-green-600">
                     <i class="fas fa-shopping-cart text-xl"></i>
                     <span id="cartCount" class="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center hidden">0</span>
                 </button>
+                
+                <!-- Mobile Menu Button -->
+                <button id="mobileMenuBtn" class="md:hidden p-2 text-gray-700 hover:text-green-600">
+                    <i class="fas fa-bars text-xl"></i>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Mobile Navigation -->
+        <div id="mobileMenu" class="md:hidden hidden bg-white border-t border-gray-100">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col gap-4">
+                <a href="#shop" class="text-gray-700 hover:text-green-600 font-medium py-2">Shop</a>
+                <a href="#products" class="text-gray-700 hover:text-green-600 font-medium py-2">Products</a>
+                <a href="#contact" class="text-gray-700 hover:text-green-600 font-medium py-2">Contact</a>
             </div>
         </div>
     </header>
@@ -265,6 +298,20 @@
         }
 
         document.getElementById('cartBtn').addEventListener('click', openCart);
+        
+        // Mobile menu toggle
+        document.getElementById('mobileMenuBtn').addEventListener('click', function() {
+            const mobileMenu = document.getElementById('mobileMenu');
+            mobileMenu.classList.toggle('hidden');
+        });
+        
+        // Close mobile menu when clicking on links
+        const mobileLinks = document.querySelectorAll('#mobileMenu a');
+        mobileLinks.forEach(link => {
+            link.addEventListener('click', function() {
+                document.getElementById('mobileMenu').classList.add('hidden');
+            });
+        });
 
         initCart();
     </script>
