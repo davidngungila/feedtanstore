@@ -16,9 +16,23 @@
             <div>
                 <div class="text-sm text-gray-600 mb-1">Reference Number</div>
                 <div class="font-semibold text-lg">
-                    <a href="{{ route('finance.transactions.show', $entry) }}" class="text-primary-600 hover:text-primary-800">
-                        {{ $entry->reference_number }}
-                    </a>
+                    @if($entry->reference_type === \App\Models\Sale::class)
+                        <a href="{{ route('sales.show', $entry->reference) }}" class="text-primary-600 hover:text-primary-800">
+                            {{ $entry->reference_number }}
+                        </a>
+                    @elseif($entry->reference_type === \App\Models\Expense::class)
+                        <a href="{{ route('finance.expenses.show', $entry->reference) }}" class="text-primary-600 hover:text-primary-800">
+                            {{ $entry->reference_number }}
+                        </a>
+                    @elseif($entry->reference_type === \App\Models\Income::class)
+                        <a href="{{ route('finance.income.show', $entry->reference) }}" class="text-primary-600 hover:text-primary-800">
+                            {{ $entry->reference_number }}
+                        </a>
+                    @else
+                        <a href="{{ route('finance.transactions.show', $entry) }}" class="text-primary-600 hover:text-primary-800">
+                            {{ $entry->reference_number }}
+                        </a>
+                    @endif
                 </div>
             </div>
             <div>
@@ -71,9 +85,23 @@
                     <tr class="{{ $related->id === $entry->id ? 'bg-primary-50' : '' }}">
                         <td class="px-4 py-3">{{ $related->created_at->format('d/m/Y H:i') }}</td>
                         <td class="px-4 py-3">
-                            <a href="{{ route('finance.transactions.show', $related) }}" class="text-primary-600 hover:text-primary-800 font-semibold">
-                                {{ $related->reference_number }}
-                            </a>
+                            @if($related->reference_type === \App\Models\Sale::class)
+                                <a href="{{ route('sales.show', $related->reference) }}" class="text-primary-600 hover:text-primary-800 font-semibold">
+                                    {{ $related->reference_number }}
+                                </a>
+                            @elseif($related->reference_type === \App\Models\Expense::class)
+                                <a href="{{ route('finance.expenses.show', $related->reference) }}" class="text-primary-600 hover:text-primary-800 font-semibold">
+                                    {{ $related->reference_number }}
+                                </a>
+                            @elseif($related->reference_type === \App\Models\Income::class)
+                                <a href="{{ route('finance.income.show', $related->reference) }}" class="text-primary-600 hover:text-primary-800 font-semibold">
+                                    {{ $related->reference_number }}
+                                </a>
+                            @else
+                                <a href="{{ route('finance.transactions.show', $related) }}" class="text-primary-600 hover:text-primary-800 font-semibold">
+                                    {{ $related->reference_number }}
+                                </a>
+                            @endif
                         </td>
                         <td class="px-4 py-3 font-medium">{{ $related->account }}</td>
                         <td class="px-4 py-3">

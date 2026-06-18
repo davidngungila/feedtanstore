@@ -45,14 +45,15 @@ class FinanceController extends Controller
     
     public function transactions()
     {
-        $entries = AccountingEntry::orderBy('created_at', 'desc')->paginate(50);
+        $entries = AccountingEntry::with('reference')->orderBy('created_at', 'desc')->paginate(50);
         return view('finance.transactions', compact('entries'));
     }
     
     public function showTransaction(AccountingEntry $entry)
     {
+        $entry->load('reference');
         // Get all related entries with the same reference number
-        $relatedEntries = AccountingEntry::where('reference_number', $entry->reference_number)->get();
+        $relatedEntries = AccountingEntry::with('reference')->where('reference_number', $entry->reference_number)->get();
         return view('finance.transaction-details', compact('entry', 'relatedEntries'));
     }
     
