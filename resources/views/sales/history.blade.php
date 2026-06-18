@@ -56,11 +56,7 @@
                             <a href="{{ route('sales.receipts.print', $sale) }}" class="text-primary-600 hover:text-primary-800" title="Print" target="_blank">
                                 <i class="fas fa-print"></i>
                             </a>
-                            @if($sale->type == 'credit' && $sale->total - $sale->paid > 0)
-                            <a href="{{ route('sales.credit.payment', $sale) }}" class="text-green-600 hover:text-green-800" title="Add Payment">
-                                <i class="fas fa-money-bill-wave"></i>
-                            </a>
-                            @endif
+
                             @if($sale->status == 'completed')
                             <a href="{{ route('sales.returns') }}?sale={{ $sale->id }}" class="text-yellow-600 hover:text-yellow-800" title="Return">
                                 <i class="fas fa-undo"></i>
