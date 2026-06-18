@@ -81,9 +81,8 @@
 
     <!-- Hero Carousel -->
     <section id="shop" class="relative overflow-hidden">
-        <div id="carousel" class="flex transition-transform duration-500 ease-in-out">
-            <!-- Slide 1 -->
-            <div class="min-w-full bg-gradient-to-r from-green-600 to-green-700 text-white py-20">
+        @if($slides->isEmpty())
+            <div class="bg-gradient-to-r from-green-600 to-green-700 text-white py-20">
                 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
                     <h1 class="text-4xl md:text-6xl font-bold mb-6">Shop Online with Feedtan Store</h1>
                     <p class="text-xl opacity-90 mb-8 max-w-2xl mx-auto">Discover quality products at unbeatable prices, delivered right to your door!</p>
@@ -92,44 +91,42 @@
                     </a>
                 </div>
             </div>
-
-            <!-- Slide 2 -->
-            <div class="min-w-full bg-gradient-to-r from-blue-600 to-purple-700 text-white py-20">
-                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-                    <h1 class="text-4xl md:text-6xl font-bold mb-6">Fast & Reliable Delivery</h1>
-                    <p class="text-xl opacity-90 mb-8 max-w-2xl mx-auto">Get your orders delivered within 24 hours in major cities!</p>
-                    <a href="#contact" class="inline-block bg-white text-blue-700 font-semibold px-10 py-4 rounded-xl hover:bg-gray-100 transition transform hover:scale-105 shadow-lg">
-                        <i class="fas fa-truck mr-2"></i> Learn More
-                    </a>
+        @else
+            <div id="carousel" class="flex transition-transform duration-500 ease-in-out">
+                @foreach($slides as $slide)
+                <div class="min-w-full text-white py-20" style="background: linear-gradient(to right, {{ $slide->background_color ?? '#22c55e' }}, {{ $slide->gradient_color ?? '#16a34a' }});">
+                    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                        <h1 class="text-4xl md:text-6xl font-bold mb-6">{{ $slide->title }}</h1>
+                        @if($slide->subtitle)
+                            <p class="text-xl opacity-90 mb-8 max-w-2xl mx-auto">{{ $slide->subtitle }}</p>
+                        @endif
+                        @if($slide->button_text)
+                            <a href="{{ $slide->button_url ?? '#products' }}" class="inline-block bg-white font-semibold px-10 py-4 rounded-xl hover:bg-gray-100 transition transform hover:scale-105 shadow-lg" style="color: {{ $slide->background_color ?? '#16a34a' }}">
+                                <i class="fas fa-arrow-right mr-2"></i> {{ $slide->button_text }}
+                            </a>
+                        @endif
+                    </div>
                 </div>
+                @endforeach
             </div>
 
-            <!-- Slide 3 -->
-            <div class="min-w-full bg-gradient-to-r from-orange-500 to-pink-600 text-white py-20">
-                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-                    <h1 class="text-4xl md:text-6xl font-bold mb-6">Special Offers & Discounts</h1>
-                    <p class="text-xl opacity-90 mb-8 max-w-2xl mx-auto">Enjoy exclusive deals and save big on your favorite products!</p>
-                    <a href="#products" class="inline-block bg-white text-orange-600 font-semibold px-10 py-4 rounded-xl hover:bg-gray-100 transition transform hover:scale-105 shadow-lg">
-                        <i class="fas fa-percent mr-2"></i> Shop Deals
-                    </a>
+            <!-- Carousel Controls -->
+            @if($slides->count() > 1)
+                <button id="prevBtn" class="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white/30 hover:bg-white/50 text-white p-3 rounded-full transition">
+                    <i class="fas fa-chevron-left text-2xl"></i>
+                </button>
+                <button id="nextBtn" class="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white/30 hover:bg-white/50 text-white p-3 rounded-full transition">
+                    <i class="fas fa-chevron-right text-2xl"></i>
+                </button>
+
+                <!-- Carousel Indicators -->
+                <div class="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex gap-3">
+                    @foreach($slides as $index => $slide)
+                        <button class="carousel-indicator w-3 h-3 rounded-full {{ $index === 0 ? 'bg-white' : 'bg-white/50' }} hover:bg-white transition" data-index="{{ $index }}"></button>
+                    @endforeach
                 </div>
-            </div>
-        </div>
-
-        <!-- Carousel Controls -->
-        <button id="prevBtn" class="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white/30 hover:bg-white/50 text-white p-3 rounded-full transition">
-            <i class="fas fa-chevron-left text-2xl"></i>
-        </button>
-        <button id="nextBtn" class="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white/30 hover:bg-white/50 text-white p-3 rounded-full transition">
-            <i class="fas fa-chevron-right text-2xl"></i>
-        </button>
-
-        <!-- Carousel Indicators -->
-        <div class="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex gap-3">
-            <button class="carousel-indicator w-3 h-3 rounded-full bg-white/50 hover:bg-white transition" data-index="0"></button>
-            <button class="carousel-indicator w-3 h-3 rounded-full bg-white/50 hover:bg-white transition" data-index="1"></button>
-            <button class="carousel-indicator w-3 h-3 rounded-full bg-white/50 hover:bg-white transition" data-index="2"></button>
-        </div>
+            @endif
+        @endif
     </section>
 
     <!-- Products Section -->
@@ -245,11 +242,42 @@
     <script>
         // Carousel functionality
         let currentSlide = 0;
-        const totalSlides = 3;
-        const carousel = document.getElementById('carousel');
-        const indicators = document.querySelectorAll('.carousel-indicator');
+        let totalSlides = 0;
+        let carousel = null;
+        let indicators = null;
+        let autoAdvanceInterval = null;
+        
+        function initCarousel() {
+            carousel = document.getElementById('carousel');
+            indicators = document.querySelectorAll('.carousel-indicator');
+            totalSlides = indicators.length;
+            
+            if (carousel && totalSlides > 0) {
+                updateCarousel();
+                
+                const nextBtn = document.getElementById('nextBtn');
+                const prevBtn = document.getElementById('prevBtn');
+                if (nextBtn) {
+                    nextBtn.addEventListener('click', nextSlide);
+                }
+                if (prevBtn) {
+                    prevBtn.addEventListener('click', prevSlide);
+                }
+                
+                indicators.forEach(indicator => {
+                    indicator.addEventListener('click', function() {
+                        currentSlide = parseInt(this.dataset.index);
+                        updateCarousel();
+                    });
+                });
+                
+                // Auto-advance carousel every 5 seconds
+                autoAdvanceInterval = setInterval(nextSlide, 5000);
+            }
+        }
         
         function updateCarousel() {
+            if (!carousel) return;
             carousel.style.transform = `translateX(-${currentSlide * 100}%)`;
             indicators.forEach((indicator, index) => {
                 if (index === currentSlide) {
@@ -263,30 +291,19 @@
         }
         
         function nextSlide() {
+            if (totalSlides === 0) return;
             currentSlide = (currentSlide + 1) % totalSlides;
             updateCarousel();
         }
         
         function prevSlide() {
+            if (totalSlides === 0) return;
             currentSlide = (currentSlide - 1 + totalSlides) % totalSlides;
             updateCarousel();
         }
         
-        document.getElementById('nextBtn').addEventListener('click', nextSlide);
-        document.getElementById('prevBtn').addEventListener('click', prevSlide);
-        
-        indicators.forEach(indicator => {
-            indicator.addEventListener('click', function() {
-                currentSlide = parseInt(this.dataset.index);
-                updateCarousel();
-            });
-        });
-        
-        // Auto-advance carousel every 5 seconds
-        setInterval(nextSlide, 5000);
-        
-        // Initialize carousel
-        updateCarousel();
+        // Initialize carousel when DOM is ready
+        document.addEventListener('DOMContentLoaded', initCarousel);
 
         // Cart functionality
         let cart = [];

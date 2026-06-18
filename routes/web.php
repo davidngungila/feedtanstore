@@ -256,6 +256,13 @@ Route::middleware('auth')->group(function () {
         Route::delete('/catalog/{product}/images/{image}', [\App\Http\Controllers\ProductCatalogController::class, 'deleteImage'])->name('catalog.images.delete');
         Route::post('/catalog/{product}/images/{image}/primary', [\App\Http\Controllers\ProductCatalogController::class, 'setPrimaryImage'])->name('catalog.images.primary');
         
+        Route::get('/carousel', [\App\Http\Controllers\CarouselController::class, 'index'])->name('carousel');
+        Route::get('/carousel/create', [\App\Http\Controllers\CarouselController::class, 'create'])->name('carousel.create');
+        Route::post('/carousel', [\App\Http\Controllers\CarouselController::class, 'store'])->name('carousel.store');
+        Route::get('/carousel/{carousel}/edit', [\App\Http\Controllers\CarouselController::class, 'edit'])->name('carousel.edit');
+        Route::put('/carousel/{carousel}', [\App\Http\Controllers\CarouselController::class, 'update'])->name('carousel.update');
+        Route::delete('/carousel/{carousel}', [\App\Http\Controllers\CarouselController::class, 'destroy'])->name('carousel.destroy');
+        
         Route::get('/delivery', [\App\Http\Controllers\DeliveryManagementController::class, 'index'])->name('delivery');
         
         Route::get('/riders', [\App\Http\Controllers\DeliveryRiderController::class, 'index'])->name('riders');

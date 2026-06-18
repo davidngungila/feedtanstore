@@ -73,7 +73,11 @@ class OnlineOrderController extends Controller
             ->latest()
             ->get();
 
-        return view('shop.index', compact('products'));
+        $slides = \App\Models\CarouselSlide::where('is_active', true)
+            ->orderBy('order')
+            ->get();
+
+        return view('shop.index', compact('products', 'slides'));
     }
 
     public function showProduct(Product $product)
