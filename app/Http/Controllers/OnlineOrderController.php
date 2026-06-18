@@ -16,10 +16,52 @@ use App\Services\ClickPesaService;
 
 class OnlineOrderController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $orders = OnlineOrder::with(['items', 'rider', 'user'])->latest()->get();
-        return view('online.orders', compact('orders'));
+        $statusFilter = $request->input('status', ['pending', 'confirmed', 'preparing', 'ready', 'out_for_delivery', 'delivered', 'cancelled']);
+        if (!is_array($statusFilter)) {
+            $statusFilter = [$statusFilter];
+        }
+        
+        $orders = OnlineOrder::with(['items', 'rider', 'user'])
+            ->whereIn('status', $statusFilter)
+            ->latest()
+            ->get();
+            
+        $settings = \App\Models\StoreSetting::firstOrCreate();
+        
+        // Get store location (default to Arusha, Tanzania if not set)
+        $storeLat = $settings->store_latitude ?? -3.3869; 
+        $storeLng = $settings->store_longitude ?? 36.6883;
+        
+        $routes = [];
+        
+        if ($settings->openrouteservice_api_key) {
+            foreach ($orders as $order) {
+                if ($order->delivery_latitude && $order->delivery_longitude) {
+                    try {
+                        $response = \Illuminate\Support\Facades\Http::withHeaders([
+                            'Authorization' => $settings->openrouteservice_api_key,
+                            'Content-Type' => 'application/json'
+                        ])->post('https://api.openrouteservice.org/v2/directions/driving-car/geojson', [
+                            'coordinates' => [
+                                [$storeLng, $storeLat],
+                                [$order->delivery_longitude, $order->delivery_latitude]
+                            ]
+                        ]);
+                        
+                        if ($response->successful()) {
+                            $routes[$order->id] = $response->json();
+                        }
+                    } catch (\Exception $e) {
+                        // Log error or ignore
+                    }
+                }
+            }
+        }
+
+        $allStatuses = ['pending', 'confirmed', 'preparing', 'ready', 'out_for_delivery', 'delivered', 'cancelled'];
+        return view('online.orders', compact('orders', 'storeLat', 'storeLng', 'routes', 'statusFilter', 'allStatuses'));
     }
 
     public function shop()
