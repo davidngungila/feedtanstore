@@ -157,15 +157,24 @@ class ProductController extends Controller
         ));
     }
 
-    public function barcodes()
+    public function barcodes(Request $request)
     {
-        $products = Product::with(['category', 'brand', 'unit'])->where('is_active', true)->get();
-        return view('inventory.products-barcodes', compact('products'));
+        $search = $request->search;
+        $products = Product::with(['category', 'brand', 'unit'])
+            ->where('is_active', true)
+            ->when($search, function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('sku', 'like', "%{$search}%")
+                  ->orWhere('barcode', 'like', "%{$search}%");
+            })
+            ->get();
+        return view('inventory.products-barcodes', compact('products', 'search'));
     }
 
     public function printBarcodes(Request $request)
     {
         $productIds = $request->product_ids;
+        $quantities = $request->quantities ?? [];
 
         // Handle JSON string case (from expiry page)
         if (is_string($productIds)) {
@@ -185,13 +194,18 @@ class ProductController extends Controller
         $generator = new \Picqer\Barcode\BarcodeGeneratorPNG();
         $barcodes = [];
         foreach ($products as $product) {
+            $qty = $quantities[$product->id] ?? 1;
+            $qty = max(1, intval($qty));
             $barcodeValue = $product->barcode ?? $product->sku ?? $product->id;
             $barcodePng = $generator->getBarcode($barcodeValue, \Picqer\Barcode\BarcodeGeneratorPNG::TYPE_CODE_128);
-            $barcodes[] = [
-                'product' => $product,
-                'barcode_base64' => 'data:image/png;base64,' . base64_encode($barcodePng),
-                'barcode_value' => $barcodeValue
-            ];
+            
+            for ($i = 0; $i < $qty; $i++) {
+                $barcodes[] = [
+                    'product' => $product,
+                    'barcode_base64' => 'data:image/png;base64,' . base64_encode($barcodePng),
+                    'barcode_value' => $barcodeValue
+                ];
+            }
         }
 
         return view('inventory.products-barcodes-print', compact('barcodes'));
