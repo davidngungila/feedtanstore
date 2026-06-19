@@ -5,11 +5,17 @@
 @section('content')
 <div class="animate-[fadeIn_0.4s_ease]">
     <div class="card rounded-2xl p-6">
-        <div class="flex items-center justify-between mb-6">
+        <div class="flex items-center justify-between mb-6 flex-wrap gap-2">
             <h2 class="text-xl font-bold text-primary-900">Customers</h2>
-            <a href="{{ route('customers.create') }}" class="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg">
-                <i class="fas fa-plus mr-2"></i>New Customer
-            </a>
+            <div class="flex items-center gap-2 flex-1 max-w-md">
+                <div class="relative flex-1">
+                    <input type="text" id="customerSearch" placeholder="Search customers..." class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500">
+                    <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                </div>
+                <a href="{{ route('customers.create') }}" class="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg">
+                    <i class="fas fa-plus mr-2"></i>New Customer
+                </a>
+            </div>
         </div>
 
         @if(session('success'))
@@ -60,4 +66,23 @@
         </div>
     </div>
 </div>
+
+<script>
+document.getElementById('customerSearch').addEventListener('input', function(e) {
+    const searchTerm = e.target.value.toLowerCase();
+    const rows = document.querySelectorAll('.data-table tbody tr');
+    
+    rows.forEach(row => {
+        const name = row.querySelector('td:first-child').textContent.toLowerCase();
+        const email = (row.querySelector('td:nth-child(2)').textContent || '').toLowerCase();
+        const phone = (row.querySelector('td:nth-child(3)').textContent || '').toLowerCase();
+        
+        if (name.includes(searchTerm) || email.includes(searchTerm) || phone.includes(searchTerm)) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+});
+</script>
 @endsection

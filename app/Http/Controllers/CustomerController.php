@@ -11,9 +11,25 @@ use Illuminate\Support\Facades\Auth;
 
 class CustomerController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $customers = Customer::with('group')->get();
+        $query = Customer::with('group');
+        
+        if ($request->search) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%")
+                  ->orWhere('phone', 'like', "%{$search}%");
+            });
+        }
+        
+        $customers = $query->get();
+        
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json($customers);
+        }
+        
         return view('customers.list', compact('customers'));
     }
 
