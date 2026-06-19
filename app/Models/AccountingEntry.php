@@ -14,4 +14,8 @@ class AccountingEntry extends Model {
     public function accountModel() {
         return $this->belongsTo(Account::class, 'account_id');
     }
+
+    public function chartOfAccount() {
+        return $this->belongsTo(Account::class, 'account_id');
+    }
 }

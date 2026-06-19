@@ -24,6 +24,6 @@ class Account extends Model
 
     public function accountingEntries(): HasMany
     {
-        return $this->hasMany(AccountingEntry::class, 'account', 'name');
+        return $this->hasMany(AccountingEntry::class, 'account_id', 'id');
     }
 }

@@ -290,6 +290,16 @@ Route::middleware('auth')->group(function () {
         Route::get('/chart-of-accounts/{account}/edit', [\App\Http\Controllers\ChartOfAccountsController::class, 'edit'])->name('chart-of-accounts.edit');
         Route::put('/chart-of-accounts/{account}', [\App\Http\Controllers\ChartOfAccountsController::class, 'update'])->name('chart-of-accounts.update');
         Route::delete('/chart-of-accounts/{account}', [\App\Http\Controllers\ChartOfAccountsController::class, 'destroy'])->name('chart-of-accounts.destroy');
+
+        // Journal Entries
+        Route::get('/journal-entries', [\App\Http\Controllers\JournalEntryController::class, 'index'])->name('journal-entries');
+        Route::get('/journal-entries/create', [\App\Http\Controllers\JournalEntryController::class, 'create'])->name('journal-entries.create');
+        Route::post('/journal-entries', [\App\Http\Controllers\JournalEntryController::class, 'store'])->name('journal-entries.store');
+        Route::get('/journal-entries/{journalEntry}', [\App\Http\Controllers\JournalEntryController::class, 'show'])->name('journal-entries.show');
+        Route::post('/journal-entries/{journalEntry}/post', [\App\Http\Controllers\JournalEntryController::class, 'post'])->name('journal-entries.post');
+
+        // General Ledger
+        Route::get('/general-ledger', [\App\Http\Controllers\GeneralLedgerController::class, 'index'])->name('general-ledger');
         
         // Budgets
         Route::get('/budgets', [\App\Http\Controllers\BudgetController::class, 'index'])->name('budgets');
