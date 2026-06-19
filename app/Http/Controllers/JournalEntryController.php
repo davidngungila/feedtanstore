@@ -56,6 +56,7 @@ class JournalEntryController extends Controller
 
         $journalEntry = JournalEntry::create([
             'journal_number' => $journalNumber,
+            'entry_number' => $journalNumber,
             'entry_date' => $request->entry_date,
             'description' => $request->description,
             'is_manual' => true,

@@ -98,6 +98,7 @@ class GoodsReceivedNoteController extends Controller
 
         $journalEntry = \App\Models\JournalEntry::create([
             'journal_number' => $journalNumber,
+            'entry_number' => $journalNumber,
             'entry_date' => now(),
             'description' => 'Goods Received: ' . $grn->grn_number,
             'reference_type' => GoodsReceivedNote::class,

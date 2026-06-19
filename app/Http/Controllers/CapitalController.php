@@ -92,6 +92,7 @@ class CapitalController extends Controller
 
         $journalEntry = \App\Models\JournalEntry::create([
             'journal_number' => $journalNumber,
+            'entry_number' => $journalNumber,
             'entry_date' => now(),
             'description' => 'Capital: ' . $capital->transaction_type,
             'reference_type' => Capital::class,
@@ -157,6 +158,7 @@ class CapitalController extends Controller
         $journalNumber = 'JE-CAP-REV-' . date('Ymd') . '-' . str_pad(\App\Models\JournalEntry::count() + 1, 4, '0', STR_PAD_LEFT);
         $journalEntry = \App\Models\JournalEntry::create([
             'journal_number' => $journalNumber,
+            'entry_number' => $journalNumber,
             'entry_date' => now(),
             'description' => 'Reversal of Capital',
             'reference_type' => Capital::class,

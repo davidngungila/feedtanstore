@@ -64,6 +64,7 @@ class SupplierPaymentController extends Controller
 
         $journalEntry = \App\Models\JournalEntry::create([
             'journal_number' => $journalNumber,
+            'entry_number' => $journalNumber,
             'entry_date' => now(),
             'description' => 'Supplier Payment: ' . $payment->payment_number,
             'reference_type' => SupplierPayment::class,

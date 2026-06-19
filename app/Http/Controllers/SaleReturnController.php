@@ -113,6 +113,7 @@ class SaleReturnController extends Controller {
 
         $journalEntry = \App\Models\JournalEntry::create([
             'journal_number' => $journalNumber,
+            'entry_number' => $journalNumber,
             'entry_date' => now(),
             'description' => 'Sale Return: ' . $saleReturn->return_number,
             'reference_type' => SaleReturn::class,
