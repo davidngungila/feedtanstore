@@ -282,6 +282,15 @@ Route::middleware('auth')->group(function () {
         Route::get('/transactions', [\App\Http\Controllers\FinanceController::class, 'transactions'])->name('transactions');
         Route::get('/transactions/{entry}', [\App\Http\Controllers\FinanceController::class, 'showTransaction'])->name('transactions.show');
         Route::get('/tax-management', [\App\Http\Controllers\FinanceController::class, 'taxManagement'])->name('tax-management');
+        // Chart of Accounts
+        Route::get('/chart-of-accounts', [\App\Http\Controllers\ChartOfAccountsController::class, 'index'])->name('chart-of-accounts');
+        Route::get('/chart-of-accounts/create', [\App\Http\Controllers\ChartOfAccountsController::class, 'create'])->name('chart-of-accounts.create');
+        Route::post('/chart-of-accounts', [\App\Http\Controllers\ChartOfAccountsController::class, 'store'])->name('chart-of-accounts.store');
+        Route::get('/chart-of-accounts/{account}', [\App\Http\Controllers\ChartOfAccountsController::class, 'show'])->name('chart-of-accounts.show');
+        Route::get('/chart-of-accounts/{account}/edit', [\App\Http\Controllers\ChartOfAccountsController::class, 'edit'])->name('chart-of-accounts.edit');
+        Route::put('/chart-of-accounts/{account}', [\App\Http\Controllers\ChartOfAccountsController::class, 'update'])->name('chart-of-accounts.update');
+        Route::delete('/chart-of-accounts/{account}', [\App\Http\Controllers\ChartOfAccountsController::class, 'destroy'])->name('chart-of-accounts.destroy');
+        
         // Budgets
         Route::get('/budgets', [\App\Http\Controllers\BudgetController::class, 'index'])->name('budgets');
         Route::get('/budgets/create', [\App\Http\Controllers\BudgetController::class, 'create'])->name('budgets.create');

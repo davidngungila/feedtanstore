@@ -6,7 +6,7 @@
 <div class="animate-[fadeIn_0.4s_ease]">
     <!-- Summary Cards -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-6 mb-6">
-        <div class="card rounded-2xl p-6 bg-gradient-to-br from-green-50 to-green-100 border border-green-200 min-w-[250px]">
+        <div class="card rounded-2xl p-6 bg-gradient-to-br from-green-50 to-green-100 border border-green-200 min-w-[250px] overflow-x-auto">
             <div class="flex items-center justify-between mb-4">
                 <h3 class="text-sm font-medium text-gray-600">Total Income</h3>
                 <i class="fas fa-arrow-up text-green-600 text-2xl flex-shrink-0"></i>
