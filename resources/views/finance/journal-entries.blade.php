@@ -37,7 +37,7 @@
                                 {{ $journalEntry->journal_number }}
                             </a>
                         </td>
-                        <td class="px-4 py-3">{{ $journalEntry->entry_date->format('d/m/Y') }}</td>
+                        <td class="px-4 py-3">{{ \Carbon\Carbon::parse($journalEntry->entry_date)->format('d/m/Y') }}</td>
                         <td class="px-4 py-3">{{ Str::limit($journalEntry->description, 50) }}</td>
                         <td class="px-4 py-3">
                             <span class="px-2 py-1 rounded-full text-xs font-bold {{ $journalEntry->is_manual ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800' }}">

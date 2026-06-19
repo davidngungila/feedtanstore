@@ -16,7 +16,10 @@ class JournalEntry extends Model
         'is_manual',
     ];
 
-    protected $dates = ['entry_date'];
+    protected $casts = [
+        'entry_date' => 'date',
+        'is_manual' => 'boolean',
+    ];
 
     public function entries()
     {

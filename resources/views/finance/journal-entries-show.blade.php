@@ -24,7 +24,7 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
                 <div class="text-sm text-gray-600 mb-1">Entry Date</div>
-                <div class="font-semibold">{{ $journalEntry->entry_date->format('l, d F Y') }}</div>
+                <div class="font-semibold">{{ \Carbon\Carbon::parse($journalEntry->entry_date)->format('l, d F Y') }}</div>
             </div>
             <div>
                 <div class="text-sm text-gray-600 mb-1">Created At</div>
