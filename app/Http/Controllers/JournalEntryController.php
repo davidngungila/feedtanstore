@@ -9,10 +9,22 @@ use App\Models\Account;
 
 class JournalEntryController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $journalEntries = JournalEntry::with('entries.accountModel')->orderBy('entry_date', 'desc')->orderBy('created_at', 'desc')->paginate(20);
-        return view('finance.journal-entries', compact('journalEntries'));
+        $query = JournalEntry::with('entries.accountModel')->orderBy('entry_date', 'desc')->orderBy('created_at', 'desc');
+
+        if ($request->start_date) {
+            $query->whereDate('entry_date', '>=', $request->start_date);
+        }
+        if ($request->end_date) {
+            $query->whereDate('entry_date', '<=', $request->end_date);
+        }
+
+        $journalEntries = $query->paginate(20)->appends($request->only('start_date', 'end_date'));
+        $startDate = $request->start_date;
+        $endDate = $request->end_date;
+
+        return view('finance.journal-entries', compact('journalEntries', 'startDate', 'endDate'));
     }
 
     public function create()

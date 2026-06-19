@@ -115,7 +115,7 @@ class ExpenseController extends Controller
     
     private function createAccountingEntries(Expense $expense, Request $request)
     {
-        $expensesAccount = \App\Models\Account::where('name', 'Expenses')->first();
+        $expensesAccount = \App\Models\Account::where('name', 'Other Expenses')->first();
         $cashAccount = \App\Models\Account::where('name', 'Cash')->first();
         $bankAccount = \App\Models\Account::where('name', 'Bank Account')->first();
         $mobileMoneyAccount = \App\Models\Account::where('name', 'Mobile Money')->first();

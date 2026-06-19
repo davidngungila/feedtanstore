@@ -105,7 +105,7 @@ class IncomeController extends Controller
     
     private function createAccountingEntries(Income $income, Request $request)
     {
-        $incomeAccount = \App\Models\Account::where('name', 'Income')->first();
+        $incomeAccount = \App\Models\Account::where('name', 'Other Income')->first();
         $cashAccount = \App\Models\Account::where('name', 'Cash')->first();
         $bankAccount = \App\Models\Account::where('name', 'Bank Account')->first();
         $mobileMoneyAccount = \App\Models\Account::where('name', 'Mobile Money')->first();

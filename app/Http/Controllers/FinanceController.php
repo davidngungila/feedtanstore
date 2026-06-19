@@ -206,18 +206,47 @@ class FinanceController extends Controller
     {
         $accounts = Account::where('is_active', true)->orderBy('account_code')->get();
         $selectedAccountId = $request->account_id;
+        $startDate = $request->start_date;
+        $endDate = $request->end_date;
 
         if ($selectedAccountId) {
             $account = Account::findOrFail($selectedAccountId);
-            $entries = AccountingEntry::with('journalEntry')->where('account_id', $selectedAccountId)->orderBy('created_at', 'asc')->get();
+            $query = AccountingEntry::with('journalEntry')
+                ->where(function($q) use ($account) {
+                    $q->where('account_id', $account->id)
+                      ->orWhere('account', $account->name);
+                })
+                ->orderBy('created_at', 'asc');
+
+            if ($startDate) {
+                $query->whereDate('created_at', '>=', $startDate);
+            }
+            if ($endDate) {
+                $query->whereDate('created_at', '<=', $endDate);
+            }
+
+            $entries = $query->get();
             $balance = 0;
             $ledgerEntries = [];
 
+            // Normal balance: 
+            // Asset/Expense: debit = +, credit = -
+            // Liability/Equity/Revenue: debit = -, credit = +
+            $normalBalance = in_array($account->type, ['Asset', 'Expense']) ? 'debit' : 'credit';
+
             foreach ($entries as $entry) {
-                if ($entry->type === 'debit') {
-                    $balance += $entry->amount;
+                if ($normalBalance === 'debit') {
+                    if ($entry->type === 'debit') {
+                        $balance += $entry->amount;
+                    } else {
+                        $balance -= $entry->amount;
+                    }
                 } else {
-                    $balance -= $entry->amount;
+                    if ($entry->type === 'credit') {
+                        $balance += $entry->amount;
+                    } else {
+                        $balance -= $entry->amount;
+                    }
                 }
                 $ledgerEntries[] = [
                     'entry' => $entry,
@@ -225,9 +254,9 @@ class FinanceController extends Controller
                 ];
             }
 
-            return view('finance.general-ledger', compact('accounts', 'selectedAccountId', 'account', 'ledgerEntries', 'balance'));
+            return view('finance.general-ledger', compact('accounts', 'selectedAccountId', 'account', 'ledgerEntries', 'balance', 'startDate', 'endDate'));
         }
 
-        return view('finance.general-ledger', compact('accounts', 'selectedAccountId'));
+        return view('finance.general-ledger', compact('accounts', 'selectedAccountId', 'startDate', 'endDate'));
     }
 }

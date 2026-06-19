@@ -6,6 +6,7 @@ use App\Models\SaleReturn;
 use App\Models\SaleReturnItem;
 use App\Models\Sale;
 use App\Models\Product;
+use App\Models\AccountingEntry;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Dompdf\Dompdf;
@@ -70,10 +71,12 @@ class SaleReturnController extends Controller {
             'reason' => $request->reason
         ]);
 
+        $returnItemsTotal = 0;
         foreach ($request->items as $itemData) {
             $saleItem = \App\Models\SaleItem::find($itemData['sale_item_id']);
             $itemTotal = $itemData['quantity'] * $saleItem->unit_price;
             $total += $itemTotal;
+            $returnItemsTotal += $itemData['quantity'] * ($saleItem->product->cost_price ?? 0);
 
             $return->items()->create([
                 'sale_item_id' => $itemData['sale_item_id'],
@@ -94,6 +97,75 @@ class SaleReturnController extends Controller {
             $customer->decrement('balance', $total);
         }
 
+        $this->createAccountingEntries($return, $returnItemsTotal);
+
         return redirect()->route('sales.returns')->with('success', 'Return processed successfully!');
+    }
+
+    protected function createAccountingEntries(SaleReturn $saleReturn, $returnItemsTotal)
+    {
+        $cashAccount = \App\Models\Account::where('name', 'Cash')->first();
+        $salesAccount = \App\Models\Account::where('name', 'Sales')->first();
+        $inventoryAccount = \App\Models\Account::where('name', 'Inventory')->first();
+        $cogsAccount = \App\Models\Account::where('name', 'Cost of Goods Sold')->first();
+
+        $journalNumber = 'JE-RET-' . date('Ymd') . '-' . str_pad(\App\Models\JournalEntry::count() + 1, 4, '0', STR_PAD_LEFT);
+
+        $journalEntry = \App\Models\JournalEntry::create([
+            'journal_number' => $journalNumber,
+            'entry_date' => now(),
+            'description' => 'Sale Return: ' . $saleReturn->return_number,
+            'reference_type' => SaleReturn::class,
+            'reference_id' => $saleReturn->id,
+            'is_manual' => false,
+        ]);
+
+        // Debit Sales to reverse the sale
+        AccountingEntry::create([
+            'journal_entry_id' => $journalEntry->id,
+            'reference_number' => $saleReturn->return_number,
+            'reference_type' => SaleReturn::class,
+            'account' => 'Sales',
+            'account_id' => $salesAccount?->id,
+            'type' => 'debit',
+            'amount' => $saleReturn->total,
+            'description' => 'Sale return'
+        ]);
+
+        // Credit Cash to refund the customer
+        AccountingEntry::create([
+            'journal_entry_id' => $journalEntry->id,
+            'reference_number' => $saleReturn->return_number,
+            'reference_type' => SaleReturn::class,
+            'account' => 'Cash',
+            'account_id' => $cashAccount?->id,
+            'type' => 'credit',
+            'amount' => $saleReturn->total,
+            'description' => 'Sale return refund'
+        ]);
+
+        // Debit Inventory to add back the stock
+        AccountingEntry::create([
+            'journal_entry_id' => $journalEntry->id,
+            'reference_number' => $saleReturn->return_number,
+            'reference_type' => SaleReturn::class,
+            'account' => 'Inventory',
+            'account_id' => $inventoryAccount?->id,
+            'type' => 'debit',
+            'amount' => $returnItemsTotal,
+            'description' => 'Inventory returned'
+        ]);
+
+        // Credit COGS to reverse the cost of goods sold
+        AccountingEntry::create([
+            'journal_entry_id' => $journalEntry->id,
+            'reference_number' => $saleReturn->return_number,
+            'reference_type' => SaleReturn::class,
+            'account' => 'Cost of Goods Sold',
+            'account_id' => $cogsAccount?->id,
+            'type' => 'credit',
+            'amount' => $returnItemsTotal,
+            'description' => 'COGS reversed'
+        ]);
     }
 }

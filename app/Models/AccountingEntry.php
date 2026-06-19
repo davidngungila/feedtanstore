@@ -18,4 +18,18 @@ class AccountingEntry extends Model {
     public function journalEntry() {
         return $this->belongsTo(JournalEntry::class);
     }
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($entry) {
+            if (empty($entry->account_id)) {
+                $account = Account::where('name', $entry->account)->first();
+                if ($account) {
+                    $entry->account_id = $account->id;
+                }
+            }
+        });
+    }
 }
