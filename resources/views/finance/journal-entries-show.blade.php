@@ -7,7 +7,7 @@
     <div class="card rounded-2xl p-6 mb-6">
         <div class="flex items-center justify-between mb-6">
             <h2 class="text-xl font-bold text-primary-900">Journal Entry - {{ $journalEntry->journal_number }}</h2>
-            <a href="{{ route('journal-entries.index') }}" class="text-primary-600 hover:text-primary-800 font-medium">
+            <a href="{{ route('finance.journal-entries') }}" class="text-primary-600 hover:text-primary-800 font-medium">
                 <i class="fas fa-arrow-left mr-2"></i>Back to Journal Entries
             </a>
         </div>

@@ -7,7 +7,7 @@
     <div class="card rounded-2xl p-6">
         <div class="flex items-center justify-between mb-6">
             <h2 class="text-xl font-bold text-primary-900">Journal Entries</h2>
-            <a href="{{ route('journal-entries.create') }}" class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg flex items-center gap-2">
+            <a href="{{ route('finance.journal-entries.create') }}" class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg flex items-center gap-2">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
                 </svg>
@@ -33,7 +33,7 @@
                     @forelse($journalEntries as $journalEntry)
                     <tr>
                         <td class="px-4 py-3">
-                            <a href="{{ route('journal-entries.show', $journalEntry) }}" class="text-primary-600 hover:text-primary-800 font-semibold">
+                            <a href="{{ route('finance.journal-entries.show', $journalEntry) }}" class="text-primary-600 hover:text-primary-800 font-semibold">
                                 {{ $journalEntry->journal_number }}
                             </a>
                         </td>
@@ -52,7 +52,7 @@
                             </span>
                         </td>
                         <td class="px-4 py-3 text-center">
-                            <a href="{{ route('journal-entries.show', $journalEntry) }}" class="text-primary-600 hover:text-primary-800 text-sm font-medium">
+                            <a href="{{ route('finance.journal-entries.show', $journalEntry) }}" class="text-primary-600 hover:text-primary-800 text-sm font-medium">
                                 View
                             </a>
                         </td>

@@ -7,7 +7,7 @@
     <div class="card rounded-2xl p-6">
         <div class="flex items-center justify-between mb-6">
             <h2 class="text-xl font-bold text-primary-900">Create Journal Entry</h2>
-            <a href="{{ route('journal-entries.index') }}" class="text-primary-600 hover:text-primary-800 font-medium">
+            <a href="{{ route('finance.journal-entries') }}" class="text-primary-600 hover:text-primary-800 font-medium">
                 <i class="fas fa-arrow-left mr-2"></i>Back to Journal Entries
             </a>
         </div>
@@ -22,7 +22,7 @@
             </div>
         @endif
 
-        <form action="{{ route('journal-entries.store') }}" method="POST">
+        <form action="{{ route('finance.journal-entries.store') }}" method="POST">
             @csrf
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div>
@@ -108,7 +108,7 @@
             </div>
 
             <div class="flex justify-end gap-3">
-                <a href="{{ route('journal-entries.index') }}" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
+                <a href="{{ route('finance.journal-entries') }}" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
                     Cancel
                 </a>
                 <button type="submit" class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors">
