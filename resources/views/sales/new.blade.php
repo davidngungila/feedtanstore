@@ -242,6 +242,15 @@ function addProductByBarcode() {
     }
 }
 
+function showNotification(message, type) {
+    const notification = document.createElement('div');
+    notification.className = 'fixed bottom-4 right-4 px-6 py-4 rounded-lg shadow-lg z-50 ' + 
+        (type === 'success' ? 'bg-green-500 text-white' : 'bg-red-500 text-white');
+    notification.textContent = message;
+    document.body.appendChild(notification);
+    setTimeout(() => notification.remove(), 3000);
+}
+
 function findProductByCode(code) {
     // Search by barcode, then by SKU
     const product = productsData.find(p => p.barcode === code || p.sku === code);
@@ -250,10 +259,10 @@ function findProductByCode(code) {
             addToCart(product.id, product.name, product.selling_price);
             addToScannedList(product.name);
         } else {
-            alert(`Product "${product.name}" is out of stock!`);
+            showNotification(`Product "${product.name}" is out of stock!`, 'error');
         }
     } else {
-        alert(`No product found with barcode/SKU: ${code}`);
+        showNotification(`No product found with barcode/SKU: ${code}`, 'error');
     }
 }
 
@@ -300,6 +309,7 @@ function addToCart(productId, productName, price) {
     
     renderCart();
     updateTotals();
+    showNotification(`Added ${productName} to cart`, 'success');
 }
 
 function removeFromCart(index) {
