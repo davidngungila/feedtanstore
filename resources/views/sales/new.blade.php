@@ -149,11 +149,57 @@
                     </div>
 
                     <div class="flex gap-2">
-                        <button type="submit" class="flex-1 bg-primary-600 hover:bg-primary-700 text-white px-6 py-2 rounded-lg transition-colors">
-                            Complete Sale
+                        <button type="submit" id="completeSaleBtn" class="flex-1 bg-primary-600 hover:bg-primary-700 text-white px-6 py-2 rounded-lg transition-colors">
+                            <span id="btnText">Complete Sale</span>
+                            <span id="btnLoading" class="hidden"><i class="fas fa-spinner fa-spin mr-1"></i>Processing...</span>
                         </button>
                     </div>
                 </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Loading Overlay -->
+<div id="loadingOverlay" class="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm flex items-center justify-center hidden z-[100]">
+    <div class="bg-white rounded-2xl p-8 text-center">
+        <div class="w-20 h-20 mx-auto mb-4">
+            <i class="fas fa-spinner fa-spin text-primary-600 text-6xl"></i>
+        </div>
+        <h3 class="text-xl font-bold text-primary-900 mb-2">Processing Sale</h3>
+        <p class="text-gray-600">Please wait...</p>
+    </div>
+</div>
+
+<!-- Success Modal -->
+<div id="successModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+    <div class="bg-white rounded-2xl p-8 max-w-md w-full mx-4">
+        <div class="text-center">
+            <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-check text-green-600 text-4xl"></i>
+            </div>
+            <h2 class="text-2xl font-bold text-primary-900 mb-4">Payment Successful!</h2>
+            <div class="space-y-2 text-lg mb-6">
+                <div class="flex justify-between">
+                    <span class="text-gray-600">Total:</span>
+                    <span class="font-semibold" id="modalTotal">TZS 0.00</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600">Paid:</span>
+                    <span class="font-semibold" id="modalPaid">TZS 0.00</span>
+                </div>
+                <div class="flex justify-between text-green-600 font-bold">
+                    <span>Change:</span>
+                    <span id="modalChange">TZS 0.00</span>
+                </div>
+            </div>
+            <div class="flex gap-3">
+                <button onclick="printReceipt()" class="flex-1 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold text-lg">
+                    <i class="fas fa-print mr-2"></i>Print Receipt
+                </button>
+                <button onclick="newSale()" class="flex-1 py-3 bg-primary-600 hover:bg-primary-700 text-white rounded-xl font-semibold text-lg">
+                    <i class="fas fa-plus mr-2"></i>New Sale
+                </button>
             </div>
         </div>
     </div>
@@ -170,6 +216,7 @@ let currentDiscount = null;
 let html5QrCodeScanner = null;
 let barcodeBuffer = '';
 let lastKeyTime = 0;
+let currentSaleId = null;
 
 // Product data for quick lookup
 const productsData = @json($productsData);
@@ -472,7 +519,7 @@ document.addEventListener('keydown', function(e) {
             findProductByCode(barcodeBuffer.trim());
             barcodeBuffer = '';
         }
-    } else if (e.key.length === 1) { // Only add printable characters
+    } else if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) { // Only add printable characters and not modifier keys
         barcodeBuffer += e.key;
     }
 });
@@ -511,21 +558,87 @@ window.addToCart = function(productId, productName, price) {
     }
 };
 
+function printReceipt() {
+    if (currentSaleId) {
+        window.open(`/sales/receipts/${currentSaleId}/print`, '_blank');
+    }
+}
+
+function newSale() {
+    cart = [];
+    currentSaleId = null;
+    renderCart();
+    updateTotals();
+    document.getElementById('successModal').classList.add('hidden');
+    document.getElementById('discountSelect').value = '';
+    currentDiscount = null;
+}
+
 // Send payment info when sale is submitted
 document.getElementById('saleForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    if (cart.length === 0) {
+        showNotification('Cart is empty!', 'error');
+        return;
+    }
+    
     const total = lastCalculatedTotal;
     const paid = parseFloat(document.getElementById('paidAmount').value);
     const change = Math.max(0, paid - total);
     const paymentMethod = document.getElementById('paymentMethod').value;
     
-    await sendToVFD('payment', {
-        total: total,
-        paid: paid,
-        change: change,
-        payment_method: paymentMethod
-    });
+    // Show loading overlay
+    document.getElementById('loadingOverlay').classList.remove('hidden');
+    document.getElementById('completeSaleBtn').disabled = true;
+    document.getElementById('btnText').classList.add('hidden');
+    document.getElementById('btnLoading').classList.remove('hidden');
     
-    await sendToVFD('thank-you');
+    try {
+        await sendToVFD('payment', {
+            total: total,
+            paid: paid,
+            change: change,
+            payment_method: paymentMethod
+        });
+        
+        await sendToVFD('thank-you');
+        
+        // Send form data via fetch
+        const formData = new FormData(this);
+        formData.set('paid', paid);
+        
+        const response = await fetch(this.action, {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
+            },
+            body: formData
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            if (data.success) {
+                currentSaleId = data.sale.id;
+                document.getElementById('modalTotal').textContent = 'TZS ' + parseFloat(data.total).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+                document.getElementById('modalPaid').textContent = 'TZS ' + parseFloat(data.paid).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+                document.getElementById('modalChange').textContent = 'TZS ' + parseFloat(data.change).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+                document.getElementById('loadingOverlay').classList.add('hidden');
+                document.getElementById('successModal').classList.remove('hidden');
+            }
+        } else {
+            throw new Error('Failed to complete sale');
+        }
+    } catch (error) {
+        console.error('Error completing sale:', error);
+        showNotification('Failed to complete sale. Please try again.', 'error');
+        document.getElementById('loadingOverlay').classList.add('hidden');
+    } finally {
+        document.getElementById('completeSaleBtn').disabled = false;
+        document.getElementById('btnText').classList.remove('hidden');
+        document.getElementById('btnLoading').classList.add('hidden');
+    }
 });
 
 // Send welcome message when page loads

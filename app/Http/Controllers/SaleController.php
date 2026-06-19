@@ -187,6 +187,16 @@ class SaleController extends Controller {
             $customer->increment('balance', $total);
         }
 
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'sale' => $sale,
+                'total' => $total,
+                'paid' => $request->paid,
+                'change' => $change
+            ]);
+        }
+
         return redirect()->route('sales.show', $sale)->with('success', 'Sale completed successfully!');
     }
 
