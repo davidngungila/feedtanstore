@@ -61,7 +61,7 @@ class JournalEntryController extends Controller
             ]);
         }
 
-        return redirect()->route('journal-entries.index')->with('success', 'Journal entry created successfully.');
+        return redirect()->route('finance.journal-entries')->with('success', 'Journal entry created successfully.');
     }
 
     public function show(JournalEntry $journalEntry)
