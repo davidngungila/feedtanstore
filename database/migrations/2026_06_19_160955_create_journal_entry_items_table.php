@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignId('journal_entry_id')->constrained()->onDelete('cascade');
             $table->foreignId('account_id')->constrained('chart_of_accounts');
             $table->enum('type', ['debit', 'credit']);
-            $table->decimal('amount', 10, 2);
+            $table->decimal('amount', 15, 2);
             $table->text('description')->nullable();
             $table->timestamps();
         });
