@@ -5,9 +5,14 @@
 @section('content')
 <div class="animate-[fadeIn_0.4s_ease]">
     <div class="card rounded-2xl p-6 mb-6">
-        <div class="flex items-center justify-between mb-6">
+        <div class="flex flex-wrap items-center justify-between mb-6 gap-3">
             <h2 class="text-xl font-bold text-primary-900">{{ $product->name }}</h2>
             <div class="flex gap-3">
+                @if($product->quantity <= $product->reorder_level)
+                <a href="{{ route('purchasing.orders.create', ['product' => $product->id]) }}" class="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg transition-colors">
+                    <i class="fas fa-shopping-cart mr-2"></i>Reorder
+                </a>
+                @endif
                 <a href="{{ route('inventory.products.edit', $product) }}" class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors">
                     Edit
                 </a>
