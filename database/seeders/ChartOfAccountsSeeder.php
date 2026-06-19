@@ -54,12 +54,28 @@ class ChartOfAccountsSeeder extends Seeder
             'is_active' => true,
         ]);
 
+        $equipment = Account::create([
+            'account_code' => '1006',
+            'name' => 'Equipment',
+            'type' => 'Asset',
+            'description' => 'Store equipment and fixtures',
+            'is_active' => true,
+        ]);
+
         // Liabilities
         $accountsPayable = Account::create([
             'account_code' => '2001',
             'name' => 'Accounts Payable',
             'type' => 'Liability',
             'description' => 'Money owed to suppliers',
+            'is_active' => true,
+        ]);
+
+        $taxesPayable = Account::create([
+            'account_code' => '2002',
+            'name' => 'Taxes Payable',
+            'type' => 'Liability',
+            'description' => 'Taxes owed to government',
             'is_active' => true,
         ]);
 
@@ -88,11 +104,27 @@ class ChartOfAccountsSeeder extends Seeder
             'is_active' => true,
         ]);
 
-        $income = Account::create([
-            'account_code' => '4002',
-            'name' => 'Income',
+        $deliveryIncome = Account::create([
+            'account_code' => '4003',
+            'name' => 'Delivery Income',
             'type' => 'Revenue',
-            'description' => 'Other income',
+            'description' => 'Income from delivery fees',
+            'is_active' => true,
+        ]);
+
+        $discountsReceived = Account::create([
+            'account_code' => '4004',
+            'name' => 'Discounts Received',
+            'type' => 'Revenue',
+            'description' => 'Discounts from suppliers',
+            'is_active' => true,
+        ]);
+
+        $otherIncome = Account::create([
+            'account_code' => '4002',
+            'name' => 'Other Income',
+            'type' => 'Revenue',
+            'description' => 'Other miscellaneous income',
             'is_active' => true,
         ]);
 
@@ -105,11 +137,67 @@ class ChartOfAccountsSeeder extends Seeder
             'is_active' => true,
         ]);
 
-        $expenses = Account::create([
-            'account_code' => '5002',
-            'name' => 'Expenses',
+        $rentExpense = Account::create([
+            'account_code' => '5003',
+            'name' => 'Rent Expense',
             'type' => 'Expense',
-            'description' => 'General operating expenses',
+            'description' => 'Store rent payments',
+            'is_active' => true,
+        ]);
+
+        $utilitiesExpense = Account::create([
+            'account_code' => '5004',
+            'name' => 'Utilities Expense',
+            'type' => 'Expense',
+            'description' => 'Electricity, water, and internet bills',
+            'is_active' => true,
+        ]);
+
+        $salariesExpense = Account::create([
+            'account_code' => '5005',
+            'name' => 'Salaries & Wages',
+            'type' => 'Expense',
+            'description' => 'Employee salaries and wages',
+            'is_active' => true,
+        ]);
+
+        $deliveryExpense = Account::create([
+            'account_code' => '5006',
+            'name' => 'Delivery Expense',
+            'type' => 'Expense',
+            'description' => 'Costs related to product delivery',
+            'is_active' => true,
+        ]);
+
+        $marketingExpense = Account::create([
+            'account_code' => '5007',
+            'name' => 'Marketing & Advertising',
+            'type' => 'Expense',
+            'description' => 'Marketing and advertising costs',
+            'is_active' => true,
+        ]);
+
+        $suppliesExpense = Account::create([
+            'account_code' => '5008',
+            'name' => 'Office & Store Supplies',
+            'type' => 'Expense',
+            'description' => 'Office and store supplies',
+            'is_active' => true,
+        ]);
+
+        $discountsGiven = Account::create([
+            'account_code' => '5009',
+            'name' => 'Discounts Given',
+            'type' => 'Expense',
+            'description' => 'Discounts provided to customers',
+            'is_active' => true,
+        ]);
+
+        $otherExpenses = Account::create([
+            'account_code' => '5002',
+            'name' => 'Other Expenses',
+            'type' => 'Expense',
+            'description' => 'Other miscellaneous operating expenses',
             'is_active' => true,
         ]);
     }
