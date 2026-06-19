@@ -144,11 +144,15 @@ class PurchaseOrderController extends Controller
     
     protected function createAccountingEntries(PurchaseOrder $purchaseOrder)
     {
+        $inventoryAccount = \App\Models\Account::where('name', 'Inventory')->first();
+        $accountsPayableAccount = \App\Models\Account::where('name', 'Accounts Payable')->first();
+
         // Debit Inventory
         AccountingEntry::create([
             'reference_number' => $purchaseOrder->po_number,
             'reference_type' => PurchaseOrder::class,
             'account' => 'Inventory',
+            'account_id' => $inventoryAccount?->id,
             'type' => 'debit',
             'amount' => $purchaseOrder->total,
             'description' => 'Inventory received'
@@ -159,6 +163,7 @@ class PurchaseOrderController extends Controller
             'reference_number' => $purchaseOrder->po_number,
             'reference_type' => PurchaseOrder::class,
             'account' => 'Accounts Payable',
+            'account_id' => $accountsPayableAccount?->id,
             'type' => 'credit',
             'amount' => $purchaseOrder->total,
             'description' => 'Goods received on credit'

@@ -55,28 +55,38 @@ class SupplierPaymentController extends Controller
     
     protected function createAccountingEntries(SupplierPayment $payment)
     {
+        $accountsPayableAccount = \App\Models\Account::where('name', 'Accounts Payable')->first();
+        $cashAccount = \App\Models\Account::where('name', 'Cash')->first();
+        $bankAccount = \App\Models\Account::where('name', 'Bank Account')->first();
+        $mobileMoneyAccount = \App\Models\Account::where('name', 'Mobile Money')->first();
+
         // Debit Accounts Payable
         AccountingEntry::create([
             'reference_number' => $payment->payment_number,
             'reference_type' => SupplierPayment::class,
             'account' => 'Accounts Payable',
+            'account_id' => $accountsPayableAccount?->id,
             'type' => 'debit',
             'amount' => $payment->amount,
             'description' => 'Supplier payment'
         ]);
         
         // Credit the payment source
-        $account = 'Cash';
+        $accountName = 'Cash';
+        $accountId = $cashAccount?->id;
         if (in_array($payment->payment_method, ['bank_transfer', 'card'])) {
-            $account = 'Bank Account';
+            $accountName = 'Bank Account';
+            $accountId = $bankAccount?->id;
         } elseif ($payment->payment_method == 'mobile_money') {
-            $account = 'Mobile Money';
+            $accountName = 'Mobile Money';
+            $accountId = $mobileMoneyAccount?->id;
         }
         
         AccountingEntry::create([
             'reference_number' => $payment->payment_number,
             'reference_type' => SupplierPayment::class,
-            'account' => $account,
+            'account' => $accountName,
+            'account_id' => $accountId,
             'type' => 'credit',
             'amount' => $payment->amount,
             'description' => 'Supplier payment made'

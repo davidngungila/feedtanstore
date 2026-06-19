@@ -85,12 +85,16 @@ class CapitalController extends Controller
 
     protected function createAccountingEntries(Capital $capital)
     {
+        $cashAccount = \App\Models\Account::where('name', 'Cash')->first();
+        $capitalAccount = \App\Models\Account::where('name', 'Capital')->first();
+
         if ($capital->transaction_type === 'add') {
             // Debit cash/bank, credit capital
             AccountingEntry::create([
                 'reference_number' => 'CAP-' . $capital->id,
                 'reference_type' => Capital::class,
                 'account' => 'Cash',
+                'account_id' => $cashAccount?->id,
                 'type' => 'debit',
                 'amount' => $capital->amount,
                 'description' => $capital->description ?: 'Capital added',
@@ -100,6 +104,7 @@ class CapitalController extends Controller
                 'reference_number' => 'CAP-' . $capital->id,
                 'reference_type' => Capital::class,
                 'account' => 'Capital',
+                'account_id' => $capitalAccount?->id,
                 'type' => 'credit',
                 'amount' => $capital->amount,
                 'description' => $capital->description ?: 'Capital added',
@@ -110,6 +115,7 @@ class CapitalController extends Controller
                 'reference_number' => 'CAP-' . $capital->id,
                 'reference_type' => Capital::class,
                 'account' => 'Capital',
+                'account_id' => $capitalAccount?->id,
                 'type' => 'debit',
                 'amount' => $capital->amount,
                 'description' => $capital->description ?: 'Capital withdrawn',
@@ -119,6 +125,7 @@ class CapitalController extends Controller
                 'reference_number' => 'CAP-' . $capital->id,
                 'reference_type' => Capital::class,
                 'account' => 'Cash',
+                'account_id' => $cashAccount?->id,
                 'type' => 'credit',
                 'amount' => $capital->amount,
                 'description' => $capital->description ?: 'Capital withdrawn',
@@ -133,10 +140,13 @@ class CapitalController extends Controller
             ->get();
 
         foreach ($oldEntries as $entry) {
+            $account = \App\Models\Account::where('name', $entry->account)->first();
+
             AccountingEntry::create([
                 'reference_number' => $entry->reference_number . '-REV',
                 'reference_type' => Capital::class,
                 'account' => $entry->account,
+                'account_id' => $account?->id,
                 'type' => $entry->type === 'debit' ? 'credit' : 'debit',
                 'amount' => $entry->amount,
                 'description' => 'Reversal: ' . $entry->description,

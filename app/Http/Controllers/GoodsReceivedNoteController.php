@@ -91,11 +91,15 @@ class GoodsReceivedNoteController extends Controller
     
     protected function createAccountingEntries(GoodsReceivedNote $grn)
     {
+        $inventoryAccount = \App\Models\Account::where('name', 'Inventory')->first();
+        $accountsPayableAccount = \App\Models\Account::where('name', 'Accounts Payable')->first();
+
         // Debit Inventory
         AccountingEntry::create([
             'reference_number' => $grn->grn_number,
             'reference_type' => GoodsReceivedNote::class,
             'account' => 'Inventory',
+            'account_id' => $inventoryAccount?->id,
             'type' => 'debit',
             'amount' => $grn->total,
             'description' => 'Inventory received'
@@ -106,6 +110,7 @@ class GoodsReceivedNoteController extends Controller
             'reference_number' => $grn->grn_number,
             'reference_type' => GoodsReceivedNote::class,
             'account' => 'Accounts Payable',
+            'account_id' => $accountsPayableAccount?->id,
             'type' => 'credit',
             'amount' => $grn->total,
             'description' => 'Goods received on credit'

@@ -115,11 +115,17 @@ class ExpenseController extends Controller
     
     private function createAccountingEntries(Expense $expense, Request $request)
     {
+        $expensesAccount = \App\Models\Account::where('name', 'Expenses')->first();
+        $cashAccount = \App\Models\Account::where('name', 'Cash')->first();
+        $bankAccount = \App\Models\Account::where('name', 'Bank Account')->first();
+        $mobileMoneyAccount = \App\Models\Account::where('name', 'Mobile Money')->first();
+
         // Debit Expense
         AccountingEntry::create([
             'reference_number' => $expense->reference_number,
             'reference_type' => Expense::class,
             'account' => 'Expenses',
+            'account_id' => $expensesAccount?->id,
             'type' => 'debit',
             'amount' => $expense->amount,
             'description' => $request->category
@@ -131,6 +137,7 @@ class ExpenseController extends Controller
                 'reference_number' => $expense->reference_number,
                 'reference_type' => Expense::class,
                 'account' => 'Cash',
+                'account_id' => $cashAccount?->id,
                 'type' => 'credit',
                 'amount' => $expense->amount,
                 'description' => 'Payment for expense'
@@ -140,25 +147,27 @@ class ExpenseController extends Controller
                 'reference_number' => $expense->reference_number,
                 'reference_type' => Expense::class,
                 'account' => 'Bank Account',
+                'account_id' => $bankAccount?->id,
                 'type' => 'credit',
                 'amount' => $expense->amount,
                 'description' => 'Payment for expense'
             ]);
             
-            $bankAccount = BankAccount::find($request->bank_account_id);
-            $bankAccount->update(['balance' => $bankAccount->balance - $expense->amount]);
+            $bankAccountModel = BankAccount::find($request->bank_account_id);
+            $bankAccountModel->update(['balance' => $bankAccountModel->balance - $expense->amount]);
         } elseif ($request->mobile_money_account_id) {
             AccountingEntry::create([
                 'reference_number' => $expense->reference_number,
                 'reference_type' => Expense::class,
                 'account' => 'Mobile Money',
+                'account_id' => $mobileMoneyAccount?->id,
                 'type' => 'credit',
                 'amount' => $expense->amount,
                 'description' => 'Payment for expense'
             ]);
             
-            $mobileMoneyAccount = MobileMoneyAccount::find($request->mobile_money_account_id);
-            $mobileMoneyAccount->update(['balance' => $mobileMoneyAccount->balance - $expense->amount]);
+            $mobileMoneyAccountModel = MobileMoneyAccount::find($request->mobile_money_account_id);
+            $mobileMoneyAccountModel->update(['balance' => $mobileMoneyAccountModel->balance - $expense->amount]);
         }
     }
     
@@ -167,11 +176,14 @@ class ExpenseController extends Controller
         $oldEntries = AccountingEntry::where('reference_number', $expense->reference_number)->get();
         
         foreach ($oldEntries as $entry) {
+            $account = \App\Models\Account::where('name', $entry->account)->first();
+
             // Reverse the entry
             AccountingEntry::create([
                 'reference_number' => $expense->reference_number . '-REV',
                 'reference_type' => Expense::class,
                 'account' => $entry->account,
+                'account_id' => $account?->id,
                 'type' => $entry->type === 'debit' ? 'credit' : 'debit',
                 'amount' => $entry->amount,
                 'description' => 'Reversal of ' . $entry->description

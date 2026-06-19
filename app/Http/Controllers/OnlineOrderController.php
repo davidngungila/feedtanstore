@@ -312,10 +312,14 @@ class OnlineOrderController extends Controller
                 }
             }
 
+            $cashAccount = \App\Models\Account::where('name', 'Cash')->first();
+            $salesAccount = \App\Models\Account::where('name', 'Sales')->first();
+
             AccountingEntry::create([
                 'reference_number' => $order->order_number,
                 'reference_type' => OnlineOrder::class,
                 'account' => 'Cash',
+                'account_id' => $cashAccount?->id,
                 'type' => 'debit',
                 'amount' => $order->total,
                 'description' => 'Online Order Payment'
@@ -325,6 +329,7 @@ class OnlineOrderController extends Controller
                 'reference_number' => $order->order_number,
                 'reference_type' => OnlineOrder::class,
                 'account' => 'Sales',
+                'account_id' => $salesAccount?->id,
                 'type' => 'credit',
                 'amount' => $order->total,
                 'description' => 'Online Order'

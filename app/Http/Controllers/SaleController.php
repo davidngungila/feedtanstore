@@ -245,10 +245,16 @@ class SaleController extends Controller {
     }
 
     protected function createAccountingEntries(Sale $sale) {
+        $cashAccount = \App\Models\Account::where('name', 'Cash')->first();
+        $salesAccount = \App\Models\Account::where('name', 'Sales')->first();
+        $inventoryAccount = \App\Models\Account::where('name', 'Inventory')->first();
+        $cogsAccount = \App\Models\Account::where('name', 'Cost of Goods Sold')->first();
+
         AccountingEntry::create([
             'reference_number' => $sale->invoice_number,
             'reference_type' => Sale::class,
             'account' => 'Cash',
+            'account_id' => $cashAccount?->id,
             'type' => 'debit',
             'amount' => $sale->paid,
             'description' => 'Sale payment received'
@@ -258,6 +264,7 @@ class SaleController extends Controller {
             'reference_number' => $sale->invoice_number,
             'reference_type' => Sale::class,
             'account' => 'Sales',
+            'account_id' => $salesAccount?->id,
             'type' => 'credit',
             'amount' => $sale->total,
             'description' => 'Sale completed'
@@ -267,6 +274,7 @@ class SaleController extends Controller {
             'reference_number' => $sale->invoice_number,
             'reference_type' => Sale::class,
             'account' => 'Inventory',
+            'account_id' => $inventoryAccount?->id,
             'type' => 'credit',
             'amount' => $sale->subtotal,
             'description' => 'Inventory sold'
@@ -276,6 +284,7 @@ class SaleController extends Controller {
             'reference_number' => $sale->invoice_number,
             'reference_type' => Sale::class,
             'account' => 'Cost of Goods Sold',
+            'account_id' => $cogsAccount?->id,
             'type' => 'debit',
             'amount' => $sale->subtotal,
             'description' => 'COGS for sale'

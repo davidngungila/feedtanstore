@@ -112,12 +112,16 @@ class ShareholderController extends Controller
 
     protected function createCapitalAccountingEntries(Capital $capital)
     {
+        $cashAccount = \App\Models\Account::where('name', 'Cash')->first();
+        $capitalAccount = \App\Models\Account::where('name', 'Capital')->first();
+
         if ($capital->transaction_type === 'add') {
             // Debit cash/bank, credit capital
             AccountingEntry::create([
                 'reference_number' => 'CAP-' . $capital->id,
                 'reference_type' => Capital::class,
                 'account' => 'Cash',
+                'account_id' => $cashAccount?->id,
                 'type' => 'debit',
                 'amount' => $capital->amount,
                 'description' => $capital->description ?: 'Capital added',
@@ -127,6 +131,7 @@ class ShareholderController extends Controller
                 'reference_number' => 'CAP-' . $capital->id,
                 'reference_type' => Capital::class,
                 'account' => 'Capital',
+                'account_id' => $capitalAccount?->id,
                 'type' => 'credit',
                 'amount' => $capital->amount,
                 'description' => $capital->description ?: 'Capital added',

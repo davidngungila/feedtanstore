@@ -105,12 +105,18 @@ class IncomeController extends Controller
     
     private function createAccountingEntries(Income $income, Request $request)
     {
+        $incomeAccount = \App\Models\Account::where('name', 'Income')->first();
+        $cashAccount = \App\Models\Account::where('name', 'Cash')->first();
+        $bankAccount = \App\Models\Account::where('name', 'Bank Account')->first();
+        $mobileMoneyAccount = \App\Models\Account::where('name', 'Mobile Money')->first();
+
         // Debit the payment source
         if ($request->payment_method === 'cash') {
             AccountingEntry::create([
                 'reference_number' => $income->reference_number,
                 'reference_type' => Income::class,
                 'account' => 'Cash',
+                'account_id' => $cashAccount?->id,
                 'type' => 'debit',
                 'amount' => $income->amount,
                 'description' => 'Income received'
@@ -120,25 +126,27 @@ class IncomeController extends Controller
                 'reference_number' => $income->reference_number,
                 'reference_type' => Income::class,
                 'account' => 'Bank Account',
+                'account_id' => $bankAccount?->id,
                 'type' => 'debit',
                 'amount' => $income->amount,
                 'description' => 'Income received'
             ]);
             
-            $bankAccount = BankAccount::find($request->bank_account_id);
-            $bankAccount->update(['balance' => $bankAccount->balance + $income->amount]);
+            $bankAccountModel = BankAccount::find($request->bank_account_id);
+            $bankAccountModel->update(['balance' => $bankAccountModel->balance + $income->amount]);
         } elseif ($request->mobile_money_account_id) {
             AccountingEntry::create([
                 'reference_number' => $income->reference_number,
                 'reference_type' => Income::class,
                 'account' => 'Mobile Money',
+                'account_id' => $mobileMoneyAccount?->id,
                 'type' => 'debit',
                 'amount' => $income->amount,
                 'description' => 'Income received'
             ]);
             
-            $mobileMoneyAccount = MobileMoneyAccount::find($request->mobile_money_account_id);
-            $mobileMoneyAccount->update(['balance' => $mobileMoneyAccount->balance + $income->amount]);
+            $mobileMoneyAccountModel = MobileMoneyAccount::find($request->mobile_money_account_id);
+            $mobileMoneyAccountModel->update(['balance' => $mobileMoneyAccountModel->balance + $income->amount]);
         }
 
         // Credit Income
@@ -146,6 +154,7 @@ class IncomeController extends Controller
             'reference_number' => $income->reference_number,
             'reference_type' => Income::class,
             'account' => 'Income',
+            'account_id' => $incomeAccount?->id,
             'type' => 'credit',
             'amount' => $income->amount,
             'description' => $request->category
@@ -157,11 +166,14 @@ class IncomeController extends Controller
         $oldEntries = AccountingEntry::where('reference_number', $income->reference_number)->get();
         
         foreach ($oldEntries as $entry) {
+            $account = \App\Models\Account::where('name', $entry->account)->first();
+
             // Reverse entry
             AccountingEntry::create([
                 'reference_number' => $income->reference_number . '-REV',
                 'reference_type' => Income::class,
                 'account' => $entry->account,
+                'account_id' => $account?->id,
                 'type' => $entry->type === 'debit' ? 'credit' : 'debit',
                 'amount' => $entry->amount,
                 'description' => 'Reversal of ' . $entry->description
