@@ -11,20 +11,24 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('journal_entries', function (Blueprint $table) {
-            $table->id();
-            $table->string('journal_number')->unique();
-            $table->date('entry_date');
-            $table->string('description');
-            $table->string('reference_type')->nullable();
-            $table->unsignedBigInteger('reference_id')->nullable();
-            $table->boolean('is_manual')->default(false);
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('journal_entries')) {
+            Schema::create('journal_entries', function (Blueprint $table) {
+                $table->id();
+                $table->string('journal_number')->unique();
+                $table->date('entry_date');
+                $table->string('description');
+                $table->string('reference_type')->nullable();
+                $table->unsignedBigInteger('reference_id')->nullable();
+                $table->boolean('is_manual')->default(false);
+                $table->timestamps();
+            });
+        }
 
-        Schema::table('accounting_entries', function (Blueprint $table) {
-            $table->foreignId('journal_entry_id')->nullable()->constrained()->onDelete('cascade');
-        });
+        if (!Schema::hasColumn('accounting_entries', 'journal_entry_id')) {
+            Schema::table('accounting_entries', function (Blueprint $table) {
+                $table->foreignId('journal_entry_id')->nullable()->constrained()->onDelete('cascade');
+            });
+        }
     }
 
     /**
