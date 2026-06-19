@@ -2,101 +2,71 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\JournalEntry;
-use App\Models\JournalEntryItem;
-use App\Models\Account;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+use App\Models\JournalEntry;
+use App\Models\AccountingEntry;
+use App\Models\Account;
 
 class JournalEntryController extends Controller
 {
     public function index()
     {
-        $journalEntries = JournalEntry::with(['items.account', 'postedBy'])->latest()->get();
+        $journalEntries = JournalEntry::with('entries.accountModel')->orderBy('entry_date', 'desc')->orderBy('created_at', 'desc')->paginate(20);
         return view('finance.journal-entries', compact('journalEntries'));
     }
 
     public function create()
     {
-        $accounts = Account::where('is_active', true)->orderBy('account_code')->get();
-        return view('finance.journal-entry-create', compact('accounts'));
+        $accounts = Account::where('is_active', true)->get();
+        return view('finance.journal-entries-create', compact('accounts'));
     }
 
     public function store(Request $request)
     {
         $request->validate([
             'entry_date' => 'required|date',
-            'description' => 'required|string',
-            'items' => 'required|array|min:2',
-            'items.*.account_id' => 'required|exists:chart_of_accounts,id',
-            'items.*.type' => 'required|in:debit,credit',
-            'items.*.amount' => 'required|numeric|min:0.01',
+            'description' => 'required',
+            'lines' => 'required|array|min:2',
+            'lines.*.account_id' => 'required|exists:chart_of_accounts,id',
+            'lines.*.type' => 'required|in:debit,credit',
+            'lines.*.amount' => 'required|numeric|min:0.01',
+            'lines.*.description' => 'nullable',
         ]);
 
-        $totalDebits = 0;
-        $totalCredits = 0;
-        foreach ($request->items as $item) {
-            if ($item['type'] === 'debit') {
-                $totalDebits += $item['amount'];
-            } else {
-                $totalCredits += $item['amount'];
-            }
+        $totalDebits = collect($request->lines)->where('type', 'debit')->sum('amount');
+        $totalCredits = collect($request->lines)->where('type', 'credit')->sum('amount');
+
+        if ($totalDebits != $totalCredits) {
+            return back()->withErrors(['total' => 'Total debits must equal total credits.'])->withInput();
         }
 
-        if ($totalDebits !== $totalCredits) {
-            return back()->withErrors(['items' => 'Total debits must equal total credits'])->withInput();
-        }
+        $journalNumber = 'JE-' . date('Ymd') . '-' . str_pad(JournalEntry::count() + 1, 4, '0', STR_PAD_LEFT);
 
-        $entryNumber = 'JE-' . date('YmdHis');
         $journalEntry = JournalEntry::create([
-            'entry_number' => $entryNumber,
+            'journal_number' => $journalNumber,
             'entry_date' => $request->entry_date,
             'description' => $request->description,
+            'is_manual' => true,
         ]);
 
-        foreach ($request->items as $item) {
-            JournalEntryItem::create([
+        foreach ($request->lines as $line) {
+            $account = Account::find($line['account_id']);
+            AccountingEntry::create([
                 'journal_entry_id' => $journalEntry->id,
-                'account_id' => $item['account_id'],
-                'type' => $item['type'],
-                'amount' => $item['amount'],
-                'description' => $item['description'] ?? null,
+                'account' => $account->name,
+                'account_id' => $line['account_id'],
+                'type' => $line['type'],
+                'amount' => $line['amount'],
+                'description' => $line['description'] ?? $request->description,
             ]);
         }
 
-        return redirect()->route('finance.journal-entries')->with('success', 'Journal entry created successfully!');
+        return redirect()->route('journal-entries.index')->with('success', 'Journal entry created successfully.');
     }
 
     public function show(JournalEntry $journalEntry)
     {
-        $journalEntry->load(['items.account', 'postedBy']);
-        return view('finance.journal-entry-show', compact('journalEntry'));
-    }
-
-    public function post(JournalEntry $journalEntry, Request $request)
-    {
-        if ($journalEntry->is_posted) {
-            return back()->with('error', 'Journal entry is already posted!');
-        }
-
-        $journalEntry->update([
-            'is_posted' => true,
-            'posted_by' => Auth::id(),
-        ]);
-
-        // Create accounting entries for each item
-        foreach ($journalEntry->items as $item) {
-            \App\Models\AccountingEntry::create([
-                'reference_number' => $journalEntry->entry_number,
-                'reference_type' => 'journal_entry',
-                'account' => $item->account->name,
-                'account_id' => $item->account_id,
-                'type' => $item->type,
-                'amount' => $item->amount,
-                'description' => $item->description ?? $journalEntry->description,
-            ]);
-        }
-
-        return back()->with('success', 'Journal entry posted successfully!');
+        $journalEntry->load('entries.accountModel');
+        return view('finance.journal-entries-show', compact('journalEntry'));
     }
 }

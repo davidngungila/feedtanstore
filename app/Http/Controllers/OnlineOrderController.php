@@ -315,7 +315,19 @@ class OnlineOrderController extends Controller
             $cashAccount = \App\Models\Account::where('name', 'Cash')->first();
             $salesAccount = \App\Models\Account::where('name', 'Sales')->first();
 
+            $journalNumber = 'JE-ONLINE-' . date('Ymd') . '-' . str_pad(\App\Models\JournalEntry::count() + 1, 4, '0', STR_PAD_LEFT);
+
+            $journalEntry = \App\Models\JournalEntry::create([
+                'journal_number' => $journalNumber,
+                'entry_date' => now(),
+                'description' => 'Online Order: ' . $order->order_number,
+                'reference_type' => OnlineOrder::class,
+                'reference_id' => $order->id,
+                'is_manual' => false,
+            ]);
+
             AccountingEntry::create([
+                'journal_entry_id' => $journalEntry->id,
                 'reference_number' => $order->order_number,
                 'reference_type' => OnlineOrder::class,
                 'account' => 'Cash',
@@ -326,6 +338,7 @@ class OnlineOrderController extends Controller
             ]);
 
             AccountingEntry::create([
+                'journal_entry_id' => $journalEntry->id,
                 'reference_number' => $order->order_number,
                 'reference_type' => OnlineOrder::class,
                 'account' => 'Sales',

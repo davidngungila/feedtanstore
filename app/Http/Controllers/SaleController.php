@@ -250,7 +250,19 @@ class SaleController extends Controller {
         $inventoryAccount = \App\Models\Account::where('name', 'Inventory')->first();
         $cogsAccount = \App\Models\Account::where('name', 'Cost of Goods Sold')->first();
 
+        $journalNumber = 'JE-SALE-' . date('Ymd') . '-' . str_pad(\App\Models\JournalEntry::count() + 1, 4, '0', STR_PAD_LEFT);
+
+        $journalEntry = \App\Models\JournalEntry::create([
+            'journal_number' => $journalNumber,
+            'entry_date' => now(),
+            'description' => 'Sale: ' . $sale->invoice_number,
+            'reference_type' => Sale::class,
+            'reference_id' => $sale->id,
+            'is_manual' => false,
+        ]);
+
         AccountingEntry::create([
+            'journal_entry_id' => $journalEntry->id,
             'reference_number' => $sale->invoice_number,
             'reference_type' => Sale::class,
             'account' => 'Cash',
@@ -261,6 +273,7 @@ class SaleController extends Controller {
         ]);
 
         AccountingEntry::create([
+            'journal_entry_id' => $journalEntry->id,
             'reference_number' => $sale->invoice_number,
             'reference_type' => Sale::class,
             'account' => 'Sales',
@@ -271,6 +284,7 @@ class SaleController extends Controller {
         ]);
 
         AccountingEntry::create([
+            'journal_entry_id' => $journalEntry->id,
             'reference_number' => $sale->invoice_number,
             'reference_type' => Sale::class,
             'account' => 'Inventory',
@@ -281,6 +295,7 @@ class SaleController extends Controller {
         ]);
 
         AccountingEntry::create([
+            'journal_entry_id' => $journalEntry->id,
             'reference_number' => $sale->invoice_number,
             'reference_type' => Sale::class,
             'account' => 'Cost of Goods Sold',

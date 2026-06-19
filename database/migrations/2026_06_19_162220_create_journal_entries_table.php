@@ -13,15 +13,17 @@ return new class extends Migration
     {
         Schema::create('journal_entries', function (Blueprint $table) {
             $table->id();
-            $table->string('entry_number')->unique();
+            $table->string('journal_number')->unique();
             $table->date('entry_date');
-            $table->text('description');
+            $table->string('description');
             $table->string('reference_type')->nullable();
-            $table->string('reference_number')->nullable();
-            $table->boolean('is_posted')->default(false);
-            $table->unsignedBigInteger('posted_by')->nullable();
-            $table->foreign('posted_by')->references('id')->on('users')->nullOnDelete();
+            $table->unsignedBigInteger('reference_id')->nullable();
+            $table->boolean('is_manual')->default(false);
             $table->timestamps();
+        });
+
+        Schema::table('accounting_entries', function (Blueprint $table) {
+            $table->foreignId('journal_entry_id')->nullable()->constrained()->onDelete('cascade');
         });
     }
 
@@ -30,6 +32,11 @@ return new class extends Migration
      */
     public function down(): void
     {
+        Schema::table('accounting_entries', function (Blueprint $table) {
+            $table->dropForeign(['journal_entry_id']);
+            $table->dropColumn('journal_entry_id');
+        });
+        
         Schema::dropIfExists('journal_entries');
     }
 };

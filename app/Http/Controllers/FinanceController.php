@@ -13,6 +13,7 @@ use App\Models\PurchaseOrder;
 use App\Models\Income;
 use App\Models\Expense;
 use App\Models\Capital;
+use App\Models\Account;
 
 class FinanceController extends Controller
 {
@@ -199,5 +200,34 @@ class FinanceController extends Controller
             'operatingProfit',
             'netProfit'
         ));
+    }
+
+    public function generalLedger(Request $request)
+    {
+        $accounts = Account::where('is_active', true)->orderBy('account_code')->get();
+        $selectedAccountId = $request->account_id;
+
+        if ($selectedAccountId) {
+            $account = Account::findOrFail($selectedAccountId);
+            $entries = AccountingEntry::with('journalEntry')->where('account_id', $selectedAccountId)->orderBy('created_at', 'asc')->get();
+            $balance = 0;
+            $ledgerEntries = [];
+
+            foreach ($entries as $entry) {
+                if ($entry->type === 'debit') {
+                    $balance += $entry->amount;
+                } else {
+                    $balance -= $entry->amount;
+                }
+                $ledgerEntries[] = [
+                    'entry' => $entry,
+                    'balance' => $balance,
+                ];
+            }
+
+            return view('finance.general-ledger', compact('accounts', 'selectedAccountId', 'account', 'ledgerEntries', 'balance'));
+        }
+
+        return view('finance.general-ledger', compact('accounts', 'selectedAccountId'));
     }
 }

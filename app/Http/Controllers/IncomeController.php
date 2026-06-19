@@ -110,9 +110,21 @@ class IncomeController extends Controller
         $bankAccount = \App\Models\Account::where('name', 'Bank Account')->first();
         $mobileMoneyAccount = \App\Models\Account::where('name', 'Mobile Money')->first();
 
+        $journalNumber = 'JE-INCOME-' . date('Ymd') . '-' . str_pad(\App\Models\JournalEntry::count() + 1, 4, '0', STR_PAD_LEFT);
+
+        $journalEntry = \App\Models\JournalEntry::create([
+            'journal_number' => $journalNumber,
+            'entry_date' => now(),
+            'description' => 'Income: ' . $income->reference_number,
+            'reference_type' => Income::class,
+            'reference_id' => $income->id,
+            'is_manual' => false,
+        ]);
+
         // Debit the payment source
         if ($request->payment_method === 'cash') {
             AccountingEntry::create([
+                'journal_entry_id' => $journalEntry->id,
                 'reference_number' => $income->reference_number,
                 'reference_type' => Income::class,
                 'account' => 'Cash',
@@ -123,6 +135,7 @@ class IncomeController extends Controller
             ]);
         } elseif ($request->bank_account_id) {
             AccountingEntry::create([
+                'journal_entry_id' => $journalEntry->id,
                 'reference_number' => $income->reference_number,
                 'reference_type' => Income::class,
                 'account' => 'Bank Account',
@@ -136,6 +149,7 @@ class IncomeController extends Controller
             $bankAccountModel->update(['balance' => $bankAccountModel->balance + $income->amount]);
         } elseif ($request->mobile_money_account_id) {
             AccountingEntry::create([
+                'journal_entry_id' => $journalEntry->id,
                 'reference_number' => $income->reference_number,
                 'reference_type' => Income::class,
                 'account' => 'Mobile Money',
@@ -151,6 +165,7 @@ class IncomeController extends Controller
 
         // Credit Income
         AccountingEntry::create([
+            'journal_entry_id' => $journalEntry->id,
             'reference_number' => $income->reference_number,
             'reference_type' => Income::class,
             'account' => 'Income',
@@ -164,12 +179,23 @@ class IncomeController extends Controller
     private function reverseAccountingEntries(Income $income)
     {
         $oldEntries = AccountingEntry::where('reference_number', $income->reference_number)->get();
+
+        $journalNumber = 'JE-INCOME-REV-' . date('Ymd') . '-' . str_pad(\App\Models\JournalEntry::count() + 1, 4, '0', STR_PAD_LEFT);
+        $journalEntry = \App\Models\JournalEntry::create([
+            'journal_number' => $journalNumber,
+            'entry_date' => now(),
+            'description' => 'Reversal of Income: ' . $income->reference_number,
+            'reference_type' => Income::class,
+            'reference_id' => $income->id,
+            'is_manual' => false,
+        ]);
         
         foreach ($oldEntries as $entry) {
             $account = \App\Models\Account::where('name', $entry->account)->first();
 
             // Reverse entry
             AccountingEntry::create([
+                'journal_entry_id' => $journalEntry->id,
                 'reference_number' => $income->reference_number . '-REV',
                 'reference_type' => Income::class,
                 'account' => $entry->account,

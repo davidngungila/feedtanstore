@@ -120,8 +120,20 @@ class ExpenseController extends Controller
         $bankAccount = \App\Models\Account::where('name', 'Bank Account')->first();
         $mobileMoneyAccount = \App\Models\Account::where('name', 'Mobile Money')->first();
 
+        $journalNumber = 'JE-EXP-' . date('Ymd') . '-' . str_pad(\App\Models\JournalEntry::count() + 1, 4, '0', STR_PAD_LEFT);
+
+        $journalEntry = \App\Models\JournalEntry::create([
+            'journal_number' => $journalNumber,
+            'entry_date' => now(),
+            'description' => 'Expense: ' . $expense->reference_number,
+            'reference_type' => Expense::class,
+            'reference_id' => $expense->id,
+            'is_manual' => false,
+        ]);
+
         // Debit Expense
         AccountingEntry::create([
+            'journal_entry_id' => $journalEntry->id,
             'reference_number' => $expense->reference_number,
             'reference_type' => Expense::class,
             'account' => 'Expenses',
@@ -134,6 +146,7 @@ class ExpenseController extends Controller
         // Credit the payment source
         if ($request->payment_method === 'cash') {
             AccountingEntry::create([
+                'journal_entry_id' => $journalEntry->id,
                 'reference_number' => $expense->reference_number,
                 'reference_type' => Expense::class,
                 'account' => 'Cash',
@@ -144,6 +157,7 @@ class ExpenseController extends Controller
             ]);
         } elseif ($request->bank_account_id) {
             AccountingEntry::create([
+                'journal_entry_id' => $journalEntry->id,
                 'reference_number' => $expense->reference_number,
                 'reference_type' => Expense::class,
                 'account' => 'Bank Account',
@@ -157,6 +171,7 @@ class ExpenseController extends Controller
             $bankAccountModel->update(['balance' => $bankAccountModel->balance - $expense->amount]);
         } elseif ($request->mobile_money_account_id) {
             AccountingEntry::create([
+                'journal_entry_id' => $journalEntry->id,
                 'reference_number' => $expense->reference_number,
                 'reference_type' => Expense::class,
                 'account' => 'Mobile Money',
@@ -174,12 +189,23 @@ class ExpenseController extends Controller
     private function reverseAccountingEntries(Expense $expense)
     {
         $oldEntries = AccountingEntry::where('reference_number', $expense->reference_number)->get();
+
+        $journalNumber = 'JE-EXP-REV-' . date('Ymd') . '-' . str_pad(\App\Models\JournalEntry::count() + 1, 4, '0', STR_PAD_LEFT);
+        $journalEntry = \App\Models\JournalEntry::create([
+            'journal_number' => $journalNumber,
+            'entry_date' => now(),
+            'description' => 'Reversal of Expense: ' . $expense->reference_number,
+            'reference_type' => Expense::class,
+            'reference_id' => $expense->id,
+            'is_manual' => false,
+        ]);
         
         foreach ($oldEntries as $entry) {
             $account = \App\Models\Account::where('name', $entry->account)->first();
 
             // Reverse the entry
             AccountingEntry::create([
+                'journal_entry_id' => $journalEntry->id,
                 'reference_number' => $expense->reference_number . '-REV',
                 'reference_type' => Expense::class,
                 'account' => $entry->account,

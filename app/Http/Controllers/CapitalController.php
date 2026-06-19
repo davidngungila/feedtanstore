@@ -88,9 +88,21 @@ class CapitalController extends Controller
         $cashAccount = \App\Models\Account::where('name', 'Cash')->first();
         $capitalAccount = \App\Models\Account::where('name', 'Capital')->first();
 
+        $journalNumber = 'JE-CAP-' . date('Ymd') . '-' . str_pad(\App\Models\JournalEntry::count() + 1, 4, '0', STR_PAD_LEFT);
+
+        $journalEntry = \App\Models\JournalEntry::create([
+            'journal_number' => $journalNumber,
+            'entry_date' => now(),
+            'description' => 'Capital: ' . $capital->transaction_type,
+            'reference_type' => Capital::class,
+            'reference_id' => $capital->id,
+            'is_manual' => false,
+        ]);
+
         if ($capital->transaction_type === 'add') {
             // Debit cash/bank, credit capital
             AccountingEntry::create([
+                'journal_entry_id' => $journalEntry->id,
                 'reference_number' => 'CAP-' . $capital->id,
                 'reference_type' => Capital::class,
                 'account' => 'Cash',
@@ -101,6 +113,7 @@ class CapitalController extends Controller
             ]);
 
             AccountingEntry::create([
+                'journal_entry_id' => $journalEntry->id,
                 'reference_number' => 'CAP-' . $capital->id,
                 'reference_type' => Capital::class,
                 'account' => 'Capital',
@@ -112,6 +125,7 @@ class CapitalController extends Controller
         } else {
             // Debit capital, credit cash/bank
             AccountingEntry::create([
+                'journal_entry_id' => $journalEntry->id,
                 'reference_number' => 'CAP-' . $capital->id,
                 'reference_type' => Capital::class,
                 'account' => 'Capital',
@@ -122,6 +136,7 @@ class CapitalController extends Controller
             ]);
 
             AccountingEntry::create([
+                'journal_entry_id' => $journalEntry->id,
                 'reference_number' => 'CAP-' . $capital->id,
                 'reference_type' => Capital::class,
                 'account' => 'Cash',
@@ -139,10 +154,21 @@ class CapitalController extends Controller
             ->where('reference_number', 'CAP-' . $capital->id)
             ->get();
 
+        $journalNumber = 'JE-CAP-REV-' . date('Ymd') . '-' . str_pad(\App\Models\JournalEntry::count() + 1, 4, '0', STR_PAD_LEFT);
+        $journalEntry = \App\Models\JournalEntry::create([
+            'journal_number' => $journalNumber,
+            'entry_date' => now(),
+            'description' => 'Reversal of Capital',
+            'reference_type' => Capital::class,
+            'reference_id' => $capital->id,
+            'is_manual' => false,
+        ]);
+
         foreach ($oldEntries as $entry) {
             $account = \App\Models\Account::where('name', $entry->account)->first();
 
             AccountingEntry::create([
+                'journal_entry_id' => $journalEntry->id,
                 'reference_number' => $entry->reference_number . '-REV',
                 'reference_type' => Capital::class,
                 'account' => $entry->account,

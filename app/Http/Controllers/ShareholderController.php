@@ -115,9 +115,21 @@ class ShareholderController extends Controller
         $cashAccount = \App\Models\Account::where('name', 'Cash')->first();
         $capitalAccount = \App\Models\Account::where('name', 'Capital')->first();
 
+        $journalNumber = 'JE-SHARE-' . date('Ymd') . '-' . str_pad(\App\Models\JournalEntry::count() + 1, 4, '0', STR_PAD_LEFT);
+
+        $journalEntry = \App\Models\JournalEntry::create([
+            'journal_number' => $journalNumber,
+            'entry_date' => now(),
+            'description' => 'Shares issued',
+            'reference_type' => Capital::class,
+            'reference_id' => $capital->id,
+            'is_manual' => false,
+        ]);
+
         if ($capital->transaction_type === 'add') {
             // Debit cash/bank, credit capital
             AccountingEntry::create([
+                'journal_entry_id' => $journalEntry->id,
                 'reference_number' => 'CAP-' . $capital->id,
                 'reference_type' => Capital::class,
                 'account' => 'Cash',
@@ -128,6 +140,7 @@ class ShareholderController extends Controller
             ]);
 
             AccountingEntry::create([
+                'journal_entry_id' => $journalEntry->id,
                 'reference_number' => 'CAP-' . $capital->id,
                 'reference_type' => Capital::class,
                 'account' => 'Capital',

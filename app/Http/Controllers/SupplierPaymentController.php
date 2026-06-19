@@ -60,8 +60,20 @@ class SupplierPaymentController extends Controller
         $bankAccount = \App\Models\Account::where('name', 'Bank Account')->first();
         $mobileMoneyAccount = \App\Models\Account::where('name', 'Mobile Money')->first();
 
+        $journalNumber = 'JE-SUP-PAY-' . date('Ymd') . '-' . str_pad(\App\Models\JournalEntry::count() + 1, 4, '0', STR_PAD_LEFT);
+
+        $journalEntry = \App\Models\JournalEntry::create([
+            'journal_number' => $journalNumber,
+            'entry_date' => now(),
+            'description' => 'Supplier Payment: ' . $payment->payment_number,
+            'reference_type' => SupplierPayment::class,
+            'reference_id' => $payment->id,
+            'is_manual' => false,
+        ]);
+
         // Debit Accounts Payable
         AccountingEntry::create([
+            'journal_entry_id' => $journalEntry->id,
             'reference_number' => $payment->payment_number,
             'reference_type' => SupplierPayment::class,
             'account' => 'Accounts Payable',
@@ -83,6 +95,7 @@ class SupplierPaymentController extends Controller
         }
         
         AccountingEntry::create([
+            'journal_entry_id' => $journalEntry->id,
             'reference_number' => $payment->payment_number,
             'reference_type' => SupplierPayment::class,
             'account' => $accountName,

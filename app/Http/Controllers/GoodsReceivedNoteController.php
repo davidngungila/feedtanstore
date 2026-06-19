@@ -94,8 +94,20 @@ class GoodsReceivedNoteController extends Controller
         $inventoryAccount = \App\Models\Account::where('name', 'Inventory')->first();
         $accountsPayableAccount = \App\Models\Account::where('name', 'Accounts Payable')->first();
 
+        $journalNumber = 'JE-GRN-' . date('Ymd') . '-' . str_pad(\App\Models\JournalEntry::count() + 1, 4, '0', STR_PAD_LEFT);
+
+        $journalEntry = \App\Models\JournalEntry::create([
+            'journal_number' => $journalNumber,
+            'entry_date' => now(),
+            'description' => 'Goods Received: ' . $grn->grn_number,
+            'reference_type' => GoodsReceivedNote::class,
+            'reference_id' => $grn->id,
+            'is_manual' => false,
+        ]);
+
         // Debit Inventory
         AccountingEntry::create([
+            'journal_entry_id' => $journalEntry->id,
             'reference_number' => $grn->grn_number,
             'reference_type' => GoodsReceivedNote::class,
             'account' => 'Inventory',
@@ -107,6 +119,7 @@ class GoodsReceivedNoteController extends Controller
         
         // Credit Accounts Payable
         AccountingEntry::create([
+            'journal_entry_id' => $journalEntry->id,
             'reference_number' => $grn->grn_number,
             'reference_type' => GoodsReceivedNote::class,
             'account' => 'Accounts Payable',

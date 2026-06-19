@@ -4,72 +4,85 @@
 
 @section('content')
 <div class="animate-[fadeIn_0.4s_ease]">
-    <div class="card rounded-2xl p-6 mb-6">
-        <div class="flex items-center justify-between mb-6">
-            <h2 class="text-xl font-bold text-primary-900">General Ledger</h2>
+    <div class="card rounded-2xl p-6">
+        <h2 class="text-xl font-bold text-primary-900 mb-6">General Ledger</h2>
+
+        <div class="mb-6">
+            <form method="GET" action="{{ route('finance.general-ledger') }}" class="flex flex-col md:flex-row gap-4">
+                <div class="flex-1">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Select Account</label>
+                    <select name="account_id" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                        <option value="">-- Choose an Account --</option>
+                        @foreach($accounts as $account)
+                            <option value="{{ $account->id }}" {{ $selectedAccountId == $account->id ? 'selected' : '' }}>
+                                {{ $account->account_code }} - {{ $account->name }} ({{ $account->type }})
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="flex items-end">
+                    <button type="submit" class="px-6 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors">
+                        View Ledger
+                    </button>
+                </div>
+            </form>
         </div>
 
-        <form method="GET" class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            <div>
-                <label class="form-label">Date From</label>
-                <input type="date" name="date_from" value="{{ $dateFrom ?? '' }}" class="form-input">
-            </div>
-            <div>
-                <label class="form-label">Date To</label>
-                <input type="date" name="date_to" value="{{ $dateTo ?? '' }}" class="form-input">
-            </div>
-            <div class="flex items-end gap-2">
-                <button type="submit" class="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
-                    Filter
-                </button>
-                <a href="{{ route('finance.general-ledger') }}" class="text-gray-600 hover:text-gray-800 px-4 py-2 rounded-lg border border-gray-300 transition-colors">
-                    Clear
-                </a>
-            </div>
-        </form>
+        @if(isset($ledgerEntries))
+            <div class="border-t border-gray-200 pt-6">
+                <div class="mb-6">
+                    <h3 class="text-lg font-bold text-gray-900 mb-2">{{ $account->account_code }} - {{ $account->name }}</h3>
+                    <p class="text-gray-600">{{ $account->type }}</p>
+                    <div class="mt-4 inline-block px-6 py-3 bg-gray-50 rounded-lg">
+                        <p class="text-sm text-gray-600 mb-1">Current Balance</p>
+                        <p class="text-2xl font-bold text-gray-900">TZS {{ number_format($balance, 2) }}</p>
+                    </div>
+                </div>
 
-        @foreach($accounts as $account)
-            <div class="mb-8 pb-6 border-b border-gray-200">
-                <h3 class="text-lg font-semibold text-primary-900 mb-3">{{ $account->account_code }} - {{ $account->name }} <span class="text-sm text-gray-500">({{ $account->type }})</span></h3>
                 <div class="overflow-x-auto">
-                    <table class="data-table w-full">
-                        <thead>
+                    <table class="w-full text-sm">
+                        <thead class="bg-gray-50">
                             <tr>
-                                <th class="text-left">Date</th>
-                                <th class="text-left">Reference</th>
-                                <th class="text-left">Description</th>
-                                <th class="text-right">Debit</th>
-                                <th class="text-right">Credit</th>
-                                <th class="text-right">Balance</th>
+                                <th class="px-4 py-3 text-left text-gray-700">Date</th>
+                                <th class="px-4 py-3 text-left text-gray-700">Journal #</th>
+                                <th class="px-4 py-3 text-left text-gray-700">Description</th>
+                                <th class="px-4 py-3 text-right text-gray-700">Debit</th>
+                                <th class="px-4 py-3 text-right text-gray-700">Credit</th>
+                                <th class="px-4 py-3 text-right text-gray-700">Balance</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            @php
-                                $balance = 0;
-                                $entries = $account->accountingEntries->sortBy('created_at');
-                            @endphp
-                            @foreach($entries as $entry)
-                                @php
-                                    if(in_array($account->type, ['Asset', 'Expense'])) {
-                                        $balance += $entry->type === 'debit' ? $entry->amount : -$entry->amount;
-                                    } else {
-                                        $balance += $entry->type === 'credit' ? $entry->amount : -$entry->amount;
-                                    }
-                                @endphp
+                        <tbody class="divide-y">
+                            @foreach($ledgerEntries as $item)
                             <tr>
-                                <td class="text-gray-600">{{ $entry->created_at->format('M d, Y') }}</td>
-                                <td class="text-primary-600">{{ $entry->reference_number }}</td>
-                                <td class="text-gray-600">{{ $entry->description }}</td>
-                                <td class="text-right text-gray-800">{{ $entry->type === 'debit' ? number_format($entry->amount, 2) : '' }}</td>
-                                <td class="text-right text-gray-800">{{ $entry->type === 'credit' ? number_format($entry->amount, 2) : '' }}</td>
-                                <td class="text-right text-gray-800">{{ number_format($balance, 2) }}</td>
+                                <td class="px-4 py-3">{{ $item['entry']->created_at->format('d/m/Y') }}</td>
+                                <td class="px-4 py-3">
+                                    @if($item['entry']->journalEntry)
+                                        <a href="{{ route('journal-entries.show', $item['entry']->journalEntry) }}" class="text-primary-600 hover:text-primary-800 font-medium">
+                                            {{ $item['entry']->journalEntry->journal_number }}
+                                        </a>
+                                    @else
+                                        N/A
+                                    @endif
+                                </td>
+                                <td class="px-4 py-3">{{ $item['entry']->description }}</td>
+                                <td class="px-4 py-3 text-right font-bold text-blue-700">
+                                    @if($item['entry']->type === 'debit')
+                                        TZS {{ number_format($item['entry']->amount, 2) }}
+                                    @endif
+                                </td>
+                                <td class="px-4 py-3 text-right font-bold text-green-700">
+                                    @if($item['entry']->type === 'credit')
+                                        TZS {{ number_format($item['entry']->amount, 2) }}
+                                    @endif
+                                </td>
+                                <td class="px-4 py-3 text-right font-bold text-gray-900">TZS {{ number_format($item['balance'], 2) }}</td>
                             </tr>
                             @endforeach
                         </tbody>
                     </table>
                 </div>
             </div>
-        @endforeach
+        @endif
     </div>
 </div>
 @endsection

@@ -147,8 +147,20 @@ class PurchaseOrderController extends Controller
         $inventoryAccount = \App\Models\Account::where('name', 'Inventory')->first();
         $accountsPayableAccount = \App\Models\Account::where('name', 'Accounts Payable')->first();
 
+        $journalNumber = 'JE-PO-' . date('Ymd') . '-' . str_pad(\App\Models\JournalEntry::count() + 1, 4, '0', STR_PAD_LEFT);
+
+        $journalEntry = \App\Models\JournalEntry::create([
+            'journal_number' => $journalNumber,
+            'entry_date' => now(),
+            'description' => 'Purchase Order: ' . $purchaseOrder->po_number,
+            'reference_type' => PurchaseOrder::class,
+            'reference_id' => $purchaseOrder->id,
+            'is_manual' => false,
+        ]);
+
         // Debit Inventory
         AccountingEntry::create([
+            'journal_entry_id' => $journalEntry->id,
             'reference_number' => $purchaseOrder->po_number,
             'reference_type' => PurchaseOrder::class,
             'account' => 'Inventory',
@@ -160,6 +172,7 @@ class PurchaseOrderController extends Controller
         
         // Credit Accounts Payable
         AccountingEntry::create([
+            'journal_entry_id' => $journalEntry->id,
             'reference_number' => $purchaseOrder->po_number,
             'reference_type' => PurchaseOrder::class,
             'account' => 'Accounts Payable',

@@ -3,20 +3,42 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class JournalEntry extends Model
 {
-    protected $fillable = ['entry_number', 'entry_date', 'description', 'reference_type', 'reference_number', 'is_posted', 'posted_by'];
+    protected $fillable = [
+        'journal_number',
+        'entry_date',
+        'description',
+        'reference_type',
+        'reference_id',
+        'is_manual',
+    ];
 
-    public function items(): HasMany
+    protected $dates = ['entry_date'];
+
+    public function entries()
     {
-        return $this->hasMany(JournalEntryItem::class);
+        return $this->hasMany(AccountingEntry::class);
     }
 
-    public function postedBy(): BelongsTo
+    public function reference()
     {
-        return $this->belongsTo(User::class, 'posted_by');
+        return $this->morphTo();
+    }
+
+    public function getTotalDebitsAttribute()
+    {
+        return $this->entries()->where('type', 'debit')->sum('amount');
+    }
+
+    public function getTotalCreditsAttribute()
+    {
+        return $this->entries()->where('type', 'credit')->sum('amount');
+    }
+
+    public function getIsBalancedAttribute()
+    {
+        return $this->total_debits == $this->total_credits;
     }
 }
