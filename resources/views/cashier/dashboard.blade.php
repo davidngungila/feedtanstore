@@ -664,7 +664,7 @@ function setupBarcodeScanner() {
     let barcodeBuffer = '';
     let lastInputTime = 0;
 
-    document.addEventListener('keypress', function(e) {
+    document.addEventListener('keydown', function(e) {
         const now = Date.now();
         if (now - lastInputTime > 100) {
             barcodeBuffer = '';
@@ -674,20 +674,26 @@ function setupBarcodeScanner() {
         if (e.key === 'Enter') {
             e.preventDefault(); // Prevent default action to keep fullscreen
             if (barcodeBuffer.length > 0) {
-                addProductByBarcode(barcodeBuffer);
-            } else {
-                addProductByBarcode(document.getElementById('barcodeInput').value);
+                addProductByBarcode(barcodeBuffer.trim());
+                barcodeBuffer = '';
+            } else if (document.getElementById('barcodeInput') === document.activeElement) {
+                // If barcode input has focus and Enter is pressed, use its value
+                addProductByBarcode(document.getElementById('barcodeInput').value.trim());
+                document.getElementById('barcodeInput').value = '';
             }
-            barcodeBuffer = '';
             return;
         }
-        barcodeBuffer += e.key;
+        // Only add to buffer if it's a printable character and not a modifier key
+        if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
+            barcodeBuffer += e.key;
+        }
     });
 
-    document.getElementById('barcodeInput').addEventListener('keypress', function(e) {
+    document.getElementById('barcodeInput').addEventListener('keydown', function(e) {
         if (e.key === 'Enter') {
-            e.preventDefault(); // Prevent default action to keep fullscreen
-            addProductByBarcode(this.value);
+            e.preventDefault(); // Prevent default action
+            // This is handled by the global listener, so just clear the buffer
+            barcodeBuffer = '';
         }
     });
 }
