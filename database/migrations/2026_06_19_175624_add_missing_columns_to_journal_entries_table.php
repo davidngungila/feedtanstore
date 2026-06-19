@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::table('journal_entries', function (Blueprint $table) {
             if (!Schema::hasColumn('journal_entries', 'journal_number')) {
-                $table->string('journal_number')->unique()->after('id');
+                $table->string('journal_number')->unique()->nullable()->after('id');
             }
             if (!Schema::hasColumn('journal_entries', 'entry_date')) {
                 $table->date('entry_date')->after('journal_number');
@@ -29,6 +29,9 @@ return new class extends Migration
             }
             if (!Schema::hasColumn('journal_entries', 'is_manual')) {
                 $table->boolean('is_manual')->default(false)->after('reference_id');
+            }
+            if (!Schema::hasColumn('journal_entries', 'entry_number')) {
+                $table->string('entry_number')->nullable()->after('id');
             }
         });
     }

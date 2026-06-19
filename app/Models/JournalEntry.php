@@ -8,6 +8,7 @@ class JournalEntry extends Model
 {
     protected $fillable = [
         'journal_number',
+        'entry_number',
         'entry_date',
         'description',
         'reference_type',
