@@ -17,39 +17,42 @@
         }
 
         .barcode-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 20px;
+            display: block;
         }
 
         .barcode-card {
             border: 1px solid #ddd;
-            padding: 15px;
+            padding: 30px;
             text-align: center;
             border-radius: 8px;
+            page-break-after: always;
+        }
+
+        .barcode-card:last-child {
+            page-break-after: avoid;
         }
 
         .barcode-card img {
             max-width: 100%;
             height: auto;
-            margin: 10px 0;
+            margin: 15px 0;
         }
 
         .product-name {
-            font-size: 14px;
+            font-size: 16px;
             font-weight: bold;
-            margin-bottom: 5px;
+            margin-bottom: 10px;
             word-wrap: break-word;
         }
 
         .product-price {
-            font-size: 12px;
+            font-size: 14px;
             color: #333;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
         }
 
         .barcode-value {
-            font-size: 12px;
+            font-size: 14px;
             font-family: 'Courier New', Courier, monospace;
             letter-spacing: 1px;
         }

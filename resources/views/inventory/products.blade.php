@@ -16,12 +16,9 @@
                         </button>
                     </div>
                 </form>
-                <form id="barcode-bulk-form" action="{{ route('inventory.barcodes.print') }}" method="POST" class="inline">
-                    @csrf
-                    <button type="submit" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors whitespace-nowrap">
-                        <i class="fas fa-barcode mr-2"></i>Barcode Bulk
-                    </button>
-                </form>
+                <a href="{{ route('inventory.barcodes') }}" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors whitespace-nowrap">
+                    <i class="fas fa-barcode mr-2"></i>Barcode Bulk
+                </a>
                 <a href="{{ route('inventory.products.create') }}" class="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg font-medium transition-colors whitespace-nowrap">
                     <i class="fas fa-plus mr-2"></i>Add Product
                 </a>
