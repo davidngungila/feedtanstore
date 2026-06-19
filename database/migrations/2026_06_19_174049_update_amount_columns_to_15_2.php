@@ -140,10 +140,7 @@ return new class extends Migration
             $table->decimal('amount', 15, 2)->change();
         });
         
-        // Assets
-        Schema::table('assets', function (Blueprint $table) {
-            $table->decimal('value', 15, 2)->change();
-        });
+
     }
 
     /**
