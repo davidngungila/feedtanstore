@@ -214,6 +214,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/journal-entries/create', [\App\Http\Controllers\JournalEntryController::class, 'create'])->name('journal-entries.create');
         Route::post('/journal-entries', [\App\Http\Controllers\JournalEntryController::class, 'store'])->name('journal-entries.store');
         Route::get('/journal-entries/{journalEntry}', [\App\Http\Controllers\JournalEntryController::class, 'show'])->name('journal-entries.show');
+        Route::get('/journal-entries/{journalEntry}/download', [\App\Http\Controllers\JournalEntryController::class, 'downloadPDF'])->name('journal-entries.download');
         
         // General Ledger
         Route::get('/general-ledger', [\App\Http\Controllers\FinanceController::class, 'generalLedger'])->name('general-ledger');

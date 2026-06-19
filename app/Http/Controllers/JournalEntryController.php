@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\JournalEntry;
 use App\Models\AccountingEntry;
 use App\Models\Account;
+use Dompdf\Dompdf;
 
 class JournalEntryController extends Controller
 {
@@ -81,5 +82,18 @@ class JournalEntryController extends Controller
     {
         $journalEntry->load('entries.accountModel');
         return view('finance.journal-entries-show', compact('journalEntry'));
+    }
+
+    public function downloadPDF(JournalEntry $journalEntry)
+    {
+        $journalEntry->load('entries.accountModel');
+        
+        $dompdf = new Dompdf();
+        $html = view('finance.journal-entries-pdf', compact('journalEntry'))->render();
+        $dompdf->loadHtml($html);
+        $dompdf->setPaper('A4', 'portrait');
+        $dompdf->render();
+        
+        return $dompdf->stream('journal-entry-' . $journalEntry->journal_number . '.pdf');
     }
 }

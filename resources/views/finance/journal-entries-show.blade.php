@@ -7,9 +7,14 @@
     <div class="card rounded-2xl p-6 mb-6">
         <div class="flex items-center justify-between mb-6">
             <h2 class="text-xl font-bold text-primary-900">Journal Entry - {{ $journalEntry->journal_number }}</h2>
-            <a href="{{ route('finance.journal-entries') }}" class="text-primary-600 hover:text-primary-800 font-medium">
-                <i class="fas fa-arrow-left mr-2"></i>Back to Journal Entries
-            </a>
+            <div class="flex gap-3">
+                <a href="{{ route('finance.journal-entries.download', $journalEntry) }}" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                    <i class="fas fa-download mr-2"></i>Download PDF
+                </a>
+                <a href="{{ route('finance.journal-entries') }}" class="text-primary-600 hover:text-primary-800 font-medium">
+                    <i class="fas fa-arrow-left mr-2"></i>Back to Journal Entries
+                </a>
+            </div>
         </div>
 
         <div class="flex items-center gap-4 mb-6">
