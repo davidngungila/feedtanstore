@@ -7,15 +7,6 @@
     <div class="card rounded-2xl p-6">
         <div class="flex items-center justify-between mb-6">
             <h2 class="text-xl font-bold text-primary-900">Expiry Management</h2>
-            @if(count($products) > 0)
-                <form action="{{ route('inventory.barcodes.print') }}" method="POST" class="inline">
-                    @csrf
-                    <input type="hidden" name="product_ids" value="{{ json_encode($products->pluck('id')->toArray()) }}">
-                    <button type="submit" class="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
-                        <i class="fas fa-print mr-2"></i>Print Barcodes for Expiring Products
-                    </button>
-                </form>
-            @endif
         </div>
         @if(count($products) > 0)
             <div class="overflow-x-auto">
@@ -58,13 +49,6 @@
                                 <a href="{{ route('inventory.products.edit', $product) }}" class="text-primary-600 hover:text-primary-800 p-1" title="Edit">
                                     <i class="fas fa-edit"></i>
                                 </a>
-                                <form action="{{ route('inventory.barcodes.print') }}" method="POST" class="inline">
-                                    @csrf
-                                    <input type="hidden" name="product_ids[]" value="{{ $product->id }}">
-                                    <button type="submit" class="text-primary-600 hover:text-primary-800 p-1" title="Print Barcode">
-                                        <i class="fas fa-barcode"></i>
-                                    </button>
-                                </form>
                             </td>
                         </tr>
                         @endforeach

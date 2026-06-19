@@ -16,6 +16,12 @@
                         </button>
                     </div>
                 </form>
+                <form id="barcode-bulk-form" action="{{ route('inventory.barcodes.print') }}" method="POST" class="inline">
+                    @csrf
+                    <button type="submit" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors whitespace-nowrap">
+                        <i class="fas fa-barcode mr-2"></i>Barcode Bulk
+                    </button>
+                </form>
                 <a href="{{ route('inventory.products.create') }}" class="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg font-medium transition-colors whitespace-nowrap">
                     <i class="fas fa-plus mr-2"></i>Add Product
                 </a>
@@ -49,6 +55,9 @@
             <table class="data-table w-full">
                 <thead>
                     <tr>
+                        <th class="text-left">
+                            <input type="checkbox" id="select-all-products" class="w-4 h-4 text-primary-600">
+                        </th>
                         <th class="text-left">Name</th>
                         <th class="text-left">SKU</th>
                         <th class="text-left">Category</th>
@@ -63,6 +72,9 @@
                 <tbody id="products-table-body">
                     @foreach($products as $product)
                     <tr data-search="{{ strtolower($product->name . ' ' . ($product->sku ?? '') . ' ' . ($product->barcode ?? '') . ' ' . ($product->category->name ?? '') . ' ' . ($product->brand->name ?? '')) }}">
+                        <td class="text-left">
+                            <input type="checkbox" name="product_ids[]" value="{{ $product->id }}" form="barcode-bulk-form" class="product-checkbox w-4 h-4 text-primary-600">
+                        </td>
                         <td class="font-medium text-primary-900">
                             <a href="{{ route('inventory.products.show', $product) }}" class="hover:underline">{{ $product->name }}</a>
                         </td>
@@ -104,7 +116,10 @@
             const searchInput = document.querySelector('input[name="search"]');
             const tableBody = document.getElementById('products-table-body');
             const rows = tableBody.querySelectorAll('tr');
+            const selectAllCheckbox = document.getElementById('select-all-products');
+            const productCheckboxes = document.querySelectorAll('.product-checkbox');
 
+            // Search functionality
             searchInput.addEventListener('input', function() {
                 const searchTerm = this.value.toLowerCase().trim();
                 
@@ -115,6 +130,21 @@
                     } else {
                         row.style.display = 'none';
                     }
+                });
+            });
+
+            // Select all functionality
+            selectAllCheckbox.addEventListener('change', function() {
+                productCheckboxes.forEach(checkbox => {
+                    checkbox.checked = this.checked;
+                });
+            });
+
+            // Update select all when individual checkboxes change
+            productCheckboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    const allChecked = Array.from(productCheckboxes).every(cb => cb.checked);
+                    selectAllCheckbox.checked = allChecked;
                 });
             });
         </script>
