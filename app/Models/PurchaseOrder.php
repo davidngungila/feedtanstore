@@ -18,7 +18,11 @@ class PurchaseOrder extends Model
         'tax',
         'discount',
         'total',
-        'status'
+        'status',
+        'created_by',
+        'approved_by',
+        'approved_at',
+        'approval_status'
     ];
 
     protected $casts = [
@@ -44,5 +48,15 @@ class PurchaseOrder extends Model
     public function payments(): HasMany
     {
         return $this->hasMany(SupplierPayment::class);
+    }
+
+    public function createdBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function approvedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'approved_by');
     }
 }

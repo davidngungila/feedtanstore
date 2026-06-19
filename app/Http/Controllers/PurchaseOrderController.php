@@ -69,6 +69,8 @@ class PurchaseOrderController extends Controller
             'discount' => $discount,
             'total' => $total,
             'status' => 'pending',
+            'created_by' => auth()->id(),
+            'approval_status' => 'pending'
         ]);
 
         foreach ($request->products as $productData) {
@@ -82,6 +84,28 @@ class PurchaseOrderController extends Controller
         }
 
         return redirect()->route('purchasing.orders')->with('success', 'Purchase Order created successfully!');
+    }
+
+    public function approve(PurchaseOrder $purchaseOrder)
+    {
+        $purchaseOrder->update([
+            'approval_status' => 'approved',
+            'approved_by' => auth()->id(),
+            'approved_at' => now()
+        ]);
+
+        // TODO: Send email notification to supplier/created by
+        return redirect()->back()->with('success', 'Purchase Order approved successfully!');
+    }
+
+    public function reject(PurchaseOrder $purchaseOrder)
+    {
+        $purchaseOrder->update([
+            'approval_status' => 'rejected'
+        ]);
+
+        // TODO: Send email notification to created by
+        return redirect()->back()->with('success', 'Purchase Order rejected successfully!');
     }
 
     public function show(PurchaseOrder $purchaseOrder)

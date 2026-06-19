@@ -11,19 +11,40 @@ use Carbon\Carbon;
 
 class PurchaseReportController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
+        // Get date filters
+        $startDate = $request->get('start_date');
+        $endDate = $request->get('end_date');
+
+        // Build queries with date filters
+        $purchaseOrderQuery = PurchaseOrder::query();
+        $grnQuery = GoodsReceivedNote::query();
+        $supplierPaymentQuery = SupplierPayment::query();
+
+        if ($startDate) {
+            $purchaseOrderQuery->whereDate('order_date', '>=', $startDate);
+            $grnQuery->whereDate('received_date', '>=', $startDate);
+            $supplierPaymentQuery->whereDate('payment_date', '>=', $startDate);
+        }
+
+        if ($endDate) {
+            $purchaseOrderQuery->whereDate('order_date', '<=', $endDate);
+            $grnQuery->whereDate('received_date', '<=', $endDate);
+            $supplierPaymentQuery->whereDate('payment_date', '<=', $endDate);
+        }
+
         // Get stats
-        $totalOrders = PurchaseOrder::count();
-        $totalGrns = GoodsReceivedNote::count();
-        $totalPayments = SupplierPayment::count();
-        $totalAmount = PurchaseOrder::sum('total');
-        $totalPaid = SupplierPayment::sum('amount');
+        $totalOrders = $purchaseOrderQuery->count();
+        $totalGrns = $grnQuery->count();
+        $totalPayments = $supplierPaymentQuery->count();
+        $totalAmount = $purchaseOrderQuery->sum('total');
+        $totalPaid = $supplierPaymentQuery->sum('amount');
 
         // Monthly data for charts - database agnostic
-        $allOrders = PurchaseOrder::orderBy('created_at')->get();
+        $allOrders = $purchaseOrderQuery->orderBy('order_date')->get();
         $groupedOrders = $allOrders->groupBy(function($item) {
-            return Carbon::parse($item->created_at)->format('Y-m');
+            return Carbon::parse($item->order_date)->format('Y-m');
         })->map(function($items, $key) {
             [$year, $month] = explode('-', $key);
             return [
@@ -35,9 +56,9 @@ class PurchaseReportController extends Controller
         })->values()->reverse()->take(12);
         $monthlyOrders = $groupedOrders->reverse();
 
-        $allPayments = SupplierPayment::orderBy('created_at')->get();
+        $allPayments = $supplierPaymentQuery->orderBy('payment_date')->get();
         $groupedPayments = $allPayments->groupBy(function($item) {
-            return Carbon::parse($item->created_at)->format('Y-m');
+            return Carbon::parse($item->payment_date)->format('Y-m');
         })->map(function($items, $key) {
             [$year, $month] = explode('-', $key);
             return [
@@ -50,20 +71,29 @@ class PurchaseReportController extends Controller
         $monthlyPayments = $groupedPayments->reverse();
 
         // Top suppliers
-        $topSuppliers = Supplier::withCount(['purchaseOrders', 'goodsReceivedNotes'])
-            ->withSum('purchaseOrders', 'total')
+        $topSuppliers = Supplier::withCount(['purchaseOrders' => function ($q) use ($startDate, $endDate) {
+                if ($startDate) $q->whereDate('order_date', '>=', $startDate);
+                if ($endDate) $q->whereDate('order_date', '<=', $endDate);
+            }, 'goodsReceivedNotes' => function ($q) use ($startDate, $endDate) {
+                if ($startDate) $q->whereDate('received_date', '>=', $startDate);
+                if ($endDate) $q->whereDate('received_date', '<=', $endDate);
+            }])
+            ->withSum(['purchaseOrders' => function ($q) use ($startDate, $endDate) {
+                if ($startDate) $q->whereDate('order_date', '>=', $startDate);
+                if ($endDate) $q->whereDate('order_date', '<=', $endDate);
+            }], 'total')
             ->orderBy('purchase_orders_sum_total', 'desc')
             ->limit(10)
             ->get();
 
         // Recent orders
-        $recentOrders = PurchaseOrder::with('supplier')
+        $recentOrders = $purchaseOrderQuery->with('supplier')
             ->latest()
             ->limit(5)
             ->get();
 
         // Recent GRNs
-        $recentGrns = GoodsReceivedNote::with('supplier')
+        $recentGrns = $grnQuery->with('supplier')
             ->latest()
             ->limit(5)
             ->get();

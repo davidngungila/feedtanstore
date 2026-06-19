@@ -22,7 +22,7 @@ class GoodsReceivedNoteController extends Controller
     {
         $suppliers = Supplier::all();
         $products = Product::all();
-        $purchaseOrders = PurchaseOrder::with('items.product')->where('status', 'pending')->get();
+        $purchaseOrders = PurchaseOrder::with('items.product')->where('status', 'pending')->where('approval_status', 'approved')->get();
         $selectedPurchaseOrder = null;
         if (request()->has('purchase_order_id')) {
             $selectedPurchaseOrder = PurchaseOrder::with('items.product')->find(request()->purchase_order_id);

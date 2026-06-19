@@ -27,6 +27,7 @@
                         <th class="text-left">Order Date</th>
                         <th class="text-left">Total</th>
                         <th class="text-left">Status</th>
+                        <th class="text-left">Approval Status</th>
                         <th class="text-left">Actions</th>
                     </tr>
                 </thead>
@@ -44,10 +45,29 @@
                                 {{ ucfirst($po->status) }}
                             </span>
                         </td>
+                        <td>
+                            <span class="badge {{ $po->approval_status === 'approved' ? 'badge-green' : ($po->approval_status === 'rejected' ? 'badge-red' : 'badge-yellow') }}">
+                                {{ ucfirst($po->approval_status) }}
+                            </span>
+                        </td>
                         <td class="flex items-center gap-2">
                             <a href="{{ route('purchasing.orders.show', $po) }}" class="text-primary-600 hover:text-primary-800 p-1" title="View">
                                 <i class="fas fa-eye"></i>
                             </a>
+                            @if($po->approval_status === 'pending')
+                                <form action="{{ route('purchasing.orders.approve', $po) }}" method="POST" class="inline">
+                                    @csrf
+                                    <button type="submit" class="text-green-600 hover:text-green-800 p-1" title="Approve">
+                                        <i class="fas fa-check"></i>
+                                    </button>
+                                </form>
+                                <form action="{{ route('purchasing.orders.reject', $po) }}" method="POST" class="inline">
+                                    @csrf
+                                    <button type="submit" class="text-red-600 hover:text-red-800 p-1" title="Reject">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </form>
+                            @endif
                             <a href="{{ route('purchasing.orders.edit', $po) }}" class="text-primary-600 hover:text-primary-800 p-1" title="Edit">
                                 <i class="fas fa-edit"></i>
                             </a>

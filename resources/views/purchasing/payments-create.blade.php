@@ -27,7 +27,7 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Supplier *</label>
-                    <select name="supplier_id" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                    <select name="supplier_id" id="supplierSelect" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
                         <option value="">Select Supplier</option>
                         @foreach($suppliers as $supplier)
                             <option value="{{ $supplier->id }}" {{ old('supplier_id') == $supplier->id ? 'selected' : '' }}>{{ $supplier->name }}</option>
@@ -36,16 +36,13 @@
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Purchase Order</label>
-                    <select name="purchase_order_id" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                    <select name="purchase_order_id" id="purchaseOrderSelect" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
                         <option value="">None</option>
-                        @foreach($purchaseOrders as $po)
-                            <option value="{{ $po->id }}" {{ old('purchase_order_id') == $po->id ? 'selected' : '' }}>{{ $po->po_number }}</option>
-                        @endforeach
                     </select>
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Amount *</label>
-                    <input type="number" step="0.01" name="amount" value="{{ old('amount') }}" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                    <input type="number" step="0.01" name="amount" id="amountInput" value="{{ old('amount') }}" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Payment Method *</label>
@@ -82,6 +79,16 @@
         </form>
 
         <script>
+            // Pass purchase orders data to JS
+            const purchaseOrders = @json($purchaseOrders->map(function($po) {
+                return [
+                    'id' => $po->id,
+                    'supplier_id' => $po->supplier_id,
+                    'po_number' => $po->po_number,
+                    'total' => $po->total
+                ];
+            }));
+
             function toggleTransactionId() {
                 const paymentMethod = document.getElementById('paymentMethod').value;
                 const transactionIdContainer = document.getElementById('transactionIdContainer');
@@ -95,10 +102,52 @@
                     transactionIdInput.required = false;
                 }
             }
+
+            function updatePurchaseOrderOptions() {
+                const supplierId = document.getElementById('supplierSelect').value;
+                const poSelect = document.getElementById('purchaseOrderSelect');
+                
+                // Clear existing options except the first one
+                poSelect.innerHTML = '<option value="">None</option>';
+                
+                // Add POs for the selected supplier
+                const filteredPOs = purchaseOrders.filter(po => po.supplier_id == supplierId);
+                filteredPOs.forEach(po => {
+                    const option = document.createElement('option');
+                    option.value = po.id;
+                    option.textContent = po.po_number + ' - TZS ' + parseFloat(po.total).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+                    option.dataset.total = po.total;
+                    poSelect.appendChild(option);
+                });
+            }
+
+            function updateAmountFromPO() {
+                const poSelect = document.getElementById('purchaseOrderSelect');
+                const amountInput = document.getElementById('amountInput');
+                
+                if (poSelect.value) {
+                    const selectedOption = poSelect.options[poSelect.selectedIndex];
+                    amountInput.value = parseFloat(selectedOption.dataset.total).toFixed(2);
+                } else {
+                    amountInput.value = '';
+                }
+            }
             
             // Initialize on page load
             document.addEventListener('DOMContentLoaded', function() {
                 toggleTransactionId();
+                updatePurchaseOrderOptions();
+                
+                // Set initial PO if old value exists
+                const oldPO = @json(old('purchase_order_id'));
+                if (oldPO) {
+                    document.getElementById('purchaseOrderSelect').value = oldPO;
+                    updateAmountFromPO();
+                }
+                
+                // Add event listeners
+                document.getElementById('supplierSelect').addEventListener('change', updatePurchaseOrderOptions);
+                document.getElementById('purchaseOrderSelect').addEventListener('change', updateAmountFromPO);
             });
         </script>
     </div>

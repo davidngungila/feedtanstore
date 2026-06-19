@@ -5,7 +5,31 @@
 @section('content')
 <div class="animate-[fadeIn_0.4s_ease] space-y-6">
   <div class="card rounded-2xl p-6">
-    <h2 class="text-xl font-bold text-primary-900 mb-6">Purchase Reports</h2>
+    <div class="flex items-center justify-between mb-6">
+        <h2 class="text-xl font-bold text-primary-900">Purchase Reports</h2>
+    </div>
+    
+    <!-- Date Filter -->
+    <div class="mb-8 bg-gray-50 p-4 rounded-xl border border-gray-200">
+      <form method="GET" action="{{ route('purchasing.reports') }}" class="flex items-end gap-4 flex-wrap">
+        <div class="flex-1 min-w-[200px]">
+          <label class="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
+          <input type="date" name="start_date" value="{{ request('start_date') }}" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+        </div>
+        <div class="flex-1 min-w-[200px]">
+          <label class="block text-sm font-medium text-gray-700 mb-1">End Date</label>
+          <input type="date" name="end_date" value="{{ request('end_date') }}" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+        </div>
+        <div class="flex gap-2">
+          <button type="submit" class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors">
+            <i class="fas fa-filter mr-2"></i>Filter
+          </button>
+          <a href="{{ route('purchasing.reports') }}" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors">
+            Reset
+          </a>
+        </div>
+      </form>
+    </div>
 
     <!-- Stats Cards -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">

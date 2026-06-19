@@ -157,6 +157,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/orders/{purchaseOrder}/edit', [\App\Http\Controllers\PurchaseOrderController::class, 'edit'])->name('orders.edit');
         Route::put('/orders/{purchaseOrder}', [\App\Http\Controllers\PurchaseOrderController::class, 'update'])->name('orders.update');
         Route::delete('/orders/{purchaseOrder}', [\App\Http\Controllers\PurchaseOrderController::class, 'destroy'])->name('orders.destroy');
+        Route::post('/orders/{purchaseOrder}/approve', [\App\Http\Controllers\PurchaseOrderController::class, 'approve'])->name('orders.approve');
+        Route::post('/orders/{purchaseOrder}/reject', [\App\Http\Controllers\PurchaseOrderController::class, 'reject'])->name('orders.reject');
         Route::get('/grn', [\App\Http\Controllers\GoodsReceivedNoteController::class, 'index'])->name('grn');
         Route::get('/grn/create', [\App\Http\Controllers\GoodsReceivedNoteController::class, 'create'])->name('grn.create');
         Route::post('/grn', [\App\Http\Controllers\GoodsReceivedNoteController::class, 'store'])->name('grn.store');
