@@ -10,10 +10,27 @@ use Illuminate\Http\Request;
 
 class ProductController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $products = Product::with(['category', 'brand', 'unit'])->get();
-        return view('inventory.products', compact('products'));
+        $search = $request->input('search');
+        
+        $products = Product::with(['category', 'brand', 'unit'])
+            ->when($search, function ($query) use ($search) {
+                $query->where('name', 'like', '%' . $search . '%')
+                      ->orWhere('sku', 'like', '%' . $search . '%')
+                      ->orWhere('barcode', 'like', '%' . $search . '%')
+                      ->orWhereHas('category', function ($q) use ($search) {
+                          $q->where('name', 'like', '%' . $search . '%');
+                      })
+                      ->orWhereHas('brand', function ($q) use ($search) {
+                          $q->where('name', 'like', '%' . $search . '%');
+                      });
+            })
+            ->get();
+        
+        $lowStockCount = Product::whereColumn('quantity', '<=', 'reorder_level')->count();
+        
+        return view('inventory.products', compact('products', 'search', 'lowStockCount'));
     }
 
     public function show(Product $product)

@@ -5,11 +5,21 @@
 @section('content')
 <div class="animate-[fadeIn_0.4s_ease]">
     <div class="card rounded-2xl p-6">
-        <div class="flex items-center justify-between mb-6">
+        <div class="flex flex-col md:flex-row items-center justify-between gap-4 mb-6">
             <h2 class="text-xl font-bold text-primary-900">Products</h2>
-            <a href="{{ route('inventory.products.create') }}" class="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
-                <i class="fas fa-plus mr-2"></i>Add Product
-            </a>
+            <div class="flex flex-col md:flex-row items-center gap-3 w-full md:w-auto">
+                <form action="{{ route('inventory.products') }}" method="GET" class="w-full md:w-64">
+                    <div class="relative">
+                        <input type="text" name="search" value="{{ $search ?? '' }}" placeholder="Search products..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                        <button type="submit" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-primary-600">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </form>
+                <a href="{{ route('inventory.products.create') }}" class="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg font-medium transition-colors whitespace-nowrap">
+                    <i class="fas fa-plus mr-2"></i>Add Product
+                </a>
+            </div>
         </div>
 
         @if(session('success'))
@@ -50,9 +60,9 @@
                         <th class="text-left">Actions</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody id="products-table-body">
                     @foreach($products as $product)
-                    <tr>
+                    <tr data-search="{{ strtolower($product->name . ' ' . ($product->sku ?? '') . ' ' . ($product->barcode ?? '') . ' ' . ($product->category->name ?? '') . ' ' . ($product->brand->name ?? '')) }}">
                         <td class="font-medium text-primary-900">
                             <a href="{{ route('inventory.products.show', $product) }}" class="hover:underline">{{ $product->name }}</a>
                         </td>
@@ -89,6 +99,25 @@
                 </tbody>
             </table>
         </div>
+
+        <script>
+            const searchInput = document.querySelector('input[name="search"]');
+            const tableBody = document.getElementById('products-table-body');
+            const rows = tableBody.querySelectorAll('tr');
+
+            searchInput.addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase().trim();
+                
+                rows.forEach(row => {
+                    const searchData = row.getAttribute('data-search');
+                    if (searchData.includes(searchTerm)) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+            });
+        </script>
     </div>
 </div>
 @endsection
