@@ -4,7 +4,7 @@ namespace App\Services;
 
 use Illuminate\Support\Facades\Http;
 use App\Models\SentMessage;
-use App\Models\StoreSetting;
+use App\Models\CommunicationProfile;
 
 class MessagingService
 {
@@ -15,9 +15,9 @@ class MessagingService
 
     public function __construct($apiKey = null, $senderId = null, $testMode = true)
     {
-        $settings = StoreSetting::first();
-        $this->apiKey = $apiKey ?? ($settings->sms_api_key ?? '');
-        $this->senderId = $senderId ?? ($settings->messaging_sender_id ?? 'TANZANIATIP');
+        $profile = CommunicationProfile::where('type', 'sms')->where('is_active', true)->first();
+        $this->apiKey = $apiKey ?? ($profile->sms_api_key ?? '');
+        $this->senderId = $senderId ?? ($profile->messaging_sender_id ?? 'TANZANIATIP');
         $this->testMode = $testMode;
     }
 

@@ -34,11 +34,11 @@
                     </div>
                     <div>
                         <label class="form-label">API Key (Optional - uses settings if empty)</label>
-                        <input type="text" name="api_key" class="form-input input-field" value="{{ old('api_key', $settings->sms_api_key) }}" placeholder="Enter API Key">
+                        <input type="text" name="api_key" class="form-input input-field" value="{{ old('api_key', $profile->sms_api_key ?? '') }}" placeholder="Enter API Key">
                     </div>
                     <div>
                         <label class="form-label">Sender ID (Optional)</label>
-                        <input type="text" name="sender_id" class="form-input input-field" value="{{ old('sender_id', $settings->messaging_sender_id) }}" placeholder="Enter Sender ID (e.g. TANZANIATIP)">
+                        <input type="text" name="sender_id" class="form-input input-field" value="{{ old('sender_id', $profile->messaging_sender_id ?? '') }}" placeholder="Enter Sender ID (e.g. TANZANIATIP)">
                     </div>
                     <div>
                         <label class="form-label">Recipient Phone Number</label>
