@@ -123,21 +123,45 @@ class CommunicationProfileController extends Controller
 
         try {
             if ($communicationProfile->type === 'email') {
-                // Configure mail settings on the fly
-                config([
-                    'mail.mailers.smtp.host' => $communicationProfile->smtp_host,
-                    'mail.mailers.smtp.port' => $communicationProfile->smtp_port,
-                    'mail.mailers.smtp.username' => $communicationProfile->smtp_username,
-                    'mail.mailers.smtp.password' => $communicationProfile->smtp_password,
-                    'mail.mailers.smtp.encryption' => $communicationProfile->smtp_encryption,
-                    'mail.from.address' => $communicationProfile->email_from_address,
-                    'mail.from.name' => $communicationProfile->email_from_name,
-                ]);
+                // Create a custom mailer configuration
+                $mailConfig = [
+                    'transport' => 'smtp',
+                    'host' => $communicationProfile->smtp_host,
+                    'port' => $communicationProfile->smtp_port,
+                    'encryption' => $communicationProfile->smtp_encryption,
+                    'username' => $communicationProfile->smtp_username,
+                    'password' => $communicationProfile->smtp_password,
+                    'timeout' => 30,
+                    'local_domain' => null,
+                    'from' => [
+                        'address' => $communicationProfile->email_from_address,
+                        'name' => $communicationProfile->email_from_name,
+                    ],
+                ];
 
-                Mail::raw($request->message, function ($message) use ($request, $communicationProfile) {
+                // Get mail manager
+                $mailManager = app('mail.manager');
+                
+                // Create a new mailer with our config
+                $transport = $mailManager->createSymfonyTransport($mailConfig);
+                $mailer = $mailManager->mailer('array')->setSymfonyTransport($transport);
+
+                // Send the email
+                $mailer->raw($request->message, function ($message) use ($request, $communicationProfile) {
                     $message->to($request->recipient)
+                            ->from($communicationProfile->email_from_address, $communicationProfile->email_from_name)
                             ->subject($request->subject);
                 });
+
+                // Store in sent_messages
+                \App\Models\SentMessage::create([
+                    'type' => 'email',
+                    'to' => $request->recipient,
+                    'from' => $communicationProfile->email_from_address,
+                    'subject' => $request->subject,
+                    'message' => $request->message,
+                    'status' => 'sent',
+                ]);
 
                 return back()->with('success', 'Test email sent successfully!');
             } else {
@@ -151,13 +175,13 @@ class CommunicationProfileController extends Controller
                 $result = $messagingService->sendSms($request->recipient, $request->message);
 
                 if ($result['success']) {
-                    return back()->with('success', 'Test SMS sent successfully!');
+                    return back()->with('success', 'Test SMS sent successfully! Response: ' . json_encode($result['response']));
                 } else {
                     return back()->with('error', 'Failed to send test SMS: ' . json_encode($result['response']));
                 }
             }
         } catch (\Exception $e) {
-            return back()->with('error', 'Error sending test: ' . $e->getMessage());
+            return back()->with('error', 'Error sending test: ' . $e->getMessage() . ' (File: ' . $e->getFile() . ' Line: ' . $e->getLine() . ')');
         }
     }
 }
