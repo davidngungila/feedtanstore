@@ -4,30 +4,6 @@
 
 @section('content')
 <div class="animate-[fadeIn_0.4s_ease]">
-    <!-- Messaging Service API Settings -->
-    <div class="card rounded-2xl p-6 mb-6">
-        <h2 class="text-xl font-bold text-primary-900 mb-6">Messaging Service API V2 Settings</h2>
-        
-        <form method="POST" action="{{ route('system.update') }}">
-            @csrf
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                <div>
-                    <label class="form-label">API Key</label>
-                    <input type="text" name="sms_api_key" class="form-input input-field" value="{{ old('sms_api_key', $settings->sms_api_key) }}" placeholder="Enter your Messaging Service API Key">
-                </div>
-                <div>
-                    <label class="form-label">Sender ID</label>
-                    <input type="text" name="messaging_sender_id" class="form-input input-field" value="{{ old('messaging_sender_id', $settings->messaging_sender_id) }}" placeholder="TANZANIATIP">
-                </div>
-            </div>
-            
-            <button type="submit" class="bg-primary-600 hover:bg-primary-700 text-white px-6 py-2 rounded-lg font-medium transition-colors">
-                Save Settings
-            </button>
-        </form>
-    </div>
-    
     <!-- Communication Profiles -->
     <div class="card rounded-2xl p-6">
         <div class="flex items-center justify-between mb-6">
