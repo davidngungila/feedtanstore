@@ -145,7 +145,7 @@ class CommunicationProfileController extends Controller
                 $messagingService = new MessagingService(
                     $communicationProfile->sms_api_key,
                     $communicationProfile->messaging_sender_id,
-                    true // Test mode
+                    $request->has('test_mode') // Use test mode if checkbox is checked
                 );
 
                 $result = $messagingService->sendSms($request->recipient, $request->message);

@@ -52,6 +52,10 @@
                         <label class="form-label">Message</label>
                         <textarea name="message" class="form-input input-field" rows="4" required>This is a test SMS to verify your SMS configuration is working correctly!</textarea>
                     </div>
+                    <div class="flex items-center gap-2">
+                        <input type="checkbox" id="test_mode" name="test_mode" class="w-4 h-4 text-primary-600">
+                        <label for="test_mode" class="text-sm text-gray-700">Test Mode (Free, no credits used)</label>
+                    </div>
                 </div>
             @endif
 
