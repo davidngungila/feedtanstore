@@ -75,24 +75,13 @@
                 <h3 class="text-lg font-semibold text-primary-800 mb-4">SMS Configuration</h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                        <p class="text-sm text-gray-500 mb-1">SMS Provider</p>
-                        <p class="font-medium">{{ $communicationProfile->sms_provider ? ($communicationProfile->sms_provider === 'messaging-service' ? 'Messaging Service API V2' : ucfirst($communicationProfile->sms_provider)) : '-' }}</p>
-                    </div>
-                    <div>
                         <p class="text-sm text-gray-500 mb-1">API Key</p>
                         <p class="font-medium">{{ $communicationProfile->sms_api_key ? '••••••••' : '-' }}</p>
                     </div>
-                    @if($communicationProfile->sms_provider === 'messaging-service')
-                        <div>
-                            <p class="text-sm text-gray-500 mb-1">Sender ID</p>
-                            <p class="font-medium">{{ $communicationProfile->messaging_sender_id ?? '-' }}</p>
-                        </div>
-                    @else
-                        <div>
-                            <p class="text-sm text-gray-500 mb-1">From Number</p>
-                            <p class="font-medium">{{ $communicationProfile->sms_from_number ?? '-' }}</p>
-                        </div>
-                    @endif
+                    <div>
+                        <p class="text-sm text-gray-500 mb-1">Sender ID</p>
+                        <p class="font-medium">{{ $communicationProfile->messaging_sender_id ?? '-' }}</p>
+                    </div>
                 </div>
             </div>
         @endif
