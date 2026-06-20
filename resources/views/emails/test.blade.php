@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="x-apple-disable-message-reformatting">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>{{ $subject }}</title>
+    <title>{{ $emailSubject }}</title>
     <style type="text/css">
         /* Reset styles */
         html, body {
@@ -99,9 +99,9 @@
             <!-- Content -->
             <tr>
                 <td class="content">
-                    <h1>{{ $subject }}</h1>
+                    <h1>{{ $emailSubject }}</h1>
                     <p>Hello,</p>
-                    <p>{{ nl2br(e($message)) }}</p>
+                    <p>{!! nl2br(e($emailMessage)) !!}</p>
                     <p>Best regards,<br>The Feedtan Store Team</p>
                 </td>
             </tr>

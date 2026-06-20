@@ -13,16 +13,16 @@ class TestEmail extends Mailable
 {
     use Queueable, SerializesModels;
 
-    public $subjectText;
-    public $messageText;
+    public $emailSubject;
+    public $emailMessage;
 
     /**
      * Create a new message instance.
      */
     public function __construct($subject, $message)
     {
-        $this->subjectText = $subject;
-        $this->messageText = $message;
+        $this->emailSubject = $subject;
+        $this->emailMessage = $message;
     }
 
     /**
@@ -31,7 +31,7 @@ class TestEmail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: $this->subjectText,
+            subject: $this->emailSubject,
         );
     }
 
@@ -43,8 +43,8 @@ class TestEmail extends Mailable
         return new Content(
             view: 'emails.test',
             with: [
-                'subject' => $this->subjectText,
-                'message' => $this->messageText,
+                'emailSubject' => $this->emailSubject,
+                'emailMessage' => $this->emailMessage,
             ],
         );
     }
