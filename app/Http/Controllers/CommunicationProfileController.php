@@ -141,12 +141,8 @@ class CommunicationProfileController extends Controller
                     ],
                 ]);
 
-                // Use the test_smtp mailer
-                Mail::mailer('test_smtp')->raw($request->message, function ($message) use ($request, $communicationProfile) {
-                    $message->to($request->recipient)
-                            ->from($communicationProfile->email_from_address, $communicationProfile->email_from_name)
-                            ->subject($request->subject);
-                });
+                // Use the test_smtp mailer with our TestEmail mailable
+                Mail::mailer('test_smtp')->to($request->recipient)->send(new \App\Mail\TestEmail($request->subject, $request->message));
 
                 // Store in sent_messages
                 \App\Models\SentMessage::create([
