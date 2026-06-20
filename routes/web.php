@@ -29,6 +29,10 @@ Route::middleware('auth')->group(function () {
         return redirect()->route('dashboard');
     });
 
+    // Messaging Test
+    Route::get('/messaging/test', [App\Http\Controllers\MessagingTestController::class, 'index'])->name('messaging.test');
+    Route::post('/messaging/test/send', [App\Http\Controllers\MessagingTestController::class, 'sendTestMessage'])->name('messaging.test.send');
+
     // Dashboards
     Route::get('/cashier', [\App\Http\Controllers\CashierController::class, 'index'])->name('cashier.dashboard');
     Route::get('/cashier/product/{barcode}', [\App\Http\Controllers\CashierController::class, 'getProductByBarcode'])->name('cashier.product');

@@ -35,4 +35,9 @@ return [
         ],
     ],
 
+    'messaging' => [
+        'api_key' => env('MESSAGING_API_KEY'),
+        'sender_id' => env('MESSAGING_SENDER_ID', 'TANZANIATIP'),
+    ],
+
 ];

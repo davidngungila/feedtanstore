@@ -47,6 +47,7 @@ class StoreSetting extends Model
         'sms_api_key',
         'sms_api_secret',
         'sms_from_number',
+        'messaging_sender_id',
     ];
     
     protected $casts = [
