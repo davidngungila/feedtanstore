@@ -89,17 +89,30 @@
 
             <div id="sms-config">
                 <h3 class="text-lg font-semibold text-primary-800 mb-4">SMS Configuration</h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">SMS Provider</label>
-                        <select name="sms_provider" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
-                            <option value="">Select Provider</option>
-                            <option value="twilio" {{ old('sms_provider', $communicationProfile->sms_provider) === 'twilio' ? 'selected' : '' }}>Twilio</option>
-                            <option value="nexmo" {{ old('sms_provider', $communicationProfile->sms_provider) === 'nexmo' ? 'selected' : '' }}>Nexmo/Vonage</option>
-                            <option value="plivo" {{ old('sms_provider', $communicationProfile->sms_provider) === 'plivo' ? 'selected' : '' }}>Plivo</option>
-                            <option value="africastalking" {{ old('sms_provider', $communicationProfile->sms_provider) === 'africastalking' ? 'selected' : '' }}>Africa's Talking</option>
-                        </select>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">SMS Provider</label>
+                    <select name="sms_provider" id="sms-provider-select" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                        <option value="">Select Provider</option>
+                        <option value="messaging-service" {{ old('sms_provider', $communicationProfile->sms_provider) === 'messaging-service' ? 'selected' : '' }}>Messaging Service API V2</option>
+                        <option value="twilio" {{ old('sms_provider', $communicationProfile->sms_provider) === 'twilio' ? 'selected' : '' }}>Twilio</option>
+                        <option value="nexmo" {{ old('sms_provider', $communicationProfile->sms_provider) === 'nexmo' ? 'selected' : '' }}>Nexmo/Vonage</option>
+                        <option value="plivo" {{ old('sms_provider', $communicationProfile->sms_provider) === 'plivo' ? 'selected' : '' }}>Plivo</option>
+                        <option value="africastalking" {{ old('sms_provider', $communicationProfile->sms_provider) === 'africastalking' ? 'selected' : '' }}>Africa's Talking</option>
+                    </select>
+                </div>
+                <div id="messaging-service-config">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">API Key</label>
+                            <input type="text" name="sms_api_key" value="{{ old('sms_api_key', $communicationProfile->sms_api_key) }}" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Sender ID</label>
+                            <input type="text" name="messaging_sender_id" value="{{ old('messaging_sender_id', $communicationProfile->messaging_sender_id) }}" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500" placeholder="TANZANIATIP">
+                        </div>
                     </div>
+                </div>
+                <div id="other-sms-providers-config" class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">API Key</label>
                         <input type="text" name="sms_api_key" value="{{ old('sms_api_key', $communicationProfile->sms_api_key) }}" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
@@ -132,6 +145,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const profileTypeSelect = document.getElementById('profile-type');
     const emailConfig = document.getElementById('email-config');
     const smsConfig = document.getElementById('sms-config');
+    const smsProviderSelect = document.getElementById('sms-provider-select');
+    const messagingServiceConfig = document.getElementById('messaging-service-config');
+    const otherSmsProvidersConfig = document.getElementById('other-sms-providers-config');
     
     function updateConfigVisibility() {
         const type = profileTypeSelect.value;
@@ -144,8 +160,21 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
+    function updateSmsProviderFields() {
+        const provider = smsProviderSelect.value;
+        if (provider === 'messaging-service') {
+            messagingServiceConfig.style.display = 'block';
+            otherSmsProvidersConfig.style.display = 'none';
+        } else {
+            messagingServiceConfig.style.display = 'none';
+            otherSmsProvidersConfig.style.display = provider ? 'grid' : 'none';
+        }
+    }
+    
     profileTypeSelect.addEventListener('change', updateConfigVisibility);
+    smsProviderSelect.addEventListener('change', updateSmsProviderFields);
     updateConfigVisibility(); // Call on load
+    updateSmsProviderFields(); // Call on load
 });
 </script>
 @endsection

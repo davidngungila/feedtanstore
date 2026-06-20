@@ -35,6 +35,7 @@ class CommunicationProfileController extends Controller
             'sms_api_key' => 'nullable|string|max:255',
             'sms_api_secret' => 'nullable|string|max:255',
             'sms_from_number' => 'nullable|string|max:255',
+            'messaging_sender_id' => 'nullable|string|max:255',
         ]);
 
         $data = $request->all();
@@ -79,6 +80,7 @@ class CommunicationProfileController extends Controller
             'sms_api_key' => 'nullable|string|max:255',
             'sms_api_secret' => 'nullable|string|max:255',
             'sms_from_number' => 'nullable|string|max:255',
+            'messaging_sender_id' => 'nullable|string|max:255',
         ]);
 
         $data = $request->all();
