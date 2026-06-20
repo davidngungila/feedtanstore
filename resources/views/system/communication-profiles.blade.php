@@ -53,6 +53,9 @@
                             <a href="{{ route('system.communication-profiles.edit', $profile) }}" class="text-primary-600 hover:text-primary-800 p-1" title="Edit">
                                 <i class="fas fa-edit"></i>
                             </a>
+                            <a href="{{ route('system.communication-profiles.test', $profile) }}" class="text-green-600 hover:text-green-800 p-1" title="Test">
+                                <i class="fas fa-paper-plane"></i>
+                            </a>
                             <form action="{{ route('system.communication-profiles.destroy', $profile) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this communication profile?')">
                                 @csrf
                                 @method('DELETE')

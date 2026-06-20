@@ -621,6 +621,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/communication-profiles/{communicationProfile}/edit', [\App\Http\Controllers\CommunicationProfileController::class, 'edit'])->name('communication-profiles.edit');
         Route::put('/communication-profiles/{communicationProfile}', [\App\Http\Controllers\CommunicationProfileController::class, 'update'])->name('communication-profiles.update');
         Route::delete('/communication-profiles/{communicationProfile}', [\App\Http\Controllers\CommunicationProfileController::class, 'destroy'])->name('communication-profiles.destroy');
+        Route::get('/communication-profiles/{communicationProfile}/test', [\App\Http\Controllers\CommunicationProfileController::class, 'test'])->name('communication-profiles.test');
+        Route::post('/communication-profiles/{communicationProfile}/test', [\App\Http\Controllers\CommunicationProfileController::class, 'sendTest'])->name('communication-profiles.send-test');
     });
     
     // Security & Control

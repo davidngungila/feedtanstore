@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\CommunicationProfile;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
+use App\Services\MessagingService;
 
 class CommunicationProfileController extends Controller
 {
@@ -104,5 +106,58 @@ class CommunicationProfileController extends Controller
     {
         $communicationProfile->delete();
         return redirect()->route('system.communication-profiles')->with('success', 'Communication Profile deleted successfully!');
+    }
+
+    public function test(CommunicationProfile $communicationProfile)
+    {
+        return view('system.communication-profiles-test', compact('communicationProfile'));
+    }
+
+    public function sendTest(Request $request, CommunicationProfile $communicationProfile)
+    {
+        $request->validate([
+            'recipient' => 'required',
+            'message' => 'required|string',
+            'subject' => $communicationProfile->type === 'email' ? 'required|string' : 'nullable|string',
+        ]);
+
+        try {
+            if ($communicationProfile->type === 'email') {
+                // Configure mail settings on the fly
+                config([
+                    'mail.mailers.smtp.host' => $communicationProfile->smtp_host,
+                    'mail.mailers.smtp.port' => $communicationProfile->smtp_port,
+                    'mail.mailers.smtp.username' => $communicationProfile->smtp_username,
+                    'mail.mailers.smtp.password' => $communicationProfile->smtp_password,
+                    'mail.mailers.smtp.encryption' => $communicationProfile->smtp_encryption,
+                    'mail.from.address' => $communicationProfile->email_from_address,
+                    'mail.from.name' => $communicationProfile->email_from_name,
+                ]);
+
+                Mail::raw($request->message, function ($message) use ($request, $communicationProfile) {
+                    $message->to($request->recipient)
+                            ->subject($request->subject);
+                });
+
+                return back()->with('success', 'Test email sent successfully!');
+            } else {
+                // SMS/WhatsApp
+                $messagingService = new MessagingService(
+                    $communicationProfile->sms_api_key,
+                    $communicationProfile->messaging_sender_id,
+                    true // Test mode
+                );
+
+                $result = $messagingService->sendSms($request->recipient, $request->message);
+
+                if ($result['success']) {
+                    return back()->with('success', 'Test SMS sent successfully!');
+                } else {
+                    return back()->with('error', 'Failed to send test SMS: ' . json_encode($result['response']));
+                }
+            }
+        } catch (\Exception $e) {
+            return back()->with('error', 'Error sending test: ' . $e->getMessage());
+        }
     }
 }
