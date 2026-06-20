@@ -302,16 +302,18 @@ function addProductItemFromPo(productId, orderedQuantity, unitPrice) {
     
     const template = `
         <div class="product_item mb-6 p-4 border border-gray-200 rounded-lg">
+            <input type="hidden" name="products[${productIndex}][product_id]" value="${productId}">
+            <input type="hidden" name="products[${productIndex}][unit_price]" value="${unitPrice}">
             <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-4">
                 <div class="md:col-span-1">
                     <label class="block text-sm font-medium text-gray-700 mb-1">Product *</label>
-                    <select name="products[${productIndex}][product_id]" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 product_select bg-gray-100 cursor-not-allowed" disabled>
+                    <select required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 product_select bg-gray-100 cursor-not-allowed" readonly>
                         ${optionsHtml}
                     </select>
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Ordered Qty *</label>
-                    <input type="number" value="${orderedQuantity}" min="1" class="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed" disabled>
+                    <input type="number" value="${orderedQuantity}" min="1" class="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed" readonly>
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Received Qty *</label>
@@ -319,7 +321,7 @@ function addProductItemFromPo(productId, orderedQuantity, unitPrice) {
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Cost Price *</label>
-                    <input type="number" step="0.01" name="products[${productIndex}][unit_price]" value="${unitPrice}" required class="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed product_cost_price" disabled>
+                    <input type="number" step="0.01" value="${unitPrice}" required class="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed product_cost_price" readonly>
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Pricing Method</label>
