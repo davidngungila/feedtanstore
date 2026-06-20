@@ -51,11 +51,11 @@
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Received Date *</label>
-                    <input type="date" name="received_date" value="{{ old('received_date', $selectedPurchaseOrder?->expected_date?->format('Y-m-d') ?? date('Y-m-d')) }}" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                    <input type="date" name="received_date" value="{{ old('received_date', date('Y-m-d')) }}" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
                 </div>
                 <div class="md:col-span-2">
                     <label class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
-                    <textarea name="notes" rows="3" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">{{ old('notes', $selectedPurchaseOrder?->notes) }}</textarea>
+                    <textarea name="notes" rows="3" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">{{ old('notes') }}</textarea>
                 </div>
             </div>
 
@@ -186,9 +186,6 @@ document.addEventListener('DOMContentLoaded', function() {
         container.innerHTML = '';
         productIndex = 0;
         
-        // Hide add product button
-        document.getElementById('add_product').classList.add('hidden');
-        
         // Add products from PO
         selectedPurchaseOrderData.items.forEach((item, index) => {
             addProductItemFromPo(item.product_id, item.quantity, item.unit_price);
@@ -216,18 +213,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.querySelector('select[name="supplier_id"]').disabled = true;
             }
             
-            // Set received date
-            if (poData.expected_date) {
-                const expectedDate = new Date(poData.expected_date);
-                const formattedDate = expectedDate.toISOString().split('T')[0];
-                document.querySelector('input[name="received_date"]').value = formattedDate;
-            }
-            
-            // Set notes
-            if (poData.notes) {
-                document.querySelector('textarea[name="notes"]').value = poData.notes;
-            }
-            
             // Clear existing products
             const container = document.getElementById('products_container');
             container.innerHTML = '';
@@ -244,10 +229,6 @@ document.addEventListener('DOMContentLoaded', function() {
             // If no PO selected, enable supplier, show add product button, reset container
             document.querySelector('select[name="supplier_id"]').disabled = false;
             document.getElementById('add_product').classList.remove('hidden');
-            // Reset received date to today
-            document.querySelector('input[name="received_date"]').value = new Date().toISOString().split('T')[0];
-            // Clear notes
-            document.querySelector('textarea[name="notes"]').value = '';
             const container = document.getElementById('products_container');
             container.innerHTML = '';
             productIndex = 0;
@@ -321,12 +302,11 @@ function addProductItemFromPo(productId, orderedQuantity, unitPrice) {
     
     const template = `
         <div class="product_item mb-6 p-4 border border-gray-200 rounded-lg">
-            <input type="hidden" name="products[${productIndex}][product_id]" value="${productId}">
-            <input type="hidden" name="products[${productIndex}][unit_price]" value="${unitPrice}">
             <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-4">
                 <div class="md:col-span-1">
                     <label class="block text-sm font-medium text-gray-700 mb-1">Product *</label>
-                    <select required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 product_select bg-gray-100 cursor-not-allowed" readonly>
+                    <input type="hidden" name="products[${productIndex}][product_id]" value="${productId}">
+                    <select required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 product_select bg-gray-100 cursor-not-allowed" disabled>
                         ${optionsHtml}
                     </select>
                 </div>
@@ -340,7 +320,7 @@ function addProductItemFromPo(productId, orderedQuantity, unitPrice) {
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Cost Price *</label>
-                    <input type="number" step="0.01" value="${unitPrice}" required class="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed product_cost_price" readonly>
+                    <input type="number" step="0.01" name="products[${productIndex}][unit_price]" value="${unitPrice}" required class="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed product_cost_price" readonly>
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Pricing Method</label>
