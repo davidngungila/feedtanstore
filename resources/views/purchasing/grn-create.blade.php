@@ -26,8 +26,8 @@
             @csrf
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Supplier</label>
-                    <select name="supplier_id" id="supplier_select" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 {{ $selectedPurchaseOrder ? 'bg-gray-100 cursor-not-allowed' : '' }}" {{ $selectedPurchaseOrder ? 'disabled' : '' }}>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Supplier *</label>
+                    <select name="supplier_id" id="supplier_select" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 {{ $selectedPurchaseOrder ? 'bg-gray-100 cursor-not-allowed' : '' }}" {{ $selectedPurchaseOrder ? 'disabled' : '' }}>
                         <option value="">Select Supplier</option>
                         @foreach($suppliers as $supplier)
                             <option value="{{ $supplier->id }}" {{ old('supplier_id') == $supplier->id || ($selectedPurchaseOrder && $selectedPurchaseOrder->supplier_id == $supplier->id) ? 'selected' : '' }}>{{ $supplier->name }}</option>
@@ -38,8 +38,8 @@
                     @endif
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Purchase Order</label>
-                    <select name="purchase_order_id" id="purchase_order_select" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 {{ $selectedPurchaseOrder ? 'bg-gray-100 cursor-not-allowed' : '' }}" {{ $selectedPurchaseOrder ? 'disabled' : '' }}>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Purchase Order *</label>
+                    <select name="purchase_order_id" id="purchase_order_select" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 {{ $selectedPurchaseOrder ? 'bg-gray-100 cursor-not-allowed' : '' }}" {{ $selectedPurchaseOrder ? 'disabled' : '' }}>
                         <option value="">Select Purchase Order</option>
                         @foreach($purchaseOrders as $po)
                             <option value="{{ $po->id }}" data-po="{{ json_encode($po) }}" {{ old('purchase_order_id') == $po->id || ($selectedPurchaseOrder && $selectedPurchaseOrder->id == $po->id) ? 'selected' : '' }}>{{ $po->po_number }} - {{ $po->supplier->name ?? 'N/A' }}</option>
