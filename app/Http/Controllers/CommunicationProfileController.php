@@ -123,31 +123,26 @@ class CommunicationProfileController extends Controller
 
         try {
             if ($communicationProfile->type === 'email') {
-                // Create a custom mailer configuration
-                $mailConfig = [
-                    'transport' => 'smtp',
-                    'host' => $communicationProfile->smtp_host,
-                    'port' => $communicationProfile->smtp_port,
-                    'encryption' => $communicationProfile->smtp_encryption,
-                    'username' => $communicationProfile->smtp_username,
-                    'password' => $communicationProfile->smtp_password,
-                    'timeout' => 30,
-                    'local_domain' => null,
-                    'from' => [
+                // Update the config temporarily
+                config([
+                    'mail.mailers.test_smtp' => [
+                        'transport' => 'smtp',
+                        'host' => $communicationProfile->smtp_host,
+                        'port' => $communicationProfile->smtp_port,
+                        'encryption' => $communicationProfile->smtp_encryption,
+                        'username' => $communicationProfile->smtp_username,
+                        'password' => $communicationProfile->smtp_password,
+                        'timeout' => 30,
+                        'local_domain' => null,
+                    ],
+                    'mail.from' => [
                         'address' => $communicationProfile->email_from_address,
                         'name' => $communicationProfile->email_from_name,
                     ],
-                ];
+                ]);
 
-                // Get mail manager
-                $mailManager = app('mail.manager');
-                
-                // Create a new mailer with our config
-                $transport = $mailManager->createSymfonyTransport($mailConfig);
-                $mailer = $mailManager->mailer('array')->setSymfonyTransport($transport);
-
-                // Send the email
-                $mailer->raw($request->message, function ($message) use ($request, $communicationProfile) {
+                // Use the test_smtp mailer
+                Mail::mailer('test_smtp')->raw($request->message, function ($message) use ($request, $communicationProfile) {
                     $message->to($request->recipient)
                             ->from($communicationProfile->email_from_address, $communicationProfile->email_from_name)
                             ->subject($request->subject);
