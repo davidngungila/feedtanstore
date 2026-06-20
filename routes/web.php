@@ -608,6 +608,15 @@ Route::middleware('auth')->group(function () {
         Route::post('/backup/create', [\App\Http\Controllers\StoreSettingController::class, 'createBackup'])->name('backup.create');
         Route::get('/backup/download/{filename}', [\App\Http\Controllers\StoreSettingController::class, 'downloadBackup'])->name('backup.download');
         Route::post('/logs/clear', [\App\Http\Controllers\StoreSettingController::class, 'clearLogs'])->name('logs.clear');
+        
+        // Communication Profiles
+        Route::get('/communication-profiles', [\App\Http\Controllers\CommunicationProfileController::class, 'index'])->name('communication-profiles');
+        Route::get('/communication-profiles/create', [\App\Http\Controllers\CommunicationProfileController::class, 'create'])->name('communication-profiles.create');
+        Route::post('/communication-profiles', [\App\Http\Controllers\CommunicationProfileController::class, 'store'])->name('communication-profiles.store');
+        Route::get('/communication-profiles/{communicationProfile}', [\App\Http\Controllers\CommunicationProfileController::class, 'show'])->name('communication-profiles.show');
+        Route::get('/communication-profiles/{communicationProfile}/edit', [\App\Http\Controllers\CommunicationProfileController::class, 'edit'])->name('communication-profiles.edit');
+        Route::put('/communication-profiles/{communicationProfile}', [\App\Http\Controllers\CommunicationProfileController::class, 'update'])->name('communication-profiles.update');
+        Route::delete('/communication-profiles/{communicationProfile}', [\App\Http\Controllers\CommunicationProfileController::class, 'destroy'])->name('communication-profiles.destroy');
     });
     
     // Security & Control
