@@ -325,39 +325,35 @@ function addProductItemFromPo(productId, orderedQuantity, unitPrice) {
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Pricing Method</label>
-                    <select name="products[${productIndex}][pricing_method]" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 product_pricing_method bg-gray-100 cursor-not-allowed" disabled>
+                    <select name="products[${productIndex}][pricing_method]" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 product_pricing_method">
                         <option value="percentage">Percentage (%)</option>
                         <option value="flat">Flat Amount</option>
                     </select>
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Profit Value</label>
-                    <input type="number" step="0.01" name="products[${productIndex}][profit_value]" class="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed product_profit_value" disabled>
+                    <input type="number" step="0.01" name="products[${productIndex}][profit_value]" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 product_profit_value">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Selling Price *</label>
-                    <input type="number" step="0.01" name="products[${productIndex}][selling_price]" value="${selectedProduct ? selectedProduct.selling_price : 0}" required class="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed product_selling_price" disabled>
+                    <input type="number" step="0.01" name="products[${productIndex}][selling_price]" value="${selectedProduct ? selectedProduct.selling_price : 0}" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 product_selling_price">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Expiry Date</label>
                     <input type="date" name="products[${productIndex}][expiry_date]" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
                 </div>
             </div>
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div class="md:col-span-2">
-                    <div class="flex gap-4">
-                        <div class="flex-1">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Profit per Unit</label>
-                            <div class="px-4 py-2 bg-green-50 border border-green-200 rounded-lg text-green-800 font-medium product_profit_per_unit">
-                                0.00
-                            </div>
-                        </div>
-                        <div class="flex-1">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Profit Margin (%)</label>
-                            <div class="px-4 py-2 bg-blue-50 border border-blue-200 rounded-lg text-blue-800 font-medium product_profit_percentage">
-                                0.00
-                            </div>
-                        </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Profit per Unit</label>
+                    <div class="px-4 py-2 bg-green-50 border border-green-200 rounded-lg text-green-800 font-medium product_profit_per_unit">
+                        0.00
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Profit Margin (%)</label>
+                    <div class="px-4 py-2 bg-blue-50 border border-blue-200 rounded-lg text-blue-800 font-medium product_profit_percentage">
+                        0.00
                     </div>
                 </div>
             </div>
