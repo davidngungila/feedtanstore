@@ -94,8 +94,10 @@ class PurchaseOrderController extends Controller
             'approved_at' => now()
         ]);
 
-        // TODO: Send email notification to supplier/created by
-        return redirect()->back()->with('success', 'Purchase Order approved successfully!');
+        // Dispatch job to send notifications
+        \App\Jobs\SendPurchaseOrderNotifications::dispatch($purchaseOrder);
+
+        return redirect()->back()->with('success', 'Purchase Order approved successfully! Notifications will be sent shortly.');
     }
 
     public function reject(PurchaseOrder $purchaseOrder)
