@@ -34,7 +34,19 @@ class StoreSetting extends Model
         'openrouteservice_api_key',
         'store_latitude',
         'store_longitude',
-        'share_price'
+        'share_price',
+        // Communication Settings
+        'smtp_host',
+        'smtp_port',
+        'smtp_username',
+        'smtp_password',
+        'smtp_encryption',
+        'email_from_address',
+        'email_from_name',
+        'sms_provider',
+        'sms_api_key',
+        'sms_api_secret',
+        'sms_from_number',
     ];
     
     protected $casts = [

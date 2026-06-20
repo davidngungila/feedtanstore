@@ -1178,6 +1178,10 @@
             <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
             Barcode Settings
           </a>
+          <a href="{{ route('system.communication') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('system.communication') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+            <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
+            Communication Settings
+          </a>
           <a href="{{ route('system.backup') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('system.backup') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
             <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
             Backup & Restore

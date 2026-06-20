@@ -49,7 +49,19 @@ class StoreSettingController extends Controller
             'openrouteservice_api_key' => 'nullable|string',
             'store_latitude' => 'nullable|numeric',
             'store_longitude' => 'nullable|numeric',
-            'share_price' => 'nullable|numeric|min:0'
+            'share_price' => 'nullable|numeric|min:0',
+            // Communication fields
+            'smtp_host' => 'nullable|string|max:255',
+            'smtp_port' => 'nullable|integer|min:1|max:65535',
+            'smtp_username' => 'nullable|string|max:255',
+            'smtp_password' => 'nullable|string|max:255',
+            'smtp_encryption' => 'nullable|string|in:tls,ssl,none',
+            'email_from_address' => 'nullable|email|max:255',
+            'email_from_name' => 'nullable|string|max:255',
+            'sms_provider' => 'nullable|string|max:255',
+            'sms_api_key' => 'nullable|string|max:255',
+            'sms_api_secret' => 'nullable|string|max:255',
+            'sms_from_number' => 'nullable|string|max:255',
         ]);
 
         $data = $request->all();
@@ -126,6 +138,12 @@ class StoreSettingController extends Controller
     public function database()
     {
         return view('system.database');
+    }
+
+    public function communication()
+    {
+        $settings = StoreSetting::firstOrCreate();
+        return view('system.communication', compact('settings'));
     }
 
     public function logs()

@@ -600,6 +600,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/tax', [\App\Http\Controllers\StoreSettingController::class, 'tax'])->name('tax');
         Route::get('/receipt', [\App\Http\Controllers\StoreSettingController::class, 'receipt'])->name('receipt');
         Route::get('/barcode', [\App\Http\Controllers\StoreSettingController::class, 'barcode'])->name('barcode');
+        Route::get('/communication', [\App\Http\Controllers\StoreSettingController::class, 'communication'])->name('communication');
         Route::get('/backup', [\App\Http\Controllers\StoreSettingController::class, 'backup'])->name('backup');
         Route::get('/database', [\App\Http\Controllers\StoreSettingController::class, 'database'])->name('database');
         Route::get('/logs', [\App\Http\Controllers\StoreSettingController::class, 'logs'])->name('logs');

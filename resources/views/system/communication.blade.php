@@ -1,0 +1,113 @@
+@extends('layouts.app')
+
+@section('page-title', 'Communication Settings')
+
+@section('content')
+<div class="animate-[fadeIn_0.4s_ease]">
+    <div class="card rounded-2xl p-6">
+        <div class="flex items-center justify-between mb-6">
+            <h2 class="text-xl font-bold text-primary-900">Communication Settings</h2>
+        </div>
+
+        <form action="{{ route('system.update') }}" method="POST">
+            @csrf
+            <div class="mb-8">
+                <h3 class="text-lg font-semibold text-primary-800 mb-4">Email Configuration (SMTP)</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">SMTP Host</label>
+                        <input type="text" name="smtp_host" value="{{ old('smtp_host', $settings->smtp_host) }}" 
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500" 
+                               placeholder="smtp.example.com">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">SMTP Port</label>
+                        <input type="number" name="smtp_port" value="{{ old('smtp_port', $settings->smtp_port) }}" 
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500" 
+                               placeholder="587">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">SMTP Username</label>
+                        <input type="text" name="smtp_username" value="{{ old('smtp_username', $settings->smtp_username) }}" 
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500" 
+                               placeholder="your-email@example.com">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">SMTP Password</label>
+                        <input type="password" name="smtp_password" value="{{ old('smtp_password', $settings->smtp_password) }}" 
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500" 
+                               placeholder="Your SMTP Password">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Encryption</label>
+                        <select name="smtp_encryption" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                            <option value="tls" {{ old('smtp_encryption', $settings->smtp_encryption) == 'tls' ? 'selected' : '' }}>TLS</option>
+                            <option value="ssl" {{ old('smtp_encryption', $settings->smtp_encryption) == 'ssl' ? 'selected' : '' }}>SSL</option>
+                            <option value="none" {{ old('smtp_encryption', $settings->smtp_encryption) == 'none' ? 'selected' : '' }}>None</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">From Email Address</label>
+                        <input type="email" name="email_from_address" value="{{ old('email_from_address', $settings->email_from_address) }}" 
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500" 
+                               placeholder="no-reply@example.com">
+                    </div>
+
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">From Name</label>
+                        <input type="text" name="email_from_name" value="{{ old('email_from_name', $settings->email_from_name) }}" 
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500" 
+                               placeholder="{{ $settings->store_name ?? 'Your Store' }}">
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <h3 class="text-lg font-semibold text-primary-800 mb-4">SMS Configuration</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">SMS Provider</label>
+                        <select name="sms_provider" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                            <option value="">Select Provider</option>
+                            <option value="twilio" {{ old('sms_provider', $settings->sms_provider) == 'twilio' ? 'selected' : '' }}>Twilio</option>
+                            <option value="nexmo" {{ old('sms_provider', $settings->sms_provider) == 'nexmo' ? 'selected' : '' }}>Nexmo/Vonage</option>
+                            <option value="plivo" {{ old('sms_provider', $settings->sms_provider) == 'plivo' ? 'selected' : '' }}>Plivo</option>
+                            <option value="africastalking" {{ old('sms_provider', $settings->sms_provider) == 'africastalking' ? 'selected' : '' }}>Africa's Talking</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">API Key</label>
+                        <input type="text" name="sms_api_key" value="{{ old('sms_api_key', $settings->sms_api_key) }}" 
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">API Secret / Auth Token</label>
+                        <input type="password" name="sms_api_secret" value="{{ old('sms_api_secret', $settings->sms_api_secret) }}" 
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">From Number</label>
+                        <input type="text" name="sms_from_number" value="{{ old('sms_from_number', $settings->sms_from_number) }}" 
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500" 
+                               placeholder="+1234567890">
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-end mt-8">
+                <button type="submit" class="px-6 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg font-medium transition-colors">
+                    Save Communication Settings
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+@endsection
