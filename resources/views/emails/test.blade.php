@@ -44,16 +44,21 @@
             border-radius: 12px;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         }
-        .header {
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-            padding: 30px;
-            border-radius: 12px 12px 0 0;
+        .logo-container {
+            background-color: #ffffff;
+            padding: 20px;
             text-align: center;
+            border-radius: 12px 12px 0 0;
         }
         .logo {
             max-width: 180px;
             height: auto;
             margin: 0 auto;
+        }
+        .header {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            padding: 30px;
+            text-align: center;
         }
         .content {
             padding: 40px 30px;
@@ -89,9 +94,9 @@
 <body>
     <div class="email-wrapper">
         <table class="email-container" width="100%" cellpadding="0" cellspacing="0">
-            <!-- Header -->
+            <!-- Logo Container -->
             <tr>
-                <td class="header" align="center">
+                <td class="logo-container" align="center">
                     <img src="https://store.feedtancmg.org/feedtanstorelogo.png" alt="Feedtan Store Logo" class="logo">
                 </td>
             </tr>
