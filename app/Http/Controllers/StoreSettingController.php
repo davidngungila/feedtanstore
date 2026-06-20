@@ -143,7 +143,8 @@ class StoreSettingController extends Controller
     public function communication()
     {
         $settings = StoreSetting::firstOrCreate();
-        return view('system.communication', compact('settings'));
+        $communicationProfiles = \App\Models\CommunicationProfile::latest()->get();
+        return view('system.communication', compact('settings', 'communicationProfiles'));
     }
 
     public function logs()
