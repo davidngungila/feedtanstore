@@ -4,6 +4,34 @@
 
 @section('content')
 <div class="animate-[fadeIn_0.4s_ease]">
+    @if($purchaseOrder->approval_status === 'pending')
+    <div class="card rounded-2xl p-6 mb-6 border-l-4 border-yellow-500 bg-yellow-50">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <i class="fas fa-clipboard-list text-2xl text-yellow-600"></i>
+                <div>
+                    <h3 class="text-lg font-bold text-yellow-900">Review Purchase Order</h3>
+                    <p class="text-yellow-700">Please review the order details carefully before approving or rejecting.</p>
+                </div>
+            </div>
+            <div class="flex gap-3">
+                <form action="{{ route('purchasing.orders.reject', $purchaseOrder) }}" method="POST" class="inline">
+                    @csrf
+                    <button type="submit" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors">
+                        <i class="fas fa-times mr-2"></i>Reject Order
+                    </button>
+                </form>
+                <form action="{{ route('purchasing.orders.approve', $purchaseOrder) }}" method="POST" class="inline">
+                    @csrf
+                    <button type="submit" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors">
+                        <i class="fas fa-check mr-2"></i>Approve & Send to Supplier
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    @endif
+
     <div class="card rounded-2xl p-6 mb-6">
         <div class="flex items-center justify-between mb-6">
             <h2 class="text-xl font-bold text-primary-900">{{ $purchaseOrder->po_number }}</h2>
@@ -34,6 +62,12 @@
                 <p class="text-sm text-gray-500 mb-1">Status</p>
                 <span class="badge {{ $purchaseOrder->status === 'received' ? 'badge-green' : ($purchaseOrder->status === 'canceled' ? 'badge-red' : 'badge-yellow') }}">
                     {{ ucfirst($purchaseOrder->status) }}
+                </span>
+            </div>
+            <div>
+                <p class="text-sm text-gray-500 mb-1">Approval Status</p>
+                <span class="badge {{ $purchaseOrder->approval_status === 'approved' ? 'badge-green' : ($purchaseOrder->approval_status === 'rejected' ? 'badge-red' : 'badge-yellow') }}">
+                    {{ ucfirst($purchaseOrder->approval_status) }}
                 </span>
             </div>
             <div>
