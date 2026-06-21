@@ -27,7 +27,7 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Supplier *</label>
-                    <select name="supplier_id" id="supplier_select" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 {{ $selectedPurchaseOrder ? 'bg-gray-100 cursor-not-allowed' : '' }}" {{ $selectedPurchaseOrder ? 'disabled' : '' }}>
+                    <select {{ !$selectedPurchaseOrder ? 'name="supplier_id"' : '' }} id="supplier_select" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 {{ $selectedPurchaseOrder ? 'bg-gray-100 cursor-not-allowed' : '' }}" {{ $selectedPurchaseOrder ? 'disabled' : '' }}>
                         <option value="">Select Supplier</option>
                         @foreach($suppliers as $supplier)
                             <option value="{{ $supplier->id }}" {{ old('supplier_id') == $supplier->id || ($selectedPurchaseOrder && $selectedPurchaseOrder->supplier_id == $supplier->id) ? 'selected' : '' }}>{{ $supplier->name }}</option>
@@ -208,10 +208,20 @@ document.addEventListener('DOMContentLoaded', function() {
             const poData = JSON.parse(selectedOption.dataset.po);
             
             // Set supplier
-            if (poData.supplier_id) {
-                document.querySelector('select[name="supplier_id"]').value = poData.supplier_id;
-                document.querySelector('select[name="supplier_id"]').disabled = true;
+            const supplierSelect = document.getElementById('supplier_select');
+            supplierSelect.value = poData.supplier_id;
+            supplierSelect.disabled = true;
+            supplierSelect.removeAttribute('name');
+            
+            // Add hidden input for supplier_id
+            let hiddenInput = document.querySelector('input[name="supplier_id"]');
+            if (!hiddenInput) {
+                hiddenInput = document.createElement('input');
+                hiddenInput.type = 'hidden';
+                hiddenInput.name = 'supplier_id';
+                supplierSelect.parentNode.appendChild(hiddenInput);
             }
+            hiddenInput.value = poData.supplier_id;
             
             // Clear existing products
             const container = document.getElementById('products_container');
@@ -227,7 +237,16 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         } else {
             // If no PO selected, enable supplier, show add product button, reset container
-            document.querySelector('select[name="supplier_id"]').disabled = false;
+            const supplierSelect = document.getElementById('supplier_select');
+            supplierSelect.disabled = false;
+            supplierSelect.name = 'supplier_id';
+            
+            // Remove hidden input if exists
+            const hiddenInput = document.querySelector('input[name="supplier_id"]');
+            if (hiddenInput) {
+                hiddenInput.remove();
+            }
+            
             document.getElementById('add_product').classList.remove('hidden');
             const container = document.getElementById('products_container');
             container.innerHTML = '';
