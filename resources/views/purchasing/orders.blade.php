@@ -51,8 +51,8 @@
                             </span>
                         </td>
                         <td class="flex items-center gap-2">
-                            <a href="{{ route('purchasing.orders.show', $po) }}" class="px-3 py-1 bg-primary-100 text-primary-800 rounded-lg hover:bg-primary-200 transition-colors" title="View / Review">
-                                <i class="fas fa-eye mr-1"></i>View
+                            <a href="{{ route('purchasing.orders.show', $po) }}" class="text-primary-600 hover:text-primary-800 p-1" title="View / Review">
+                                <i class="fas fa-eye"></i>
                             </a>
                             <a href="{{ route('purchasing.orders.edit', $po) }}" class="text-primary-600 hover:text-primary-800 p-1" title="Edit">
                                 <i class="fas fa-edit"></i>
