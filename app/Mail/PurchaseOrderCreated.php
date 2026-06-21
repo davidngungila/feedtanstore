@@ -54,6 +54,15 @@ class PurchaseOrderCreated extends Mailable
      */
     public function attachments(): array
     {
-        return [];
+        // Generate and attach PDF
+        $pdf = new \Dompdf\Dompdf();
+        $pdf->loadHtml(view('purchasing.orders-pdf', ['purchaseOrder' => $this->purchaseOrder])->render());
+        $pdf->setPaper('A4', 'portrait');
+        $pdf->render();
+        
+        return [
+            Attachment::fromData(fn () => $pdf->output(), $this->purchaseOrder->po_number . '.pdf')
+                ->withMime('application/pdf')
+        ];
     }
 }
