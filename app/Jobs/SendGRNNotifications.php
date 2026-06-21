@@ -77,35 +77,5 @@ class SendGRNNotifications implements ShouldQueue
                 }
             }
         }
-        
-        // 3. Send email/SMS to store admin/manager
-        $adminUsers = \App\Models\User::whereIn('role', ['admin', 'manager'])->get();
-        foreach ($adminUsers as $admin) {
-            // Send email to admin
-            if ($admin->email) {
-                $emailProfile = CommunicationProfile::where('type', 'email')->where('is_active', true)->first();
-                if ($emailProfile) {
-                    try {
-                        Mail::mailer('test_smtp')->to($admin->email)->send(new GoodsReceived($grn));
-                    } catch (\Exception $e) {
-                        \Log::error('Failed to send GRN email to admin: ' . $e->getMessage());
-                    }
-                }
-            }
-            
-            // Send SMS to admin
-            if ($admin->phone) {
-                $smsProfile = CommunicationProfile::where('type', 'sms')->where('is_active', true)->first();
-                if ($smsProfile) {
-                    $adminSmsText = "Goods received (GRN: $grn->grn_number) from supplier $supplier->name. Total: TZS $grn->total.";
-                    try {
-                        $messagingService = new MessagingService($smsProfile->sms_api_key, $smsProfile->messaging_sender_id, false);
-                        $messagingService->sendSms($admin->phone, $adminSmsText);
-                    } catch (\Exception $e) {
-                        \Log::error('Failed to send GRN SMS to admin: ' . $e->getMessage());
-                    }
-                }
-            }
-        }
     }
 }
