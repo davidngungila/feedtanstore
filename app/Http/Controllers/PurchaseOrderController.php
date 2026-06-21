@@ -141,9 +141,22 @@ class PurchaseOrderController extends Controller
             'order_date' => 'required|date',
             'expected_date' => 'nullable|date',
             'status' => 'required|in:pending,received,canceled',
+            'products' => 'required|array|min:1',
+            'products.*.product_id' => 'required|exists:products,id',
+            'products.*.quantity' => 'required|numeric|min:1',
+            'products.*.unit_price' => 'required|numeric|min:0',
         ]);
 
         $oldStatus = $purchaseOrder->status;
+
+        // Calculate totals
+        $subtotal = 0;
+        foreach ($request->products as $product) {
+            $subtotal += $product['quantity'] * $product['unit_price'];
+        }
+        $tax = $request->tax ?? $purchaseOrder->tax;
+        $discount = $request->discount ?? $purchaseOrder->discount;
+        $total = $subtotal + $tax - $discount;
 
         $purchaseOrder->update([
             'supplier_id' => $request->supplier_id,
@@ -151,7 +164,23 @@ class PurchaseOrderController extends Controller
             'expected_date' => $request->expected_date,
             'notes' => $request->notes,
             'status' => $request->status,
+            'subtotal' => $subtotal,
+            'tax' => $tax,
+            'discount' => $discount,
+            'total' => $total,
         ]);
+
+        // Delete old items and create new ones
+        $purchaseOrder->items()->delete();
+        foreach ($request->products as $productData) {
+            $itemTotal = $productData['quantity'] * $productData['unit_price'];
+            $purchaseOrder->items()->create([
+                'product_id' => $productData['product_id'],
+                'quantity' => $productData['quantity'],
+                'unit_price' => $productData['unit_price'],
+                'total' => $itemTotal,
+            ]);
+        }
 
         // If status changed to received, update stock from order items and create accounting entries
         if ($oldStatus !== 'received' && $request->status === 'received') {
