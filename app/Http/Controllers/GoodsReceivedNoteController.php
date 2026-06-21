@@ -34,7 +34,7 @@ class GoodsReceivedNoteController extends Controller
     {
         $request->validate([
             'supplier_id' => 'required|exists:suppliers,id',
-            'purchase_order_id' => 'required|exists:purchase_orders,id',
+            'purchase_order_id' => 'nullable|exists:purchase_orders,id',
             'received_date' => 'required|date',
             'products' => 'required|array|min:1',
             'products.*.product_id' => 'required|exists:products,id',
@@ -86,7 +86,10 @@ class GoodsReceivedNoteController extends Controller
         
         $this->createAccountingEntries($grn);
 
-        return redirect()->route('purchasing.grn')->with('success', 'Goods Received Note created successfully!');
+        // Dispatch job to send notifications
+        \App\Jobs\SendGRNNotifications::dispatch($grn);
+
+        return redirect()->route('purchasing.grn')->with('success', 'Goods Received Note created successfully! Notifications will be sent shortly.');
     }
     
     protected function createAccountingEntries(GoodsReceivedNote $grn)
