@@ -23,6 +23,10 @@
         <!-- Shareholder Info -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <div>
+                <p class="text-sm text-gray-600 mb-1">Shareholding No.</p>
+                <p class="font-bold text-primary-600">{{ $shareholder->shareholding_number }}</p>
+            </div>
+            <div>
                 <p class="text-sm text-gray-600 mb-1">Email</p>
                 <p class="font-medium">{{ $shareholder->email ?? 'N/A' }}</p>
             </div>

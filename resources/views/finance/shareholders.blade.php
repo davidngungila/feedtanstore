@@ -50,6 +50,7 @@
             <table class="w-full text-sm">
                 <thead class="bg-gray-50">
                     <tr>
+                        <th class="px-4 py-3 text-left text-gray-600">Shareholding No.</th>
                         <th class="px-4 py-3 text-left text-gray-600">Name</th>
                         <th class="px-4 py-3 text-left text-gray-600">Email</th>
                         <th class="px-4 py-3 text-left text-gray-600">Phone</th>
@@ -61,6 +62,7 @@
                 <tbody class="divide-y">
                     @forelse($shareholders as $shareholder)
                         <tr>
+                            <td class="px-4 py-3 font-medium text-primary-600">{{ $shareholder->shareholding_number }}</td>
                             <td class="px-4 py-3 font-medium">{{ $shareholder->name }}</td>
                             <td class="px-4 py-3">{{ $shareholder->email ?? 'N/A' }}</td>
                             <td class="px-4 py-3">{{ $shareholder->phone ?? 'N/A' }}</td>
@@ -87,7 +89,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="px-4 py-8 text-center text-gray-500">No shareholders yet!</td>
+                            <td colspan="7" class="px-4 py-8 text-center text-gray-500">No shareholders yet!</td>
                         </tr>
                     @endforelse
                 </tbody>
