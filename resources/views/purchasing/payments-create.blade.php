@@ -30,7 +30,7 @@
                     <select name="supplier_id" id="supplierSelect" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
                         <option value="">Select Supplier</option>
                         @foreach($suppliers as $supplier)
-                            <option value="{{ $supplier->id }}" {{ old('supplier_id') == $supplier->id ? 'selected' : '' }}>{{ $supplier->name }}</option>
+                            <option value="{{ $supplier->id }}" {{ (old('supplier_id') ?? ($selectedPO->supplier_id ?? null)) == $supplier->id ? 'selected' : '' }}>{{ $supplier->name }}</option>
                         @endforeach
                     </select>
                 </div>
@@ -42,7 +42,7 @@
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Amount *</label>
-                    <input type="number" step="0.01" name="amount" id="amountInput" value="{{ old('amount') }}" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                    <input type="number" step="0.01" name="amount" id="amountInput" value="{{ old('amount') ?? ($selectedPO->total ?? '') }}" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Payment Method *</label>
@@ -80,14 +80,12 @@
 
         <script>
             // Pass purchase orders data to JS
-            const purchaseOrders = @json($purchaseOrders->map(function($po) {
-                return [
-                    'id' => $po->id,
-                    'supplier_id' => $po->supplier_id,
-                    'po_number' => $po->po_number,
-                    'total' => $po->total
-                ];
-            }));
+            const purchaseOrders = @json($purchaseOrders->map(fn($po) => [
+                'id' => $po->id,
+                'supplier_id' => $po->supplier_id,
+                'po_number' => $po->po_number,
+                'total' => $po->total
+            ]));
 
             function toggleTransactionId() {
                 const paymentMethod = document.getElementById('paymentMethod').value;
@@ -138,10 +136,12 @@
                 toggleTransactionId();
                 updatePurchaseOrderOptions();
                 
-                // Set initial PO if old value exists
+                // Set initial PO if old value exists or selectedPO is present
                 const oldPO = @json(old('purchase_order_id'));
-                if (oldPO) {
-                    document.getElementById('purchaseOrderSelect').value = oldPO;
+                const selectedPO = @json($selectedPO->id ?? null);
+                const initialPO = oldPO || selectedPO;
+                if (initialPO) {
+                    document.getElementById('purchaseOrderSelect').value = initialPO;
                     updateAmountFromPO();
                 }
                 

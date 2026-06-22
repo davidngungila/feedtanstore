@@ -17,11 +17,17 @@ class SupplierPaymentController extends Controller
         return view('purchasing.payments', compact('payments'));
     }
 
-    public function create()
+    public function create(Request $request)
     {
         $suppliers = Supplier::all();
         $purchaseOrders = PurchaseOrder::all();
-        return view('purchasing.payments-create', compact('suppliers', 'purchaseOrders'));
+        
+        $selectedPO = null;
+        if ($request->has('purchase_order_id')) {
+            $selectedPO = PurchaseOrder::find($request->purchase_order_id);
+        }
+        
+        return view('purchasing.payments-create', compact('suppliers', 'purchaseOrders', 'selectedPO'));
     }
 
     public function store(Request $request)
