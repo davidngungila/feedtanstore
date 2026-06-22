@@ -21,6 +21,10 @@ class SupplierPaymentController extends Controller
     {
         $suppliers = Supplier::all();
         $purchaseOrders = PurchaseOrder::with('supplier')->where('approval_status', 'approved')->get();
+        // Filter out fully paid POs
+        $purchaseOrders = $purchaseOrders->filter(function($po) {
+            return !$po->isFullyPaid();
+        });
         $purchaseOrdersData = $purchaseOrders->map(function($po) {
             return [
                 'id' => $po->id,
@@ -34,6 +38,10 @@ class SupplierPaymentController extends Controller
         $selectedPO = null;
         if ($request->has('purchase_order_id')) {
             $selectedPO = PurchaseOrder::where('approval_status', 'approved')->find($request->purchase_order_id);
+            // If selected PO is fully paid, don't preselect it
+            if ($selectedPO && $selectedPO->isFullyPaid()) {
+                $selectedPO = null;
+            }
         }
         
         return view('purchasing.payments-create', compact('suppliers', 'purchaseOrders', 'purchaseOrdersData', 'selectedPO'));
@@ -50,11 +58,14 @@ class SupplierPaymentController extends Controller
             'notes' => 'nullable|string',
         ]);
 
-        // Validate that if purchase_order_id is provided, it's approved
+        // Validate that if purchase_order_id is provided, it's approved and not fully paid
         if ($request->purchase_order_id) {
             $purchaseOrder = PurchaseOrder::findOrFail($request->purchase_order_id);
             if ($purchaseOrder->approval_status !== 'approved') {
                 return back()->withErrors(['purchase_order_id' => 'Cannot record payment for unapproved purchase order.']);
+            }
+            if ($purchaseOrder->isFullyPaid()) {
+                return back()->withErrors(['purchase_order_id' => 'Cannot record payment for fully paid purchase order.']);
             }
         }
 
@@ -140,6 +151,13 @@ class SupplierPaymentController extends Controller
     {
         $suppliers = Supplier::all();
         $purchaseOrders = PurchaseOrder::where('approval_status', 'approved')->get();
+        // Filter out fully paid POs, but include the one currently linked to the payment if any
+        $purchaseOrders = $purchaseOrders->filter(function($po) use ($payment) {
+            if ($payment->purchase_order_id == $po->id) {
+                return true; // Always include current PO
+            }
+            return !$po->isFullyPaid();
+        });
         return view('purchasing.payments-edit', compact('payment', 'suppliers', 'purchaseOrders'));
     }
 
@@ -155,11 +173,19 @@ class SupplierPaymentController extends Controller
             'notes' => 'nullable|string',
         ]);
 
-        // Validate that if purchase_order_id is provided, it's approved
+        // Validate that if purchase_order_id is provided, it's approved and not fully paid (excluding current payment's amount)
         if ($request->purchase_order_id) {
             $purchaseOrder = PurchaseOrder::findOrFail($request->purchase_order_id);
             if ($purchaseOrder->approval_status !== 'approved') {
                 return back()->withErrors(['purchase_order_id' => 'Cannot record payment for unapproved purchase order.']);
+            }
+            
+            // Calculate total paid excluding current payment
+            $totalPaidExcludingCurrent = $purchaseOrder->payments()->where('id', '!=', $payment->id)->sum('amount');
+            $newTotalPaid = $totalPaidExcludingCurrent + $request->amount;
+            
+            if ($newTotalPaid > $purchaseOrder->total) {
+                return back()->withErrors(['amount' => 'Total payments would exceed purchase order total.']);
             }
         }
 
