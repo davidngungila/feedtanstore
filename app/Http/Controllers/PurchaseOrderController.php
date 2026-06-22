@@ -324,13 +324,14 @@ class PurchaseOrderController extends Controller
             }
             return redirect()->back()->with('error', 'Only approved purchase orders can be sent to supplier!');
         }
-
-        // TODO: Actually send email/sms to supplier and internal notifications here!
         
         $purchaseOrder->update([
             'sent_at' => now(),
             'sent_by' => auth()->id()
         ]);
+
+        // Send email and SMS notifications to supplier
+        \App\Jobs\SendPurchaseOrderNotifications::dispatch($purchaseOrder);
 
         if (request()->wantsJson()) {
             return response()->json(['success' => true, 'message' => 'Purchase Order sent to supplier successfully!']);
