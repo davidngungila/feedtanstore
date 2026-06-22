@@ -96,9 +96,25 @@
 
     const map = L.map('map').setView([lat, lng], 13);
 
-    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    // Base layers
+    const openStreetMap = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-    }).addTo(map);
+    });
+
+    const worldImagery = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        attribution: 'Tiles &copy; Esri &mdash; Source: Esri, DigitalGlobe, GeoEye, Earthstar Geographics, CNES/Airbus DS, USDA, USGS, AeroGRID, IGN, and the GIS User Community'
+    });
+
+    // Add default layer
+    openStreetMap.addTo(map);
+
+    // Layer control
+    const baseLayers = {
+        'OpenStreetMap': openStreetMap,
+        'World Imagery': worldImagery
+    };
+
+    L.control.layers(baseLayers).addTo(map);
 
     let marker = L.marker([lat, lng]).addTo(map);
 
