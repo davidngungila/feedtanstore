@@ -174,6 +174,15 @@ function calculateSellingPrice(item) {
 document.addEventListener('DOMContentLoaded', function() {
     // If we have a selected purchase order, auto-fill on page load
     if (typeof selectedPurchaseOrderData !== 'undefined') {
+        // Set supplier fields
+        const supplierIdInput = document.getElementById('supplier_id_input');
+        const supplierNameInput = document.getElementById('supplier_name_input');
+        supplierIdInput.value = selectedPurchaseOrderData.supplier_id;
+        supplierNameInput.value = selectedPurchaseOrderData.supplier.name;
+        
+        // Hide add product button
+        document.getElementById('add_product').classList.add('hidden');
+        
         // Clear existing products
         const container = document.getElementById('products_container');
         container.innerHTML = '';
