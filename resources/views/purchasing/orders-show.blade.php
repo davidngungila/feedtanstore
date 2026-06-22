@@ -11,23 +11,12 @@
                 <i class="fas fa-clipboard-list text-2xl text-yellow-600"></i>
                 <div>
                     <h3 class="text-lg font-bold text-yellow-900">Review Purchase Order</h3>
-                    <p class="text-yellow-700">Please review the order details carefully before approving or rejecting.</p>
+                    <p class="text-yellow-700">Please review and/or edit the order details carefully before approving or rejecting.</p>
                 </div>
             </div>
-            <div class="flex gap-3">
-                <form action="{{ route('purchasing.orders.reject', $purchaseOrder) }}" method="POST" class="inline">
-                    @csrf
-                    <button type="submit" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors">
-                        <i class="fas fa-times mr-2"></i>Reject Order
-                    </button>
-                </form>
-                <form action="{{ route('purchasing.orders.approve', $purchaseOrder) }}" method="POST" class="inline">
-                    @csrf
-                    <button type="submit" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors">
-                        <i class="fas fa-check mr-2"></i>Approve & Send to Supplier
-                    </button>
-                </form>
-            </div>
+            <a href="{{ route('purchasing.orders.review', $purchaseOrder) }}" class="px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg transition-colors">
+                <i class="fas fa-edit mr-2"></i>Review & Approve
+            </a>
         </div>
     </div>
     @endif

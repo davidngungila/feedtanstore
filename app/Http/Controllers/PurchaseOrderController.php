@@ -238,6 +238,82 @@ class PurchaseOrderController extends Controller
         ]);
     }
 
+    public function review(PurchaseOrder $purchaseOrder)
+    {
+        $suppliers = Supplier::all();
+        $products = Product::all();
+        $purchaseOrder->load(['supplier', 'items.product']);
+        
+        // Only allow review if approval status is pending
+        if ($purchaseOrder->approval_status !== 'pending') {
+            return redirect()->route('purchasing.orders.show', $purchaseOrder)->with('error', 'This purchase order is already approved or rejected.');
+        }
+
+        return view('purchasing.orders-review', compact('purchaseOrder', 'suppliers', 'products'));
+    }
+
+    public function reviewApprove(Request $request, PurchaseOrder $purchaseOrder)
+    {
+        $request->validate([
+            'supplier_id' => 'required|exists:suppliers,id',
+            'order_date' => 'required|date',
+            'expected_date' => 'nullable|date',
+            'products' => 'required|array|min:1',
+            'products.*.product_id' => 'required|exists:products,id',
+            'products.*.quantity' => 'required|numeric|min:1',
+            'products.*.unit_price' => 'required|numeric|min:0',
+        ]);
+
+        // Calculate totals
+        $subtotal = 0;
+        foreach ($request->products as $product) {
+            $subtotal += $product['quantity'] * $product['unit_price'];
+        }
+        $tax = $request->tax ?? $purchaseOrder->tax;
+        $discount = $request->discount ?? $purchaseOrder->discount;
+        $total = $subtotal + $tax - $discount;
+
+        $purchaseOrder->update([
+            'supplier_id' => $request->supplier_id,
+            'order_date' => $request->order_date,
+            'expected_date' => $request->expected_date,
+            'notes' => $request->notes,
+            'subtotal' => $subtotal,
+            'tax' => $tax,
+            'discount' => $discount,
+            'total' => $total,
+            'approval_status' => 'approved',
+            'approved_by' => auth()->id(),
+            'approved_at' => now(),
+        ]);
+
+        // Delete old items and create new ones
+        $purchaseOrder->items()->delete();
+        foreach ($request->products as $productData) {
+            $itemTotal = $productData['quantity'] * $productData['unit_price'];
+            $purchaseOrder->items()->create([
+                'product_id' => $productData['product_id'],
+                'quantity' => $productData['quantity'],
+                'unit_price' => $productData['unit_price'],
+                'total' => $itemTotal,
+            ]);
+        }
+
+        // Dispatch job to send notifications
+        \App\Jobs\SendPurchaseOrderNotifications::dispatch($purchaseOrder);
+
+        return redirect()->route('purchasing.orders.show', $purchaseOrder)->with('success', 'Purchase Order approved and updated successfully! Notifications will be sent shortly.');
+    }
+
+    public function reviewReject(PurchaseOrder $purchaseOrder)
+    {
+        $purchaseOrder->update([
+            'approval_status' => 'rejected'
+        ]);
+
+        return redirect()->route('purchasing.orders.show', $purchaseOrder)->with('success', 'Purchase Order rejected successfully!');
+    }
+
     public function destroy(PurchaseOrder $purchaseOrder)
     {
         $purchaseOrder->delete();
