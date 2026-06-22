@@ -63,6 +63,14 @@
                 </div>
                 <div class="md:col-span-2">
                     <label class="block text-sm font-medium text-gray-700 mb-2">Select Location on Map</label>
+                    <div class="flex gap-2 mb-3">
+                        <button type="button" onclick="getCurrentLocation()" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors">
+                            <i class="fas fa-location-crosshairs mr-2"></i>Capture Current Location
+                        </button>
+                        <button type="button" onclick="clearLocation()" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors">
+                            <i class="fas fa-times mr-2"></i>Clear Location
+                        </button>
+                    </div>
                     <div class="w-full h-[300px] border border-gray-300 rounded-lg" id="map"></div>
                 </div>
             </div>
@@ -115,6 +123,39 @@
         const newLng = parseFloat(document.getElementById('longitudeInput').value) || {{ $location->longitude ?? 36.6883 }};
         marker.setLatLng([newLat, newLng]);
         map.setView([newLat, newLng], map.getZoom());
+    }
+
+    function getCurrentLocation() {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(function(position) {
+                const newLat = position.coords.latitude;
+                const newLng = position.coords.longitude;
+
+                // Update the inputs
+                document.getElementById('latitudeInput').value = newLat.toFixed(7);
+                document.getElementById('longitudeInput').value = newLng.toFixed(7);
+
+                // Move the marker
+                marker.setLatLng([newLat, newLng]);
+                map.setView([newLat, newLng], 15);
+            }, function(error) {
+                alert('Error getting location: ' + error.message);
+            });
+        } else {
+            alert('Geolocation is not supported by your browser.');
+        }
+    }
+
+    function clearLocation() {
+        // Clear inputs
+        document.getElementById('latitudeInput').value = '';
+        document.getElementById('longitudeInput').value = '';
+
+        // Reset marker to default
+        const defaultLat = -3.3869;
+        const defaultLng = 36.6883;
+        marker.setLatLng([defaultLat, defaultLng]);
+        map.setView([defaultLat, defaultLng], 13);
     }
 </script>
 @endsection
