@@ -23,10 +23,28 @@ class Shareholder extends Model
             if (!$shareholder->shareholding_number) {
                 $year = date('y');
                 $lastShareholder = self::where('shareholding_number', 'like', "FEEDTANSTORE-$year-%")->orderBy('id', 'desc')->first();
-                $nextNumber = $lastShareholder ? (int)substr($lastShareholder->shareholding_number, -2) + 1 : 1;
-                $shareholder->shareholding_number = "FEEDTANSTORE-$year-" . str_pad($nextNumber, 2, '0', STR_PAD_LEFT);
+                $nextCode = $lastShareholder ? self::incrementAlphanumeric(substr($lastShareholder->shareholding_number, -2)) : '01';
+                $shareholder->shareholding_number = "FEEDTANSTORE-$year-$nextCode";
             }
         });
+    }
+
+    protected static function incrementAlphanumeric($code)
+    {
+        $chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        $len = strlen($code);
+        
+        for ($i = $len - 1; $i >= 0; $i--) {
+            $pos = strpos($chars, $code[$i]);
+            if ($pos < strlen($chars) - 1) {
+                $code[$i] = $chars[$pos + 1];
+                return $code;
+            } else {
+                $code[$i] = $chars[0];
+            }
+        }
+        
+        return str_repeat($chars[0], $len + 1);
     }
 
     public function shares(): HasMany

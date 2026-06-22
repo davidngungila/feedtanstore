@@ -7,6 +7,7 @@ use App\Models\Share;
 use App\Models\Capital;
 use App\Models\AccountingEntry;
 use App\Imports\ShareholderImport;
+use App\Exports\ShareholderSampleExport;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Maatwebsite\Excel\Facades\Excel;
@@ -50,6 +51,11 @@ class ShareholderController extends Controller
         Excel::import(new ShareholderImport(), $request->file('file'));
 
         return redirect()->route('finance.shareholders')->with('success', 'Shareholders imported successfully!');
+    }
+
+    public function downloadSample()
+    {
+        return Excel::download(new ShareholderSampleExport(), 'shareholders_sample.xlsx');
     }
 
     public function show(Shareholder $shareholder)
