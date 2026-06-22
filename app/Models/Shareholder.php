@@ -32,15 +32,16 @@ class Shareholder extends Model
     protected static function incrementAlphanumeric($code)
     {
         $chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-        $len = strlen($code);
+        $codeArr = str_split($code);
+        $len = count($codeArr);
         
         for ($i = $len - 1; $i >= 0; $i--) {
-            $pos = strpos($chars, $code[$i]);
+            $pos = strpos($chars, $codeArr[$i]);
             if ($pos < strlen($chars) - 1) {
-                $code[$i] = $chars[$pos + 1];
-                return $code;
+                $codeArr[$i] = $chars[$pos + 1];
+                return implode('', $codeArr);
             } else {
-                $code[$i] = $chars[0];
+                $codeArr[$i] = $chars[0];
             }
         }
         
