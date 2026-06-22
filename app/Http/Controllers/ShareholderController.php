@@ -48,9 +48,15 @@ class ShareholderController extends Controller
             'file' => 'required|file|mimes:xlsx,xls,csv|max:2048',
         ]);
 
-        Excel::import(new ShareholderImport(), $request->file('file'));
-
-        return redirect()->route('finance.shareholders')->with('success', 'Shareholders imported successfully!');
+        try {
+            $import = new ShareholderImport();
+            Excel::import($import, $request->file('file'));
+            $count = $import->getImportedCount();
+            
+            return redirect()->route('finance.shareholders')->with('success', "Successfully imported {$count} shareholders!");
+        } catch (\Exception $e) {
+            return redirect()->route('finance.shareholders')->with('error', 'Import failed: ' . $e->getMessage());
+        }
     }
 
     public function downloadSample()

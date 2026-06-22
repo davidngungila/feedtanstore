@@ -30,9 +30,9 @@
                 <a href="{{ route('finance.shareholders.sample.download') }}" class="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors">
                     <i class="fas fa-download mr-2"></i>Download Sample
                 </a>
-                <form action="{{ route('finance.shareholders.import') }}" method="POST" enctype="multipart/form-data" class="flex items-center gap-2">
+                <form id="importForm" action="{{ route('finance.shareholders.import') }}" method="POST" enctype="multipart/form-data" class="flex items-center gap-2">
                     @csrf
-                    <input type="file" name="file" accept=".xlsx,.xls,.csv" required class="block px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm">
+                    <input type="file" id="importFile" name="file" accept=".xlsx,.xls,.csv" required class="block px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm">
                     <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">
                         <i class="fas fa-file-import mr-2"></i>Import
                     </button>
@@ -46,6 +46,12 @@
         @if(session('success'))
             <div class="mb-4 p-3 bg-green-100 border border-green-400 text-green-800 rounded-lg">
                 {{ session('success') }}
+            </div>
+        @endif
+
+        @if(session('error'))
+            <div class="mb-4 p-3 bg-red-100 border border-red-400 text-red-800 rounded-lg">
+                {{ session('error') }}
             </div>
         @endif
 
@@ -100,4 +106,105 @@
         </div>
     </div>
 </div>
+
+<!-- Import Progress Modal -->
+<div id="importModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+    <div class="bg-white rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl">
+        <h3 class="text-xl font-bold text-gray-800 mb-4">Importing Shareholders</h3>
+        
+        <div class="space-y-4">
+            <!-- Step 1: Starting -->
+            <div id="step1" class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
+                    <i class="fas fa-spinner fa-spin"></i>
+                </div>
+                <span class="text-gray-600">Starting import...</span>
+            </div>
+            
+            <!-- Step 2: Importing -->
+            <div id="step2" class="flex items-center gap-3 opacity-50">
+                <div class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-400">
+                    <i class="fas fa-file-import"></i>
+                </div>
+                <span class="text-gray-400">Processing file...</span>
+            </div>
+            
+            <!-- Step 3: Completed -->
+            <div id="step3" class="flex items-center gap-3 opacity-50">
+                <div class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-400">
+                    <i class="fas fa-check"></i>
+                </div>
+                <span class="text-gray-400">Import completed!</span>
+            </div>
+        </div>
+        
+        <div class="mt-6">
+            <div class="w-full bg-gray-200 rounded-full h-3">
+                <div id="progressBar" class="bg-blue-600 h-3 rounded-full transition-all duration-300" style="width: 0%"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('importForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const fileInput = document.getElementById('importFile');
+        if (!fileInput.files[0]) {
+            alert('Please select a file to import');
+            return;
+        }
+        
+        // Show modal
+        const modal = document.getElementById('importModal');
+        modal.classList.remove('hidden');
+        
+        // Reset progress
+        const progressBar = document.getElementById('progressBar');
+        const step1 = document.getElementById('step1');
+        const step2 = document.getElementById('step2');
+        const step3 = document.getElementById('step3');
+        
+        progressBar.style.width = '0%';
+        step1.style.opacity = '1';
+        step2.style.opacity = '0.5';
+        step3.style.opacity = '0.5';
+        
+        step1.querySelector('div').innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        step1.querySelector('div').className = 'w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600';
+        step1.querySelector('span').className = 'text-gray-600';
+        
+        step2.querySelector('div').innerHTML = '<i class="fas fa-file-import"></i>';
+        step2.querySelector('div').className = 'w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-400';
+        step2.querySelector('span').className = 'text-gray-400';
+        
+        step3.querySelector('div').innerHTML = '<i class="fas fa-check"></i>';
+        step3.querySelector('div').className = 'w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-400';
+        step3.querySelector('span').className = 'text-gray-400';
+        
+        // Animate progress
+        let progress = 0;
+        const interval = setInterval(() => {
+            progress += 10;
+            progressBar.style.width = `${Math.min(progress, 90)}%`;
+            
+            // Update steps based on progress
+            if (progress >= 30) {
+                step1.style.opacity = '1';
+                step1.querySelector('div').innerHTML = '<i class="fas fa-check"></i>';
+                step1.querySelector('div').className = 'w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-green-600';
+                step1.querySelector('span').className = 'text-gray-600';
+                
+                step2.style.opacity = '1';
+                step2.querySelector('div').innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                step2.querySelector('div').className = 'w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600';
+                step2.querySelector('span').className = 'text-gray-600';
+            }
+        }, 200);
+        
+        // Submit the form
+        this.submit();
+    });
+</script>
 @endsection
