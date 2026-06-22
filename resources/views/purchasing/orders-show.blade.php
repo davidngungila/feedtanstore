@@ -146,11 +146,9 @@
                     </span>
                 </div>
                 @if($purchaseOrder->sent_at)
-                    <div>
-                        <p class="text-sm text-gray-500 mb-1">Sent to Supplier</p>
-                        <span class="badge badge-green">
-                            <i class="fas fa-check mr-1"></i>{{ $purchaseOrder->sent_at->format('M d, Y H:i') }}
-                        </span>
+                    <div class="flex items-center gap-2">
+                        <i class="fas fa-check-circle text-green-600 text-2xl" title="Sent"></i>
+                        <span class="text-sm text-gray-500">Sent to Supplier</span>
                     </div>
                 @elseif($purchaseOrder->approval_status === 'approved')
                     <button id="sendToSupplierBtn" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">

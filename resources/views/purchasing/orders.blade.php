@@ -47,11 +47,9 @@
                         </td>
                         <td>
                             @if($po->sent_at)
-                                <span class="badge badge-green">
-                                    <i class="fas fa-check mr-1"></i>{{ $po->sent_at->format('M d, Y') }}
-                                </span>
+                                <i class="fas fa-check-circle text-green-600 text-xl" title="Sent"></i>
                             @else
-                                <span class="badge badge-yellow">Not Sent</span>
+                                <i class="fas fa-times-circle text-gray-400 text-xl" title="Not Sent"></i>
                             @endif
                         </td>
                         <td class="flex items-center gap-2">
