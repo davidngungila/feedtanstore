@@ -80,12 +80,7 @@
 
         <script>
             // Pass purchase orders data to JS
-            const purchaseOrders = @json($purchaseOrders->map(fn($po) => [
-                'id' => $po->id,
-                'supplier_id' => $po->supplier_id,
-                'po_number' => $po->po_number,
-                'total' => $po->total
-            ]));
+            const purchaseOrders = @json($purchaseOrdersData);
 
             function toggleTransactionId() {
                 const paymentMethod = document.getElementById('paymentMethod').value;
