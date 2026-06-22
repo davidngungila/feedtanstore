@@ -6,8 +6,10 @@ use App\Models\Shareholder;
 use App\Models\Share;
 use App\Models\Capital;
 use App\Models\AccountingEntry;
+use App\Imports\ShareholderImport;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Maatwebsite\Excel\Facades\Excel;
 
 class ShareholderController extends Controller
 {
@@ -37,6 +39,17 @@ class ShareholderController extends Controller
         Shareholder::create($request->all());
 
         return redirect()->route('finance.shareholders')->with('success', 'Shareholder added successfully!');
+    }
+
+    public function import(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|file|mimes:xlsx,xls,csv|max:2048',
+        ]);
+
+        Excel::import(new ShareholderImport(), $request->file('file'));
+
+        return redirect()->route('finance.shareholders')->with('success', 'Shareholders imported successfully!');
     }
 
     public function show(Shareholder $shareholder)

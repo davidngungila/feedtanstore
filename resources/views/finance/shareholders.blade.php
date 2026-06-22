@@ -24,11 +24,20 @@
     
     <!-- Shareholders List -->
     <div class="card rounded-2xl p-6">
-        <div class="flex items-center justify-between mb-6">
+        <div class="flex items-center justify-between mb-6 flex-wrap gap-4">
             <h2 class="text-xl font-bold text-primary-900">Shareholders</h2>
-            <a href="{{ route('finance.shareholders.create') }}" class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors">
-                <i class="fas fa-plus mr-2"></i>Add Shareholder
-            </a>
+            <div class="flex items-center gap-2 flex-wrap">
+                <form action="{{ route('finance.shareholders.import') }}" method="POST" enctype="multipart/form-data" class="flex items-center gap-2">
+                    @csrf
+                    <input type="file" name="file" accept=".xlsx,.xls,.csv" required class="block px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm">
+                    <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">
+                        <i class="fas fa-file-import mr-2"></i>Import
+                    </button>
+                </form>
+                <a href="{{ route('finance.shareholders.create') }}" class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors">
+                    <i class="fas fa-plus mr-2"></i>Add Shareholder
+                </a>
+            </div>
         </div>
 
         @if(session('success'))
