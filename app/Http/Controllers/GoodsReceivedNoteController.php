@@ -32,6 +32,12 @@ class GoodsReceivedNoteController extends Controller
 
     public function store(Request $request)
     {
+        // If purchase_order_id is provided, get supplier_id from PO
+        if ($request->purchase_order_id) {
+            $po = PurchaseOrder::findOrFail($request->purchase_order_id);
+            $request->merge(['supplier_id' => $po->supplier_id]);
+        }
+
         $request->validate([
             'supplier_id' => 'required|exists:suppliers,id',
             'purchase_order_id' => 'nullable|exists:purchase_orders,id',
