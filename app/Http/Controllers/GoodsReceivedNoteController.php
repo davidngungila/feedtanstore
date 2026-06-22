@@ -22,10 +22,10 @@ class GoodsReceivedNoteController extends Controller
     {
         $suppliers = Supplier::all();
         $products = Product::all();
-        $purchaseOrders = PurchaseOrder::with('items.product')->where('status', 'pending')->where('approval_status', 'approved')->get();
+        $purchaseOrders = PurchaseOrder::with('items.product')->where('status', 'pending')->where('approval_status', 'approved')->whereNotNull('sent_at')->get();
         $selectedPurchaseOrder = null;
         if (request()->has('purchase_order_id')) {
-            $selectedPurchaseOrder = PurchaseOrder::with('items.product')->find(request()->purchase_order_id);
+            $selectedPurchaseOrder = PurchaseOrder::with('items.product')->where('approval_status', 'approved')->whereNotNull('sent_at')->find(request()->purchase_order_id);
         }
         return view('purchasing.grn-create', compact('suppliers', 'products', 'purchaseOrders', 'selectedPurchaseOrder'));
     }
@@ -41,6 +41,14 @@ class GoodsReceivedNoteController extends Controller
             'products.*.quantity' => 'required|numeric|min:1',
             'products.*.unit_price' => 'required|numeric|min:0',
         ]);
+
+        // Validate PO is sent if provided
+        if ($request->purchase_order_id) {
+            $po = PurchaseOrder::findOrFail($request->purchase_order_id);
+            if (!$po->sent_at) {
+                return back()->with('error', 'Cannot receive goods for a purchase order that has not been sent to the supplier!');
+            }
+        }
 
         $grnNumber = 'GRN-' . date('YmdHis');
         $total = 0;

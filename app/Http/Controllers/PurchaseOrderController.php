@@ -319,15 +319,22 @@ class PurchaseOrderController extends Controller
     public function send(PurchaseOrder $purchaseOrder)
     {
         if ($purchaseOrder->approval_status !== 'approved') {
+            if (request()->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'Only approved purchase orders can be sent to supplier!'], 400);
+            }
             return redirect()->back()->with('error', 'Only approved purchase orders can be sent to supplier!');
         }
 
+        // TODO: Actually send email/sms to supplier and internal notifications here!
+        
         $purchaseOrder->update([
             'sent_at' => now(),
             'sent_by' => auth()->id()
         ]);
 
-        // TODO: Actually send message/email to supplier here using MessagingService
+        if (request()->wantsJson()) {
+            return response()->json(['success' => true, 'message' => 'Purchase Order sent to supplier successfully!']);
+        }
 
         return redirect()->back()->with('success', 'Purchase Order sent to supplier successfully!');
     }

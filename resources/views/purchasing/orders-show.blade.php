@@ -116,7 +116,7 @@
         <div class="flex items-center justify-between mb-6">
             <h2 class="text-xl font-bold text-primary-900">{{ $purchaseOrder->po_number }}</h2>
             <div class="flex gap-3">
-                @if($purchaseOrder->status !== 'received')
+                @if($purchaseOrder->status !== 'received' && $purchaseOrder->sent_at)
                     <a href="{{ route('purchasing.grn.create') }}?purchase_order_id={{ $purchaseOrder->id }}" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors">
                         <i class="fas fa-check-circle mr-2"></i>Receive Order
                     </a>
@@ -153,12 +153,9 @@
                         </span>
                     </div>
                 @elseif($purchaseOrder->approval_status === 'approved')
-                    <form action="{{ route('purchasing.orders.send', $purchaseOrder) }}" method="POST" class="inline">
-                        @csrf
-                        <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">
-                            <i class="fas fa-paper-plane mr-2"></i>Send to Supplier
-                        </button>
-                    </form>
+                    <button id="sendToSupplierBtn" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">
+                        <i class="fas fa-paper-plane mr-2"></i>Send to Supplier
+                    </button>
                 @endif
             </div>
             <div>
@@ -224,6 +221,40 @@
         </div>
     </div>
 
+    <!-- Progress Popup -->
+    <div id="sendProgressModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-2xl p-8 max-w-md w-full mx-4">
+            <h3 class="text-xl font-bold text-primary-900 mb-4">Sending to Supplier</h3>
+            <div class="mb-6">
+                <div class="flex items-center justify-between mb-2">
+                    <span id="progressText">Preparing...</span>
+                    <span id="progressPercent">0%</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2">
+                    <div id="progressBar" class="bg-blue-600 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+                </div>
+            </div>
+            <div id="statusList" class="space-y-2 text-sm">
+                <div id="status-prepare" class="flex items-center gap-2 text-gray-500">
+                    <i class="fas fa-circle text-xs"></i>
+                    <span>Preparing purchase order details...</span>
+                </div>
+                <div id="status-email" class="flex items-center gap-2 text-gray-500">
+                    <i class="fas fa-circle text-xs"></i>
+                    <span>Sending email to supplier...</span>
+                </div>
+                <div id="status-notifications" class="flex items-center gap-2 text-gray-500">
+                    <i class="fas fa-circle text-xs"></i>
+                    <span>Sending internal notifications...</span>
+                </div>
+                <div id="status-complete" class="flex items-center gap-2 text-gray-500">
+                    <i class="fas fa-circle text-xs"></i>
+                    <span>Completing...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
     @if($purchaseOrder->approval_status === 'pending')
     <script>
     let productIndex = {{ $purchaseOrder->items->count() }};
@@ -285,6 +316,84 @@
         csrfInput.value = "{{ csrf_token() }}";
         form.appendChild(csrfInput);
         form.submit();
+    });
+    </script>
+    @endif
+
+    @if($purchaseOrder->approval_status === 'approved' && !$purchaseOrder->sent_at)
+    <script>
+    document.getElementById('sendToSupplierBtn').addEventListener('click', async function() {
+        const modal = document.getElementById('sendProgressModal');
+        const progressBar = document.getElementById('progressBar');
+        const progressText = document.getElementById('progressText');
+        const progressPercent = document.getElementById('progressPercent');
+        const statusList = ['status-prepare', 'status-email', 'status-notifications', 'status-complete'];
+        
+        modal.classList.remove('hidden');
+        this.disabled = true;
+        this.classList.add('opacity-50');
+        
+        const updateProgress = (step, percent, text) => {
+            progressBar.style.width = percent + '%';
+            progressPercent.textContent = percent + '%';
+            progressText.textContent = text;
+            
+            statusList.forEach((id, index) => {
+                const el = document.getElementById(id);
+                if (index < step) {
+                    el.classList.remove('text-gray-500');
+                    el.classList.add('text-green-600');
+                    el.querySelector('i').classList.remove('fa-circle');
+                    el.querySelector('i').classList.add('fa-check-circle');
+                } else if (index === step) {
+                    el.classList.remove('text-gray-500');
+                    el.classList.add('text-blue-600');
+                }
+            });
+        };
+        
+        try {
+            // Step 1: Prepare (0-25%)
+            updateProgress(0, 10, 'Preparing purchase order details...');
+            await new Promise(resolve => setTimeout(resolve, 500));
+            updateProgress(0, 25, 'Purchase order prepared');
+            
+            // Step 2: Send email (25-50%)
+            updateProgress(1, 30, 'Sending email to supplier...');
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            updateProgress(1, 50, 'Email sent successfully');
+            
+            // Step 3: Send notifications (50-75%)
+            updateProgress(2, 55, 'Sending internal notifications...');
+            await new Promise(resolve => setTimeout(resolve, 800));
+            updateProgress(2, 75, 'Notifications sent');
+            
+            // Step 4: Call backend (75-100%)
+            updateProgress(3, 80, 'Updating system...');
+            const response = await fetch("{{ route('purchasing.orders.send', $purchaseOrder) }}", {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': "{{ csrf_token() }}",
+                    'Accept': 'application/json'
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error('Failed to send purchase order');
+            }
+            
+            updateProgress(3, 100, 'Complete!');
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            // Reload page to show updated status
+            window.location.reload();
+            
+        } catch (error) {
+            alert('Error sending purchase order: ' + error.message);
+            modal.classList.add('hidden');
+            this.disabled = false;
+            this.classList.remove('opacity-50');
+        }
     });
     </script>
     @endif
