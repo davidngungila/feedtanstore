@@ -255,11 +255,17 @@ function addProductItemListeners(item) {
     if (productSelect && !productSelect.disabled) {
         productSelect.addEventListener('change', function() {
             const selectedOption = this.options[this.selectedIndex];
-            const costPrice = selectedOption.dataset.price || 0;
-            const sellingPrice = selectedOption.dataset.sellingPrice || 0;
+            const costPrice = parseFloat(selectedOption.dataset.price) || 0;
+            const sellingPrice = parseFloat(selectedOption.dataset.sellingPrice) || 0;
             
-            item.querySelector('.product_cost_price').value = costPrice;
-            item.querySelector('.product_selling_price').value = sellingPrice;
+            item.querySelector('.product_cost_price').value = costPrice.toFixed(2);
+            item.querySelector('.product_selling_price').value = sellingPrice.toFixed(2);
+            
+            // Set default profit value
+            const defaultProfitValue = (sellingPrice - costPrice).toFixed(2);
+            item.querySelector('.product_profit_value').value = defaultProfitValue;
+            
+            calculateSellingPrice(item);
             calculateProfit(item);
         });
     }
@@ -306,6 +312,13 @@ function addProductItemFromPo(productId, orderedQuantity, unitPrice) {
         }
     });
     
+    // Calculate default profit value
+    let defaultProfitValue = 0;
+    let defaultProfitMethod = 'percentage';
+    if (selectedProduct && selectedProduct.cost_price > 0 && selectedProduct.selling_price > 0) {
+        defaultProfitValue = (selectedProduct.selling_price - selectedProduct.cost_price).toFixed(2);
+    }
+    
     const template = `
         <div class="product_item mb-6 p-4 border border-gray-200 rounded-lg">
             <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-4">
@@ -339,7 +352,7 @@ function addProductItemFromPo(productId, orderedQuantity, unitPrice) {
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Profit Value</label>
-                    <input type="number" step="0.01" name="products[${productIndex}][profit_value]" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 product_profit_value">
+                    <input type="number" step="0.01" name="products[${productIndex}][profit_value]" value="${defaultProfitValue}" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 product_profit_value">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Selling Price *</label>
@@ -374,6 +387,7 @@ function addProductItemFromPo(productId, orderedQuantity, unitPrice) {
     addProductItemListeners(lastItem);
     
     // Calculate initial profit
+    calculateSellingPrice(lastItem);
     calculateProfit(lastItem);
     
     productIndex++;
@@ -391,6 +405,12 @@ function addProductItem(productId, quantity, unitPrice) {
             selectedProduct = product;
         }
     });
+    
+    // Calculate default profit value
+    let defaultProfitValue = 0;
+    if (selectedProduct && selectedProduct.cost_price > 0 && selectedProduct.selling_price > 0) {
+        defaultProfitValue = (selectedProduct.selling_price - selectedProduct.cost_price).toFixed(2);
+    }
     
     const template = `
         <div class="product_item mb-6 p-4 border border-gray-200 rounded-lg">
@@ -423,7 +443,7 @@ function addProductItem(productId, quantity, unitPrice) {
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Profit Value</label>
-                    <input type="number" step="0.01" name="products[${productIndex}][profit_value]" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 product_profit_value">
+                    <input type="number" step="0.01" name="products[${productIndex}][profit_value]" value="${defaultProfitValue}" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 product_profit_value">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Selling Price *</label>
@@ -458,6 +478,7 @@ function addProductItem(productId, quantity, unitPrice) {
     addProductItemListeners(lastItem);
     
     // Calculate initial profit
+    calculateSellingPrice(lastItem);
     calculateProfit(lastItem);
     
     productIndex++;
