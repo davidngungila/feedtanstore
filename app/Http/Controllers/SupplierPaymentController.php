@@ -20,7 +20,7 @@ class SupplierPaymentController extends Controller
     public function create(Request $request)
     {
         $suppliers = Supplier::all();
-        $purchaseOrders = PurchaseOrder::with('supplier')->get();
+        $purchaseOrders = PurchaseOrder::with('supplier')->where('approval_status', 'approved')->get();
         $purchaseOrdersData = $purchaseOrders->map(function($po) {
             return [
                 'id' => $po->id,
@@ -33,7 +33,7 @@ class SupplierPaymentController extends Controller
         
         $selectedPO = null;
         if ($request->has('purchase_order_id')) {
-            $selectedPO = PurchaseOrder::find($request->purchase_order_id);
+            $selectedPO = PurchaseOrder::where('approval_status', 'approved')->find($request->purchase_order_id);
         }
         
         return view('purchasing.payments-create', compact('suppliers', 'purchaseOrders', 'purchaseOrdersData', 'selectedPO'));
@@ -49,6 +49,14 @@ class SupplierPaymentController extends Controller
             'payment_date' => 'required|date',
             'notes' => 'nullable|string',
         ]);
+
+        // Validate that if purchase_order_id is provided, it's approved
+        if ($request->purchase_order_id) {
+            $purchaseOrder = PurchaseOrder::findOrFail($request->purchase_order_id);
+            if ($purchaseOrder->approval_status !== 'approved') {
+                return back()->withErrors(['purchase_order_id' => 'Cannot record payment for unapproved purchase order.']);
+            }
+        }
 
         $paymentNumber = 'PAY-' . date('YmdHis');
 
@@ -131,7 +139,7 @@ class SupplierPaymentController extends Controller
     public function edit(SupplierPayment $payment)
     {
         $suppliers = Supplier::all();
-        $purchaseOrders = PurchaseOrder::all();
+        $purchaseOrders = PurchaseOrder::where('approval_status', 'approved')->get();
         return view('purchasing.payments-edit', compact('payment', 'suppliers', 'purchaseOrders'));
     }
 
@@ -146,6 +154,14 @@ class SupplierPaymentController extends Controller
             'payment_date' => 'required|date',
             'notes' => 'nullable|string',
         ]);
+
+        // Validate that if purchase_order_id is provided, it's approved
+        if ($request->purchase_order_id) {
+            $purchaseOrder = PurchaseOrder::findOrFail($request->purchase_order_id);
+            if ($purchaseOrder->approval_status !== 'approved') {
+                return back()->withErrors(['purchase_order_id' => 'Cannot record payment for unapproved purchase order.']);
+            }
+        }
 
         $payment->update($request->all());
 

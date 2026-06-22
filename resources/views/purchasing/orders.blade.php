@@ -57,9 +57,11 @@
                             <a href="{{ route('purchasing.orders.edit', $po) }}" class="text-primary-600 hover:text-primary-800 p-1" title="Edit">
                                 <i class="fas fa-edit"></i>
                             </a>
+                            @if($po->approval_status === 'approved')
                             <a href="{{ route('purchasing.payments.create', ['purchase_order_id' => $po->id]) }}" class="text-green-600 hover:text-green-800 p-1" title="Record Payment">
                                 <i class="fas fa-money-bill-wave"></i>
                             </a>
+                            @endif
                             <form action="{{ route('purchasing.orders.destroy', $po) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this purchase order?')">
                                 @csrf
                                 @method('DELETE')
