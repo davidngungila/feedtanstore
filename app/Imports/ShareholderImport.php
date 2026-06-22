@@ -13,10 +13,11 @@ class ShareholderImport implements ToModel, WithHeadingRow, WithValidation
     public function model(array $row)
     {
         return new Shareholder([
-            'name'    => $row['name'],
-            'email'   => $row['email'] ?? null,
-            'phone'   => $row['phone'] ?? null,
-            'address' => $row['address'] ?? null,
+            'name'                => $row['name'],
+            'email'               => $row['email'] ?? null,
+            'phone'               => $row['phone'] ?? null,
+            'address'             => $row['address'] ?? null,
+            'shareholding_number' => $row['shareholding_number'] ?? null,
         ]);
     }
 
@@ -27,6 +28,7 @@ class ShareholderImport implements ToModel, WithHeadingRow, WithValidation
             'email' => 'nullable|email',
             'phone' => 'nullable|string|max:20',
             'address' => 'nullable|string',
+            'shareholding_number' => 'nullable|string|max:255|unique:shareholders,shareholding_number',
         ];
     }
 }

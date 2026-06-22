@@ -12,14 +12,14 @@ class ShareholderSampleExport implements FromArray, WithHeadings, ShouldAutoSize
     public function array(): array
     {
         return [
-            ['John Doe', 'john@example.com', '+255712345678', '123 Main Street, Dar es Salaam'],
-            ['Jane Smith', 'jane@example.com', '+255787654321', '456 Oak Avenue, Arusha'],
+            ['FEEDTANSTORE-26-01', 'John Doe', 'john@example.com', '+255712345678', '123 Main Street, Dar es Salaam'],
+            ['', 'Jane Smith', 'jane@example.com', '+255787654321', '456 Oak Avenue, Arusha'],
         ];
     }
 
     public function headings(): array
     {
-        return ['name', 'email', 'phone', 'address'];
+        return ['shareholding_number', 'name', 'email', 'phone', 'address'];
     }
 
     public function title(): string
