@@ -316,6 +316,22 @@ class PurchaseOrderController extends Controller
         return redirect()->route('purchasing.orders.show', $purchaseOrder)->with('success', 'Purchase Order rejected successfully!');
     }
 
+    public function send(PurchaseOrder $purchaseOrder)
+    {
+        if ($purchaseOrder->approval_status !== 'approved') {
+            return redirect()->back()->with('error', 'Only approved purchase orders can be sent to supplier!');
+        }
+
+        $purchaseOrder->update([
+            'sent_at' => now(),
+            'sent_by' => auth()->id()
+        ]);
+
+        // TODO: Actually send message/email to supplier here using MessagingService
+
+        return redirect()->back()->with('success', 'Purchase Order sent to supplier successfully!');
+    }
+
     public function destroy(PurchaseOrder $purchaseOrder)
     {
         $purchaseOrder->delete();

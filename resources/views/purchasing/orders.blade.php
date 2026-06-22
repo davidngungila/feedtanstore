@@ -28,6 +28,7 @@
                         <th class="text-left">Total</th>
                         <th class="text-left">Status</th>
                         <th class="text-left">Approval Status</th>
+                        <th class="text-left">Sent</th>
                         <th class="text-left">Actions</th>
                     </tr>
                 </thead>
@@ -49,6 +50,15 @@
                             <span class="badge {{ $po->approval_status === 'approved' ? 'badge-green' : ($po->approval_status === 'rejected' ? 'badge-red' : 'badge-yellow') }}">
                                 {{ ucfirst($po->approval_status) }}
                             </span>
+                        </td>
+                        <td>
+                            @if($po->sent_at)
+                                <span class="badge badge-green">
+                                    <i class="fas fa-check mr-1"></i>{{ $po->sent_at->format('M d, Y') }}
+                                </span>
+                            @else
+                                <span class="badge badge-yellow">Not Sent</span>
+                            @endif
                         </td>
                         <td class="flex items-center gap-2">
                             <a href="{{ route('purchasing.orders.show', $po) }}" class="text-primary-600 hover:text-primary-800 p-1" title="View / Review">

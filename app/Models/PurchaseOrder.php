@@ -22,7 +22,9 @@ class PurchaseOrder extends Model
         'created_by',
         'approved_by',
         'approved_at',
-        'approval_status'
+        'approval_status',
+        'sent_at',
+        'sent_by'
     ];
 
     protected $casts = [
@@ -58,6 +60,11 @@ class PurchaseOrder extends Model
     public function approvedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'approved_by');
+    }
+
+    public function sentBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'sent_by');
     }
 
     public function totalPaid()

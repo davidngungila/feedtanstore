@@ -164,6 +164,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/orders/{purchaseOrder}/review', [\App\Http\Controllers\PurchaseOrderController::class, 'review'])->name('orders.review');
         Route::post('/orders/{purchaseOrder}/review-approve', [\App\Http\Controllers\PurchaseOrderController::class, 'reviewApprove'])->name('orders.review.approve');
         Route::post('/orders/{purchaseOrder}/review-reject', [\App\Http\Controllers\PurchaseOrderController::class, 'reviewReject'])->name('orders.review.reject');
+        Route::post('/orders/{purchaseOrder}/send', [\App\Http\Controllers\PurchaseOrderController::class, 'send'])->name('orders.send');
         Route::get('/grn', [\App\Http\Controllers\GoodsReceivedNoteController::class, 'index'])->name('grn');
         Route::get('/grn/create', [\App\Http\Controllers\GoodsReceivedNoteController::class, 'create'])->name('grn.create');
         Route::post('/grn', [\App\Http\Controllers\GoodsReceivedNoteController::class, 'store'])->name('grn.store');

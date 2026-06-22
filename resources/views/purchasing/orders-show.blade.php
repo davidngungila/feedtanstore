@@ -145,10 +145,20 @@
                         {{ ucfirst($purchaseOrder->status) }}
                     </span>
                 </div>
-                @if($purchaseOrder->approval_status === 'approved')
-                    <button class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">
-                        <i class="fas fa-paper-plane mr-2"></i>Send to Supplier
-                    </button>
+                @if($purchaseOrder->sent_at)
+                    <div>
+                        <p class="text-sm text-gray-500 mb-1">Sent to Supplier</p>
+                        <span class="badge badge-green">
+                            <i class="fas fa-check mr-1"></i>{{ $purchaseOrder->sent_at->format('M d, Y H:i') }}
+                        </span>
+                    </div>
+                @elseif($purchaseOrder->approval_status === 'approved')
+                    <form action="{{ route('purchasing.orders.send', $purchaseOrder) }}" method="POST" class="inline">
+                        @csrf
+                        <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">
+                            <i class="fas fa-paper-plane mr-2"></i>Send to Supplier
+                        </button>
+                    </form>
                 @endif
             </div>
             <div>
