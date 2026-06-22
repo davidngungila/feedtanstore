@@ -112,6 +112,7 @@
     </div>
     @endif
 
+    @if($purchaseOrder->approval_status !== 'pending')
     <div class="card rounded-2xl p-6 mb-6">
         <div class="flex items-center justify-between mb-6">
             <h2 class="text-xl font-bold text-primary-900">{{ $purchaseOrder->po_number }}</h2>
@@ -192,7 +193,9 @@
             </div>
         </div>
     </div>
+    @endif
 
+    @if($purchaseOrder->approval_status !== 'pending')
     <div class="card rounded-2xl p-6">
         <h3 class="text-lg font-bold text-primary-900 mb-6">Products</h3>
         <div class="overflow-x-auto">
@@ -218,6 +221,7 @@
             </table>
         </div>
     </div>
+    @endif
 
     <!-- Progress Popup -->
     <div id="sendProgressModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
