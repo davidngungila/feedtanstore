@@ -138,11 +138,18 @@
                 <p class="text-sm text-gray-500 mb-1">Supplier</p>
                 <p class="font-medium">{{ $purchaseOrder->supplier->name ?? 'N/A' }}</p>
             </div>
-            <div>
-                <p class="text-sm text-gray-500 mb-1">Status</p>
-                <span class="badge {{ $purchaseOrder->status === 'received' ? 'badge-green' : ($purchaseOrder->status === 'canceled' ? 'badge-red' : 'badge-yellow') }}">
-                    {{ ucfirst($purchaseOrder->status) }}
-                </span>
+            <div class="flex items-center gap-3">
+                <div>
+                    <p class="text-sm text-gray-500 mb-1">Status</p>
+                    <span class="badge {{ $purchaseOrder->status === 'received' ? 'badge-green' : ($purchaseOrder->status === 'canceled' ? 'badge-red' : 'badge-yellow') }}">
+                        {{ ucfirst($purchaseOrder->status) }}
+                    </span>
+                </div>
+                @if($purchaseOrder->approval_status === 'approved')
+                    <button class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">
+                        <i class="fas fa-paper-plane mr-2"></i>Send to Supplier
+                    </button>
+                @endif
             </div>
             <div>
                 <p class="text-sm text-gray-500 mb-1">Approval Status</p>
