@@ -113,7 +113,9 @@ class PurchaseOrderController extends Controller
     public function show(PurchaseOrder $purchaseOrder)
     {
         $purchaseOrder->load(['supplier', 'items.product']);
-        return view('purchasing.orders-show', compact('purchaseOrder'));
+        $suppliers = Supplier::all();
+        $products = Product::all();
+        return view('purchasing.orders-show', compact('purchaseOrder', 'suppliers', 'products'));
     }
 
     public function downloadPDF(PurchaseOrder $purchaseOrder)
