@@ -4,9 +4,10 @@ namespace App\Exports;
 
 use Maatwebsite\Excel\Concerns\FromArray;
 use Maatwebsite\Excel\Concerns\WithHeadings;
+use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use Maatwebsite\Excel\Concerns\WithTitle;
 
-class ShareholderSampleExport implements FromArray, WithHeadings, WithTitle
+class ShareholderSampleExport implements FromArray, WithHeadings, ShouldAutoSize, WithTitle
 {
     public function array(): array
     {
