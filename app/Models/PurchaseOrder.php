@@ -30,6 +30,8 @@ class PurchaseOrder extends Model
     protected $casts = [
         'order_date' => 'datetime',
         'expected_date' => 'datetime',
+        'approved_at' => 'datetime',
+        'sent_at' => 'datetime',
     ];
 
     public function supplier(): BelongsTo

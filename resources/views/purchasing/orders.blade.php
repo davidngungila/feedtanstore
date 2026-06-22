@@ -27,7 +27,6 @@
                         <th class="text-left">Order Date</th>
                         <th class="text-left">Total</th>
                         <th class="text-left">Status</th>
-                        <th class="text-left">Approval Status</th>
                         <th class="text-left">Sent</th>
                         <th class="text-left">Actions</th>
                     </tr>
@@ -44,11 +43,6 @@
                         <td>
                             <span class="badge {{ $po->status === 'received' ? 'badge-green' : ($po->status === 'canceled' ? 'badge-red' : 'badge-yellow') }}">
                                 {{ ucfirst($po->status) }}
-                            </span>
-                        </td>
-                        <td>
-                            <span class="badge {{ $po->approval_status === 'approved' ? 'badge-green' : ($po->approval_status === 'rejected' ? 'badge-red' : 'badge-yellow') }}">
-                                {{ ucfirst($po->approval_status) }}
                             </span>
                         </td>
                         <td>
