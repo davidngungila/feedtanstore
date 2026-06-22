@@ -331,7 +331,7 @@ class PurchaseOrderController extends Controller
         ]);
 
         // Send email and SMS notifications to supplier
-        \App\Jobs\SendPurchaseOrderNotifications::dispatchSync($purchaseOrder);
+        \App\Jobs\SendPurchaseOrderNotifications::dispatch($purchaseOrder);
 
         if (request()->wantsJson()) {
             return response()->json(['success' => true, 'message' => 'Purchase Order sent to supplier successfully!']);
