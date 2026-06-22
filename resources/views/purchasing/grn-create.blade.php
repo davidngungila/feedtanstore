@@ -25,21 +25,10 @@
         <form action="{{ route('purchasing.grn.store') }}" method="POST">
             @csrf
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <input type="hidden" name="supplier_id" id="supplier_id_input" value="{{ old('supplier_id') ?? ($selectedPurchaseOrder ? $selectedPurchaseOrder->supplier_id : '') }}">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Supplier *</label>
-                    <select {{ !$selectedPurchaseOrder ? 'name="supplier_id"' : '' }} id="supplier_select" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 {{ $selectedPurchaseOrder ? 'bg-gray-100 cursor-not-allowed' : '' }}" {{ $selectedPurchaseOrder ? 'disabled' : '' }}>
-                        <option value="">Select Supplier</option>
-                        @foreach($suppliers as $supplier)
-                            <option value="{{ $supplier->id }}" {{ old('supplier_id') == $supplier->id || ($selectedPurchaseOrder && $selectedPurchaseOrder->supplier_id == $supplier->id) ? 'selected' : '' }}>{{ $supplier->name }}</option>
-                        @endforeach
-                    </select>
-                    @if($selectedPurchaseOrder)
-                        <input type="hidden" name="supplier_id" value="{{ $selectedPurchaseOrder->supplier_id }}">
-                    @endif
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Purchase Order</label>
-                    <select name="purchase_order_id" id="purchase_order_select" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 {{ $selectedPurchaseOrder ? 'bg-gray-100 cursor-not-allowed' : '' }}" {{ $selectedPurchaseOrder ? 'disabled' : '' }}>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Purchase Order *</label>
+                    <select name="purchase_order_id" id="purchase_order_select" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 {{ $selectedPurchaseOrder ? 'bg-gray-100 cursor-not-allowed' : '' }}" {{ $selectedPurchaseOrder ? 'disabled' : '' }}>
                         <option value="">Select Purchase Order</option>
                         @foreach($purchaseOrders as $po)
                             <option value="{{ $po->id }}" data-po="{{ json_encode($po) }}" {{ old('purchase_order_id') == $po->id || ($selectedPurchaseOrder && $selectedPurchaseOrder->id == $po->id) ? 'selected' : '' }}>{{ $po->po_number }} - {{ $po->supplier->name ?? 'N/A' }}</option>
@@ -48,6 +37,10 @@
                     @if($selectedPurchaseOrder)
                         <input type="hidden" name="purchase_order_id" value="{{ $selectedPurchaseOrder->id }}">
                     @endif
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Supplier</label>
+                    <input type="text" id="supplier_name_input" readonly value="{{ old('supplier_id') ? $suppliers->where('id', old('supplier_id'))->first()->name : ($selectedPurchaseOrder ? $selectedPurchaseOrder->supplier->name : '') }}" class="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 cursor-not-allowed">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Received Date *</label>
@@ -208,20 +201,10 @@ document.addEventListener('DOMContentLoaded', function() {
             const poData = JSON.parse(selectedOption.dataset.po);
             
             // Set supplier
-            const supplierSelect = document.getElementById('supplier_select');
-            supplierSelect.value = poData.supplier_id;
-            supplierSelect.disabled = true;
-            supplierSelect.removeAttribute('name');
-            
-            // Add hidden input for supplier_id
-            let hiddenInput = document.querySelector('input[name="supplier_id"]');
-            if (!hiddenInput) {
-                hiddenInput = document.createElement('input');
-                hiddenInput.type = 'hidden';
-                hiddenInput.name = 'supplier_id';
-                supplierSelect.parentNode.appendChild(hiddenInput);
-            }
-            hiddenInput.value = poData.supplier_id;
+            const supplierIdInput = document.getElementById('supplier_id_input');
+            const supplierNameInput = document.getElementById('supplier_name_input');
+            supplierIdInput.value = poData.supplier_id;
+            supplierNameInput.value = poData.supplier.name;
             
             // Clear existing products
             const container = document.getElementById('products_container');
@@ -236,16 +219,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 addProductItemFromPo(item.product_id, item.quantity, item.unit_price);
             });
         } else {
-            // If no PO selected, enable supplier, show add product button, reset container
-            const supplierSelect = document.getElementById('supplier_select');
-            supplierSelect.disabled = false;
-            supplierSelect.name = 'supplier_id';
-            
-            // Remove hidden input if exists
-            const hiddenInput = document.querySelector('input[name="supplier_id"]');
-            if (hiddenInput) {
-                hiddenInput.remove();
-            }
+            // If no PO selected, reset supplier, show add product button, reset container
+            const supplierIdInput = document.getElementById('supplier_id_input');
+            const supplierNameInput = document.getElementById('supplier_name_input');
+            supplierIdInput.value = '';
+            supplierNameInput.value = '';
             
             document.getElementById('add_product').classList.remove('hidden');
             const container = document.getElementById('products_container');
