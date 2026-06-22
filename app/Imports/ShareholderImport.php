@@ -15,28 +15,40 @@ use Maatwebsite\Excel\Row;
 use Maatwebsite\Excel\Validators\Failure;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Factory;
 
-class ShareholderImport implements OnEachRow, WithHeadingRow, WithValidation, SkipsOnFailure
+class ShareholderImport implements OnEachRow, WithHeadingRow, SkipsOnFailure
 {
     protected $importedCount = 0;
     protected $failures = [];
 
     public function onRow(Row $row)
     {
-        $row = $row->toArray();
+        $rowData = $row->toArray();
+        $index = $row->getRowIndex();
         
-        // Normalize the data before processing
-        $normalized = $this->normalizeRow($row);
+        // Normalize the data first
+        $normalized = $this->normalizeRow($rowData);
+
+        // Validate the normalized data manually
+        $validator = app(Factory::class)->make($normalized, $this->rules());
+
+        if ($validator->fails()) {
+            foreach ($validator->errors()->all() as $error) {
+                $this->failures[] = "Row " . $index . ": " . $error;
+            }
+            return;
+        }
 
         DB::beginTransaction();
 
         try {
             // Create shareholder
             $shareholder = Shareholder::create([
-                'name'    => $normalized['name'],
-                'email'   => $normalized['email'],
-                'phone'   => $normalized['phone'],
-                'address' => $normalized['address'],
+                'name'     => $normalized['name'],
+                'email'    => $normalized['email'],
+                'phone'    => $normalized['phone'],
+                'address'  => $normalized['address'],
             ]);
 
             $this->importedCount++;
@@ -75,18 +87,48 @@ class ShareholderImport implements OnEachRow, WithHeadingRow, WithValidation, Sk
             DB::commit();
         } catch (\Exception $e) {
             DB::rollBack();
-            $this->failures[] = "Row " . ($index ?? 'unknown') . ": " . $e->getMessage();
+            $this->failures[] = "Row " . $index . ": " . $e->getMessage();
         }
-    }
-
-    public function prepareForValidation($data, $index)
-    {
-        // Normalize data before validation
-        return $this->normalizeRow($data);
     }
 
     protected function normalizeRow(array $row): array
     {
+        // Handle Excel dates
+        $date = $row['date'] ?? null;
+        if ($date !== null) {
+            // Check if it's an Excel serial date (numeric)
+            if (is_numeric($date)) {
+                // Convert Excel serial date to PHP date
+                $dateTime = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($date);
+                $date = $dateTime->format('Y-m-d');
+            } else {
+                // Try to parse it as a regular date string with multiple formats
+                $formats = [
+                    'Y-m-d',
+                    'd/m/Y',
+                    'm/d/Y',
+                    'd-m-Y',
+                    'm-d-Y',
+                    'Y/m/d',
+                    'd M Y',
+                    'd F Y'
+                ];
+                $parsedDate = null;
+                foreach ($formats as $format) {
+                    $dateTime = \DateTime::createFromFormat($format, $date);
+                    if ($dateTime !== false) {
+                        $parsedDate = $dateTime->format('Y-m-d');
+                        break;
+                    }
+                }
+                // If none of the formats work, try strtotime
+                if ($parsedDate === null && strtotime($date) !== false) {
+                    $parsedDate = date('Y-m-d', strtotime($date));
+                }
+                $date = $parsedDate;
+            }
+        }
+
         return [
             'name'              => isset($row['name']) ? trim((string)$row['name']) : null,
             'email'             => isset($row['email']) ? trim((string)$row['email']) : null,
@@ -94,7 +136,7 @@ class ShareholderImport implements OnEachRow, WithHeadingRow, WithValidation, Sk
             'address'           => isset($row['address']) ? trim((string)$row['address']) : null,
             'number_of_shares'  => isset($row['number_of_shares']) ? (int)$row['number_of_shares'] : 0,
             'share_price'       => isset($row['share_price']) ? (float)$row['share_price'] : null,
-            'date'              => isset($row['date']) ? (string)$row['date'] : null,
+            'date'              => $date,
             'description'       => isset($row['description']) ? trim((string)$row['description']) : 'Imported shares',
         ];
     }
