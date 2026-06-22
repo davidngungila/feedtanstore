@@ -43,11 +43,27 @@
                     <label class="block text-sm font-medium text-gray-700 mb-1">Address</label>
                     <textarea name="address" rows="3" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">{{ old('address', $location->address) }}</textarea>
                 </div>
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                    <textarea name="description" rows="2" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">{{ old('description', $location->description) }}</textarea>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Latitude</label>
+                    <input type="number" step="0.0000001" name="latitude" id="latitudeInput" value="{{ old('latitude', $location->latitude) }}" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Longitude</label>
+                    <input type="number" step="0.0000001" name="longitude" id="longitudeInput" value="{{ old('longitude', $location->longitude) }}" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                </div>
                 <div>
                     <label class="flex items-center gap-2">
                         <input type="checkbox" name="is_active" value="1" {{ old('is_active', $location->is_active) ? 'checked' : '' }} class="rounded border-gray-300 text-primary-600 focus:ring-primary-500">
                         <span class="text-sm font-medium text-gray-700">Active</span>
                     </label>
+                </div>
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Select Location on Map</label>
+                    <div class="w-full h-[300px] border border-gray-300 rounded-lg" id="map"></div>
                 </div>
             </div>
 
@@ -62,4 +78,43 @@
         </form>
     </div>
 </div>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script>
+    // Default to current location if exists, else Arusha, Tanzania
+    let lat = {{ old('latitude', $location->latitude ?? -3.3869) }};
+    let lng = {{ old('longitude', $location->longitude ?? 36.6883) }};
+
+    const map = L.map('map').setView([lat, lng], 13);
+
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+
+    let marker = L.marker([lat, lng]).addTo(map);
+
+    map.on('click', function(e) {
+        const newLat = e.latlng.lat;
+        const newLng = e.latlng.lng;
+
+        // Update the inputs
+        document.getElementById('latitudeInput').value = newLat.toFixed(7);
+        document.getElementById('longitudeInput').value = newLng.toFixed(7);
+
+        // Move the marker
+        marker.setLatLng([newLat, newLng]);
+    });
+
+    // Also update marker when user types in inputs
+    document.getElementById('latitudeInput').addEventListener('input', updateMarker);
+    document.getElementById('longitudeInput').addEventListener('input', updateMarker);
+
+    function updateMarker() {
+        const newLat = parseFloat(document.getElementById('latitudeInput').value) || {{ $location->latitude ?? -3.3869 }};
+        const newLng = parseFloat(document.getElementById('longitudeInput').value) || {{ $location->longitude ?? 36.6883 }};
+        marker.setLatLng([newLat, newLng]);
+        map.setView([newLat, newLng], map.getZoom());
+    }
+</script>
 @endsection

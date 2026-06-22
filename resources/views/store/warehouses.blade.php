@@ -18,6 +18,11 @@
             </div>
         @endif
 
+        <div class="card rounded-2xl p-6 mb-6">
+            <h3 class="text-lg font-semibold text-primary-900 mb-4">Warehouse Map</h3>
+            <div id="warehousesMap" class="w-full h-[400px]"></div>
+        </div>
+
         <div class="overflow-x-auto">
             <table class="data-table w-full">
                 <thead>
@@ -61,4 +66,33 @@
         </div>
     </div>
 </div>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script>
+    // Default center: Arusha, Tanzania
+    const centerLat = -3.3869;
+    const centerLng = 36.6883;
+
+    const map = L.map('warehousesMap').setView([centerLat, centerLng], 10);
+
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+
+    @foreach($locations as $location)
+        @if($location->latitude && $location->longitude)
+            const marker_{{ $location->id }} = L.marker([{{ $location->latitude }}, {{ $location->longitude }}])
+                .addTo(map)
+                .bindPopup(`
+                    <div class="p-2 min-w-[200px]">
+                        <h4 class="font-bold text-base text-gray-900 mb-1">{{ $location->name }}</h4>
+                        <p class="text-sm text-gray-700 mb-1"><strong>Address:</strong> {{ $location->address ?? 'N/A' }}</p>
+                        <p class="text-sm text-gray-700 mb-2"><strong>Status:</strong> {{ $location->is_active ? 'Active' : 'Inactive' }}</p>
+                        <a href="{{ route('store.locations.edit', $location) }}" class="text-primary-600 hover:underline text-sm">Edit Warehouse</a>
+                    </div>
+                `);
+        @endif
+    @endforeach
+</script>
 @endsection

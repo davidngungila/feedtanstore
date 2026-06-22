@@ -32,6 +32,9 @@ class LocationController extends Controller
             'name' => 'required|string|max:255',
             'type' => 'required|string|in:warehouse,store,other',
             'address' => 'nullable|string',
+            'description' => 'nullable|string',
+            'latitude' => 'nullable|numeric|between:-90,90',
+            'longitude' => 'nullable|numeric|between:-180,180',
             'is_active' => 'boolean'
         ]);
 
@@ -51,6 +54,9 @@ class LocationController extends Controller
             'name' => 'required|string|max:255',
             'type' => 'required|string|in:warehouse,store,other',
             'address' => 'nullable|string',
+            'description' => 'nullable|string',
+            'latitude' => 'nullable|numeric|between:-90,90',
+            'longitude' => 'nullable|numeric|between:-180,180',
             'is_active' => 'boolean'
         ]);
 
