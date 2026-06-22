@@ -10,38 +10,44 @@ use App\Models\StoreSetting;
 use Maatwebsite\Excel\Concerns\OnEachRow;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\WithValidation;
+use Maatwebsite\Excel\Concerns\SkipsOnFailure;
 use Maatwebsite\Excel\Row;
+use Maatwebsite\Excel\Validators\Failure;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
-class ShareholderImport implements OnEachRow, WithHeadingRow, WithValidation
+class ShareholderImport implements OnEachRow, WithHeadingRow, WithValidation, SkipsOnFailure
 {
     protected $importedCount = 0;
+    protected $failures = [];
 
     public function onRow(Row $row)
     {
         $row = $row->toArray();
+        
+        // Normalize the data before processing
+        $normalized = $this->normalizeRow($row);
 
         DB::beginTransaction();
 
         try {
             // Create shareholder
             $shareholder = Shareholder::create([
-                'name'    => $row['name'],
-                'email'   => $row['email'] ?? null,
-                'phone'   => $row['phone'] ?? null,
-                'address' => $row['address'] ?? null,
+                'name'    => $normalized['name'],
+                'email'   => $normalized['email'],
+                'phone'   => $normalized['phone'],
+                'address' => $normalized['address'],
             ]);
 
             $this->importedCount++;
 
             // Create shares if provided
-            if (isset($row['number_of_shares']) && !empty($row['number_of_shares']) && $row['number_of_shares'] > 0) {
+            if ($normalized['number_of_shares'] > 0) {
                 $storeSettings = StoreSetting::first();
-                $sharePrice = $row['share_price'] ?? ($storeSettings->share_price ?? 0);
-                $numberOfShares = $row['number_of_shares'];
+                $sharePrice = $normalized['share_price'] ?? ($storeSettings->share_price ?? 0);
+                $numberOfShares = $normalized['number_of_shares'];
                 $totalAmount = $numberOfShares * $sharePrice;
-                $date = isset($row['date']) && !empty($row['date']) ? $row['date'] : now()->format('Y-m-d');
+                $date = $normalized['date'] ?? now()->format('Y-m-d');
                 $userId = Auth::check() ? Auth::id() : null;
 
                 // Create share record
@@ -50,13 +56,13 @@ class ShareholderImport implements OnEachRow, WithHeadingRow, WithValidation
                     'share_price' => $sharePrice,
                     'total_amount' => $totalAmount,
                     'date' => $date,
-                    'description' => $row['description'] ?? 'Imported shares',
+                    'description' => $normalized['description'],
                 ]);
 
                 // Create capital record
                 $capital = Capital::create([
                     'amount' => $totalAmount,
-                    'description' => $row['description'] ?? "Shares issued to {$shareholder->name}",
+                    'description' => $normalized['description'] ?? "Shares issued to {$shareholder->name}",
                     'transaction_type' => 'add',
                     'date' => $date,
                     'user_id' => $userId,
@@ -69,8 +75,28 @@ class ShareholderImport implements OnEachRow, WithHeadingRow, WithValidation
             DB::commit();
         } catch (\Exception $e) {
             DB::rollBack();
-            throw new \Exception("Error importing row for {$row['name']}: " . $e->getMessage());
+            $this->failures[] = "Row " . ($index ?? 'unknown') . ": " . $e->getMessage();
         }
+    }
+
+    public function prepareForValidation($data, $index)
+    {
+        // Normalize data before validation
+        return $this->normalizeRow($data);
+    }
+
+    protected function normalizeRow(array $row): array
+    {
+        return [
+            'name'              => isset($row['name']) ? trim((string)$row['name']) : null,
+            'email'             => isset($row['email']) ? trim((string)$row['email']) : null,
+            'phone'             => isset($row['phone']) ? trim((string)$row['phone']) : null,
+            'address'           => isset($row['address']) ? trim((string)$row['address']) : null,
+            'number_of_shares'  => isset($row['number_of_shares']) ? (int)$row['number_of_shares'] : 0,
+            'share_price'       => isset($row['share_price']) ? (float)$row['share_price'] : null,
+            'date'              => isset($row['date']) ? (string)$row['date'] : null,
+            'description'       => isset($row['description']) ? trim((string)$row['description']) : 'Imported shares',
+        ];
     }
 
     public function rules(): array
@@ -133,5 +159,17 @@ class ShareholderImport implements OnEachRow, WithHeadingRow, WithValidation
     public function getImportedCount()
     {
         return $this->importedCount;
+    }
+
+    public function getFailures()
+    {
+        return $this->failures;
+    }
+
+    public function onFailure(Failure ...$failures)
+    {
+        foreach ($failures as $failure) {
+            $this->failures[] = "Row " . $failure->row() . ": " . implode(", ", $failure->errors());
+        }
     }
 }

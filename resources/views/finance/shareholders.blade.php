@@ -49,6 +49,12 @@
             </div>
         @endif
 
+        @if(session('warning'))
+            <div class="mb-4 p-3 bg-yellow-100 border border-yellow-400 text-yellow-800 rounded-lg">
+                {{ session('warning') }}
+            </div>
+        @endif
+
         @if(session('error'))
             <div class="mb-4 p-3 bg-red-100 border border-red-400 text-red-800 rounded-lg">
                 {{ session('error') }}

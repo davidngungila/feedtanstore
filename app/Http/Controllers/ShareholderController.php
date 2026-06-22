@@ -52,8 +52,15 @@ class ShareholderController extends Controller
             $import = new ShareholderImport();
             Excel::import($import, $request->file('file'));
             $count = $import->getImportedCount();
+            $failures = $import->getFailures();
             
-            return redirect()->route('finance.shareholders')->with('success', "Successfully imported {$count} shareholders!");
+            $message = "Successfully imported {$count} shareholders!";
+            if (!empty($failures)) {
+                $message .= " But there were " . count($failures) . " failures: " . implode("; ", $failures);
+                return redirect()->route('finance.shareholders')->with('warning', $message);
+            }
+            
+            return redirect()->route('finance.shareholders')->with('success', $message);
         } catch (\Exception $e) {
             return redirect()->route('finance.shareholders')->with('error', 'Import failed: ' . $e->getMessage());
         }
