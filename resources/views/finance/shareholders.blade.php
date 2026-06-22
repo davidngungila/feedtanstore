@@ -27,6 +27,9 @@
         <div class="flex items-center justify-between mb-6 flex-wrap gap-4">
             <h2 class="text-xl font-bold text-primary-900">Shareholders</h2>
             <div class="flex items-center gap-2 flex-wrap">
+                <a href="{{ route('finance.shareholders.sample.download') }}" class="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors">
+                    <i class="fas fa-download mr-2"></i>Download Sample
+                </a>
                 <form action="{{ route('finance.shareholders.import') }}" method="POST" enctype="multipart/form-data" class="flex items-center gap-2">
                     @csrf
                     <input type="file" name="file" accept=".xlsx,.xls,.csv" required class="block px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm">

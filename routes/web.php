@@ -282,6 +282,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/shareholders/create', [\App\Http\Controllers\ShareholderController::class, 'create'])->name('shareholders.create');
         Route::post('/shareholders', [\App\Http\Controllers\ShareholderController::class, 'store'])->name('shareholders.store');
         Route::post('/shareholders/import', [\App\Http\Controllers\ShareholderController::class, 'import'])->name('shareholders.import');
+        Route::get('/shareholders/sample/download', [\App\Http\Controllers\ShareholderController::class, 'downloadSample'])->name('shareholders.sample.download');
         Route::get('/shareholders/{shareholder}', [\App\Http\Controllers\ShareholderController::class, 'show'])->name('shareholders.show');
         Route::get('/shareholders/{shareholder}/edit', [\App\Http\Controllers\ShareholderController::class, 'edit'])->name('shareholders.edit');
         Route::put('/shareholders/{shareholder}', [\App\Http\Controllers\ShareholderController::class, 'update'])->name('shareholders.update');
