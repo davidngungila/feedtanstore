@@ -20,11 +20,12 @@ class SupplierPaymentController extends Controller
     public function create(Request $request)
     {
         $suppliers = Supplier::all();
-        $purchaseOrders = PurchaseOrder::all();
+        $purchaseOrders = PurchaseOrder::with('supplier')->get();
         $purchaseOrdersData = $purchaseOrders->map(function($po) {
             return [
                 'id' => $po->id,
                 'supplier_id' => $po->supplier_id,
+                'supplier_name' => $po->supplier->name ?? 'Unknown',
                 'po_number' => $po->po_number,
                 'total' => $po->total
             ];

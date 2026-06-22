@@ -24,21 +24,19 @@
 
         <form action="{{ route('purchasing.payments.store') }}" method="POST">
             @csrf
+            <!-- Hidden supplier id, will be set by JS -->
+            <input type="hidden" name="supplier_id" id="supplierIdInput" value="{{ old('supplier_id') ?? ($selectedPO->supplier_id ?? '') }}">
+            
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Supplier *</label>
-                    <select name="supplier_id" id="supplierSelect" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
-                        <option value="">Select Supplier</option>
-                        @foreach($suppliers as $supplier)
-                            <option value="{{ $supplier->id }}" {{ (old('supplier_id') ?? ($selectedPO->supplier_id ?? null)) == $supplier->id ? 'selected' : '' }}>{{ $supplier->name }}</option>
-                        @endforeach
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Purchase Order *</label>
+                    <select name="purchase_order_id" id="purchaseOrderSelect" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                        <option value="">Select Purchase Order</option>
                     </select>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Purchase Order</label>
-                    <select name="purchase_order_id" id="purchaseOrderSelect" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
-                        <option value="">None</option>
-                    </select>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Supplier</label>
+                    <input type="text" id="supplierNameInput" readonly class="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Amount *</label>
@@ -96,32 +94,38 @@
                 }
             }
 
-            function updatePurchaseOrderOptions() {
-                const supplierId = document.getElementById('supplierSelect').value;
+            function updatePOSelectOptions() {
                 const poSelect = document.getElementById('purchaseOrderSelect');
                 
-                // Clear existing options except the first one
-                poSelect.innerHTML = '<option value="">None</option>';
+                // Clear existing options except first one
+                poSelect.innerHTML = '<option value="">Select Purchase Order</option>';
                 
-                // Add POs for the selected supplier
-                const filteredPOs = purchaseOrders.filter(po => po.supplier_id == supplierId);
-                filteredPOs.forEach(po => {
+                // Add all POs
+                purchaseOrders.forEach(po => {
                     const option = document.createElement('option');
                     option.value = po.id;
                     option.textContent = po.po_number + ' - TZS ' + parseFloat(po.total).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
                     option.dataset.total = po.total;
+                    option.dataset.supplier_id = po.supplier_id;
+                    option.dataset.supplier_name = po.supplier_name;
                     poSelect.appendChild(option);
                 });
             }
 
-            function updateAmountFromPO() {
+            function updateFormFromPO() {
                 const poSelect = document.getElementById('purchaseOrderSelect');
+                const supplierIdInput = document.getElementById('supplierIdInput');
+                const supplierNameInput = document.getElementById('supplierNameInput');
                 const amountInput = document.getElementById('amountInput');
                 
                 if (poSelect.value) {
                     const selectedOption = poSelect.options[poSelect.selectedIndex];
+                    supplierIdInput.value = selectedOption.dataset.supplier_id;
+                    supplierNameInput.value = selectedOption.dataset.supplier_name;
                     amountInput.value = parseFloat(selectedOption.dataset.total).toFixed(2);
                 } else {
+                    supplierIdInput.value = '';
+                    supplierNameInput.value = '';
                     amountInput.value = '';
                 }
             }
@@ -129,7 +133,7 @@
             // Initialize on page load
             document.addEventListener('DOMContentLoaded', function() {
                 toggleTransactionId();
-                updatePurchaseOrderOptions();
+                updatePOSelectOptions();
                 
                 // Set initial PO if old value exists or selectedPO is present
                 const oldPO = @json(old('purchase_order_id'));
@@ -137,12 +141,11 @@
                 const initialPO = oldPO || selectedPO;
                 if (initialPO) {
                     document.getElementById('purchaseOrderSelect').value = initialPO;
-                    updateAmountFromPO();
+                    updateFormFromPO();
                 }
                 
-                // Add event listeners
-                document.getElementById('supplierSelect').addEventListener('change', updatePurchaseOrderOptions);
-                document.getElementById('purchaseOrderSelect').addEventListener('change', updateAmountFromPO);
+                // Add event listener
+                document.getElementById('purchaseOrderSelect').addEventListener('change', updateFormFromPO);
             });
         </script>
     </div>
