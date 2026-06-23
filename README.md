@@ -121,11 +121,21 @@ The system supports multiple user roles, including:
 - **Product Catalog**: `/online/catalog`
 - **Carousel Management**: `/online/carousel`
 - **Delivery Management**: `/online/delivery`
-- **Riders**: `/online/riders`
+- **Riders**: `/online/riders` - Manage delivery riders, activate/deactivate, update passwords
+- **Rider Details**: `/online/riders/{id}/edit` - View rider's location history, device info, and map of current location
 - **Payments**: `/online/payments`
 - **Order Tracking**: `/online/tracking`
 - **Delivery Map**: `/online/delivery-map` - Real-time rider location tracking
 - **Customer Locations**: `/online/customer-locations`
+
+### 2.9.1 Rider Management Features
+The system provides comprehensive management of delivery riders:
+- **Create Rider**: Create a new rider and corresponding user account with email/password
+- **Edit Rider**: Update rider details, change password, view location history
+- **Activate/Deactivate**: Toggle rider's active status with one click
+- **Location History**: View last 10 rider locations with dates
+- **Device Tracking**: See devices the rider has logged in from
+- **Map View**: Interactive map showing rider's current location and movement route
 
 ### 2.10 Store Management
 - **Profile & Settings**: `/store/profile`
@@ -256,7 +266,9 @@ The API uses Laravel Sanctum for authentication. All endpoints except public one
 {
     "order": { ...order object... },
     "rider": { ...rider object (if assigned)... },
-    "current_location": { ...latest rider location (if available)... }
+    "current_location": { ...latest rider location (if available)... },
+    "storeLat": <store latitude>,
+    "storeLng": <store longitude>
 }
 ```
 
@@ -278,9 +290,10 @@ The API uses Laravel Sanctum for authentication. All endpoints except public one
 5. **PurchaseOrder**: Order from supplier
 6. **DeliveryRider**: Delivery personnel with linked user account
 7. **RiderLocation**: Real-time location history of riders
-8. **Customer**: Customer records with loyalty and credit
-9. **Shareholder**: Investor in the business
-10. **StoreSetting**: Configuration (store name, location, API keys, etc.)
+8. **UserDevice**: Tracks devices users have logged in from
+9. **Customer**: Customer records with loyalty and credit
+10. **Shareholder**: Investor in the business
+11. **StoreSetting**: Configuration (store name, location, API keys, etc.)
 
 ---
 
