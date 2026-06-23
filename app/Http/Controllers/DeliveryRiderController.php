@@ -64,7 +64,8 @@ class DeliveryRiderController extends Controller
         $rider->load(['user.devices', 'locations' => function($q) {
             $q->latest()->take(10);
         }]);
-        return view('online.riders-edit', compact('rider'));
+        $storeSettings = \App\Models\StoreSetting::firstOrCreate();
+        return view('online.riders-edit', compact('rider', 'storeSettings'));
     }
 
     public function update(Request $request, DeliveryRider $rider)

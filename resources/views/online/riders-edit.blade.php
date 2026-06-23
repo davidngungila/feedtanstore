@@ -3,6 +3,9 @@
 @section('page-title', 'Edit Delivery Rider')
 
 @section('content')
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
 <div class="animate-[fadeIn_0.4s_ease] space-y-6">
     <div class="card rounded-2xl p-6">
         <div class="flex items-center justify-between mb-6">
@@ -69,6 +72,10 @@
         </form>
     </div>
 
+    <div class="card rounded-2xl overflow-hidden">
+        <div id="map" class="w-full h-[400px]"></div>
+    </div>
+
     @if($rider->locations->count() > 0)
     <div class="card rounded-2xl p-6">
         <h3 class="text-lg font-semibold text-primary-900 mb-4">Location History (Last 10)</h3>
@@ -133,4 +140,41 @@
     </div>
     @endif
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const storeLat = {{ $storeSettings->store_latitude ?? -1.286389 }};
+        const storeLng = {{ $storeSettings->store_longitude ?? 36.817223 }};
+        const locations = @json($rider->locations);
+        
+        let map;
+        
+        if (locations.length > 0) {
+            const latestLoc = locations[0];
+            map = L.map('map').setView([latestLoc.latitude, latestLoc.longitude], 13);
+        } else {
+            map = L.map('map').setView([storeLat, storeLng], 13);
+        }
+        
+        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+        
+        L.marker([storeLat, storeLng])
+            .addTo(map)
+            .bindPopup('Store');
+        
+        // Add rider's latest location
+        if (locations.length > 0) {
+            const latestLoc = locations[0];
+            L.marker([latestLoc.latitude, latestLoc.longitude])
+                .addTo(map)
+                .bindPopup('Current Location');
+                
+            // Draw route from previous locations
+            const latlngs = locations.map(loc => [loc.latitude, loc.longitude]);
+            L.polyline(latlngs, {color: 'red', weight: 3}).addTo(map);
+        }
+    });
+</script>
 @endsection
