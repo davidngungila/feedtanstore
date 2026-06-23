@@ -3,13 +3,15 @@
 namespace App\Http\Controllers;
 
 use App\Models\DeliveryRider;
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 
 class DeliveryRiderController extends Controller
 {
     public function index()
     {
-        $riders = DeliveryRider::all();
+        $riders = DeliveryRider::with('user')->get();
         return view('online.riders', compact('riders'));
     }
 
@@ -22,19 +24,44 @@ class DeliveryRiderController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email',
+            'password' => 'required|string|min:8',
             'phone' => 'required|string|max:255',
             'vehicle_type' => 'nullable|string|max:255',
             'vehicle_plate' => 'nullable|string|max:255',
             'is_active' => 'boolean'
         ]);
 
-        DeliveryRider::create($request->all());
+        \DB::beginTransaction();
+        try {
+            $user = User::create([
+                'name' => $request->name,
+                'email' => $request->email,
+                'password' => Hash::make($request->password),
+                'phone' => $request->phone,
+                'role' => 'rider',
+            ]);
 
-        return redirect()->route('online.riders')->with('success', 'Delivery Rider created successfully!');
+            DeliveryRider::create([
+                'name' => $request->name,
+                'phone' => $request->phone,
+                'vehicle_type' => $request->vehicle_type,
+                'vehicle_plate' => $request->vehicle_plate,
+                'is_active' => $request->is_active ?? true,
+                'user_id' => $user->id,
+            ]);
+
+            \DB::commit();
+            return redirect()->route('online.riders')->with('success', 'Delivery Rider created successfully!');
+        } catch (\Exception $e) {
+            \DB::rollBack();
+            return back()->with('error', 'Failed to create rider: ' . $e->getMessage());
+        }
     }
 
     public function edit(DeliveryRider $rider)
     {
+        $rider->load('user');
         return view('online.riders-edit', compact('rider'));
     }
 
@@ -42,20 +69,52 @@ class DeliveryRiderController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
+            'email' => 'nullable|email|unique:users,email,' . $rider->user_id,
             'phone' => 'required|string|max:255',
             'vehicle_type' => 'nullable|string|max:255',
             'vehicle_plate' => 'nullable|string|max:255',
             'is_active' => 'boolean'
         ]);
 
-        $rider->update($request->all());
+        \DB::beginTransaction();
+        try {
+            if ($rider->user && $request->email) {
+                $rider->user->update([
+                    'name' => $request->name,
+                    'email' => $request->email,
+                    'phone' => $request->phone,
+                ]);
+            }
 
-        return redirect()->route('online.riders')->with('success', 'Delivery Rider updated successfully!');
+            $rider->update([
+                'name' => $request->name,
+                'phone' => $request->phone,
+                'vehicle_type' => $request->vehicle_type,
+                'vehicle_plate' => $request->vehicle_plate,
+                'is_active' => $request->is_active ?? true,
+            ]);
+
+            \DB::commit();
+            return redirect()->route('online.riders')->with('success', 'Delivery Rider updated successfully!');
+        } catch (\Exception $e) {
+            \DB::rollBack();
+            return back()->with('error', 'Failed to update rider: ' . $e->getMessage());
+        }
     }
 
     public function destroy(DeliveryRider $rider)
     {
-        $rider->delete();
-        return redirect()->route('online.riders')->with('success', 'Delivery Rider deleted successfully!');
+        \DB::beginTransaction();
+        try {
+            if ($rider->user) {
+                $rider->user->delete();
+            }
+            $rider->delete();
+            \DB::commit();
+            return redirect()->route('online.riders')->with('success', 'Delivery Rider deleted successfully!');
+        } catch (\Exception $e) {
+            \DB::rollBack();
+            return back()->with('error', 'Failed to delete rider: ' . $e->getMessage());
+        }
     }
 }

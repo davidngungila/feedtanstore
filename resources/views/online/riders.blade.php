@@ -23,6 +23,7 @@
                 <thead class="bg-gray-50">
                     <tr>
                         <th class="px-4 py-3 text-left text-gray-700">Name</th>
+                        <th class="px-4 py-3 text-left text-gray-700">Email</th>
                         <th class="px-4 py-3 text-left text-gray-700">Phone</th>
                         <th class="px-4 py-3 text-left text-gray-700">Vehicle Type</th>
                         <th class="px-4 py-3 text-left text-gray-700">Plate No.</th>
@@ -34,6 +35,7 @@
                     @forelse($riders as $rider)
                     <tr>
                         <td class="px-4 py-3 font-medium">{{ $rider->name }}</td>
+                        <td class="px-4 py-3">{{ $rider->user?->email ?? 'N/A' }}</td>
                         <td class="px-4 py-3">{{ $rider->phone }}</td>
                         <td class="px-4 py-3">{{ $rider->vehicle_type ?? 'N/A' }}</td>
                         <td class="px-4 py-3">{{ $rider->vehicle_plate ?? 'N/A' }}</td>
@@ -61,7 +63,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="6" class="px-4 py-8 text-center text-gray-500">
+                        <td colspan="7" class="px-4 py-8 text-center text-gray-500">
                             No delivery riders found.
                         </td>
                     </tr>
