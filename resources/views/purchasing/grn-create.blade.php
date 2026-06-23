@@ -312,9 +312,15 @@ function addProductItemFromPo(productId, orderedQuantity, unitPrice) {
         }
     });
     
+    // If product not found in productsData, use a default
+    if (!selectedProduct) {
+        optionsHtml = `<option value="${productId}" selected>Unknown Product (ID: ${productId})</option>`;
+        selectedProduct = {
+            id: productId, name: 'Unknown Product', cost_price: unitPrice, selling_price: unitPrice * 1.2 };
+    }
+    
     // Calculate default profit value
     let defaultProfitValue = 0;
-    let defaultProfitMethod = 'percentage';
     if (selectedProduct && selectedProduct.cost_price > 0 && selectedProduct.selling_price > 0) {
         defaultProfitValue = (selectedProduct.selling_price - selectedProduct.cost_price).toFixed(2);
     }
