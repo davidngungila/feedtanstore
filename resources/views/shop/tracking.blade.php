@@ -221,6 +221,12 @@
             </div>
         </div>
 
+        <!-- Real-time Map -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6">
+            <h2 class="text-lg font-semibold text-gray-900 mb-4">Live Delivery Tracking</h2>
+            <div id="map" class="w-full h-[400px] rounded-lg"></div>
+        </div>
+
         <!-- Action Buttons -->
         <div class="text-center flex flex-wrap justify-center gap-4">
             <a href="{{ route('shop.tracking.pdf', $order->order_number) }}" class="inline-flex items-center gap-2 bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700 transition">
@@ -241,10 +247,80 @@
         </div>
     </footer>
 
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const orderNumber = '{{ $order->order_number }}';
             const paymentStatusText = document.getElementById('paymentStatusText');
+            
+            // Initialize map
+            const map = L.map('map');
+            const osmLayer = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(map);
+            
+            // Markers
+            let storeMarker = null;
+            let deliveryMarker = null;
+            let riderMarker = null;
+            
+            // Function to refresh tracking data
+            async function refreshTracking() {
+                try {
+                    const response = await fetch(`/api/tracking/${orderNumber}`);
+                    const data = await response.json();
+                    
+                    // Set initial view
+                    if (data.order.delivery_latitude && data.order.delivery_longitude) {
+                        map.setView([data.order.delivery_latitude, data.order.delivery_longitude], 13);
+                    } else {
+                        map.setView([-3.3869, 36.6883], 10);
+                    }
+                    
+                    // Store marker
+                    if (!storeMarker) {
+                        storeMarker = L.marker([data.storeLat, data.storeLng])
+                            .addTo(map)
+                            .bindPopup('<b>Store</b>');
+                    }
+                    
+                    // Delivery marker
+                    if (data.order.delivery_latitude && data.order.delivery_longitude) {
+                        if (deliveryMarker) {
+                            deliveryMarker.setLatLng([data.order.delivery_latitude, data.order.delivery_longitude]);
+                        } else {
+                            deliveryMarker = L.circleMarker([data.order.delivery_latitude, data.order.delivery_longitude], {
+                                radius: 10,
+                                fillColor: '#3b82f6',
+                                color: '#fff',
+                                weight: 3,
+                                fillOpacity: 0.8
+                            }).addTo(map).bindPopup(`<b>Delivery Location</b><br>${data.order.delivery_address}`);
+                        }
+                    }
+                    
+                    // Rider marker
+                    if (data.rider && data.current_location) {
+                        if (riderMarker) {
+                            riderMarker.setLatLng([data.current_location.latitude, data.current_location.longitude]);
+                        } else {
+                            riderMarker = L.marker([data.current_location.latitude, data.current_location.longitude])
+                                .addTo(map)
+                                .bindPopup(`<b>Rider: ${data.rider.name}</b>`);
+                        }
+                    } else if (riderMarker) {
+                        map.removeLayer(riderMarker);
+                        riderMarker = null;
+                    }
+                } catch (err) {
+                    console.error('Error refreshing tracking:', err);
+                }
+            }
+            
+            // Refresh tracking every 3 seconds
+            refreshTracking();
+            setInterval(refreshTracking, 3000);
             
             if (paymentStatusText) {
                 let pollCount = 0;
