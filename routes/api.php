@@ -16,7 +16,7 @@ Route::get('/catalog/products/{id}', [CatalogController::class, 'product']);
 Route::get('/catalog/carousel', [CatalogController::class, 'carousel']);
 Route::get('/tracking/{orderNumber}', [TrackingController::class, 'trackOrder']);
 
-// Real-time data public endpoints
+// Real-Time Data (Public)
 Route::get('/realtime/riders', function () {
     $riders = DeliveryRider::with('latestLocation')->get();
     return response()->json($riders);

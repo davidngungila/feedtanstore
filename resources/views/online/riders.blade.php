@@ -51,6 +51,12 @@
                                 <a href="{{ route('online.riders.edit', $rider) }}" class="text-primary-600 hover:text-primary-800 transition-colors">
                                     <i class="fas fa-edit"></i>
                                 </a>
+                                <form action="{{ route('online.riders.toggle', $rider) }}" method="POST">
+                                    @csrf
+                                    <button type="submit" class="text-{{ $rider->is_active ? 'red' : 'green' }}-600 hover:text-{{ $rider->is_active ? 'red' : 'green' }}-800 transition-colors">
+                                        <i class="fas fa-{{ $rider->is_active ? 'ban' : 'check' }}"></i>
+                                    </button>
+                                </form>
                                 <form action="{{ route('online.riders.destroy', $rider) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this rider?')">
                                     @csrf
                                     @method('DELETE')

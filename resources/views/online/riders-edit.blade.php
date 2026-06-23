@@ -3,7 +3,7 @@
 @section('page-title', 'Edit Delivery Rider')
 
 @section('content')
-<div class="animate-[fadeIn_0.4s_ease]">
+<div class="animate-[fadeIn_0.4s_ease] space-y-6">
     <div class="card rounded-2xl p-6">
         <div class="flex items-center justify-between mb-6">
             <h2 class="text-xl font-bold text-primary-900">Edit Delivery Rider</h2>
@@ -35,6 +35,10 @@
                     <input type="email" name="email" value="{{ old('email', $rider->user?->email) }}" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
                 </div>
                 <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">New Password (leave blank to keep current)</label>
+                    <input type="password" name="password" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                </div>
+                <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Phone *</label>
                     <input type="text" name="phone" value="{{ old('phone', $rider->phone) }}" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
                 </div>
@@ -64,5 +68,69 @@
             </div>
         </form>
     </div>
+
+    @if($rider->locations->count() > 0)
+    <div class="card rounded-2xl p-6">
+        <h3 class="text-lg font-semibold text-primary-900 mb-4">Location History (Last 10)</h3>
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-4 py-3 text-left text-gray-700">Latitude</th>
+                        <th class="px-4 py-3 text-left text-gray-700">Longitude</th>
+                        <th class="px-4 py-3 text-left text-gray-700">Date</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y">
+                    @foreach($rider->locations as $location)
+                    <tr>
+                        <td class="px-4 py-3">{{ $location->latitude }}</td>
+                        <td class="px-4 py-3">{{ $location->longitude }}</td>
+                        <td class="px-4 py-3">{{ $location->created_at->format('M d, Y h:i A') }}</td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+    </div>
+    @endif
+
+    @if($rider->user && $rider->user->devices->count() > 0)
+    <div class="card rounded-2xl p-6">
+        <h3 class="text-lg font-semibold text-primary-900 mb-4">Associated Devices</h3>
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-4 py-3 text-left text-gray-700">Device Name</th>
+                        <th class="px-4 py-3 text-left text-gray-700">Type</th>
+                        <th class="px-4 py-3 text-left text-gray-700">Browser</th>
+                        <th class="px-4 py-3 text-left text-gray-700">IP Address</th>
+                        <th class="px-4 py-3 text-left text-gray-700">Last Active</th>
+                        <th class="px-4 py-3 text-left text-gray-700">Status</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y">
+                    @foreach($rider->user->devices as $device)
+                    <tr>
+                        <td class="px-4 py-3">{{ $device->device_name ?? 'Unknown' }}</td>
+                        <td class="px-4 py-3">{{ $device->device_type ?? 'Unknown' }}</td>
+                        <td class="px-4 py-3">{{ $device->browser ?? 'Unknown' }}</td>
+                        <td class="px-4 py-3">{{ $device->ip_address ?? 'Unknown' }}</td>
+                        <td class="px-4 py-3">{{ $device->last_active_at ? $device->last_active_at->format('M d, Y h:i A') : 'Never' }}</td>
+                        <td class="px-4 py-3">
+                            <span class="px-2 py-1 rounded-full text-xs font-semibold 
+                                @if($device->is_active) bg-green-100 text-green-800
+                                @else bg-red-100 text-red-800 @endif">
+                                {{ $device->is_active ? 'Active' : 'Inactive' }}
+                            </span>
+                        </td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+    </div>
+    @endif
 </div>
 @endsection

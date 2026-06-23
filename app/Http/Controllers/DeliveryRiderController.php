@@ -11,7 +11,7 @@ class DeliveryRiderController extends Controller
 {
     public function index()
     {
-        $riders = DeliveryRider::with('user')->get();
+        $riders = DeliveryRider::with(['user', 'latestLocation'])->get();
         return view('online.riders', compact('riders'));
     }
 
@@ -47,7 +47,7 @@ class DeliveryRiderController extends Controller
                 'phone' => $request->phone,
                 'vehicle_type' => $request->vehicle_type,
                 'vehicle_plate' => $request->vehicle_plate,
-                'is_active' => $request->is_active ?? true,
+                'is_active' => $request->has('is_active'),
                 'user_id' => $user->id,
             ]);
 
@@ -61,7 +61,9 @@ class DeliveryRiderController extends Controller
 
     public function edit(DeliveryRider $rider)
     {
-        $rider->load('user');
+        $rider->load(['user.devices', 'locations' => function($q) {
+            $q->latest()->take(10);
+        }]);
         return view('online.riders-edit', compact('rider'));
     }
 
@@ -70,6 +72,7 @@ class DeliveryRiderController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'nullable|email|unique:users,email,' . $rider->user_id,
+            'password' => 'nullable|string|min:8',
             'phone' => 'required|string|max:255',
             'vehicle_type' => 'nullable|string|max:255',
             'vehicle_plate' => 'nullable|string|max:255',
@@ -78,12 +81,18 @@ class DeliveryRiderController extends Controller
 
         \DB::beginTransaction();
         try {
-            if ($rider->user && $request->email) {
-                $rider->user->update([
+            if ($rider->user) {
+                $userData = [
                     'name' => $request->name,
-                    'email' => $request->email,
                     'phone' => $request->phone,
-                ]);
+                ];
+                if ($request->email) {
+                    $userData['email'] = $request->email;
+                }
+                if ($request->password) {
+                    $userData['password'] = Hash::make($request->password);
+                }
+                $rider->user->update($userData);
             }
 
             $rider->update([
@@ -91,7 +100,7 @@ class DeliveryRiderController extends Controller
                 'phone' => $request->phone,
                 'vehicle_type' => $request->vehicle_type,
                 'vehicle_plate' => $request->vehicle_plate,
-                'is_active' => $request->is_active ?? true,
+                'is_active' => $request->has('is_active'),
             ]);
 
             \DB::commit();
@@ -100,6 +109,12 @@ class DeliveryRiderController extends Controller
             \DB::rollBack();
             return back()->with('error', 'Failed to update rider: ' . $e->getMessage());
         }
+    }
+
+    public function toggleActive(DeliveryRider $rider)
+    {
+        $rider->update(['is_active' => !$rider->is_active]);
+        return redirect()->route('online.riders')->with('success', 'Rider status updated successfully!');
     }
 
     public function destroy(DeliveryRider $rider)

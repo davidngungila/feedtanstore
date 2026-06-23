@@ -22,10 +22,14 @@ class TrackingController extends Controller
                 ->first();
         }
 
+        $storeSettings = \App\Models\StoreSetting::firstOrCreate();
+
         return response()->json([
             'order' => $order,
             'rider' => $order->rider,
             'current_location' => $riderLocation,
+            'storeLat' => $storeSettings->store_latitude ?? -1.286389,
+            'storeLng' => $storeSettings->store_longitude ?? 36.817223,
         ]);
     }
 }

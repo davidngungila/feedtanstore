@@ -1,58 +1,341 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Feedtan Store Management System
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+## Overview
+Feedtan Store is a comprehensive multi-module retail management system with the following key features:
+- **Point of Sale (POS)**: Cashier interface for in-store sales
+- **Inventory Management**: Product, category, brand, and stock management
+- **Purchasing & Suppliers**: Purchase orders, goods receipt notes, and supplier payments
+- **Online Sales**: E-commerce platform, order management, and delivery tracking
+- **Finance**: General ledger, expenses, income, shareholders, and financial reports
+- **Delivery Management**: Delivery riders, real-time location tracking, and delivery maps
+- **Mobile App API**: For delivery riders with real-time location updates
+- **Customers**: Customer management, loyalty points, and credit tracking
+- **HR & Security**: Employee management, attendance, roles, and system security
+- **Reports & Analytics**: Comprehensive reporting for all modules
 
-## About Laravel
+## Live System
+The system is hosted at: [https://store.feedtancmg.org/](https://store.feedtancmg.org/)
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Tech Stack
+- **Framework**: Laravel 11
+- **Frontend**: Tailwind CSS, Leaflet (Maps)
+- **Database**: MySQL/MariaDB
+- **API Authentication**: Laravel Sanctum
+- **Payment Integration**: ClickPesa (for online payments)
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+---
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## 1. User Roles & Permissions
+The system supports multiple user roles, including:
+- **Administrator**: Full system access
+- **Cashier**: POS and sales only
+- **Manager**: Inventory, purchasing, and sales management
+- **Accountant**: Finance module
+- **Delivery Rider**: API access for delivery management (requires user account linked to rider profile)
 
-## Learning Laravel
+---
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+## 2. Web Application Features
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### 2.1 Authentication
+- **Login**: `/login`
+- **Logout**: `/logout`
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
+### 2.2 Public Shop (Customer Frontend)
+- **Shop Homepage**: `/shop` - Browse products
+- **Product Detail**: `/shop/product/{product}`
+- **Checkout**: `/shop/checkout`
+- **Order Tracking**: `/shop/tracking/{orderNumber}` - Track order with real-time delivery map
+- **PDF Receipt**: `/shop/tracking/{orderNumber}/pdf` - Download order receipt
 
-## Agentic Development
+### 2.3 Dashboard
+- **Main Dashboard**: `/dashboard` - Overview of sales, inventory, and online orders
+- **Sales Dashboard**: `/dashboard/sales`
+- **Online Orders Dashboard**: `/dashboard/online-orders`
+- **Purchases Dashboard**: `/dashboard/purchases`
+- **Inventory Dashboard**: `/dashboard/inventory`
 
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+### 2.4 Sales Management
+- **New Sale**: `/sales/new`
+- **Sales History**: `/sales/history`
+- **Returns**: `/sales/returns`
+- **Cancelled Sales**: `/sales/cancelled`
+- **Discounts**: `/sales/discounts`
+- **Receipts**: `/sales/receipts`
+- **Shifts**: `/sales/shifts`
 
-```bash
-composer require laravel/boost --dev
+### 2.5 Inventory Management
+- **Products**: `/inventory/products`
+- **Categories**: `/inventory/categories`
+- **Brands**: `/inventory/brands`
+- **Units**: `/inventory/units`
+- **Stock Receiving**: `/inventory/receiving`
+- **Stock Adjustments**: `/inventory/adjustments`
+- **Stock Transfers**: `/inventory/transfers`
+- **Stock Count**: `/inventory/count`
+- **Low Stock**: `/inventory/low-stock`
+- **Expiry Dates**: `/inventory/expiry`
+- **Damaged Goods**: `/inventory/damaged`
+- **Barcodes**: `/inventory/barcodes`
+- **Reports**: `/inventory/reports`
 
-php artisan boost:install
+### 2.6 Purchasing & Suppliers
+- **Suppliers**: `/purchasing/suppliers`
+- **Purchase Orders**: `/purchasing/orders`
+- **Goods Received Notes (GRN)**: `/purchasing/grn`
+- **Payments**: `/purchasing/payments`
+- **Reports**: `/purchasing/reports`
+
+### 2.7 Customers
+- **Customer List**: `/customers/list`
+- **Customer Groups**: `/customers/groups`
+- **Loyalty Points**: `/customers/loyalty`
+- **Credit Management**: `/customers/credit`
+- **Purchase History**: `/customers/history`
+
+### 2.8 Finance Module
+- **Finance Dashboard**: `/finance`
+- **Journal Entries**: `/finance/journal-entries`
+- **General Ledger**: `/finance/general-ledger`
+- **Expenses**: `/finance/expenses`
+- **Income**: `/finance/income`
+- **Cash Management**: `/finance/cash`
+- **Bank Accounts**: `/finance/bank`
+- **Mobile Money**: `/finance/mobile-money`
+- **Capital Management**: `/finance/capital`
+- **Shareholders**: `/finance/shareholders`
+- **Balance Sheet**: `/finance/balance-sheet`
+- **Income Statement**: `/finance/income-statement`
+- **Mobile Money Reconciliation**: `/finance/mobile-money-reconciliation`
+- **Accounts Receivable**: `/finance/accounts-receivable`
+- **Accounts Payable**: `/finance/accounts-payable`
+- **Transactions**: `/finance/transactions`
+- **Tax Management**: `/finance/tax-management`
+- **Chart of Accounts**: `/finance/chart-of-accounts`
+- **Budgets**: `/finance/budgets`
+- **Assets**: `/finance/assets`
+- **Reports**: `/finance/reports`
+
+### 2.9 Online Sales
+- **Orders**: `/online/orders`
+- **Product Catalog**: `/online/catalog`
+- **Carousel Management**: `/online/carousel`
+- **Delivery Management**: `/online/delivery`
+- **Riders**: `/online/riders`
+- **Payments**: `/online/payments`
+- **Order Tracking**: `/online/tracking`
+- **Delivery Map**: `/online/delivery-map` - Real-time rider location tracking
+- **Customer Locations**: `/online/customer-locations`
+
+### 2.10 Store Management
+- **Profile & Settings**: `/store/profile`
+- **Branches**: `/store/branches`
+- **Locations**: `/store/locations`
+- **Warehouses**: `/store/warehouses`
+- **Settings**: `/store/settings`
+
+### 2.11 HR & Security
+- **Employees**: `/hr/employees`
+- **Roles & Permissions**: `/hr/roles`
+- **Attendance**: `/hr/attendance`
+- **Work Shifts**: `/hr/shifts`
+- **Activity Logs**: `/hr/activity`
+- **Security Users**: `/security/users`
+- **Access Control**: `/security/access`
+- **Devices**: `/security/devices`
+- **Audit Logs**: `/security/audit`
+- **Security Settings**: `/security/settings`
+
+---
+
+## 3. Mobile Delivery Rider API
+
+### 3.1 Base URL
+`https://store.feedtancmg.org/api`
+
+### 3.2 Authentication
+The API uses Laravel Sanctum for authentication. All endpoints except public ones require a Bearer token.
+
+#### Login Rider
+**Endpoint**: `POST /api/auth/login`
+**Payload**:
+```json
+{
+    "email": "rider@example.com",
+    "password": "password123"
+}
+```
+**Response**:
+```json
+{
+    "user": { ...user object... },
+    "rider": { ...rider object... },
+    "token": "1|your_api_token_here"
+}
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+#### Logout
+**Endpoint**: `POST /api/auth/logout`
+**Headers**: `Authorization: Bearer {token}`
+**Response**:
+```json
+{
+    "message": "Logged out successfully"
+}
+```
 
-## Contributing
+### 3.3 Rider Profile
+#### Get Rider Profile
+**Endpoint**: `GET /api/rider/profile`
+**Headers**: `Authorization: Bearer {token}`
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+#### Update Rider Profile
+**Endpoint**: `PUT /api/rider/profile`
+**Headers**: `Authorization: Bearer {token}`
 
-## Code of Conduct
+### 3.4 Rider Location
+#### Update Current Location
+**Endpoint**: `POST /api/rider/location`
+**Headers**: `Authorization: Bearer {token}`
+**Payload**:
+```json
+{
+    "latitude": -1.286389,
+    "longitude": 36.817223
+}
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+#### Get Rider Location
+**Endpoint**: `GET /api/rider/location/{riderId}`
 
-## Security Vulnerabilities
+### 3.5 Order Management
+#### List Assigned Orders
+**Endpoint**: `GET /api/orders`
+**Headers**: `Authorization: Bearer {token}`
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+#### List Available Orders (Unassigned)
+**Endpoint**: `GET /api/orders/available`
+**Headers**: `Authorization: Bearer {token}`
 
-## License
+#### Show Order Details
+**Endpoint**: `GET /api/orders/{id}`
+**Headers**: `Authorization: Bearer {token}`
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+#### Update Order Status
+**Endpoint**: `PUT /api/orders/{id}/status`
+**Headers**: `Authorization: Bearer {token}`
+**Payload**:
+```json
+{
+    "status": "out_for_delivery",
+    "notes": "On the way to customer"
+}
+```
+**Possible Statuses**: `pending`, `confirmed`, `preparing`, `ready`, `out_for_delivery`, `delivered`, `cancelled`
+
+#### Accept Order Assignment
+**Endpoint**: `POST /api/orders/{id}/accept`
+**Headers**: `Authorization: Bearer {token}`
+
+### 3.6 Catalog (Public)
+#### List Products
+**Endpoint**: `GET /api/catalog/products`
+
+#### Get Product Detail
+**Endpoint**: `GET /api/catalog/products/{id}`
+
+#### Get Carousel Slides
+**Endpoint**: `GET /api/catalog/carousel`
+
+### 3.7 Order Tracking (Public)
+#### Track Order
+**Endpoint**: `GET /api/tracking/{orderNumber}`
+
+**Response**:
+```json
+{
+    "order": { ...order object... },
+    "rider": { ...rider object (if assigned)... },
+    "current_location": { ...latest rider location (if available)... }
+}
+```
+
+### 3.8 Real-Time Data (Public)
+#### Get All Riders with Latest Location
+**Endpoint**: `GET /api/realtime/riders`
+
+#### Get All Orders
+**Endpoint**: `GET /api/realtime/orders`
+
+---
+
+## 4. System Architecture
+### Key Models
+1. **User**: System users (admin, cashier, rider, etc.)
+2. **Product**: Inventory items with details
+3. **Sale**: In-store sale transaction
+4. **OnlineOrder**: E-commerce order
+5. **PurchaseOrder**: Order from supplier
+6. **DeliveryRider**: Delivery personnel with linked user account
+7. **RiderLocation**: Real-time location history of riders
+8. **Customer**: Customer records with loyalty and credit
+9. **Shareholder**: Investor in the business
+10. **StoreSetting**: Configuration (store name, location, API keys, etc.)
+
+---
+
+## 5. Installation & Deployment
+### Requirements
+- PHP 8.2+
+- Composer
+- MySQL/MariaDB
+- Node.js & npm (optional for frontend assets)
+
+### Steps to Deploy
+1. **Clone repository**: `git clone https://github.com/...`
+2. **Install dependencies**: `composer install`
+3. **Environment setup**: Copy `.env.example` to `.env` and configure
+4. **Generate key**: `php artisan key:generate`
+5. **Run migrations**: `php artisan migrate --seed` (seed initial data)
+6. **Symlink storage**: `php artisan storage:link`
+7. **Set permissions**: Ensure `storage` and `bootstrap/cache` are writable
+8. **Configure web server**: Point to `public` directory
+
+---
+
+## 6. Configuration
+### Store Settings
+- Go to `/store/settings` to configure store name, address, contact info
+- Set store latitude/longitude for delivery map
+- Enter OpenRouteService API key for delivery routing
+- Configure ClickPesa integration for online payments
+
+---
+
+## 7. Reporting & Analytics
+The system includes comprehensive reports for all modules, accessible via the Reports section in each module. Key reports include:
+- Sales reports (daily, weekly, monthly, by cashier, by product)
+- Inventory reports (stock levels, movements, low stock, expiry)
+- Financial reports (balance sheet, income statement, general ledger)
+- Purchase reports (by supplier, by product, by date)
+- Online order reports (by status, by rider, by date)
+
+---
+
+## 8. Support & Maintenance
+For support, contact: [your support email]
+- Regularly update dependencies via composer
+- Back up database frequently
+- Monitor logs in `storage/logs` for errors
+- Check system activity logs in security/audit
+
+---
+
+## 9. Security Best Practices
+- Use HTTPS in production
+- Keep Laravel and dependencies up to date
+- Use strong, unique passwords for all users
+- Enable 2FA if available
+- Restrict API access to trusted devices/IPs
+- Regularly review audit logs
+- Limit file uploads and sanitize all inputs

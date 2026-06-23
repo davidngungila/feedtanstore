@@ -361,6 +361,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/riders/{rider}/edit', [\App\Http\Controllers\DeliveryRiderController::class, 'edit'])->name('riders.edit');
         Route::put('/riders/{rider}', [\App\Http\Controllers\DeliveryRiderController::class, 'update'])->name('riders.update');
         Route::delete('/riders/{rider}', [\App\Http\Controllers\DeliveryRiderController::class, 'destroy'])->name('riders.destroy');
+        Route::post('/riders/{rider}/toggle', [\App\Http\Controllers\DeliveryRiderController::class, 'toggleActive'])->name('riders.toggle');
         
         Route::get('/payments', [\App\Http\Controllers\OnlinePaymentController::class, 'index'])->name('payments');
         
