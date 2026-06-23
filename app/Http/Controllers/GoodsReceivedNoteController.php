@@ -25,12 +25,9 @@ class GoodsReceivedNoteController extends Controller
         $purchaseOrders = PurchaseOrder::with(['supplier', 'items.product'])->where('status', 'pending')->where('approval_status', 'approved')->whereNotNull('sent_at')->get();
         $selectedPurchaseOrder = null;
         if (request()->has('purchase_order_id')) {
-            $selectedPurchaseOrder = PurchaseOrder::with(['supplier', 'items.product'])->find(request()->purchase_order_id);
+            $selectedPurchaseOrder = PurchaseOrder::with(['supplier', 'items.product'])->where('approval_status', 'approved')->whereNotNull('sent_at')->find(request()->purchase_order_id);
             if (!$selectedPurchaseOrder) {
-                return redirect()->to(route('purchasing.grn.create'))->with('error', 'Purchase Order not found.');
-            }
-            if ($selectedPurchaseOrder->items->isEmpty()) {
-                return redirect()->to(route('purchasing.grn.create'))->with('error', 'Selected Purchase Order has no items.');
+                return redirect()->route('purchasing.grn.create')->with('error', 'Invalid purchase order ID.');
             }
         }
         return view('purchasing.grn-create', compact('suppliers', 'products', 'purchaseOrders', 'selectedPurchaseOrder'));

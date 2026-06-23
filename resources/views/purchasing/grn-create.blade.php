@@ -13,20 +13,24 @@
         </div>
 
         @if(session('error'))
-                <div class="mb-4 p-3 bg-red-100 border border-red-400 text-red-800 rounded-lg">
-                    {{ session('error') }}
-                </div>
-            @endif
-
-            @if($errors->any())
-                <div class="mb-4 p-3 bg-red-100 border border-red-400 text-red-800 rounded-lg">
-                    <ul>
-                        @foreach($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
-                </div>
-            @endif
+            <div class="mb-4 p-3 bg-red-100 border border-red-400 text-red-800 rounded-lg">
+                {{ session('error') }}
+            </div>
+        @endif
+        @if(session('success'))
+            <div class="mb-4 p-3 bg-green-100 border border-green-400 text-green-800 rounded-lg">
+                {{ session('success') }}
+            </div>
+        @endif
+        @if($errors->any())
+            <div class="mb-4 p-3 bg-red-100 border border-red-400 text-red-800 rounded-lg">
+                <ul>
+                    @foreach($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
 
         <form action="{{ route('purchasing.grn.store') }}" method="POST">
             @csrf
@@ -195,9 +199,16 @@ document.addEventListener('DOMContentLoaded', function() {
         productIndex = 0;
         
         // Add products from PO
-        selectedPurchaseOrderData.items.forEach((item, index) => {
-            addProductItemFromPo(item.product_id, item.quantity, item.unit_price);
-        });
+        if (selectedPurchaseOrderData.items && selectedPurchaseOrderData.items.length > 0) {
+            selectedPurchaseOrderData.items.forEach((item, index) => {
+                addProductItemFromPo(item.product_id, item.quantity, item.unit_price);
+            });
+        } else {
+            // If no items, add a default product item
+            addProductItem('', 1, 0);
+            // Show add product button in this case
+            document.getElementById('add_product').classList.remove('hidden');
+        }
     }
 
     document.getElementById('add_product').addEventListener('click', function() {
@@ -214,12 +225,6 @@ document.addEventListener('DOMContentLoaded', function() {
         const selectedOption = this.options[this.selectedIndex];
         if (selectedOption.value) {
             const poData = JSON.parse(selectedOption.dataset.po);
-            
-            if (!poData.items || poData.items.length === 0) {
-                alert('Selected Purchase Order has no items.');
-                this.value = '';
-                return;
-            }
             
             // Set supplier
             const supplierIdInput = document.getElementById('supplier_id_input');
@@ -324,15 +329,9 @@ function addProductItemFromPo(productId, orderedQuantity, unitPrice) {
         }
     });
     
-    // If product not found in productsData, use a default
-    if (!selectedProduct) {
-        optionsHtml = `<option value="${productId}" selected>Unknown Product (ID: ${productId})</option>`;
-        selectedProduct = {
-            id: productId, name: 'Unknown Product', cost_price: unitPrice, selling_price: unitPrice * 1.2 };
-    }
-    
     // Calculate default profit value
     let defaultProfitValue = 0;
+    let defaultProfitMethod = 'percentage';
     if (selectedProduct && selectedProduct.cost_price > 0 && selectedProduct.selling_price > 0) {
         defaultProfitValue = (selectedProduct.selling_price - selectedProduct.cost_price).toFixed(2);
     }
