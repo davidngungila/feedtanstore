@@ -66,7 +66,7 @@ class SendPurchaseOrderNotifications implements ShouldQueue
         if ($supplier && $supplier->phone) {
             $smsProfile = CommunicationProfile::where('type', 'sms')->where('is_active', true)->first();
             if ($smsProfile) {
-                $smsText = "Dear $supplier->name, new Purchase Order $purchaseOrder->po_number has been approved. Total amount: $purchaseOrder->total. Regards, Feedtan Store";
+                $smsText = "Dear $supplier->name, new Purchase Order $purchaseOrder->po_number has been approved. Total amount: TZS " . formatTzs($purchaseOrder->total) . ". Regards, Feedtan Store";
                 
                 try {
                     $messagingService = new MessagingService($smsProfile->sms_api_key, $smsProfile->messaging_sender_id, false);

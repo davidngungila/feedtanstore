@@ -66,7 +66,7 @@ class SendGRNNotifications implements ShouldQueue
         if ($supplier && $supplier->phone) {
             $smsProfile = CommunicationProfile::where('type', 'sms')->where('is_active', true)->first();
             if ($smsProfile) {
-                $smsText = "Dear $supplier->name, we have received goods (GRN: $grn->grn_number). Total amount: TZS $grn->total. Thank you! Regards, Feedtan Store";
+                $smsText = "Dear $supplier->name, we have received goods (GRN: $grn->grn_number). Total amount: TZS " . formatTzs($grn->total) . ". Thank you! Regards, Feedtan Store";
                 
                 try {
                     $messagingService = new MessagingService($smsProfile->sms_api_key, $smsProfile->messaging_sender_id, false);

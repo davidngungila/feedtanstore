@@ -12,7 +12,10 @@ class DeliveryRiderController extends Controller
     public function index()
     {
         $riders = DeliveryRider::with(['user', 'latestLocation'])->get();
-        return view('online.riders', compact('riders'));
+        $storeSettings = \App\Models\StoreSetting::firstOrCreate();
+        $storeLat = $storeSettings->store_latitude ?? -3.3869;
+        $storeLng = $storeSettings->store_longitude ?? 36.6883;
+        return view('online.riders', compact('riders', 'storeLat', 'storeLng'));
     }
 
     public function create()
