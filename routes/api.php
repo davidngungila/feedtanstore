@@ -5,6 +5,8 @@ use App\Http\Controllers\Api\CatalogController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\RiderController;
 use App\Http\Controllers\Api\TrackingController;
+use App\Models\DeliveryRider;
+use App\Models\OnlineOrder;
 use Illuminate\Support\Facades\Route;
 
 // Public routes
@@ -13,6 +15,16 @@ Route::get('/catalog/products', [CatalogController::class, 'products']);
 Route::get('/catalog/products/{id}', [CatalogController::class, 'product']);
 Route::get('/catalog/carousel', [CatalogController::class, 'carousel']);
 Route::get('/tracking/{orderNumber}', [TrackingController::class, 'trackOrder']);
+
+// Real-time data public endpoints
+Route::get('/realtime/riders', function () {
+    $riders = DeliveryRider::with('latestLocation')->get();
+    return response()->json($riders);
+});
+Route::get('/realtime/orders', function () {
+    $orders = OnlineOrder::with(['rider', 'items.product'])->whereNotNull('delivery_latitude')->whereNotNull('delivery_longitude')->get();
+    return response()->json($orders);
+});
 
 // Protected routes (Sanctum auth)
 Route::middleware('auth:sanctum')->group(function () {

@@ -81,10 +81,15 @@
         .bindPopup("<b>Store</b>")
         .openPopup();
     
-    // Add markers and routes for ALL orders
+    // Object to track markers
+    const riderMarkers = {};
+    const orderMarkers = {};
+    const orderRoutes = {};
+    
+    // Initial order markers
     @foreach($allOrders as $order)
         // Add order marker
-        const orderMarker_{{ $order->id }} = L.circleMarker([{{ $order->delivery_latitude }}, {{ $order->delivery_longitude }}], {
+        orderMarkers[{{ $order->id }}] = L.circleMarker([{{ $order->delivery_latitude }}, {{ $order->delivery_longitude }}], {
             radius: 8,
             fillColor: statusColors['{{ $order->status }}'],
             color: '#fff',
@@ -104,14 +109,23 @@
         if (routes['{{ $order->id }}']) {
             const coords = routes['{{ $order->id }}'].features[0].geometry.coordinates;
             const points = coords.map(c => [c[1], c[0]]);
-            L.polyline(points, { color: statusColors['{{ $order->status }}'], weight: 3, opacity: 0.7 }).addTo(map);
+            orderRoutes[{{ $order->id }}] = L.polyline(points, { color: statusColors['{{ $order->status }}'], weight: 3, opacity: 0.7 }).addTo(map);
         }
     @endforeach
     
-    // Add rider markers
+    // Initial rider markers
     @foreach($riders as $rider)
         @if($rider->latitude && $rider->longitude)
-            const riderMarker_{{ $rider->id }} = L.marker([{{ $rider->latitude }}, {{ $rider->longitude }}])
+            riderMarkers[{{ $rider->id }}] = L.marker([{{ $rider->latitude }}, {{ $rider->longitude }}])
+                .addTo(map)
+                .bindPopup(`
+                    <div class="p-2">
+                        <h4 class="font-bold text-base text-gray-900 mb-1">Rider: {{ $rider->name }}</h4>
+                        <p class="text-sm text-gray-700"><strong>Phone:</strong> <a href="tel:{{ $rider->phone }}">{{ $rider->phone }}</a></p>
+                    </div>
+                `);
+        @elseif($rider->latest_location && $rider->latest_location.latitude && $rider->latest_location.longitude)
+            riderMarkers[{{ $rider->id }}] = L.marker([{{ $rider->latest_location->latitude }}, {{ $rider->latest_location->longitude }}])
                 .addTo(map)
                 .bindPopup(`
                     <div class="p-2">
@@ -121,5 +135,35 @@
                 `);
         @endif
     @endforeach
+    
+    // Function to refresh rider locations
+    async function refreshRiders() {
+        try {
+            const response = await fetch('/api/realtime/riders');
+            const riders = await response.json();
+            
+            riders.forEach(rider => {
+                if (rider.latest_location && rider.latest_location.latitude && rider.latest_location.longitude) {
+                    if (riderMarkers[rider.id]) {
+                        riderMarkers[rider.id].setLatLng([rider.latest_location.latitude, rider.latest_location.longitude]);
+                    } else {
+                        riderMarkers[rider.id] = L.marker([rider.latest_location.latitude, rider.latest_location.longitude])
+                            .addTo(map)
+                            .bindPopup(`
+                                <div class="p-2">
+                                    <h4 class="font-bold text-base text-gray-900 mb-1">Rider: ${rider.name}</h4>
+                                    <p class="text-sm text-gray-700"><strong>Phone:</strong> <a href="tel:${rider.phone}">${rider.phone}</a></p>
+                                </div>
+                            `);
+                    }
+                }
+            });
+        } catch (err) {
+            console.error('Error refreshing riders:', err);
+        }
+    }
+    
+    // Refresh every 3 seconds
+    setInterval(refreshRiders, 3000);
 </script>
 @endsection

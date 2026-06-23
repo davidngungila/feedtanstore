@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\OnlineOrder;
+use App\Models\StoreSetting;
 use Illuminate\Http\Request;
 
 class OrderTrackingController extends Controller
@@ -22,6 +23,7 @@ class OrderTrackingController extends Controller
     public function show($orderNumber)
     {
         $order = OnlineOrder::where('order_number', $orderNumber)->with(['items', 'rider'])->firstOrFail();
-        return view('online.tracking-show', compact('order'));
+        $settings = StoreSetting::firstOrCreate();
+        return view('online.tracking-show', compact('order', 'settings'));
     }
 }

@@ -14,7 +14,7 @@ class DeliveryManagementController extends Controller
     {
         $readyOrders = OnlineOrder::with(['items', 'rider'])->where('status', 'ready')->latest()->get();
         $outForDelivery = OnlineOrder::with(['items', 'rider'])->where('status', 'out_for_delivery')->latest()->get();
-        $riders = DeliveryRider::all();
+        $riders = DeliveryRider::with('latestLocation')->get();
         return view('online.delivery', compact('readyOrders', 'outForDelivery', 'riders'));
     }
 
@@ -40,7 +40,7 @@ class DeliveryManagementController extends Controller
             ->latest()
             ->get();
 
-        $riders = DeliveryRider::all();
+        $riders = DeliveryRider::with('latestLocation')->get();
         $settings = StoreSetting::firstOrCreate();
         
         // Get store location (default to Arusha, Tanzania if not set)
