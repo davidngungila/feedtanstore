@@ -12,15 +12,21 @@
             </a>
         </div>
 
-        @if($errors->any())
-            <div class="mb-4 p-3 bg-red-100 border border-red-400 text-red-800 rounded-lg">
-                <ul>
-                    @foreach($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
-            </div>
-        @endif
+        @if(session('error'))
+                <div class="mb-4 p-3 bg-red-100 border border-red-400 text-red-800 rounded-lg">
+                    {{ session('error') }}
+                </div>
+            @endif
+
+            @if($errors->any())
+                <div class="mb-4 p-3 bg-red-100 border border-red-400 text-red-800 rounded-lg">
+                    <ul>
+                        @foreach($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
 
         <form action="{{ route('purchasing.grn.store') }}" method="POST">
             @csrf
@@ -208,6 +214,12 @@ document.addEventListener('DOMContentLoaded', function() {
         const selectedOption = this.options[this.selectedIndex];
         if (selectedOption.value) {
             const poData = JSON.parse(selectedOption.dataset.po);
+            
+            if (!poData.items || poData.items.length === 0) {
+                alert('Selected Purchase Order has no items.');
+                this.value = '';
+                return;
+            }
             
             // Set supplier
             const supplierIdInput = document.getElementById('supplier_id_input');

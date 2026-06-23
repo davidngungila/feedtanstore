@@ -26,6 +26,12 @@ class GoodsReceivedNoteController extends Controller
         $selectedPurchaseOrder = null;
         if (request()->has('purchase_order_id')) {
             $selectedPurchaseOrder = PurchaseOrder::with(['supplier', 'items.product'])->find(request()->purchase_order_id);
+            if (!$selectedPurchaseOrder) {
+                return redirect()->route('purchasing.grn.create')->with('error', 'Purchase Order not found.');
+            }
+            if ($selectedPurchaseOrder->items->isEmpty()) {
+                return redirect()->route('purchasing.grn.create')->with('error', 'Selected Purchase Order has no items.');
+            }
         }
         return view('purchasing.grn-create', compact('suppliers', 'products', 'purchaseOrders', 'selectedPurchaseOrder'));
     }
