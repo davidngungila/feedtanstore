@@ -40,7 +40,7 @@
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Amount *</label>
-                    <input type="number" step="0.01" name="amount" id="amountInput" value="{{ old('amount') ?? ($selectedPO->total ?? '') }}" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                    <input type="number" step="0.01" name="amount" id="amountInput" value="{{ old('amount') ?? ($amountDue ?? '') }}" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Payment Method *</label>
@@ -104,8 +104,9 @@
                 purchaseOrders.forEach(po => {
                     const option = document.createElement('option');
                     option.value = po.id;
-                    option.textContent = po.po_number + ' - TZS ' + parseFloat(po.total).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+                    option.textContent = po.po_number + ' - TZS ' + parseFloat(po.total).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',') + ' (Due: TZS ' + parseFloat(po.amount_due).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',') + ')';
                     option.dataset.total = po.total;
+                    option.dataset.amount_due = po.amount_due;
                     option.dataset.supplier_id = po.supplier_id;
                     option.dataset.supplier_name = po.supplier_name;
                     poSelect.appendChild(option);
@@ -122,7 +123,7 @@
                     const selectedOption = poSelect.options[poSelect.selectedIndex];
                     supplierIdInput.value = selectedOption.dataset.supplier_id;
                     supplierNameInput.value = selectedOption.dataset.supplier_name;
-                    amountInput.value = parseFloat(selectedOption.dataset.total).toFixed(2);
+                    amountInput.value = parseFloat(selectedOption.dataset.amount_due).toFixed(2);
                 } else {
                     supplierIdInput.value = '';
                     supplierNameInput.value = '';

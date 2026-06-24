@@ -31,20 +31,24 @@ class SupplierPaymentController extends Controller
                 'supplier_id' => $po->supplier_id,
                 'supplier_name' => $po->supplier->name ?? 'Unknown',
                 'po_number' => $po->po_number,
-                'total' => $po->total
+                'total' => $po->total,
+                'amount_due' => $po->total - $po->totalPaid()
             ];
         })->toArray();
-        
+
         $selectedPO = null;
+        $amountDue = 0; // Initialize amountDue
         if ($request->has('purchase_order_id')) {
             $selectedPO = PurchaseOrder::where('approval_status', 'approved')->whereNotNull('sent_at')->find($request->purchase_order_id);
             // If selected PO is fully paid, don't preselect it
             if ($selectedPO && $selectedPO->isFullyPaid()) {
                 $selectedPO = null;
+            } else if ($selectedPO) {
+                $amountDue = $selectedPO->total - $selectedPO->totalPaid();
             }
         }
-        
-        return view('purchasing.payments-create', compact('suppliers', 'purchaseOrders', 'purchaseOrdersData', 'selectedPO'));
+
+        return view('purchasing.payments-create', compact('suppliers', 'purchaseOrders', 'purchaseOrdersData', 'selectedPO', 'amountDue'));
     }
 
     public function store(Request $request)
