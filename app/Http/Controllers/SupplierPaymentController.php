@@ -25,6 +25,9 @@ class SupplierPaymentController extends Controller
         $purchaseOrders = $purchaseOrders->filter(function($po) {
             return !$po->isFullyPaid();
         });
+
+        dd($purchaseOrders); // Debug statement to inspect the collection
+
         $purchaseOrdersData = $purchaseOrders->map(function($po) {
             return [
                 'id' => $po->id,
