@@ -39,15 +39,29 @@ class SupplierPaymentController extends Controller
         $selectedPO = null;
         $amountDue = 0; // Initialize amountDue
         if ($request->has('purchase_order_id')) {
-            $selectedPO = PurchaseOrder::where('approval_status', 'approved')->whereNotNull('sent_at')->find($request->purchase_order_id);
-            // If selected PO is fully paid, don't preselect it
-            if ($selectedPO && $selectedPO->isFullyPaid()) {
-                $selectedPO = null;
-            } else if ($selectedPO) {
-                $amountDue = $selectedPO->total - $selectedPO->totalPaid();
-            }
-        }
+            $requestedPOId = $request->purchase_order_id;
+            $potentialSelectedPO = PurchaseOrder::with('supplier')->find($requestedPOId);
 
+            if (!$potentialSelectedPO) {
+                return redirect()->route('purchasing.payments.create')->with('error', 'Purchase Order not found.');
+            }
+
+            if ($potentialSelectedPO->approval_status !== 'approved') {
+                return redirect()->route('purchasing.payments.create')->with('error', 'Purchase Order ' . $potentialSelectedPO->po_number . ' is not approved.');
+            }
+
+            if (!$potentialSelectedPO->sent_at) {
+                return redirect()->route('purchasing.payments.create')->with('error', 'Purchase Order ' . $potentialSelectedPO->po_number . ' has not been sent to supplier.');
+            }
+            
+            if ($potentialSelectedPO->isFullyPaid()) {
+                return redirect()->route('purchasing.payments.create')->with('error', 'Purchase Order ' . $potentialSelectedPO->po_number . ' is already fully paid.');
+            }
+            
+            $selectedPO = $potentialSelectedPO;
+            $amountDue = $selectedPO->total - $selectedPO->totalPaid();
+        }
+        
         return view('purchasing.payments-create', compact('suppliers', 'purchaseOrders', 'purchaseOrdersData', 'selectedPO', 'amountDue'));
     }
 
