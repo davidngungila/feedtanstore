@@ -317,6 +317,7 @@ function addProductItemListeners(item) {
 }
 
 function addProductItemFromPo(productData, orderedQuantity, unitPrice) {
+    console.log("addProductItemFromPo called with:", { productData, orderedQuantity, unitPrice });
     const container = document.getElementById('products_container');
     
     // Extract product details directly from productData
