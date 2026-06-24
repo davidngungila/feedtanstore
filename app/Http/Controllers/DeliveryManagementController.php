@@ -132,4 +132,16 @@ class DeliveryManagementController extends Controller
         $allStatuses = ['pending', 'confirmed', 'preparing', 'ready', 'out_for_delivery', 'delivered', 'cancelled'];
         return view('online.customer-locations', compact('filteredOrders', 'allOrders', 'routes', 'storeLat', 'storeLng', 'statusFilter', 'allStatuses'));
     }
+
+    public function ridersLiveMap()
+    {
+        $riders = DeliveryRider::with('latestLocation')->get();
+        $settings = StoreSetting::firstOrCreate();
+        
+        // Get store location (default to Arusha, Tanzania if not set)
+        $storeLat = $settings->store_latitude ?? -3.3869;
+        $storeLng = $settings->store_longitude ?? 36.6883;
+        
+        return view('online.riders-livemap', compact('riders', 'storeLat', 'storeLng'));
+    }
 }

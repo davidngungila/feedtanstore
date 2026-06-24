@@ -8,6 +8,9 @@
         <div class="flex items-center justify-between mb-6">
             <h2 class="text-xl font-bold text-primary-900">Delivery Riders</h2>
             <div class="flex items-center gap-2">
+                <a href="{{ route('online.riders.livemap') }}" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">
+                    <i class="fas fa-location-arrow mr-2"></i>Riders Live Map
+                </a>
                 <a href="{{ route('online.delivery.map') }}" class="px-4 py-2 bg-secondary-600 hover:bg-secondary-700 text-white rounded-lg transition-colors">
                     <i class="fas fa-map mr-2"></i>Delivery Map
                 </a>
