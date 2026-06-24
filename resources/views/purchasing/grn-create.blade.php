@@ -184,6 +184,7 @@ function calculateSellingPrice(item) {
 document.addEventListener('DOMContentLoaded', function() {
     // If we have a selected purchase order, auto-fill on page load
     if (typeof selectedPurchaseOrderData !== 'undefined') {
+        console.log("selectedPurchaseOrderData is defined:", selectedPurchaseOrderData);
         // Set supplier fields
         const supplierIdInput = document.getElementById('supplier_id_input');
         const supplierNameInput = document.getElementById('supplier_name_input');
@@ -200,10 +201,13 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Add products from PO
         if (selectedPurchaseOrderData.items && selectedPurchaseOrderData.items.length > 0) {
+            console.log("Selected PO has items:", selectedPurchaseOrderData.items);
             selectedPurchaseOrderData.items.forEach((item, index) => {
+                console.log(`Adding item ${index}: product_id=${item.product_id}, quantity=${item.quantity}, unit_price=${item.unit_price}`);
                 addProductItemFromPo(item.product_id, item.quantity, item.unit_price);
             });
         } else {
+            console.log("Selected PO has no items or items is empty.");
             // If no items, add a default product item
             addProductItem('', 1, 0);
             // Show add product button in this case
