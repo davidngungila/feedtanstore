@@ -184,7 +184,6 @@ function calculateSellingPrice(item) {
 document.addEventListener('DOMContentLoaded', function() {
     // If we have a selected purchase order, auto-fill on page load
     if (typeof selectedPurchaseOrderData !== 'undefined') {
-        console.log("selectedPurchaseOrderData is defined:", selectedPurchaseOrderData);
         // Set supplier fields
         const supplierIdInput = document.getElementById('supplier_id_input');
         const supplierNameInput = document.getElementById('supplier_name_input');
@@ -201,13 +200,10 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Add products from PO
         if (selectedPurchaseOrderData.items && selectedPurchaseOrderData.items.length > 0) {
-            console.log("Selected PO has items:", selectedPurchaseOrderData.items);
             selectedPurchaseOrderData.items.forEach((item, index) => {
-                console.log(`Adding item ${index}: product_id=${item.product_id}, quantity=${item.quantity}, unit_price=${item.unit_price}`);
-                addProductItemFromPo(item.product_id, item.quantity, item.unit_price);
+                addProductItemFromPo(item.product, item.quantity, item.unit_price);
             });
         } else {
-            console.log("Selected PO has no items or items is empty.");
             // If no items, add a default product item
             addProductItem('', 1, 0);
             // Show add product button in this case
@@ -320,24 +316,19 @@ function addProductItemListeners(item) {
     }
 }
 
-function addProductItemFromPo(productId, orderedQuantity, unitPrice) {
+function addProductItemFromPo(productData, orderedQuantity, unitPrice) {
     const container = document.getElementById('products_container');
     
-    let optionsHtml = '';
-    let selectedProduct = null;
-    productsData.forEach(product => {
-        const selected = product.id == productId ? 'selected' : '';
-        if (product.id == productId) {
-            optionsHtml = `<option value="${product.id}" data-price="${product.cost_price}" data-selling-price="${product.selling_price}" ${selected}>${product.name}</option>`;
-            selectedProduct = product;
-        }
-    });
-    
+    // Extract product details directly from productData
+    const productId = productData.id;
+    const productName = productData.name;
+    const productCostPrice = productData.cost_price;
+    const productSellingPrice = productData.selling_price;
+
     // Calculate default profit value
     let defaultProfitValue = 0;
-    let defaultProfitMethod = 'percentage';
-    if (selectedProduct && selectedProduct.cost_price > 0 && selectedProduct.selling_price > 0) {
-        defaultProfitValue = (selectedProduct.selling_price - selectedProduct.cost_price).toFixed(2);
+    if (productCostPrice > 0 && productSellingPrice > 0) {
+        defaultProfitValue = (productSellingPrice - productCostPrice).toFixed(2);
     }
     
     const template = `
@@ -347,7 +338,7 @@ function addProductItemFromPo(productId, orderedQuantity, unitPrice) {
                     <label class="block text-sm font-medium text-gray-700 mb-1">Product *</label>
                     <input type="hidden" name="products[${productIndex}][product_id]" value="${productId}">
                     <div class="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed">
-                        ${selectedProduct ? selectedProduct.name : 'N/A'}
+                        ${productName || 'N/A'}
                     </div>
                 </div>
                 <div>
@@ -377,7 +368,7 @@ function addProductItemFromPo(productId, orderedQuantity, unitPrice) {
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Selling Price *</label>
-                    <input type="number" step="0.01" name="products[${productIndex}][selling_price]" value="${selectedProduct ? selectedProduct.selling_price : 0}" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 product_selling_price">
+                    <input type="number" step="0.01" name="products[${productIndex}][selling_price]" value="${productSellingPrice}" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 product_selling_price">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Expiry Date</label>
