@@ -9,7 +9,7 @@
             <h2 class="text-xl font-bold text-primary-900">{{ $purchaseOrder->po_number }}</h2>
             <div class="flex gap-3">
                 @if($purchaseOrder->status !== 'received' && $purchaseOrder->sent_at)
-                    <a href="{{ route('purchasing.grn.create') }}?purchase_order_id={{ $purchaseOrder->id }}" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors">
+                    <a href="{{ route('purchasing.grn.create') }}" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors">
                         <i class="fas fa-check-circle mr-2"></i>Receive Order
                     </a>
                 @endif
