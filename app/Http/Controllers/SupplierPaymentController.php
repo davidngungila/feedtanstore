@@ -63,7 +63,6 @@ class SupplierPaymentController extends Controller
         }
         
         return view('purchasing.payments-create', compact('suppliers', 'purchaseOrders', 'purchaseOrdersData', 'selectedPO', 'amountDue'));
-    }
 
     public function store(Request $request)
     {
