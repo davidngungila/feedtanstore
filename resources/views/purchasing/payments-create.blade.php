@@ -79,6 +79,8 @@
         <script>
             // Pass purchase orders data to JS
             const purchaseOrders = @json($purchaseOrdersData);
+            console.log("purchaseOrders (JS variable):
+", purchaseOrders);
 
             function toggleTransactionId() {
                 const paymentMethod = document.getElementById('paymentMethod').value;
@@ -101,7 +103,9 @@
                 poSelect.innerHTML = '<option value="">Select Purchase Order</option>';
                 
                 // Add all POs
+                console.log("Attempting to populate PO dropdown with:", purchaseOrders);
                 purchaseOrders.forEach(po => {
+                    console.log("Adding PO option:", po.po_number);
                     const option = document.createElement('option');
                     option.value = po.id;
                     option.textContent = po.po_number + ' - TZS ' + parseFloat(po.total).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',') + ' (Due: TZS ' + parseFloat(po.amount_due).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',') + ')';
@@ -111,6 +115,7 @@
                     option.dataset.supplier_name = po.supplier_name;
                     poSelect.appendChild(option);
                 });
+                console.log("PO dropdown population complete.");
             }
 
             function updateFormFromPO() {
@@ -133,6 +138,7 @@
             
             // Initialize on page load
             document.addEventListener('DOMContentLoaded', function() {
+                console.log("DOMContentLoaded fired.");
                 toggleTransactionId();
                 updatePOSelectOptions();
                 
@@ -140,9 +146,14 @@
                 const oldPO = @json(old('purchase_order_id'));
                 const selectedPO = @json($selectedPO->id ?? null);
                 const initialPO = oldPO || selectedPO;
+                console.log("oldPO:", oldPO);
+                console.log("selectedPO (from controller, JS var):
+", selectedPO);
+                console.log("initialPO:", initialPO);
                 if (initialPO) {
                     document.getElementById('purchaseOrderSelect').value = initialPO;
                     updateFormFromPO();
+                    console.log("Initial PO auto-selected and form updated.");
                 }
                 
                 // Add event listener
