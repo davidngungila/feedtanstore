@@ -139,9 +139,13 @@
                 // Set initial PO if old value exists or selectedPO is present
                 const oldPO = @json(old('purchase_order_id'));
                 const selectedPO = @json($selectedPO->id ?? null);
+                console.log("oldPO:", oldPO);
+                console.log("selectedPO from controller:", selectedPO);
                 const initialPO = oldPO || selectedPO;
+                console.log("initialPO:", initialPO);
                 if (initialPO) {
                     document.getElementById('purchaseOrderSelect').value = initialPO;
+                    console.log("Calling updateFormFromPO for initialPO:", initialPO);
                     updateFormFromPO();
                 }
                 
