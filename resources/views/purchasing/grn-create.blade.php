@@ -317,12 +317,11 @@ function addProductItemListeners(item) {
 }
 
 function addProductItemFromPo(productData, orderedQuantity, unitPrice) {
-    console.log("addProductItemFromPo called with:", { productData, orderedQuantity, unitPrice });
     const container = document.getElementById('products_container');
     
     // Extract product details directly from productData
     const productId = productData.id;
-    const productName = productData.name;
+    const productName = productData.name; // Access name directly
     const productCostPrice = productData.cost_price;
     const productSellingPrice = productData.selling_price;
 
