@@ -300,7 +300,7 @@
     </script>
     @endif --}}
 
-    {{-- @if($purchaseOrder->approval_status === 'approved' && !$purchaseOrder->sent_at)
+    @if($purchaseOrder->approval_status === 'approved' && !$purchaseOrder->sent_at)
     <script>
     document.getElementById('sendToSupplierBtn').addEventListener('click', async function() {
         const modal = document.getElementById('sendProgressModal');
@@ -376,6 +376,6 @@
         }
     });
     </script>
-    @endif --}}
+    @endif
 </div>
 @endsection
