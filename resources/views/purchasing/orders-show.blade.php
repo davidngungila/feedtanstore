@@ -249,7 +249,7 @@
         </div>
     </div>
 
-    @if($purchaseOrder->approval_status === 'pending')
+    {{-- @if($purchaseOrder->approval_status === 'pending')
     <script>
     let productIndex = {{ $purchaseOrder->items->count() }};
 
@@ -298,9 +298,9 @@
         });
     });
     </script>
-    @endif
+    @endif --}}
 
-    @if($purchaseOrder->approval_status === 'approved' && !$purchaseOrder->sent_at)
+    {{-- @if($purchaseOrder->approval_status === 'approved' && !$purchaseOrder->sent_at)
     <script>
     document.getElementById('sendToSupplierBtn').addEventListener('click', async function() {
         const modal = document.getElementById('sendProgressModal');
@@ -376,6 +376,6 @@
         }
     });
     </script>
-    @endif
+    @endif --}}
 </div>
 @endsection
