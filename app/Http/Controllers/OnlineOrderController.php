@@ -66,18 +66,33 @@ class OnlineOrderController extends Controller
 
     public function shop()
     {
-        $products = Product::where('is_active', true)
+        $query = Product::where('is_active', true)
             ->where('is_available_online', true)
             ->where('quantity', '>', 0)
-            ->with(['category', 'brand', 'images'])
-            ->latest()
-            ->get();
+            ->with(['category', 'brand', 'images']);
+
+        $selectedCategory = null;
+        if (request('category')) {
+            $selectedCategory = \App\Models\Category::find(request('category'));
+            if ($selectedCategory) {
+                $query->where('category_id', $selectedCategory->id);
+            }
+        }
+
+        if (request('search')) {
+            $searchTerm = request('search');
+            $query->where('name', 'like', "%$searchTerm%");
+        }
+
+        $products = $query->latest()->get();
 
         $slides = \App\Models\CarouselSlide::where('is_active', true)
             ->orderBy('order')
             ->get();
 
-        return view('shop.index', compact('products', 'slides'));
+        $categories = \App\Models\Category::where('is_active', true)->get();
+
+        return view('shop.index', compact('products', 'slides', 'categories', 'selectedCategory'));
     }
 
     public function showProduct(Product $product)
@@ -545,9 +560,16 @@ class OnlineOrderController extends Controller
         ]);
     }
 
-    public function showTracking($orderNumber)
+    public function showTracking($orderNumber = null)
     {
-        $order = OnlineOrder::where('order_number', $orderNumber)->with(['items', 'rider', 'statusHistory'])->firstOrFail();
+        $order = null;
+        if ($orderNumber) {
+            $order = OnlineOrder::where('order_number', $orderNumber)->with(['items', 'rider', 'statusHistory'])->first();
+        }
+        // Also check request query parameter
+        if (!$order && request('order')) {
+            $order = OnlineOrder::where('order_number', request('order'))->with(['items', 'rider', 'statusHistory'])->first();
+        }
         return view('shop.tracking', compact('order'));
     }
 

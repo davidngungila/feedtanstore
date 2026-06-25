@@ -1,365 +1,482 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Order Tracking - {{ $order->order_number }}</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        * { font-family: 'Manrope', sans-serif; }
-        .status-pending { background-color: #fef3c7; color: #92400e; }
-        .status-confirmed { background-color: #dbeafe; color: #1e40af; }
-        .status-preparing { background-color: #fce7f3; color: #9d174d; }
-        .status-ready { background-color: #ddd6fe; color: #5b21b6; }
-        .status-out_for_delivery { background-color: #d1fae5; color: #065f46; }
-        .status-delivered { background-color: #d1fae5; color: #065f46; }
-        .status-cancelled { background-color: #fee2e2; color: #991b1b; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Track Order - Feedtan Store</title>
+<meta name="description" content="Track your order with Feedtan Store">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,600;0,9..144,700;0,9..144,900;1,9..144,500&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --green-900:#0F2A1F;
+  --green-700:#1B4332;
+  --green-600:#235A41;
+  --green-100:#E3EEE6;
+  --parchment:#F7F4ED;
+  --parchment-dim:#EFEADD;
+  --ink:#0D1B12;
+  --ink-soft:#4A5750;
+  --orange:#E8893A;
+  --orange-dark:#C96E22;
+  --red:#D64545;
+  --red-dim:#FBE7E7;
+  --white:#FFFFFF;
+  --line:#DBD4C2;
+
+  --font-display:'Fraunces', serif;
+  --font-body:'Inter', sans-serif;
+  --font-mono:'JetBrains Mono', monospace;
+
+  --radius-s:8px;
+  --radius-m:14px;
+  --radius-l:22px;
+  --shadow-card:0 2px 10px rgba(15,42,31,0.07), 0 1px 2px rgba(15,42,31,0.06);
+  --shadow-pop:0 18px 50px rgba(15,42,31,0.22);
+  --maxw:1240px;
+}
+
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  margin:0;
+  font-family:var(--font-body);
+  background:var(--parchment);
+  color:var(--ink);
+  -webkit-font-smoothing:antialiased;
+  line-height:1.5;
+}
+img{max-width:100%;display:block;}
+a{color:inherit;text-decoration:none;}
+button{font-family:inherit;cursor:pointer;}
+input,select,textarea{font-family:inherit;}
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px;}
+h1,h2,h3,h4{font-family:var(--font-display);margin:0;letter-spacing:-0.01em;}
+.mono{font-family:var(--font-mono);}
+
+:focus-visible{outline:2.5px solid var(--orange);outline-offset:2px;border-radius:4px;}
+
+@media (prefers-reduced-motion: reduce){
+  *{animation-duration:0.001ms !important;animation-iteration-count:1 !important;transition-duration:0.001ms !important;scroll-behavior:auto !important;}
+}
+
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  border:none;border-radius:999px;font-weight:700;font-size:15px;
+  padding:13px 24px;transition:transform .15s ease, box-shadow .15s ease, background .15s ease;
+  white-space:nowrap;
+}
+.btn:active{transform:scale(0.97);}
+.btn-primary{background:var(--orange);color:var(--white);box-shadow:0 6px 16px rgba(232,137,58,0.35);}
+.btn-primary:hover{background:var(--orange-dark);}
+.btn-dark{background:var(--green-700);color:var(--white);}
+.btn-dark:hover{background:var(--green-900);}
+.btn-outline{background:transparent;color:var(--green-700);border:1.5px solid var(--green-700);}
+.btn-outline:hover{background:var(--green-100);}
+.btn-ghost{background:transparent;color:var(--ink);border:1.5px solid var(--line);}
+.btn-ghost:hover{background:var(--white);}
+.btn-block{width:100%;}
+.btn-sm{padding:9px 16px;font-size:13.5px;}
+.btn:disabled{opacity:.45;cursor:not-allowed;transform:none;box-shadow:none;}
+
+.visually-hidden{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);}
+
+.topbar{background:var(--green-900);color:#CFE3D7;font-size:13px;}
+.topbar .wrap{display:flex;align-items:center;justify-content:space-between;padding:7px 24px;gap:12px;}
+.topbar-msg{display:flex;align-items:center;gap:8px;}
+.topbar-msg svg{flex-shrink:0;}
+
+header.site-header{
+  position:sticky;top:0;z-index:60;background:rgba(247,244,237,0.92);
+  backdrop-filter:blur(10px);border-bottom:1px solid var(--line);
+}
+.header-inner{display:flex;align-items:center;gap:20px;padding:14px 24px;}
+.logo{display:flex;align-items:center;gap:10px;font-family:var(--font-display);font-weight:800;font-size:23px;color:var(--green-900);flex-shrink:0;}
+.logo-mark{
+  width:38px;height:38px;border-radius:10px;background:var(--green-700);
+  display:flex;align-items:center;justify-content:center;color:var(--orange);
+  font-size:19px;font-weight:900;flex-shrink:0;
+}
+.logo-sub{display:block;font-family:var(--font-body);font-weight:600;font-size:10.5px;letter-spacing:.12em;color:var(--ink-soft);text-transform:uppercase;}
+
+.search-bar{
+  flex:1;display:flex;align-items:center;background:var(--white);border:1.5px solid var(--line);
+  border-radius:999px;padding:0 6px 0 16px;max-width:560px;transition:border-color .15s;
+}
+.search-bar:focus-within{border-color:var(--green-700);}
+.search-bar input{flex:1;border:none;background:transparent;padding:11px 8px;font-size:14.5px;outline:none;color:var(--ink);}
+.search-bar button{background:var(--green-700);color:#fff;border-radius:999px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+
+.header-actions{display:flex;align-items:center;gap:8px;flex-shrink:0;}
+.icon-btn{
+  position:relative;width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  background:transparent;border:none;color:var(--green-900);transition:background .15s;
+}
+.icon-btn:hover{background:var(--green-100);}
+.icon-btn .badge{
+  position:absolute;top:-2px;right:-2px;background:var(--orange);color:#fff;font-size:10.5px;font-weight:800;
+  min-width:18px;height:18px;border-radius:999px;display:flex;align-items:center;justify-content:center;padding:0 4px;
+  border:2px solid var(--parchment);
+}
+.nav-strip{border-top:1px solid var(--line);}
+.nav-strip .wrap{display:flex;gap:26px;padding:11px 24px;overflow-x:auto;scrollbar-width:none;}
+.nav-strip .wrap::-webkit-scrollbar{display:none;}
+.nav-strip a{font-size:13.5px;font-weight:600;color:var(--ink-soft);white-space:nowrap;transition:color .15s;display:flex;align-items:center;gap:6px;}
+.nav-strip a:hover, .nav-strip a.active{color:var(--green-700);}
+.nav-strip a.active{color:var(--orange-dark);}
+
+.mobile-search{display:none;padding:0 24px 14px;}
+
+.section{padding:40px 0;}
+.section-head{display:flex;align-items:baseline;justify-content:space-between;gap:16px;margin-bottom:28px;flex-wrap:wrap;}
+.section-head h2{font-size:clamp(24px,3vw,32px);font-weight:700;}
+.section-head .eyebrow{display:block;font-family:var(--font-body);font-size:12.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--orange-dark);margin-bottom:6px;}
+.section-head p{color:var(--ink-soft);font-size:14.5px;margin:6px 0 0;}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:13.5px;font-weight:700;color:var(--green-700);}
+
+.card{
+  background:var(--white);
+  border-radius:var(--radius-l);
+  box-shadow:var(--shadow-card);
+  padding:24px;
+  margin-bottom:24px;
+}
+
+.field{display:flex;flex-direction:column;gap:6px;margin-bottom:14px;}
+.field label{font-size:12.5px;font-weight:700;color:var(--ink-soft);}
+.field input, .field select, .field textarea{
+  border:1.5px solid var(--line);border-radius:var(--radius-s);padding:11px 13px;font-size:14px;color:var(--ink);
+  background:var(--white);outline:none;transition:border-color .15s;width:100%;
+}
+.field input:focus, .field select:focus, .field textarea:focus{border-color:var(--green-700);}
+
+.timeline{
+  position:relative;padding-left:30px;margin:20px 0;
+}
+.timeline::before{
+  content:'';position:absolute;left:9px;top:0;bottom:0;width:2px;background:var(--line);
+}
+.timeline-item{
+  position:relative;margin-bottom:20px;
+}
+.timeline-dot{
+  position:absolute;left:-29px;top:3px;width:20px;height:20px;border-radius:50%;background:var(--green-100);border:3px solid var(--green-700);
+}
+.timeline-item.completed .timeline-dot{
+  background:var(--green-700);border-color:var(--green-900);
+}
+.timeline-time{font-family:var(--font-mono);font-size:12.5px;color:var(--ink-soft);margin-bottom:4px;}
+.timeline-title{font-weight:700;font-size:14.5px;margin-bottom:2px;}
+.timeline-desc{font-size:13px;color:var(--ink-soft);}
+
+.order-summary{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin:16px 0;
+}
+.order-summary .stat{
+  padding:14px;background:var(--parchment);border-radius:var(--radius-m);
+}
+.order-summary .stat .label{font-size:12.5px;font-weight:600;color:var(--ink-soft);margin-bottom:4px;}
+.order-summary .stat .value{font-size:17px;font-weight:800;}
+
+.map-container{
+  width:100%;height:320px;border-radius:var(--radius-m);overflow:hidden;border:1px solid var(--line);
+  background:linear-gradient(135deg,var(--green-100),var(--parchment-dim));
+  display:flex;align-items:center;justify-content:center;flex-direction:column;
+  font-size:14px;color:var(--ink-soft);
+}
+.map-placeholder{
+  text-align:center;
+}
+
+footer{background:var(--green-900);color:#BFD6C8;padding:40px 0 0;margin-top:40px;}
+.footer-grid{display:grid;grid-template-columns:1.4fr 1fr 1fr 1.2fr;gap:34px;padding-bottom:40px;}
+.footer-grid h4{color:#fff;font-family:var(--font-body);font-size:13.5px;letter-spacing:.04em;text-transform:uppercase;margin-bottom:16px;}
+.footer-grid ul{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:10px;font-size:13.5px;}
+.footer-grid ul a:hover{color:#fff;}
+.footer-logo{display:flex;align-items:center;gap:10px;color:#fff;font-family:var(--font-display);font-weight:800;font-size:20px;margin-bottom:12px;}
+.footer-bottom{border-top:1px solid rgba(255,255,255,0.1);padding:18px 24px;display:flex;justify-content:space-between;font-size:12.5px;flex-wrap:wrap;gap:8px;}
+@media(max-width:760px){.footer-grid{grid-template-columns:1fr 1fr;}}
+@media(max-width:480px){.footer-grid{grid-template-columns:1fr;}}
+
+@media(max-width:880px){
+  .search-bar{display:none;}
+  .mobile-search{display:block;}
+  .logo-sub{display:none;}
+}
+@media(max-width:480px){
+  .header-inner{padding:12px 16px;gap:10px;}
+  .logo{font-size:19px;}
+  .logo-mark{width:32px;height:32px;font-size:16px;}
+  .wrap{padding:0 16px;}
+  .section{padding:38px 0;}
+}
+</style>
 </head>
-<body class="bg-gray-50 min-h-screen">
-    <!-- Top Header -->
-    <div class="bg-gradient-to-r from-green-600 to-green-700 text-white py-2">
-        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
-            <div class="flex items-center gap-4 text-sm">
-                <span class="flex items-center gap-2">
-                    <i class="fas fa-phone"></i>
-                    +255 700 000 000
-                </span>
-            </div>
-            <div class="flex items-center gap-4 text-sm">
-                <a href="#" class="hover:text-green-200 transition">
-                    <i class="fab fa-whatsapp text-lg"></i>
-                </a>
-                <a href="#" class="hover:text-green-200 transition">
-                    <i class="fab fa-facebook text-lg"></i>
-                </a>
-                <a href="#" class="hover:text-green-200 transition">
-                    <i class="fab fa-instagram text-lg"></i>
-                </a>
-                <a href="#" class="hover:text-green-200 transition">
-                    <i class="fab fa-twitter text-lg"></i>
-                </a>
-            </div>
-        </div>
+<body>
+
+<div class="topbar">
+  <div class="wrap">
+    <div class="topbar-msg">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+      <span>Free delivery on orders over TZS 50,000</span>
     </div>
-    
-    <!-- Main Header -->
-    <header class="bg-white shadow-sm sticky top-0 z-50">
-        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-            <a href="{{ route('shop.index') }}" class="flex items-center gap-3">
-                <img src="{{ asset('feedtanstorelogo.png') }}" alt="Feedtan Store" class="h-12">
-            </a>
-            <a href="{{ route('shop.index') }}" class="text-gray-600 hover:text-gray-900 font-medium flex items-center gap-2">
-                <i class="fas fa-arrow-left"></i>
-                <span class="hidden sm:inline">Back to Shop</span>
-            </a>
-        </div>
-    </header>
+    <div class="topbar-msg" id="topbarPhone">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.362 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.338 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+      <span>+255 700 000 000</span>
+    </div>
+  </div>
+</div>
 
-    <main class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <!-- Order Info -->
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6">
-            <div class="flex items-center justify-between mb-4">
-                <h1 class="text-2xl font-bold text-gray-900">Order Tracking</h1>
-                <span class="badge status-{{ $order->status }} px-4 py-2 rounded-full text-sm font-semibold">
-                    {{ ucwords(str_replace('_', ' ', $order->status)) }}
-                </span>
+<header class="site-header">
+  <div class="header-inner wrap">
+    <a href="{{ route('shop.index') }}" class="logo">
+      <span class="logo-mark">F</span>
+      <span>Feedtan<span class="logo-sub">Online Store</span></span>
+    </a>
+    <form class="search-bar" id="searchForm" role="search" action="{{ route('shop.index') }}">
+      <label for="searchInput" class="visually-hidden">Search products</label>
+      <input type="search" id="searchInput" name="search" placeholder="Search for rice, oil, fruits, electronics…" autocomplete="off" value="{{ request('search', '') }}">
+      <button type="submit" aria-label="Search">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+      </button>
+    </form>
+    <div class="header-actions">
+      <button class="icon-btn" id="mobileSearchToggle" aria-label="Toggle search" onclick="toggleMobileSearch()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+      </button>
+      <button class="icon-btn" aria-label="Wishlist" onclick="showToast('Saved items live in your wishlist','heart')">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.8 1-1a5.5 5.5 0 0 0 0-7.8z"/></svg>
+      </button>
+      <a href="{{ route('shop.tracking') }}" class="icon-btn" aria-label="Track my order" title="Track order">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="1.5"/><circle cx="18.5" cy="18.5" r="1.5"/></svg>
+      </a>
+      <button class="icon-btn" aria-label="Open cart" onclick="showToast('Cart is on previous page','info')">
+        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+      </button>
+    </div>
+  </div>
+  <div class="mobile-search" id="mobileSearchBox" style="display:none;">
+    <form class="search-bar" action="{{ route('shop.index') }}">
+      <input type="search" id="searchInputMobile" name="search" placeholder="Search products…" autocomplete="off" value="{{ request('search', '') }}">
+      <button type="submit" aria-label="Search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></button>
+    </form>
+  </div>
+  <nav class="nav-strip" aria-label="Primary">
+    <div class="wrap">
+      <a href="{{ route('shop.index') }}">Home</a>
+      <a href="{{ route('shop.index') }}#shop">Shop All</a>
+      <a href="{{ route('shop.tracking') }}" class="active">Track Order</a>
+    </div>
+  </nav>
+</header>
+
+<main id="mainContent">
+  <section class="section">
+    <div class="wrap">
+      <a href="{{ route('shop.index') }}" class="back-link">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m15 18-6-6 6-6"/></svg> Back to store
+      </a>
+    </div>
+    <div class="wrap" style="margin-top:24px;">
+      <div class="section-head">
+        <div>
+          <span class="eyebrow">Track</span>
+          <h1>Track your order</h1>
+        </div>
+      </div>
+
+      <div class="card">
+        <form id="trackForm">
+          <div class="field">
+            <label for="orderNumber">Order Number</label>
+            <input type="text" id="orderNumber" placeholder="Enter your order number" value="{{ request('order', '') }}">
+          </div>
+          <button type="submit" class="btn btn-primary">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+            Track Order
+          </button>
+        </form>
+      </div>
+
+      @if(isset($order))
+      <div class="card" id="orderDetails">
+        <h2 style="margin-bottom:8px;">Order #{{ $order->order_number }}</h2>
+        <p style="margin:0 0 16px 0;color:var(--ink-soft);font-size:14px;">Placed on {{ $order->created_at->format('M d, Y • h:i A') }}</p>
+
+        <div class="order-summary">
+          <div class="stat">
+            <div class="label">Status</div>
+            <div class="value" style="color:var(--green-700);">{{ ucfirst($order->status) }}</div>
+          </div>
+          <div class="stat">
+            <div class="label">Customer</div>
+            <div class="value">{{ $order->customer_name }}</div>
+          </div>
+          <div class="stat">
+            <div class="label">Total</div>
+            <div class="value">TZS {{ number_format($order->total, 0) }}</div>
+          </div>
+          <div class="stat">
+            <div class="label">Payment Method</div>
+            <div class="value">{{ ucfirst($order->payment_method ?? 'Cash') }}</div>
+          </div>
+        </div>
+
+        <div style="margin-top:24px;">
+          <h3 style="margin-bottom:16px;">Order Timeline</h3>
+          <div class="timeline">
+            <div class="timeline-item completed">
+              <div class="timeline-dot"></div>
+              <div class="timeline-time">{{ $order->created_at->format('M d, h:i A') }}</div>
+              <div class="timeline-title">Order Placed</div>
+              <div class="timeline-desc">Your order has been placed successfully.</div>
             </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                <div>
-                    <p class="text-gray-500">Order Number</p>
-                    <p class="font-semibold text-gray-900">{{ $order->order_number }}</p>
-                </div>
-                <div>
-                    <p class="text-gray-500">Order Date</p>
-                    <p class="font-semibold text-gray-900">{{ $order->created_at->format('M d, Y h:i A') }}</p>
-                </div>
-                <div>
-                    <p class="text-gray-500">Customer</p>
-                    <p class="font-semibold text-gray-900">{{ $order->customer_name }}</p>
-                </div>
-                <div>
-                    <p class="text-gray-500">Phone</p>
-                    <p class="font-semibold text-gray-900">{{ $order->customer_phone }}</p>
-                </div>
-                <div>
-                    <p class="text-gray-500">Payment Method</p>
-                    <p class="font-semibold text-gray-900">
-                        @if($order->payment_method === 'cash')
-                            Cash
-                        @elseif($order->payment_method === 'online')
-                            Online Payment
-                        @elseif($order->payment_method === 'bank')
-                            Bank Transfer
-                        @else
-                            N/A
-                        @endif
-                    </p>
-                </div>
-                <div>
-                    <p class="text-gray-500">Payment Status</p>
-                    <p class="font-semibold text-gray-900">
-                        <span class="{{ $order->payment_status === 'paid' ? 'text-green-600' : ($order->payment_status === 'failed' ? 'text-red-600' : 'text-yellow-600') }}">
-                            {{ ucfirst($order->payment_status) }}
-                        </span>
-                        @if($order->clickpesa_status)
-                            <span class="text-gray-400 text-xs ml-2">({{ $order->clickpesa_status }})</span>
-                        @endif
-                    </p>
-                </div>
-                @if($order->payment_transaction_id)
-                <div>
-                    <p class="text-gray-500">Transaction ID</p>
-                    <p class="font-semibold text-gray-900 text-xs">{{ $order->payment_transaction_id }}</p>
-                </div>
-                @endif
+
+            @if(in_array($order->status, ['confirmed', 'preparing', 'ready', 'out_for_delivery', 'delivered']))
+            <div class="timeline-item completed">
+              <div class="timeline-dot"></div>
+              <div class="timeline-time">{{ $order->created_at->format('M d, h:i A') }}</div>
+              <div class="timeline-title">Order Confirmed</div>
+              <div class="timeline-desc">We've received and confirmed your order.</div>
             </div>
-            @if(in_array($order->payment_status, ['pending']))
-                <div class="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                    <p class="text-yellow-800 font-medium mb-2">
-                        <i class="fas fa-info-circle mr-2"></i>
-                        Checking payment status...
-                    </p>
-                    <p class="text-sm text-yellow-700" id="paymentStatusText">Please wait while we confirm your payment.</p>
-                </div>
             @endif
+
+            @if(in_array($order->status, ['preparing', 'ready', 'out_for_delivery', 'delivered']))
+            <div class="timeline-item completed">
+              <div class="timeline-dot"></div>
+              <div class="timeline-time">{{ $order->created_at->addMinutes(30)->format('M d, h:i A') }}</div>
+              <div class="timeline-title">Preparing Order</div>
+              <div class="timeline-desc">Your order is being prepared.</div>
+            </div>
+            @endif
+
+            @if(in_array($order->status, ['ready', 'out_for_delivery', 'delivered']))
+            <div class="timeline-item completed">
+              <div class="timeline-dot"></div>
+              <div class="timeline-time">{{ $order->created_at->addMinutes(60)->format('M d, h:i A') }}</div>
+              <div class="timeline-title">Ready for Delivery</div>
+              <div class="timeline-desc">Your order is ready to be delivered.</div>
+            </div>
+            @endif
+
+            @if(in_array($order->status, ['out_for_delivery', 'delivered']))
+            <div class="timeline-item completed">
+              <div class="timeline-dot"></div>
+              <div class="timeline-time">{{ $order->created_at->addMinutes(90)->format('M d, h:i A') }}</div>
+              <div class="timeline-title">Out for Delivery</div>
+              <div class="timeline-desc">Your order is on its way to you.</div>
+            </div>
+            @endif
+
+            @if($order->status === 'delivered')
+            <div class="timeline-item completed">
+              <div class="timeline-dot"></div>
+              <div class="timeline-time">{{ $order->updated_at->format('M d, h:i A') }}</div>
+              <div class="timeline-title">Delivered</div>
+              <div class="timeline-desc">Your order has been delivered. Thank you!</div>
+            </div>
+            @endif
+          </div>
         </div>
 
-        <!-- Delivery Address -->
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6">
-            <h2 class="text-lg font-semibold text-gray-900 mb-3">Delivery Address</h2>
-            <p class="text-gray-700 mb-4">{{ $order->delivery_address }}</p>
-            
+        @if($order->delivery_address)
+        <div style="margin-top:24px;">
+          <h3 style="margin-bottom:16px;">Delivery Address</h3>
+          <div class="card" style="margin-bottom:0;background:var(--parchment);">
+            <p style="margin:0;font-size:14.5px;">{{ $order->delivery_address }}</p>
             @if($order->delivery_latitude && $order->delivery_longitude)
-                <div class="p-4 bg-gray-50 border border-gray-200 rounded-lg flex items-center gap-3">
-                    <i class="fas fa-map-marker-alt text-green-600 text-xl"></i>
-                    <div class="flex-1">
-                        <p class="text-sm font-medium text-gray-800">Delivery Coordinates</p>
-                        <p class="text-xs text-gray-500 mt-1">{{ number_format($order->delivery_latitude, 6) }}, {{ number_format($order->delivery_longitude, 6) }}</p>
-                    </div>
-                    <a href="https://www.google.com/maps?q={{ $order->delivery_latitude }},{{ $order->delivery_longitude }}" target="_blank" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition flex items-center gap-2">
-                        <i class="fas fa-external-link-alt text-xs"></i> View Map
-                    </a>
-                </div>
+            <div class="map-container" style="margin-top:16px;">
+              <div class="map-placeholder">
+                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="var(--green-700)" stroke-width="1.5" style="margin-bottom:8px;"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+                <p style="margin:0;">Location: {{ $order->delivery_latitude }}, {{ $order->delivery_longitude }}</p>
+              </div>
+            </div>
             @endif
+          </div>
         </div>
+        @endif
+      </div>
+      @endif
+    </div>
+  </section>
+</main>
 
-        <!-- Status Timeline -->
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6">
-            <h2 class="text-lg font-semibold text-gray-900 mb-4">Order Status</h2>
-            <div class="space-y-4">
-                @php
-                    $statuses = [
-                        'pending' => 'Order Placed',
-                        'confirmed' => 'Order Confirmed',
-                        'preparing' => 'Preparing Your Order',
-                        'ready' => 'Ready for Pickup',
-                        'out_for_delivery' => 'Out for Delivery',
-                        'delivered' => 'Delivered'
-                    ];
-                    $statusIndex = array_search($order->status, array_keys($statuses));
-                @endphp
-                @foreach($statuses as $status => $label)
-                    @php
-                        $currentIndex = array_search($status, array_keys($statuses));
-                        $isCompleted = $currentIndex <= $statusIndex;
-                        $isActive = $status === $order->status;
-                    @endphp
-                    <div class="flex items-center gap-4">
-                        <div class="flex flex-col items-center">
-                            <div class="w-8 h-8 rounded-full flex items-center justify-center {{ $isCompleted ? 'bg-green-600' : 'bg-gray-300' }}">
-                                <i class="fas fa-check text-white text-xs"></i>
-                            </div>
-                            @if(!$loop->last)
-                                <div class="w-0.5 h-10 {{ $isCompleted ? 'bg-green-600' : 'bg-gray-300' }}"></div>
-                            @endif
-                        </div>
-                        <div class="flex-1">
-                            <p class="font-semibold {{ $isActive ? 'text-green-600' : 'text-gray-600' }}">{{ $label }}</p>
-                        </div>
-                    </div>
-                @endforeach
-            </div>
-        </div>
+<footer>
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="footer-logo"><span class="logo-mark" style="background:var(--orange);color:var(--green-900);">F</span> Feedtan Store</div>
+        <p style="font-size:13.5px;line-height:1.7;max-width:280px;">Quality products at unbeatable prices, delivered right to your door — or ready when you walk in.</p>
+      </div>
+      <div>
+        <h4>Shop</h4>
+        <ul>
+          <li><a href="{{ route('shop.index') }}">All Products</a></li>
+          <li><a href="{{ route('shop.tracking') }}">Track Order</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Support</h4>
+        <ul>
+          <li><a href="#" onclick="showToast('Reach us on +255 700 000 000','phone')">Contact us</a></li>
+          <li><a href="#" onclick="showToast('Returns accepted within 48 hours of delivery','info')">Returns policy</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Visit our store</h4>
+        <ul>
+          <li>Mlimani City Road, Dar es Salaam</li>
+          <li>Open daily · 8:00 AM – 9:00 PM</li>
+          <li>+255 700 000 000</li>
+          <li>hello@feedtan.store</li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© {{ date('Y') }} Feedtan Store. All rights reserved.</span>
+      <span>Built with care for everyday shoppers.</span>
+    </div>
+  </div>
+</footer>
 
-        <!-- Order Items -->
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6">
-            <h2 class="text-lg font-semibold text-gray-900 mb-4">Order Items</h2>
-            <div class="divide-y divide-gray-100">
-                @foreach($order->items as $item)
-                    <div class="flex items-center justify-between py-4">
-                        <div class="flex items-center gap-4">
-                            <div class="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
-                                <i class="fas fa-box text-gray-400"></i>
-                            </div>
-                            <div>
-                                <p class="font-medium text-gray-900">{{ $item->product->name ?? 'Product' }}</p>
-                                <p class="text-sm text-gray-500">{{ $item->quantity }} x TZS {{ number_format($item->price, 2) }}</p>
-                            </div>
-                        </div>
-                        <p class="font-semibold text-gray-900">TZS {{ number_format($item->total, 2) }}</p>
-                    </div>
-                @endforeach
-            </div>
-            <div class="border-t border-gray-100 pt-4 mt-4">
-                <div class="flex justify-between text-sm mb-2">
-                    <span class="text-gray-500">Subtotal</span>
-                    <span class="text-gray-900">TZS {{ number_format($order->subtotal, 2) }}</span>
-                </div>
-                <div class="flex justify-between text-sm mb-2">
-                    <span class="text-gray-500">Delivery Fee</span>
-                    <span class="text-gray-900">TZS {{ number_format($order->delivery_fee, 2) }}</span>
-                </div>
-                <div class="flex justify-between text-lg font-bold">
-                    <span class="text-gray-900">Total</span>
-                    <span class="text-green-700">TZS {{ number_format($order->total, 2) }}</span>
-                </div>
-            </div>
-        </div>
+<div id="toast" class="toast" style="position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--green-900);color:#fff;padding:13px 22px;border-radius:999px;font-size:13.5px;font-weight:600;z-index:400;box-shadow:var(--shadow-pop);display:flex;align-items:center;gap:10px;opacity:0;visibility:hidden;transition:all .25s ease;"></div>
 
-        <!-- Real-time Map -->
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6">
-            <h2 class="text-lg font-semibold text-gray-900 mb-4">Live Delivery Tracking</h2>
-            <div id="map" class="w-full h-[400px] rounded-lg"></div>
-        </div>
+<script>
+function showToast(msg, icon) {
+  const toast = document.getElementById('toast');
+  const icons = {
+    heart:'<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-7-4.6-9.5-9C0.7 8.6 2 5 5.3 4.2 7.5 3.6 9.6 4.8 12 7.5c2.4-2.7 4.5-3.9 6.7-3.3C22 5 23.3 8.6 21.5 12 19 16.4 12 21 12 21z"/></svg>',
+    info:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>',
+    phone:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.338 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>',
+    cart:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>'
+  };
+  toast.innerHTML = (icons[icon] || icons.info) + '<span>'+msg+'</span>';
+  toast.classList.add('show');
+  toast.style.opacity = '1';
+  toast.style.visibility = 'visible';
+  toast.style.transform = 'translateX(-50%) translateY(0)';
+  clearTimeout(window._toastTimer);
+  window._toastTimer = setTimeout(() => {
+    toast.classList.remove('show');
+    toast.style.opacity = '0';
+    toast.style.visibility = 'hidden';
+    toast.style.transform = 'translateX(-50%) translateY(20px)';
+  }, 2800);
+}
 
-        <!-- Action Buttons -->
-        <div class="text-center flex flex-wrap justify-center gap-4">
-            <a href="{{ route('shop.tracking.pdf', $order->order_number) }}" class="inline-flex items-center gap-2 bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700 transition">
-                <i class="fas fa-download"></i> Download PDF
-            </a>
-            <a href="{{ route('online.tracking.show', $order->order_number) }}" class="inline-flex items-center gap-2 bg-purple-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-purple-700 transition">
-                <i class="fas fa-map-marked-alt"></i> Track Delivery
-            </a>
-            <a href="{{ route('shop.index') }}" class="inline-flex items-center gap-2 bg-green-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-green-700 transition">
-                <i class="fas fa-arrow-left"></i> Continue Shopping
-            </a>
-        </div>
-    </main>
+function toggleMobileSearch() {
+  const box = document.getElementById('mobileSearchBox');
+  box.style.display = box.style.display === 'none' ? 'block' : 'none';
+}
 
-    <footer class="bg-gray-900 text-white py-6 mt-12">
-        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <p class="text-gray-400">&copy; 2024 Feedtan Store. All rights reserved.</p>
-        </div>
-    </footer>
-
-    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
-    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const orderNumber = '{{ $order->order_number }}';
-            const paymentStatusText = document.getElementById('paymentStatusText');
-            
-            // Initialize map
-            const map = L.map('map');
-            const osmLayer = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            }).addTo(map);
-            
-            // Markers
-            let storeMarker = null;
-            let deliveryMarker = null;
-            let riderMarker = null;
-            
-            // Function to refresh tracking data
-            async function refreshTracking() {
-                try {
-                    const response = await fetch(`/api/tracking/${orderNumber}`);
-                    const data = await response.json();
-                    
-                    // Set initial view
-                    if (data.order.delivery_latitude && data.order.delivery_longitude) {
-                        map.setView([data.order.delivery_latitude, data.order.delivery_longitude], 13);
-                    } else {
-                        map.setView([-3.3869, 36.6883], 10);
-                    }
-                    
-                    // Store marker
-                    if (!storeMarker) {
-                        storeMarker = L.marker([data.storeLat, data.storeLng])
-                            .addTo(map)
-                            .bindPopup('<b>Store</b>');
-                    }
-                    
-                    // Delivery marker
-                    if (data.order.delivery_latitude && data.order.delivery_longitude) {
-                        if (deliveryMarker) {
-                            deliveryMarker.setLatLng([data.order.delivery_latitude, data.order.delivery_longitude]);
-                        } else {
-                            deliveryMarker = L.circleMarker([data.order.delivery_latitude, data.order.delivery_longitude], {
-                                radius: 10,
-                                fillColor: '#3b82f6',
-                                color: '#fff',
-                                weight: 3,
-                                fillOpacity: 0.8
-                            }).addTo(map).bindPopup(`<b>Delivery Location</b><br>${data.order.delivery_address}`);
-                        }
-                    }
-                    
-                    // Rider marker
-                    if (data.rider && data.current_location) {
-                        if (riderMarker) {
-                            riderMarker.setLatLng([data.current_location.latitude, data.current_location.longitude]);
-                        } else {
-                            riderMarker = L.marker([data.current_location.latitude, data.current_location.longitude])
-                                .addTo(map)
-                                .bindPopup(`<b>Rider: ${data.rider.name}</b>`);
-                        }
-                    } else if (riderMarker) {
-                        map.removeLayer(riderMarker);
-                        riderMarker = null;
-                    }
-                } catch (err) {
-                    console.error('Error refreshing tracking:', err);
-                }
-            }
-            
-            // Refresh tracking every 3 seconds
-            refreshTracking();
-            setInterval(refreshTracking, 3000);
-            
-            if (paymentStatusText) {
-                let pollCount = 0;
-                const maxPolls = 60; // Poll for 5 minutes max
-                
-                const checkPaymentStatus = async function() {
-                    try {
-                        const response = await fetch(`/api/shop/orders/${orderNumber}/payment-status`);
-                        const data = await response.json();
-                        
-                        if (data.success) {
-                            const clickpesaStatus = data.data.status;
-                            paymentStatusText.textContent = `Payment status: ${clickpesaStatus}`;
-                            
-                            if (['SUCCESS', 'SETTLED', 'FAILED', 'DECLINED', 'CANCELLED'].includes(clickpesaStatus)) {
-                                // Reload page to show updated status
-                                setTimeout(() => {
-                                    window.location.reload();
-                                }, 2000);
-                                return;
-                            }
-                        }
-                        
-                        pollCount++;
-                        if (pollCount < maxPolls) {
-                            setTimeout(checkPaymentStatus, 5000); // Check every 5 seconds
-                        }
-                    } catch (err) {
-                        console.error('Error checking payment status:', err);
-                        pollCount++;
-                        if (pollCount < maxPolls) {
-                            setTimeout(checkPaymentStatus, 5000);
-                        }
-                    }
-                };
-                
-                checkPaymentStatus();
-            }
-        });
-    </script>
+document.getElementById('trackForm').addEventListener('submit', function(e) {
+  e.preventDefault();
+  const orderNumber = document.getElementById('orderNumber').value.trim();
+  if (orderNumber) {
+    window.location.href = `{{ route('shop.tracking') }}?order=${encodeURIComponent(orderNumber)}`;
+  }
+});
+</script>
 </body>
 </html>
