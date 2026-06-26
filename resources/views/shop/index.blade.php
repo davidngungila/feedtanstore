@@ -186,8 +186,13 @@ header.site-header{
 .section-head p{color:var(--ink-soft);font-size:14.5px;margin:6px 0 0;}
 .see-all{font-size:13.5px;font-weight:700;color:var(--green-700);display:flex;align-items:center;gap:5px;flex-shrink:0;}
 .see-all:hover{color:var(--orange-dark);}
+.section-head-centered{justify-content:center;text-align:center;margin-bottom:20px;}
+.section-head-centered > div{max-width:640px;}
+.section-head-catalog{justify-content:center;text-align:center;flex-direction:column;align-items:center;margin-bottom:30px;}
+.section-head-catalog > div{max-width:640px;}
+.section-head-catalog .see-all{margin-top:2px;}
 
-.cat-row{display:flex;gap:12px;overflow-x:auto;padding-bottom:6px;margin-bottom:36px;scrollbar-width:none;}
+.cat-row{display:flex;gap:12px;overflow-x:auto;padding-bottom:6px;margin-bottom:36px;scrollbar-width:none;justify-content:center;flex-wrap:wrap;}
 .cat-row::-webkit-scrollbar{display:none;}
 .cat-chip{
   flex-shrink:0;display:flex;align-items:center;gap:9px;background:#fff;border:1.5px solid var(--line);
@@ -202,6 +207,7 @@ header.site-header{
 @media(max-width:1080px){.product-grid{grid-template-columns:repeat(3,1fr);}}
 @media(max-width:760px){.product-grid{grid-template-columns:repeat(2,1fr);gap:14px;}}
 @media(max-width:420px){.product-grid{grid-template-columns:1fr 1fr;gap:10px;}}
+@media(max-width:760px){.cat-row{justify-content:flex-start;flex-wrap:nowrap;}}
 
 .p-card{
   background:#fff;border-radius:var(--radius-m);overflow:hidden;box-shadow:var(--shadow-card);
@@ -414,10 +420,10 @@ footer{background:var(--green-900);color:#BFD6C8;padding:54px 0 0;margin-top:30p
 
   <section class="section" id="shop">
     <div class="wrap">
-      <div class="section-head">
+      <div class="section-head section-head-centered">
         <div>
-          <span class="eyebrow">Categories</span>
-          <h2>Shop by department</h2>
+          
+          <h2>Shop by category</h2>
         </div>
       </div>
       <div class="cat-row" id="catRow">
@@ -431,17 +437,13 @@ footer{background:var(--green-900);color:#BFD6C8;padding:54px 0 0;margin-top:30p
         @endforeach
       </div>
 
-      <div class="section-head">
-        <div>
-          <span class="eyebrow" id="resultsEyebrow">Catalog</span>
-          <h2 id="resultsHeading">{{ request('category') ? (isset($selectedCategory) ? $selectedCategory->name : 'All Products') : (request('search') ? 'Results for "'.request('search').'"' : 'All products') }}</h2>
-          <p id="resultsCount">{{ $products->count() }} item{{ $products->count() !== 1 ? 's' : '' }} found</p>
-        </div>
-        <a class="see-all" href="{{ route('shop.index') }}">
-          Reset filters
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M3 12a9 9 0 1 0 2.6-6.4M3 4v6h6"/></svg>
-        </a>
-      </div>
+
+
+
+
+
+
+
       <div class="product-grid" id="productGrid">
         @foreach($products as $product)
           @php
