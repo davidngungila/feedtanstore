@@ -61,7 +61,7 @@
                     </div>
                     <div class="mb-4">
                         <div id="scannerStatus" class="mb-2 text-sm text-gray-500">Camera scanner is off.</div>
-                        <div id="qrScanner" class="w-full max-w-[340px] h-[190px] mx-auto rounded-lg border border-gray-300 overflow-hidden bg-black"></div>
+                        <div id="qrScanner" class="w-full min-h-[300px] rounded-lg border border-gray-300 overflow-hidden bg-black"></div>
                     </div>
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Or enter barcode/SKU manually:</label>
@@ -278,7 +278,7 @@ async function startScanner() {
             cameraConfig,
             {
                 fps: 10,
-                qrbox: { width: 220, height: 120 },
+                qrbox: { width: 280, height: 170 },
                 aspectRatio: 1.777778,
                 formatsToSupport: [
                     Html5QrcodeSupportedFormats.CODE_128,
