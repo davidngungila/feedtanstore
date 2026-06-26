@@ -305,7 +305,19 @@ footer{background:var(--green-900);color:#BFD6C8;padding:54px 0 0;margin-top:40p
     <div class="wrap" style="margin-top:24px;">
       @php
         $primaryImage = $product->images->firstWhere('is_primary', true);
-        $imageToShow = $primaryImage ? asset('storage/' . $primaryImage->image_path) : ($product->image ? asset($product->image) : 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=500&q=80');
+        $resolveImageUrl = function ($path) {
+          if (!$path) {
+            return null;
+          }
+
+          if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://') || str_starts_with($path, '/')) {
+            return $path;
+          }
+
+          return asset('storage/' . ltrim($path, '/'));
+        };
+
+        $imageToShow = $resolveImageUrl($primaryImage?->image_path) ?? $resolveImageUrl($product->image) ?? 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=500&q=80';
         $oldPrice = $product->old_price ?? null;
       @endphp
       <div class="pd-grid">
@@ -314,8 +326,9 @@ footer{background:var(--green-900);color:#BFD6C8;padding:54px 0 0;margin-top:40p
           @if($product->images->count() > 1)
             <div class="pd-thumbs">
               @foreach($product->images as $img)
-                <button class="pd-thumb {{ $img->is_primary ? 'active' : '' }}" onclick="changeImage('{{ asset('storage/' . $img->image_path) }}', this)">
-                  <img src="{{ asset('storage/' . $img->image_path) }}" alt="{{ $product->name }}">
+                @php $thumbImage = $resolveImageUrl($img->image_path); @endphp
+                <button class="pd-thumb {{ $img->is_primary ? 'active' : '' }}" onclick="changeImage('{{ $thumbImage }}', this)">
+                  <img src="{{ $thumbImage }}" alt="{{ $product->name }}">
                 </button>
               @endforeach
             </div>

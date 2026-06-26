@@ -448,7 +448,19 @@ footer{background:var(--green-900);color:#BFD6C8;padding:54px 0 0;margin-top:30p
         @foreach($products as $product)
           @php
             $primaryImage = $product->images->firstWhere('is_primary', true);
-            $imageToShow = $primaryImage ? asset('storage/' . $primaryImage->image_path) : ($product->image ? asset($product->image) : 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=500&q=80');
+            $resolveImageUrl = function ($path) {
+              if (!$path) {
+                return null;
+              }
+
+              if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://') || str_starts_with($path, '/')) {
+                return $path;
+              }
+
+              return asset('storage/' . ltrim($path, '/'));
+            };
+
+            $imageToShow = $resolveImageUrl($primaryImage?->image_path) ?? $resolveImageUrl($product->image) ?? 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=500&q=80';
             $oldPrice = $product->old_price ?? null;
             $badge = $oldPrice ? '-'.round((($oldPrice - $product->selling_price)/$oldPrice)*100).'%' : null;
           @endphp
