@@ -35,16 +35,29 @@
                     <div>
                         <h2 class="text-lg font-bold text-primary-900 mb-3">Scan & Search Products</h2>
                         <div class="mb-3 p-2 bg-green-50 border border-green-200 rounded-lg">
-                            <p class="text-xs text-green-700"><i class="fas fa-barcode mr-2"></i>Scan barcode anywhere on this page to add product to cart automatically!</p>
+                            <p class="text-xs text-green-700"><i class="fas fa-barcode mr-2"></i>Use a barcode scanner, your phone/PC camera, or manual code entry to add products fast.</p>
                         </div>
                         <div class="flex gap-2 items-center mb-3">
                             <div class="flex-1 relative">
                                 <i class="fas fa-barcode absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
-                                <input type="text" id="barcodeInput" placeholder="Scan Barcode..." class="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm" autofocus>
+                                <input type="text" id="barcodeInput" placeholder="Scan or type barcode / SKU..." class="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm" autofocus>
                             </div>
                             <div class="text-green-600 text-sm font-medium scan-indicator">
                                 <i class="fas fa-circle mr-1 text-xs"></i>Scan Ready
                             </div>
+                        </div>
+                        <div class="flex flex-wrap gap-2 mb-3">
+                            <button type="button" id="openCashierCameraBtn" onclick="startCashierCameraScanner()" class="px-3 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg text-sm font-medium">
+                                <i class="fas fa-camera mr-1"></i>Scan With Camera
+                            </button>
+                            <button type="button" id="stopCashierCameraBtn" onclick="stopCashierCameraScanner()" class="px-3 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hidden">
+                                <i class="fas fa-stop-circle mr-1"></i>Stop Camera
+                            </button>
+                            <span id="cashierScannerStatus" class="text-xs text-gray-500 flex items-center">Camera scanner is off.</span>
+                        </div>
+                        <div id="cashierCameraPanel" class="hidden mb-3 border border-gray-200 rounded-xl p-3 bg-gray-50">
+                            <div id="cashierScannerViewport" class="w-full min-h-[260px] rounded-lg overflow-hidden bg-black"></div>
+                            <p class="mt-2 text-xs text-gray-500">Point the camera at a product barcode. Supported on phone and desktop cameras.</p>
                         </div>
                         <div class="relative">
                             <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
@@ -315,6 +328,7 @@
     </div>
 </div>
 
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <script>
 let cart = [];
 let selectedPaymentMethod = 'cash';
@@ -322,6 +336,10 @@ let productsData = @json($products).map(p => ({...p, selling_price: parseFloat(p
 let customersData = @json($customers);
 let currentSaleId = null;
 let isProcessing = false;
+let cashierQrScanner = null;
+let cashierScannerActive = false;
+let cashierLastScannedCode = null;
+let cashierLastScanAt = 0;
 let dashboardData = {
     todaySales: 0,
     shiftSales: 0,
@@ -435,6 +453,10 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
     }
+});
+
+window.addEventListener('beforeunload', function() {
+    stopCashierCameraScanner();
 });
 
 function showCreateCustomerModal() {
@@ -698,6 +720,109 @@ function setupBarcodeScanner() {
     });
 }
 
+function updateCashierScannerStatus(message, tone = 'muted') {
+    const status = document.getElementById('cashierScannerStatus');
+    if (!status) return;
+    status.textContent = message;
+    status.classList.remove('text-gray-500', 'text-green-600', 'text-red-600', 'text-blue-600');
+    status.classList.add(
+        tone === 'success' ? 'text-green-600' :
+        tone === 'error' ? 'text-red-600' :
+        tone === 'info' ? 'text-blue-600' :
+        'text-gray-500'
+    );
+}
+
+function handleCashierScannedCode(code) {
+    const normalized = String(code || '').trim();
+    if (!normalized) return;
+
+    const now = Date.now();
+    if (cashierLastScannedCode === normalized && (now - cashierLastScanAt) < 1500) {
+        return;
+    }
+
+    cashierLastScannedCode = normalized;
+    cashierLastScanAt = now;
+    addProductByBarcode(normalized);
+}
+
+async function startCashierCameraScanner() {
+    if (cashierScannerActive) return;
+    if (typeof Html5Qrcode === 'undefined') {
+        updateCashierScannerStatus('Camera scanner library failed to load.', 'error');
+        return;
+    }
+
+    const panel = document.getElementById('cashierCameraPanel');
+    const openBtn = document.getElementById('openCashierCameraBtn');
+    const stopBtn = document.getElementById('stopCashierCameraBtn');
+    if (panel) panel.classList.remove('hidden');
+    if (openBtn) openBtn.classList.add('hidden');
+    if (stopBtn) stopBtn.classList.remove('hidden');
+    updateCashierScannerStatus('Starting camera scanner...', 'info');
+
+    try {
+        cashierQrScanner = new Html5Qrcode('cashierScannerViewport');
+        const cameras = await Html5Qrcode.getCameras();
+        const backCamera = cameras.find(camera => /back|rear|environment/i.test(camera.label));
+        const cameraConfig = backCamera ? { deviceId: { exact: backCamera.id } } : { facingMode: 'environment' };
+
+        await cashierQrScanner.start(
+            cameraConfig,
+            {
+                fps: 10,
+                qrbox: { width: 260, height: 160 },
+                aspectRatio: 1.777778,
+                formatsToSupport: [
+                    Html5QrcodeSupportedFormats.CODE_128,
+                    Html5QrcodeSupportedFormats.CODE_39,
+                    Html5QrcodeSupportedFormats.CODE_93,
+                    Html5QrcodeSupportedFormats.EAN_13,
+                    Html5QrcodeSupportedFormats.EAN_8,
+                    Html5QrcodeSupportedFormats.UPC_A,
+                    Html5QrcodeSupportedFormats.UPC_E,
+                    Html5QrcodeSupportedFormats.QR_CODE
+                ]
+            },
+            decodedText => handleCashierScannedCode(decodedText),
+            () => {}
+        );
+
+        cashierScannerActive = true;
+        updateCashierScannerStatus('Camera scanner is live. Point it at a barcode.', 'success');
+    } catch (error) {
+        console.error('Failed to start cashier camera scanner', error);
+        cashierScannerActive = false;
+        updateCashierScannerStatus('Unable to start camera scanner. Check camera permission.', 'error');
+        stopCashierCameraScanner();
+    }
+}
+
+async function stopCashierCameraScanner() {
+    const panel = document.getElementById('cashierCameraPanel');
+    const openBtn = document.getElementById('openCashierCameraBtn');
+    const stopBtn = document.getElementById('stopCashierCameraBtn');
+
+    try {
+        if (cashierQrScanner) {
+            if (cashierScannerActive) {
+                await cashierQrScanner.stop();
+            }
+            await cashierQrScanner.clear();
+        }
+    } catch (error) {
+        console.error('Failed to stop cashier camera scanner', error);
+    } finally {
+        cashierQrScanner = null;
+        cashierScannerActive = false;
+        if (panel) panel.classList.add('hidden');
+        if (openBtn) openBtn.classList.remove('hidden');
+        if (stopBtn) stopBtn.classList.add('hidden');
+        updateCashierScannerStatus('Camera scanner is off.', 'muted');
+    }
+}
+
 function setupProductSearch() {
     const searchInput = document.getElementById('searchProduct');
     const searchResults = document.getElementById('searchResults');
@@ -744,9 +869,19 @@ function setupProductSearch() {
 }
 
 function addProductByBarcode(barcode) {
-    const product = productsData.find(p => p.barcode === barcode);
+    const normalized = String(barcode || '').trim();
+    if (!normalized) {
+        document.getElementById('barcodeInput').value = '';
+        return;
+    }
+
+    const product = productsData.find(p => p.barcode === normalized || p.sku === normalized);
     if (product) {
         addProductToCart(product.id, product.name, parseFloat(product.selling_price));
+        updateCashierScannerStatus('Added ' + product.name + ' from scan.', 'success');
+    } else {
+        showNotification('No product found for code: ' + normalized, 'error');
+        updateCashierScannerStatus('No product found for code: ' + normalized, 'error');
     }
     document.getElementById('barcodeInput').value = '';
 }
