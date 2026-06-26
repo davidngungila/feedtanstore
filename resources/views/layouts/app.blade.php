@@ -261,7 +261,12 @@
        x-transition:leave-end="opacity-0"
        class="fixed inset-0 z-[9999] bg-white/80 backdrop-blur-md flex items-center justify-center">
     <div class="text-center">
-      <div class="w-20 h-20 border-4 border-primary-200 border-t-primary-600 rounded-full animate-spin mx-auto mb-4"></div>
+      <div class="relative mx-auto mb-4 flex h-24 w-24 items-center justify-center">
+        <span class="absolute inset-0 rounded-full border-4 border-primary-100 border-t-primary-600 animate-spin"></span>
+        <div class="flex h-16 w-16 items-center justify-center overflow-hidden rounded-full bg-white shadow-lg">
+          <img src="{{ asset('logo-image-feedtan-store.png') }}" alt="Feedtan Store" class="h-full w-full object-cover">
+        </div>
+      </div>
       <p class="text-primary-700 font-semibold text-lg">Loading...</p>
       <p class="text-primary-500 text-sm mt-2">Please wait...</p>
     </div>
