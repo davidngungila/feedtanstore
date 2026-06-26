@@ -173,13 +173,10 @@ header.site-header{
 .loc-status.pending{color:var(--ink-soft);}
 .loc-status.error{color:var(--red);}
 .loc-coords{font-family:var(--font-mono);font-size:12px;color:var(--ink-soft);margin-top:6px;}
-.mini-map{width:100%;height:150px;border-radius:var(--radius-s);margin-top:10px;overflow:hidden;border:1px solid var(--line);background:linear-gradient(135deg,var(--green-100),var(--parchment-dim));position:relative;}
-.mini-map .pin{position:absolute;top:50%;left:50%;transform:translate(-50%,-100%);color:var(--red);}
-.mini-map::before{
-  content:'';position:absolute;inset:0;
-  background-image:linear-gradient(var(--line) 1px, transparent 1px), linear-gradient(90deg,var(--line) 1px, transparent 1px);
-  background-size:24px 24px;
-}
+.mini-map{width:100%;height:280px;border-radius:var(--radius-s);margin-top:10px;overflow:hidden;border:1px solid var(--line);position:relative;z-index:1;}
+.mini-map .leaflet-control-container .leaflet-control{border-radius:10px;overflow:hidden;}
+.mini-map .leaflet-control-layers,
+.mini-map .leaflet-bar{box-shadow:0 8px 22px rgba(15,42,31,0.12);}
 
 .summary-card{background:var(--parchment);border-radius:var(--radius-m);padding:18px;}
 .summary-card h4{font-size:14px;margin-bottom:12px;}
@@ -487,10 +484,57 @@ footer{background:var(--green-900);color:#BFD6C8;padding:40px 0 0;margin-top:40p
 
 <div id="toast" class="toast" style="position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--green-900);color:#fff;padding:13px 22px;border-radius:999px;font-size:13.5px;font-weight:600;z-index:400;box-shadow:var(--shadow-pop);display:flex;align-items:center;gap:10px;opacity:0;visibility:hidden;transition:all .25s ease;"></div>
 
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 <script>
 let cart = [];
 let userLocation = { lat: null, lng: null };
+let checkoutMap = null;
+let checkoutMarker = null;
+
+function initializeCheckoutMap() {
+  if (checkoutMap || typeof L === 'undefined') return;
+  const mapEl = document.getElementById('mapPreview');
+  if (!mapEl) return;
+
+  const initialLat = userLocation.lat || -6.7924;
+  const initialLng = userLocation.lng || 39.2083;
+
+  checkoutMap = L.map('mapPreview', {
+    zoomControl: true,
+    attributionControl: true,
+  }).setView([initialLat, initialLng], 12);
+
+  const osmLayer = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+  });
+
+  const worldImageryLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+    attribution: 'Tiles &copy; Esri'
+  });
+
+  osmLayer.addTo(checkoutMap);
+  L.control.layers({
+    'OpenStreetMap': osmLayer,
+    'World Imagery': worldImageryLayer
+  }).addTo(checkoutMap);
+
+  checkoutMarker = L.marker([initialLat, initialLng]).addTo(checkoutMap)
+    .bindPopup('Delivery location preview')
+    .openPopup();
+
+  setTimeout(() => checkoutMap.invalidateSize(), 150);
+}
+
+function updateCheckoutMap(lat, lng, zoom = 15) {
+  initializeCheckoutMap();
+  if (!checkoutMap || !checkoutMarker) return;
+  checkoutMarker.setLatLng([lat, lng]);
+  checkoutMap.setView([lat, lng], zoom);
+  checkoutMarker.bindPopup(`Delivery location<br>${lat.toFixed(6)}, ${lng.toFixed(6)}`).openPopup();
+  setTimeout(() => checkoutMap.invalidateSize(), 100);
+}
 
 function showEmptyCartState() {
   const emptyState = document.getElementById('emptyCartState');
@@ -636,6 +680,10 @@ function toggleDeliveryOptions() {
     deliveryAddressSection.style.display = 'block';
     optDelivery.classList.add('selected');
     optPickup.classList.remove('selected');
+    initializeCheckoutMap();
+    setTimeout(() => {
+      if (checkoutMap) checkoutMap.invalidateSize();
+    }, 150);
   } else {
     deliveryAddressSection.style.display = 'none';
     optPickup.classList.add('selected');
@@ -675,6 +723,7 @@ function detectLocation() {
         coordsEl.textContent = `${userLocation.lat.toFixed(6)}, ${userLocation.lng.toFixed(6)}`;
         document.getElementById('deliveryAddress').value = `Auto-detected location: ${userLocation.lat.toFixed(6)}, ${userLocation.lng.toFixed(6)}`;
         setFieldError('deliveryAddress', '');
+        updateCheckoutMap(userLocation.lat, userLocation.lng);
       },
       (error) => {
         let errorMsg = 'Unable to get location.';
@@ -1062,6 +1111,7 @@ document.getElementById('checkoutForm').addEventListener('submit', async functio
 initCart();
 if (document.getElementById('checkoutForm') && document.getElementById('checkoutForm').style.display !== 'none') {
   toggleDeliveryOptions();
+  initializeCheckoutMap();
   detectLocation();
 }
 </script>
