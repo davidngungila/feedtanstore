@@ -12,10 +12,29 @@ use Dompdf\Dompdf;
 
 class GoodsReceivedNoteController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $grns = GoodsReceivedNote::with(['supplier', 'purchaseOrder'])->get();
-        return view('purchasing.grn', compact('grns'));
+        $search = trim((string) $request->input('search'));
+
+        $grns = GoodsReceivedNote::with(['supplier', 'purchaseOrder'])
+            ->when($search !== '', function ($query) use ($search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('grn_number', 'like', '%' . $search . '%')
+                        ->orWhere('status', 'like', '%' . $search . '%')
+                        ->orWhereHas('supplier', function ($supplierQuery) use ($search) {
+                            $supplierQuery->where('name', 'like', '%' . $search . '%')
+                                ->orWhere('email', 'like', '%' . $search . '%')
+                                ->orWhere('phone', 'like', '%' . $search . '%');
+                        })
+                        ->orWhereHas('purchaseOrder', function ($purchaseOrderQuery) use ($search) {
+                            $purchaseOrderQuery->where('po_number', 'like', '%' . $search . '%');
+                        });
+                });
+            })
+            ->latest()
+            ->get();
+
+        return view('purchasing.grn', compact('grns', 'search'));
     }
 
     public function create()

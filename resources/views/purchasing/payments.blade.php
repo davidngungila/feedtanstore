@@ -5,11 +5,29 @@
 @section('content')
 <div class="animate-[fadeIn_0.4s_ease]">
     <div class="card rounded-2xl p-6">
-        <div class="flex items-center justify-between mb-6">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
             <h2 class="text-xl font-bold text-primary-900">Supplier Payments</h2>
-            <a href="{{ route('purchasing.payments.create') }}" class="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
-                <i class="fas fa-plus mr-2"></i>New Payment
-            </a>
+            <div class="flex flex-col md:flex-row items-center gap-3 w-full md:w-auto">
+                <form action="{{ route('purchasing.payments') }}" method="GET" id="supplierPaymentSearchForm" class="w-full md:w-72">
+                    <div class="relative">
+                        <input
+                            type="text"
+                            name="search"
+                            id="supplierPaymentSearch"
+                            value="{{ $search ?? '' }}"
+                            placeholder="Search payments..."
+                            class="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                            autocomplete="off"
+                        >
+                        <button type="submit" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-primary-600">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </form>
+                <a href="{{ route('purchasing.payments.create') }}" class="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg font-medium transition-colors whitespace-nowrap">
+                    <i class="fas fa-plus mr-2"></i>New Payment
+                </a>
+            </div>
         </div>
 
         @if(session('success'))
@@ -31,9 +49,9 @@
                         <th class="text-left">Actions</th>
                     </tr>
                 </thead>
-                <tbody>
-                    @foreach($payments as $payment)
-                    <tr>
+                <tbody id="supplier-payments-table-body">
+                    @forelse($payments as $payment)
+                    <tr data-search="{{ strtolower($payment->payment_number . ' ' . ($payment->supplier->name ?? '') . ' ' . ($payment->purchaseOrder->po_number ?? '') . ' ' . ($payment->payment_method ?? '') . ' ' . ($payment->transaction_id ?? '') . ' ' . ($payment->status ?? '') . ' ' . ($payment->payment_date ?? '') . ' ' . $payment->amount) }}">
                         <td class="font-medium text-primary-900">
                             <a href="{{ route('purchasing.payments.show', $payment) }}" class="hover:underline">{{ $payment->payment_number }}</a>
                         </td>
@@ -61,10 +79,36 @@
                             </form>
                         </td>
                     </tr>
-                    @endforeach
+                    @empty
+                    <tr>
+                        <td colspan="7" class="text-center text-gray-500 py-8">No supplier payments found.</td>
+                    </tr>
+                    @endforelse
                 </tbody>
             </table>
         </div>
+
+        <script>
+            const supplierPaymentSearch = document.getElementById('supplierPaymentSearch');
+            const supplierPaymentRows = document.querySelectorAll('#supplier-payments-table-body tr');
+            let supplierPaymentSearchTimer = null;
+
+            if (supplierPaymentSearch) {
+                supplierPaymentSearch.addEventListener('input', function() {
+                    const searchTerm = this.value.toLowerCase().trim();
+
+                    supplierPaymentRows.forEach(row => {
+                        const searchData = row.getAttribute('data-search') || '';
+                        row.style.display = searchData.includes(searchTerm) ? '' : 'none';
+                    });
+
+                    clearTimeout(supplierPaymentSearchTimer);
+                    supplierPaymentSearchTimer = setTimeout(() => {
+                        document.getElementById('supplierPaymentSearchForm').submit();
+                    }, 350);
+                });
+            }
+        </script>
     </div>
 </div>
 @endsection

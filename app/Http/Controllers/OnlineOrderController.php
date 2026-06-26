@@ -142,6 +142,7 @@ class OnlineOrderController extends Controller
 
     public function index(Request $request)
     {
+        $search = trim((string) $request->input('search'));
         $statusFilter = $request->input('status', ['pending', 'confirmed', 'preparing', 'ready', 'out_for_delivery', 'delivered', 'cancelled']);
         if (!is_array($statusFilter)) {
             $statusFilter = [$statusFilter];
@@ -149,6 +150,24 @@ class OnlineOrderController extends Controller
         
         $orders = OnlineOrder::with(['items', 'rider', 'user'])
             ->whereIn('status', $statusFilter)
+            ->when($search !== '', function ($query) use ($search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('order_number', 'like', '%' . $search . '%')
+                        ->orWhere('customer_name', 'like', '%' . $search . '%')
+                        ->orWhere('customer_phone', 'like', '%' . $search . '%')
+                        ->orWhere('customer_email', 'like', '%' . $search . '%')
+                        ->orWhere('delivery_address', 'like', '%' . $search . '%')
+                        ->orWhere('payment_status', 'like', '%' . $search . '%')
+                        ->orWhere('payment_method', 'like', '%' . $search . '%')
+                        ->orWhereHas('rider', function ($riderQuery) use ($search) {
+                            $riderQuery->where('name', 'like', '%' . $search . '%')
+                                ->orWhere('phone', 'like', '%' . $search . '%');
+                        })
+                        ->orWhereHas('user', function ($userQuery) use ($search) {
+                            $userQuery->where('name', 'like', '%' . $search . '%');
+                        });
+                });
+            })
             ->latest()
             ->get();
             
@@ -185,7 +204,7 @@ class OnlineOrderController extends Controller
         }
 
         $allStatuses = ['pending', 'confirmed', 'preparing', 'ready', 'out_for_delivery', 'delivered', 'cancelled'];
-        return view('online.orders', compact('orders', 'storeLat', 'storeLng', 'routes', 'statusFilter', 'allStatuses'));
+        return view('online.orders', compact('orders', 'storeLat', 'storeLng', 'routes', 'statusFilter', 'allStatuses', 'search'));
     }
 
     public function shop()

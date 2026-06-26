@@ -20,8 +20,25 @@
 
         <!-- Filter Section -->
         <div class="mb-6 p-4 bg-gray-50 rounded-lg">
-            <h3 class="font-semibold mb-3">Filter by Status</h3>
-            <form action="{{ route('online.orders') }}" method="GET" class="flex flex-wrap gap-2">
+            <form action="{{ route('online.orders') }}" method="GET" id="onlineOrderSearchForm" class="space-y-4">
+                <div class="flex flex-col md:flex-row md:items-center gap-3">
+                    <h3 class="font-semibold text-gray-900 whitespace-nowrap">Filter by Status</h3>
+                    <div class="relative w-full md:max-w-sm">
+                        <input
+                            type="text"
+                            name="search"
+                            id="onlineOrderSearch"
+                            value="{{ $search ?? '' }}"
+                            placeholder="Search online orders..."
+                            class="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white"
+                            autocomplete="off"
+                        >
+                        <button type="submit" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-primary-600">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="flex flex-wrap gap-2">
                 @foreach($allStatuses as $status)
                     @php
                         $statusLabel = ucwords(str_replace('_', ' ', $status));
@@ -35,6 +52,7 @@
                 <div class="flex gap-2 ml-auto">
                     <a href="{{ route('online.orders') }}" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg transition-colors">Reset</a>
                     <button type="submit" class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors">Apply Filter</button>
+                </div>
                 </div>
             </form>
         </div>
@@ -60,9 +78,9 @@
                         <th class="px-4 py-3 text-left text-gray-700">Actions</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y">
+                <tbody id="online-orders-table-body" class="divide-y">
                     @forelse($orders as $order)
-                    <tr>
+                    <tr data-search="{{ strtolower($order->order_number . ' ' . ($order->customer_name ?? '') . ' ' . ($order->customer_phone ?? '') . ' ' . ($order->customer_email ?? '') . ' ' . ($order->delivery_address ?? '') . ' ' . ($order->status ?? '') . ' ' . ($order->payment_status ?? '') . ' ' . ($order->payment_method ?? '') . ' ' . ($order->rider->name ?? '') . ' ' . ($order->user->name ?? '') . ' ' . $order->total) }}">
                         <td class="px-4 py-3 font-medium text-primary-600">{{ $order->order_number }}</td>
                         <td class="px-4 py-3">
                             <div>{{ $order->customer_name }}</div>
@@ -194,5 +212,25 @@
             }
         @endif
     @endforeach
+
+    const onlineOrderSearch = document.getElementById('onlineOrderSearch');
+    const onlineOrderRows = document.querySelectorAll('#online-orders-table-body tr');
+    let onlineOrderSearchTimer = null;
+
+    if (onlineOrderSearch) {
+        onlineOrderSearch.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase().trim();
+
+            onlineOrderRows.forEach(row => {
+                const searchData = row.getAttribute('data-search') || '';
+                row.style.display = searchData.includes(searchTerm) ? '' : 'none';
+            });
+
+            clearTimeout(onlineOrderSearchTimer);
+            onlineOrderSearchTimer = setTimeout(() => {
+                document.getElementById('onlineOrderSearchForm').submit();
+            }, 350);
+        });
+    }
 </script>
 @endsection

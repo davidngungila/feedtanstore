@@ -11,10 +11,27 @@ use Dompdf\Dompdf;
 
 class PurchaseOrderController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $purchaseOrders = PurchaseOrder::with('supplier')->get();
-        return view('purchasing.orders', compact('purchaseOrders'));
+        $search = trim((string) $request->input('search'));
+
+        $purchaseOrders = PurchaseOrder::with('supplier')
+            ->when($search !== '', function ($query) use ($search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('po_number', 'like', '%' . $search . '%')
+                        ->orWhere('status', 'like', '%' . $search . '%')
+                        ->orWhere('approval_status', 'like', '%' . $search . '%')
+                        ->orWhereHas('supplier', function ($supplierQuery) use ($search) {
+                            $supplierQuery->where('name', 'like', '%' . $search . '%')
+                                ->orWhere('email', 'like', '%' . $search . '%')
+                                ->orWhere('phone', 'like', '%' . $search . '%');
+                        });
+                });
+            })
+            ->latest()
+            ->get();
+
+        return view('purchasing.orders', compact('purchaseOrders', 'search'));
     }
 
     public function create(Request $request)

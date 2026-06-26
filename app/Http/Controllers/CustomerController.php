@@ -13,14 +13,18 @@ class CustomerController extends Controller
 {
     public function index(Request $request)
     {
+        $search = trim((string) $request->input('search'));
         $query = Customer::with('group');
         
-        if ($request->search) {
-            $search = $request->search;
-            $query->where(function($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%")
-                  ->orWhere('phone', 'like', "%{$search}%");
+        if ($search !== '') {
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', '%' . $search . '%')
+                    ->orWhere('email', 'like', '%' . $search . '%')
+                    ->orWhere('phone', 'like', '%' . $search . '%')
+                    ->orWhere('address', 'like', '%' . $search . '%')
+                    ->orWhereHas('group', function ($groupQuery) use ($search) {
+                        $groupQuery->where('name', 'like', '%' . $search . '%');
+                    });
             });
         }
         
@@ -30,7 +34,7 @@ class CustomerController extends Controller
             return response()->json($customers);
         }
         
-        return view('customers.list', compact('customers'));
+        return view('customers.list', compact('customers', 'search'));
     }
 
     public function create()
@@ -106,10 +110,22 @@ class CustomerController extends Controller
         return view('customers.credit', compact('customers'));
     }
 
-    public function history()
+    public function history(Request $request)
     {
-        $customers = Customer::with('sales', 'payments')->get();
-        return view('customers.history', compact('customers'));
+        $search = trim((string) $request->input('search'));
+
+        $customers = Customer::with('sales', 'payments')
+            ->when($search !== '', function ($query) use ($search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('name', 'like', '%' . $search . '%')
+                        ->orWhere('email', 'like', '%' . $search . '%')
+                        ->orWhere('phone', 'like', '%' . $search . '%')
+                        ->orWhere('address', 'like', '%' . $search . '%');
+                });
+            })
+            ->get();
+
+        return view('customers.history', compact('customers', 'search'));
     }
 
     public function addPayment(Request $request, Customer $customer)

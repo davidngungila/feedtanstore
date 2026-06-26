@@ -11,10 +11,31 @@ use Dompdf\Dompdf;
 
 class SupplierPaymentController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $payments = SupplierPayment::with(['supplier', 'purchaseOrder'])->get();
-        return view('purchasing.payments', compact('payments'));
+        $search = trim((string) $request->input('search'));
+
+        $payments = SupplierPayment::with(['supplier', 'purchaseOrder'])
+            ->when($search !== '', function ($query) use ($search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('payment_number', 'like', '%' . $search . '%')
+                        ->orWhere('payment_method', 'like', '%' . $search . '%')
+                        ->orWhere('transaction_id', 'like', '%' . $search . '%')
+                        ->orWhere('status', 'like', '%' . $search . '%')
+                        ->orWhereHas('supplier', function ($supplierQuery) use ($search) {
+                            $supplierQuery->where('name', 'like', '%' . $search . '%')
+                                ->orWhere('email', 'like', '%' . $search . '%')
+                                ->orWhere('phone', 'like', '%' . $search . '%');
+                        })
+                        ->orWhereHas('purchaseOrder', function ($purchaseOrderQuery) use ($search) {
+                            $purchaseOrderQuery->where('po_number', 'like', '%' . $search . '%');
+                        });
+                });
+            })
+            ->latest()
+            ->get();
+
+        return view('purchasing.payments', compact('payments', 'search'));
     }
 
     public function create(Request $request)
