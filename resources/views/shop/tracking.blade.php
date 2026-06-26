@@ -181,13 +181,12 @@ header.site-header{
 .order-summary .stat .value{font-size:17px;font-weight:800;}
 
 .map-container{
-  width:100%;height:320px;border-radius:var(--radius-m);overflow:hidden;border:1px solid var(--line);
-  background:linear-gradient(135deg,var(--green-100),var(--parchment-dim));
-  display:flex;align-items:center;justify-content:center;flex-direction:column;
-  font-size:14px;color:var(--ink-soft);
+  width:100%;height:360px;border-radius:var(--radius-m);overflow:hidden;border:1px solid var(--line);
 }
-.map-placeholder{
-  text-align:center;
+.map-container .leaflet-control-container .leaflet-control{border-radius:10px;overflow:hidden;}
+.map-container .leaflet-control-layers,
+.map-container .leaflet-bar{
+  box-shadow:0 8px 22px rgba(15,42,31,0.12);
 }
 
 footer{background:var(--green-900);color:#BFD6C8;padding:40px 0 0;margin-top:40px;}
@@ -395,11 +394,9 @@ footer{background:var(--green-900);color:#BFD6C8;padding:40px 0 0;margin-top:40p
             <p style="margin:0;font-size:14.5px;">{{ $order->delivery_address }}</p>
             @if($order->delivery_latitude && $order->delivery_longitude)
             <div class="map-container" style="margin-top:16px;">
-              <div class="map-placeholder">
-                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="var(--green-700)" stroke-width="1.5" style="margin-bottom:8px;"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
-                <p style="margin:0;">Location: {{ $order->delivery_latitude }}, {{ $order->delivery_longitude }}</p>
-              </div>
+              <div id="tracking-map" style="width:100%;height:100%;"></div>
             </div>
+            <p style="margin:12px 0 0;font-size:13px;color:var(--ink-soft);">Location: {{ number_format($order->delivery_latitude, 6) }}, {{ number_format($order->delivery_longitude, 6) }}</p>
             @endif
           </div>
         </div>
@@ -450,7 +447,13 @@ footer{background:var(--green-900);color:#BFD6C8;padding:40px 0 0;margin-top:40p
 
 <div id="toast" class="toast" style="position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--green-900);color:#fff;padding:13px 22px;border-radius:999px;font-size:13.5px;font-weight:600;z-index:400;box-shadow:var(--shadow-pop);display:flex;align-items:center;gap:10px;opacity:0;visibility:hidden;transition:all .25s ease;"></div>
 
+@if($order && $order->delivery_latitude && $order->delivery_longitude)
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
+@endif
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+@if($order && $order->delivery_latitude && $order->delivery_longitude)
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+@endif
 <script>
 function showToast(msg, icon) {
   const toast = document.getElementById('toast');
@@ -661,6 +664,58 @@ if (payNowBtn) {
     setTimeout(() => payNowBtn.click(), 300);
   }
 }
+
+@if($order && $order->delivery_latitude && $order->delivery_longitude)
+const trackingStoreLat = {{ $settings->store_latitude ?? -3.3869 }};
+const trackingStoreLng = {{ $settings->store_longitude ?? 36.6883 }};
+const trackingOrderLat = {{ $order->delivery_latitude }};
+const trackingOrderLng = {{ $order->delivery_longitude }};
+const trackingRoute = @json($route);
+
+const trackingMap = L.map('tracking-map').setView([(trackingStoreLat + trackingOrderLat) / 2, (trackingStoreLng + trackingOrderLng) / 2], 12);
+
+const trackingOsmLayer = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+});
+
+const trackingImageryLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+  attribution: 'Tiles &copy; Esri'
+});
+
+trackingOsmLayer.addTo(trackingMap);
+L.control.layers({
+  'OpenStreetMap': trackingOsmLayer,
+  'World Imagery': trackingImageryLayer
+}).addTo(trackingMap);
+
+L.marker([trackingStoreLat, trackingStoreLng])
+  .addTo(trackingMap)
+  .bindPopup('<strong>Store</strong>');
+
+L.circleMarker([trackingOrderLat, trackingOrderLng], {
+  radius: 8,
+  fillColor: '#f97316',
+  color: '#fff',
+  weight: 2,
+  fillOpacity: 0.85
+})
+  .addTo(trackingMap)
+  .bindPopup('<strong>Delivery location</strong><br>{{ addslashes($order->customer_name) }}<br>{{ addslashes($order->delivery_address) }}');
+
+if (trackingRoute && trackingRoute.features && trackingRoute.features.length > 0) {
+  const routePoints = trackingRoute.features[0].geometry.coordinates.map(point => [point[1], point[0]]);
+  L.polyline(routePoints, { color: '#3b82f6', weight: 4, opacity: 0.75 }).addTo(trackingMap);
+  trackingMap.fitBounds(routePoints, { padding: [36, 36] });
+} else {
+  const bounds = L.latLngBounds(
+    [trackingStoreLat, trackingStoreLng],
+    [trackingOrderLat, trackingOrderLng]
+  );
+  trackingMap.fitBounds(bounds, { padding: [36, 36] });
+}
+
+setTimeout(() => trackingMap.invalidateSize(), 150);
+@endif
 </script>
 </body>
 </html>

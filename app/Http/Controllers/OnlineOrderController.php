@@ -693,6 +693,9 @@ class OnlineOrderController extends Controller
     public function showTracking($orderNumber = null)
     {
         $order = null;
+        $route = null;
+        $settings = \App\Models\StoreSetting::firstOrCreate();
+
         if ($orderNumber) {
             $order = OnlineOrder::where('order_number', $orderNumber)->with(['items', 'rider', 'statusHistory'])->first();
         }
@@ -700,7 +703,31 @@ class OnlineOrderController extends Controller
         if (!$order && request('order')) {
             $order = OnlineOrder::where('order_number', request('order'))->with(['items', 'rider', 'statusHistory'])->first();
         }
-        return view('shop.tracking', compact('order'));
+
+        if ($order && $settings->openrouteservice_api_key && $order->delivery_latitude && $order->delivery_longitude) {
+            try {
+                $storeLat = $settings->store_latitude ?? -3.3869;
+                $storeLng = $settings->store_longitude ?? 36.6883;
+
+                $response = \Illuminate\Support\Facades\Http::withHeaders([
+                    'Authorization' => $settings->openrouteservice_api_key,
+                    'Content-Type' => 'application/json'
+                ])->post('https://api.openrouteservice.org/v2/directions/driving-car/geojson', [
+                    'coordinates' => [
+                        [$storeLng, $storeLat],
+                        [$order->delivery_longitude, $order->delivery_latitude]
+                    ]
+                ]);
+
+                if ($response->successful()) {
+                    $route = $response->json();
+                }
+            } catch (\Exception $e) {
+                // Ignore routing errors on the public tracking page.
+            }
+        }
+
+        return view('shop.tracking', compact('order', 'route', 'settings'));
     }
 
     public function downloadTrackingPDF($orderNumber)
