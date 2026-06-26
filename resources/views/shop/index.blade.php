@@ -406,61 +406,11 @@ footer{background:var(--green-900);color:#BFD6C8;padding:54px 0 0;margin-top:30p
   </nav>
 </header>
 
-<main id="mainContent">
-  <section class="hero">
-    <div class="hero-grain"></div>
-    <div class="hero-inner wrap">
-      <div>
-        <span class="hero-eyebrow">🌿 Now delivering 7 days a week</span>
-        <h1>Fresh picks & <em>fair prices</em>,<br>straight to your door.</h1>
-        <p class="lead">Discover quality products at unbeatable prices — every order from Feedtan Store is hand-checked before it leaves the shelf.</p>
-        <div class="hero-cta">
-          <a href="#shop" class="btn btn-primary">Shop Now</a>
-          <a href="{{ route('shop.tracking') }}" class="btn btn-ghost" style="background:rgba(255,255,255,0.1);color:#fff;border-color:rgba(255,255,255,0.4);">Track an Order</a>
-        </div>
-        <div class="hero-stats">
-          <div><b>12,400+</b><span>Orders delivered</span></div>
-          <div><b>4.8★</b><span>Average rating</span></div>
-          <div><b>30 min</b><span>Avg. dispatch time</span></div>
-        </div>
-      </div>
-      <div class="hero-visual">
-        <div class="float-chip chip-1">🚚&nbsp; Delivery in 24–48h</div>
-        <div class="produce-card">
-          <span class="tag">-20% Today</span>
-          <img src="https://images.unsplash.com/photo-1542838132-92c53300491e?w=500&q=80" alt="Fresh produce basket from Feedtan Store">
-          <div class="info">
-            <div><b>Farm Fresh Basket</b><span>Vegetables & fruit mix</span></div>
-            <span class="pill pill-orange">Best seller</span>
-          </div>
-        </div>
-        <div class="float-chip chip-2">⭐&nbsp; 4.8/5 from 2,300 buyers</div>
-      </div>
-    </div>
-  </section>
 
-  <div class="wrap" style="margin-top:46px;">
-    <div class="trust-strip" style="border:1px solid var(--line);border-radius:var(--radius-l);margin-bottom:10px;">
-      <div class="trust-grid">
-        <div class="trust-item">
-          <div class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="1.5"/><circle cx="18.5" cy="18.5" r="1.5"/></svg></div>
-          <div><b>Fast delivery</b><span>Doorstep or in-store pickup</span></div>
-        </div>
-        <div class="trust-item">
-          <div class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 4 6v6c0 5 3.5 8.5 8 10 4.5-1.5 8-5 8-10V6l-8-4z"/></svg></div>
-          <div><b>Quality checked</b><span>Every item inspected</span></div>
-        </div>
-        <div class="trust-item">
-          <div class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg></div>
-          <div><b>Secure checkout</b><span>Pay on delivery or online</span></div>
-        </div>
-        <div class="trust-item">
-          <div class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M12 3v18"/></svg></div>
-          <div><b>Easy returns</b><span>Within 48hrs of delivery</span></div>
-        </div>
-      </div>
-    </div>
-  </div>
+
+
+
+<main id="mainContent">
 
   <section class="section" id="shop">
     <div class="wrap">
