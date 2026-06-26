@@ -1,10 +1,41 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+@php
+  $logoUrl = asset('logo-image-feedtan-store.png');
+  $trackingCanonicalUrl = request()->fullUrl();
+  $trackingTitle = isset($order)
+      ? 'Track Order ' . $order->order_number . ' - Feedtan Store'
+      : 'Track Order - Feedtan Store';
+  $trackingDescription = isset($order)
+      ? 'Track delivery updates, payment status, and order progress for ' . $order->order_number . ' at Feedtan Store.'
+      : 'Track your Feedtan Store order status, delivery progress, and payment updates online.';
+@endphp
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Track Order - Feedtan Store</title>
-<meta name="description" content="Track your order with Feedtan Store">
+<title>{{ $trackingTitle }}</title>
+<meta name="description" content="{{ $trackingDescription }}">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<meta name="author" content="Feedtan Store">
+<meta name="theme-color" content="#1B4332">
+<link rel="canonical" href="{{ $trackingCanonicalUrl }}">
+<link rel="icon" type="image/png" href="{{ $logoUrl }}">
+<link rel="apple-touch-icon" href="{{ $logoUrl }}">
+<meta property="og:locale" content="en_US">
+<meta property="og:site_name" content="Feedtan Store">
+<meta property="og:type" content="website">
+<meta property="og:title" content="{{ $trackingTitle }}">
+<meta property="og:description" content="{{ $trackingDescription }}">
+<meta property="og:url" content="{{ $trackingCanonicalUrl }}">
+<meta property="og:image" content="{{ $logoUrl }}">
+<meta property="og:image:secure_url" content="{{ $logoUrl }}">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:alt" content="Feedtan Store logo">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{{ $trackingTitle }}">
+<meta name="twitter:description" content="{{ $trackingDescription }}">
+<meta name="twitter:image" content="{{ $logoUrl }}">
+<meta name="twitter:image:alt" content="Feedtan Store logo">
 <meta name="csrf-token" content="{{ csrf_token() }}">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

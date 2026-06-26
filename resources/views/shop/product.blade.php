@@ -1,13 +1,82 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+@php
+  $logoUrl = asset('logo-image-feedtan-store.png');
+  $productCanonicalUrl = route('shop.product', $product);
+  $seoDescription = \Illuminate\Support\Str::limit(
+      trim(strip_tags($product->description ?: 'Discover quality products at unbeatable prices, delivered right to your door.')),
+      160
+  );
+  $productSeoTitle = $product->name . ' - Feedtan Store';
+  $primaryImage = $product->images->firstWhere('is_primary', true);
+  $resolveImageUrl = function ($path) {
+      if (!$path) {
+          return null;
+      }
+
+      if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://') || str_starts_with($path, '/')) {
+          return $path;
+      }
+
+      return asset('storage/' . ltrim($path, '/'));
+  };
+  $imageToShow = $resolveImageUrl($primaryImage?->image_path) ?? $resolveImageUrl($product->image) ?? $logoUrl;
+  $productSchema = [
+      '@context' => 'https://schema.org',
+      '@type' => 'Product',
+      'name' => $product->name,
+      'description' => $seoDescription,
+      'image' => [$imageToShow],
+      'sku' => $product->sku ?: (string) $product->id,
+      'category' => $product->category->name ?? 'Uncategorized',
+      'brand' => [
+          '@type' => 'Brand',
+          'name' => $product->brand->name ?? 'Feedtan Store',
+      ],
+      'offers' => [
+          '@type' => 'Offer',
+          'url' => $productCanonicalUrl,
+          'priceCurrency' => 'TZS',
+          'price' => number_format((float) $product->selling_price, 0, '.', ''),
+          'availability' => $product->quantity > 0
+              ? 'https://schema.org/InStock'
+              : 'https://schema.org/OutOfStock',
+          'itemCondition' => 'https://schema.org/NewCondition',
+      ],
+  ];
+@endphp
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>{{ $product->name }} - Feedtan Store</title>
-<meta name="description" content="{{ $product->description ?? 'Discover quality products at unbeatable prices, delivered right to your door.' }}">
+<title>{{ $productSeoTitle }}</title>
+<meta name="description" content="{{ $seoDescription }}">
+<meta name="keywords" content="{{ $product->name }}, {{ $product->category->name ?? 'Feedtan Store' }}, Feedtan Store, online shopping Tanzania">
+<meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
+<meta name="author" content="Feedtan Store">
+<meta name="theme-color" content="#1B4332">
+<link rel="canonical" href="{{ $productCanonicalUrl }}">
+<link rel="icon" type="image/png" href="{{ $logoUrl }}">
+<link rel="apple-touch-icon" href="{{ $logoUrl }}">
+<meta property="og:locale" content="en_US">
+<meta property="og:site_name" content="Feedtan Store">
+<meta property="og:type" content="product">
+<meta property="og:title" content="{{ $productSeoTitle }}">
+<meta property="og:description" content="{{ $seoDescription }}">
+<meta property="og:url" content="{{ $productCanonicalUrl }}">
+<meta property="og:image" content="{{ $imageToShow }}">
+<meta property="og:image:secure_url" content="{{ $imageToShow }}">
+<meta property="og:image:alt" content="{{ $product->name }}">
+<meta property="product:price:amount" content="{{ number_format((float) $product->selling_price, 0, '.', '') }}">
+<meta property="product:price:currency" content="TZS">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{{ $productSeoTitle }}">
+<meta name="twitter:description" content="{{ $seoDescription }}">
+<meta name="twitter:image" content="{{ $imageToShow }}">
+<meta name="twitter:image:alt" content="{{ $product->name }}">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,600;0,9..144,700;0,9..144,900;1,9..144,500&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<script type="application/ld+json">{!! json_encode($productSchema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>
 <style>
 :root{
   --green-900:#0F2A1F;

@@ -1,13 +1,114 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+@php
+  $logoUrl = asset('logo-image-feedtan-store.png');
+  $selectedCategory = request('category')
+      ? $categories->firstWhere('id', (int) request('category'))
+      : null;
+  $searchTerm = trim((string) request('search', ''));
+  $seoTitle = 'Feedtan Store - Shop Online in Tanzania';
+  $seoDescription = 'Shop groceries, household essentials, fashion, and electronics online from Feedtan Store with fast delivery and easy order tracking.';
+
+  if ($selectedCategory) {
+      $seoTitle = $selectedCategory->name . ' - Feedtan Store Online Shop';
+      $seoDescription = 'Browse ' . $selectedCategory->name . ' at Feedtan Store with trusted prices, secure checkout, and delivery options across Tanzania.';
+  }
+
+  if ($searchTerm !== '') {
+      $seoTitle = 'Search results for "' . $searchTerm . '" - Feedtan Store';
+      $seoDescription = 'Find products matching "' . $searchTerm . '" at Feedtan Store and order online with quick checkout and delivery tracking.';
+  }
+
+  $canonicalUrl = request()->fullUrl();
+  $pageType = $selectedCategory || $searchTerm !== '' ? 'website' : 'store';
+  $seoKeywords = 'Feedtan Store, online shop Tanzania, grocery delivery, electronics shop, household products, order tracking';
+  $structuredData = [
+      '@context' => 'https://schema.org',
+      '@graph' => [
+          [
+              '@type' => 'Organization',
+              '@id' => url('/#organization'),
+              'name' => 'Feedtan Store',
+              'url' => url('/'),
+              'logo' => [
+                  '@type' => 'ImageObject',
+                  'url' => $logoUrl,
+              ],
+              'image' => [$logoUrl],
+              'telephone' => '+255700000000',
+              'email' => 'hello@feedtan.store',
+              'address' => [
+                  '@type' => 'PostalAddress',
+                  'streetAddress' => 'Mlimani City Road',
+                  'addressLocality' => 'Dar es Salaam',
+                  'addressCountry' => 'TZ',
+              ],
+          ],
+          [
+              '@type' => 'WebSite',
+              '@id' => url('/#website'),
+              'url' => url('/'),
+              'name' => 'Feedtan Store',
+              'publisher' => [
+                  '@id' => url('/#organization'),
+              ],
+              'potentialAction' => [
+                  '@type' => 'SearchAction',
+                  'target' => route('shop.index') . '?search={search_term_string}',
+                  'query-input' => 'required name=search_term_string',
+              ],
+          ],
+          [
+              '@type' => 'CollectionPage',
+              '@id' => $canonicalUrl . '#webpage',
+              'url' => $canonicalUrl,
+              'name' => $seoTitle,
+              'description' => $seoDescription,
+              'isPartOf' => [
+                  '@id' => url('/#website'),
+              ],
+              'about' => [
+                  '@id' => url('/#organization'),
+              ],
+              'primaryImageOfPage' => [
+                  '@type' => 'ImageObject',
+                  'url' => $logoUrl,
+              ],
+          ],
+      ],
+  ];
+@endphp
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Feedtan Store — Shop Online</title>
-<meta name="description" content="Discover quality products at unbeatable prices, delivered right to your door.">
+<title>{{ $seoTitle }}</title>
+<meta name="description" content="{{ $seoDescription }}">
+<meta name="keywords" content="{{ $seoKeywords }}">
+<meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
+<meta name="author" content="Feedtan Store">
+<meta name="theme-color" content="#1B4332">
+<link rel="canonical" href="{{ $canonicalUrl }}">
+<link rel="icon" type="image/png" href="{{ $logoUrl }}">
+<link rel="apple-touch-icon" href="{{ $logoUrl }}">
+<meta property="og:locale" content="en_US">
+<meta property="og:site_name" content="Feedtan Store">
+<meta property="og:type" content="{{ $pageType }}">
+<meta property="og:title" content="{{ $seoTitle }}">
+<meta property="og:description" content="{{ $seoDescription }}">
+<meta property="og:url" content="{{ $canonicalUrl }}">
+<meta property="og:image" content="{{ $logoUrl }}">
+<meta property="og:image:secure_url" content="{{ $logoUrl }}">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:alt" content="Feedtan Store logo">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{{ $seoTitle }}">
+<meta name="twitter:description" content="{{ $seoDescription }}">
+<meta name="twitter:image" content="{{ $logoUrl }}">
+<meta name="twitter:image:alt" content="Feedtan Store logo">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,600;0,9..144,700;0,9..144,900;1,9..144,500&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<script type="application/ld+json">{!! json_encode($structuredData, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>
 <style>
 :root{
   --green-900:#0F2A1F;

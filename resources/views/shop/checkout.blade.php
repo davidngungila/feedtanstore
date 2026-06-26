@@ -1,10 +1,37 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+@php
+  $logoUrl = asset('logo-image-feedtan-store.png');
+  $checkoutCanonicalUrl = route('shop.checkout');
+  $checkoutTitle = 'Checkout - Feedtan Store';
+  $checkoutDescription = 'Complete your Feedtan Store order with secure checkout, delivery location capture, and flexible payment options.';
+@endphp
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Checkout - Feedtan Store</title>
-<meta name="description" content="Complete your order at Feedtan Store">
+<title>{{ $checkoutTitle }}</title>
+<meta name="description" content="{{ $checkoutDescription }}">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<meta name="author" content="Feedtan Store">
+<meta name="theme-color" content="#1B4332">
+<link rel="canonical" href="{{ $checkoutCanonicalUrl }}">
+<link rel="icon" type="image/png" href="{{ $logoUrl }}">
+<link rel="apple-touch-icon" href="{{ $logoUrl }}">
+<meta property="og:locale" content="en_US">
+<meta property="og:site_name" content="Feedtan Store">
+<meta property="og:type" content="website">
+<meta property="og:title" content="{{ $checkoutTitle }}">
+<meta property="og:description" content="{{ $checkoutDescription }}">
+<meta property="og:url" content="{{ $checkoutCanonicalUrl }}">
+<meta property="og:image" content="{{ $logoUrl }}">
+<meta property="og:image:secure_url" content="{{ $logoUrl }}">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:alt" content="Feedtan Store logo">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{{ $checkoutTitle }}">
+<meta name="twitter:description" content="{{ $checkoutDescription }}">
+<meta name="twitter:image" content="{{ $logoUrl }}">
+<meta name="twitter:image:alt" content="Feedtan Store logo">
 <meta name="csrf-token" content="{{ csrf_token() }}">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
