@@ -1384,12 +1384,12 @@
           <div class="flex items-center gap-4">
             <img src="{{ asset('feedtanstorelogo.png') }}" alt="FEEDTAN STORE" class="h-10 object-contain" style="filter: brightness(0) invert(1);">
           </div>
-          <div class="flex items-center gap-4">
-            <div class="flex items-center gap-2 text-sm">
+          <div class="flex items-center gap-2 sm:gap-4">
+            <div class="hidden sm:flex items-center gap-2 text-sm">
               <i class="fa-solid fa-clock"></i>
               <span x-text="currentTime"></span>
             </div>
-            <span class="px-3 py-1 bg-green-500 text-white rounded-full text-xs font-semibold">
+            <span class="hidden sm:inline-flex px-3 py-1 bg-green-500 text-white rounded-full text-xs font-semibold">
               <i class="fa-solid fa-circle text-[8px] mr-1"></i>Shift Open
             </span>
             <div class="flex items-center gap-2 text-sm">
