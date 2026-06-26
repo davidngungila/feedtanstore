@@ -13,6 +13,15 @@ use Illuminate\Support\Str;
 
 class AuthController extends Controller
 {
+    public function redirectEntry(Request $request)
+    {
+        if (Auth::check()) {
+            return redirect()->intended(route('dashboard'));
+        }
+
+        return redirect()->to($this->createEncryptedEntryUrl());
+    }
+
     public function showEntry(Request $request, string $entryToken)
     {
         if (Auth::check()) {
@@ -225,6 +234,21 @@ class AuthController extends Controller
         } catch (\Throwable $exception) {
             abort(403, 'Invalid link.');
         }
+    }
+
+    private function createEncryptedEntryUrl(int $minutes = 10): string
+    {
+        $token = Str::random(40);
+        $encryptedToken = Crypt::encryptString($token);
+        $entryToken = rtrim(strtr(base64_encode($encryptedToken), '+/', '-_'), '=');
+
+        AdminAccessToken::create([
+            'token_hash' => hash('sha256', $token),
+            'encrypted_token' => $encryptedToken,
+            'expires_at' => now()->addMinutes($minutes),
+        ]);
+
+        return url('/' . $entryToken);
     }
 
     private function getDeviceType($userAgent): string
