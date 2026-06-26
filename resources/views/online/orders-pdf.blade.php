@@ -261,6 +261,12 @@
                     <td class="label">Delivery Fee:</td>
                     <td class="value" style="text-align: right;">TZS {{ number_format($order->delivery_fee, 2) }}</td>
                 </tr>
+                @if(($order->discount ?? 0) > 0)
+                <tr>
+                    <td class="label">Discount (FEEDTAN5K):</td>
+                    <td class="value" style="text-align: right; color: #15803d;">-TZS {{ number_format($order->discount, 2) }}</td>
+                </tr>
+                @endif
                 <tr>
                     <td class="label" style="font-size: 14px; border-top: 2px solid #16a34a; padding-top: 8px;">Total:</td>
                     <td class="value" style="font-size: 16px; text-align: right; border-top: 2px solid #16a34a; padding-top: 8px; color: #15803d;">TZS {{ number_format($order->total, 2) }}</td>

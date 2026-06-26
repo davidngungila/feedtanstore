@@ -184,6 +184,14 @@
                 <div>
                     <span class="font-semibold text-primary-900">TZS {{ number_format($order->delivery_fee, 2) }}</span>
                 </div>
+                @if(($order->discount ?? 0) > 0)
+                <div class="md:col-span-2">
+                    <span class="text-gray-600">Discount (FEEDTAN5K):</span>
+                </div>
+                <div>
+                    <span class="font-semibold text-green-700">-TZS {{ number_format($order->discount, 2) }}</span>
+                </div>
+                @endif
                 <div class="md:col-span-2">
                     <span class="text-lg font-semibold text-primary-900">Total:</span>
                 </div>

@@ -73,7 +73,11 @@
                 <!-- Order Details -->
                 <div class="lg:col-span-2">
                     <h3 class="text-lg font-semibold text-primary-900 mb-4">Order Details</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="mb-4 rounded-xl border border-orange-200 bg-orange-50 px-4 py-3 text-sm text-orange-900">
+                        <div class="font-semibold">Get TZS 5,000 off your first order</div>
+                        <div>Use code <span class="font-bold">FEEDTAN5K</span> at checkout. Valid on orders above TZS 30,000.</div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Delivery Fee (TZS)</label>
                             <input type="number" name="delivery_fee" value="{{ old('delivery_fee', 0) }}" min="0" step="0.01" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
@@ -99,6 +103,21 @@
                                     @endif
                                 @endforeach
                             </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Promo Code</label>
+                            <input
+                                type="text"
+                                name="promo_code"
+                                id="promoCode"
+                                value="{{ old('promo_code') }}"
+                                placeholder="FEEDTAN5K"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg uppercase focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                            >
+                            <p id="promoHelper" class="mt-1 text-xs text-gray-500">Applies TZS 5,000 off on the first online order above TZS 30,000.</p>
+                            @error('promo_code')
+                                <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
+                            @enderror
                         </div>
                     </div>
                 </div>
@@ -149,7 +168,7 @@
                 <!-- Order Summary -->
                 <div class="lg:col-span-2">
                     <div class="bg-gray-50 p-4 rounded-lg">
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                             <div>
                                 <span class="text-sm text-gray-600">Subtotal:</span>
                                 <span class="font-semibold text-primary-900" id="subtotalDisplay">TZS 0.00</span>
@@ -157,6 +176,10 @@
                             <div>
                                 <span class="text-sm text-gray-600">Delivery Fee:</span>
                                 <span class="font-semibold text-primary-900" id="deliveryFeeDisplay">TZS 0.00</span>
+                            </div>
+                            <div>
+                                <span class="text-sm text-gray-600">Discount:</span>
+                                <span class="font-semibold text-green-700" id="discountDisplay">-TZS 0.00</span>
                             </div>
                             <div>
                                 <span class="text-sm text-gray-600">Total:</span>
@@ -317,6 +340,11 @@ document.addEventListener('DOMContentLoaded', function() {
     document.querySelector('input[name="delivery_fee"]').addEventListener('input', function() {
         updateOrderSummary();
     });
+
+    document.getElementById('promoCode').addEventListener('input', function() {
+        this.value = this.value.toUpperCase();
+        updateOrderSummary();
+    });
 });
 
 function addNewItem() {
@@ -367,11 +395,17 @@ function updateOrderSummary() {
     });
     
     const deliveryFee = parseFloat(document.querySelector('input[name="delivery_fee"]').value) || 0;
-    const total = subtotal + deliveryFee;
+    const promoCode = (document.getElementById('promoCode').value || '').trim().toUpperCase();
+    const discount = promoCode === 'FEEDTAN5K' && subtotal >= 30000 ? 5000 : 0;
+    const total = Math.max(0, subtotal + deliveryFee - discount);
     
     document.getElementById('subtotalDisplay').textContent = 'TZS ' + subtotal.toFixed(2);
     document.getElementById('deliveryFeeDisplay').textContent = 'TZS ' + deliveryFee.toFixed(2);
+    document.getElementById('discountDisplay').textContent = '-TZS ' + discount.toFixed(2);
     document.getElementById('totalDisplay').textContent = 'TZS ' + total.toFixed(2);
+    document.getElementById('promoHelper').textContent = promoCode === 'FEEDTAN5K' && subtotal < 30000
+        ? 'FEEDTAN5K needs a subtotal above TZS 30,000. First-order eligibility is checked on save.'
+        : 'Applies TZS 5,000 off on the first online order above TZS 30,000.';
 }
 </script>
 @endsection

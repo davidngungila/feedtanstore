@@ -263,6 +263,7 @@ class OnlineOrderController extends Controller
             'payment_method' => 'nullable|string',
             'delivery_fee' => 'nullable|numeric|min:0',
             'delivery_rider_id' => 'nullable|exists:delivery_riders,id',
+            'promo_code' => 'nullable|string|max:50',
             'notes' => 'nullable|string',
             'items' => 'required|array',
             'items.*.product_id' => 'required|exists:products,id',
@@ -276,7 +277,12 @@ class OnlineOrderController extends Controller
         }
 
         $deliveryFee = $request->delivery_fee ?? 0;
-        $total = $subtotal + $deliveryFee;
+        [$discount, $promoError] = $this->resolveOnlinePromoDiscount($request, $subtotal);
+        if ($promoError) {
+            return back()->withErrors(['promo_code' => $promoError])->withInput();
+        }
+
+        $total = max(0, $subtotal + $deliveryFee - $discount);
 
         $order = OnlineOrder::create([
             'order_number' => 'ORD-' . strtoupper(uniqid()),
@@ -289,6 +295,7 @@ class OnlineOrderController extends Controller
             'payment_status' => 'pending',
             'payment_method' => $request->payment_method,
             'subtotal' => $subtotal,
+            'discount' => $discount,
             'delivery_fee' => $deliveryFee,
             'total' => $total,
             'delivery_rider_id' => $request->delivery_rider_id,
@@ -371,6 +378,7 @@ class OnlineOrderController extends Controller
             'payment_method' => 'nullable|string',
             'delivery_fee' => 'nullable|numeric|min:0',
             'delivery_rider_id' => 'nullable|exists:delivery_riders,id',
+            'promo_code' => 'nullable|string|max:50',
             'notes' => 'nullable|string',
             'items' => 'required|array',
             'items.*.product_id' => 'required|exists:products,id',
@@ -384,7 +392,12 @@ class OnlineOrderController extends Controller
         }
 
         $deliveryFee = $request->delivery_fee ?? 0;
-        $total = $subtotal + $deliveryFee;
+        [$discount, $promoError] = $this->resolveOnlinePromoDiscount($request, $subtotal, $order);
+        if ($promoError) {
+            return back()->withErrors(['promo_code' => $promoError])->withInput();
+        }
+
+        $total = max(0, $subtotal + $deliveryFee - $discount);
 
         $order->update([
             'customer_id' => $request->customer_id,
@@ -394,6 +407,7 @@ class OnlineOrderController extends Controller
             'delivery_address' => $request->delivery_address,
             'payment_method' => $request->payment_method,
             'subtotal' => $subtotal,
+            'discount' => $discount,
             'delivery_fee' => $deliveryFee,
             'total' => $total,
             'delivery_rider_id' => $request->delivery_rider_id,
@@ -416,6 +430,61 @@ class OnlineOrderController extends Controller
         }
 
         return redirect()->route('online.orders')->with('success', 'Online Order updated successfully!');
+    }
+
+    private function resolveOnlinePromoDiscount(Request $request, float $subtotal, ?OnlineOrder $order = null): array
+    {
+        $promoCode = strtoupper(trim((string) $request->input('promo_code')));
+        if ($promoCode === '') {
+            return [0, null];
+        }
+
+        if ($promoCode !== 'FEEDTAN5K') {
+            return [0, 'Invalid promo code. Use FEEDTAN5K.'];
+        }
+
+        if ($subtotal < 30000) {
+            return [0, 'FEEDTAN5K applies only on orders above TZS 30,000.'];
+        }
+
+        if ($order && (float) $order->discount >= 5000) {
+            return [5000, null];
+        }
+
+        if (!$this->isFirstOnlineOrderForCustomer($request, $order)) {
+            return [0, 'FEEDTAN5K is only valid for the first online order for this customer.'];
+        }
+
+        return [5000, null];
+    }
+
+    private function isFirstOnlineOrderForCustomer(Request $request, ?OnlineOrder $ignoreOrder = null): bool
+    {
+        $customerId = $request->filled('customer_id') ? (int) $request->input('customer_id') : null;
+        $phone = trim((string) $request->input('customer_phone'));
+        $email = strtolower(trim((string) $request->input('customer_email')));
+
+        $existingOrderQuery = OnlineOrder::query();
+
+        if ($ignoreOrder) {
+            $existingOrderQuery->whereKeyNot($ignoreOrder->id);
+        }
+
+        $existingOrderQuery->where(function ($query) use ($customerId, $phone, $email) {
+            if ($customerId) {
+                $query->orWhere('customer_id', $customerId);
+            }
+
+            if ($phone !== '') {
+                $query->orWhere('customer_phone', $phone);
+            }
+
+            if ($email !== '') {
+                $query->orWhereRaw('LOWER(customer_email) = ?', [$email]);
+            }
+        });
+
+        return !$existingOrderQuery->exists();
     }
 
     public function destroy(OnlineOrder $order)

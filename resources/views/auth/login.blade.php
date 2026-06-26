@@ -61,6 +61,7 @@
 
             <!-- Form -->
             <div class="p-8">
+                @if($entryGranted ?? false)
                 <form 
                     method="POST" 
                     action="{{ route('login') }}"
@@ -137,8 +138,16 @@
                         </span>
                     </button>
                 </form>
-
-                
+                @else
+                <div class="rounded-2xl border border-amber-200 bg-amber-50 p-5 text-center">
+                    <div class="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-amber-100 text-amber-600">
+                        <i class="fa-solid fa-shield-halved text-xl"></i>
+                    </div>
+                    <h2 class="text-lg font-bold text-primary-900">Secure Entry Required</h2>
+                    <p class="mt-2 text-sm text-primary-700">Use a valid signed `/entry` link to open the admin sign-in form.</p>
+                    <p class="mt-2 text-xs text-primary-500">Entry links are temporary and one-time use for better security.</p>
+                </div>
+                @endif
             </div>
         </div>
     </div>

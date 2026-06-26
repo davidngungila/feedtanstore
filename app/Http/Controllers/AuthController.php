@@ -7,16 +7,57 @@ use App\Models\LoginHistory;
 use App\Models\UserDevice;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 
 class AuthController extends Controller
 {
+    public function showEntry(Request $request)
+    {
+        if (Auth::check()) {
+            return redirect()->intended(route('dashboard'));
+        }
+
+        $token = (string) $request->query('token', '');
+        if ($token === '') {
+            abort(403, 'Invalid entry token.');
+        }
+
+        $expiresAt = now()->addMinutes(10);
+        if ($request->has('expires')) {
+            $expiresAt = now()->setTimestamp((int) $request->query('expires'));
+        }
+
+        $cacheKey = 'admin-entry-token:' . hash('sha256', $token);
+        if (!Cache::add($cacheKey, true, $expiresAt)) {
+            abort(403, 'This entry link has already been used.');
+        }
+
+        $request->session()->put([
+            'admin_entry_granted' => true,
+            'admin_entry_granted_until' => $expiresAt->timestamp,
+        ]);
+
+        return redirect()->route('login');
+    }
+
     public function showLoginForm()
     {
-        return view('auth.login');
+        if (Auth::check()) {
+            $user = Auth::user();
+            return redirect()->intended($user->role === 'cashier' ? route('cashier.dashboard') : route('dashboard'));
+        }
+
+        return view('auth.login', [
+            'entryGranted' => $this->hasValidEntryGrant(request()),
+        ]);
     }
 
     public function login(Request $request)
     {
+        if (!$this->hasValidEntryGrant($request)) {
+            abort(403, 'A valid signed entry link is required.');
+        }
+
         $credentials = $request->validate([
             'email' => ['required', 'email'],
             'password' => ['required'],
@@ -31,6 +72,7 @@ class AuthController extends Controller
         if (Auth::attempt($credentials, $request->boolean('remember'))) {
             $user = Auth::user();
             $request->session()->regenerate();
+            $this->clearEntryGrant($request);
 
             // Record successful login
             LoginHistory::create([
@@ -104,6 +146,29 @@ class AuthController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
         return redirect()->route('login');
+    }
+
+    private function hasValidEntryGrant(Request $request): bool
+    {
+        if (!$request->session()->get('admin_entry_granted')) {
+            return false;
+        }
+
+        $grantedUntil = (int) $request->session()->get('admin_entry_granted_until', 0);
+        if ($grantedUntil <= now()->timestamp) {
+            $this->clearEntryGrant($request);
+            return false;
+        }
+
+        return true;
+    }
+
+    private function clearEntryGrant(Request $request): void
+    {
+        $request->session()->forget([
+            'admin_entry_granted',
+            'admin_entry_granted_until',
+        ]);
     }
 
     private function getDeviceType($userAgent): string
