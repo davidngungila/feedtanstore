@@ -181,7 +181,7 @@ header.site-header{
 .order-summary .stat .value{font-size:17px;font-weight:800;}
 
 .map-container{
-  width:100%;height:360px;border-radius:var(--radius-m);overflow:hidden;border:1px solid var(--line);
+  width:100%;height:400px;border-radius:var(--radius-m);overflow:hidden;border:1px solid var(--line);
 }
 .map-container .leaflet-control-container .leaflet-control{border-radius:10px;overflow:hidden;}
 .map-container .leaflet-control-layers,
@@ -387,11 +387,15 @@ footer{background:var(--green-900);color:#BFD6C8;padding:40px 0 0;margin-top:40p
           </div>
         </div>
 
-        @if($order->delivery_address)
+        @if($order->delivery_address || ($order->delivery_latitude && $order->delivery_longitude))
         <div style="margin-top:24px;">
-          <h3 style="margin-bottom:16px;">Delivery Address</h3>
+          <h3 style="margin-bottom:16px;">Delivery Location & Route</h3>
           <div class="card" style="margin-bottom:0;background:var(--parchment);">
+            @if($order->delivery_address)
             <p style="margin:0;font-size:14.5px;">{{ $order->delivery_address }}</p>
+            @else
+            <p style="margin:0;font-size:14.5px;color:var(--ink-soft);">Location captured from customer device.</p>
+            @endif
             @if($order->delivery_latitude && $order->delivery_longitude)
             <div class="map-container" style="margin-top:16px;">
               <div id="tracking-map" style="width:100%;height:100%;"></div>
