@@ -56,7 +56,7 @@
                             <span id="cashierScannerStatus" class="text-xs text-gray-500 flex items-center">Camera scanner is off.</span>
                         </div>
                         <div id="cashierCameraPanel" class="hidden mb-3 border border-gray-200 rounded-xl p-3 bg-gray-50">
-                            <div id="cashierScannerViewport" class="w-full min-h-[260px] rounded-lg overflow-hidden bg-black"></div>
+                            <div id="cashierScannerViewport" class="w-full max-w-[320px] h-[180px] mx-auto rounded-lg overflow-hidden bg-black"></div>
                             <p class="mt-2 text-xs text-gray-500">Point the camera at a product barcode. Supported on phone and desktop cameras.</p>
                         </div>
                         <div class="relative">
@@ -775,7 +775,7 @@ async function startCashierCameraScanner() {
             cameraConfig,
             {
                 fps: 10,
-                qrbox: { width: 260, height: 160 },
+                qrbox: { width: 220, height: 120 },
                 aspectRatio: 1.777778,
                 formatsToSupport: [
                     Html5QrcodeSupportedFormats.CODE_128,
