@@ -8,6 +8,7 @@ Route::get('/entry', [AuthController::class, 'redirectEntry'])->name('entry');
 Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+Route::redirect('/admin', '/');
 Route::get('/', [\App\Http\Controllers\OnlineOrderController::class, 'shop'])->name('home');
 
 // Public verify route

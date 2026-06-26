@@ -44,11 +44,11 @@
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
     </style>
 </head>
-<body class="h-full bg-gradient-to-br from-primary-900 via-primary-800 to-primary-950">
-    <div class="h-full flex items-center justify-center p-4">
+<body class="h-full bg-[#fcfefd] text-primary-900">
+    <div class="h-full flex items-center justify-center bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.98),_rgba(255,255,255,0.86)_28%,_transparent_58%),radial-gradient(circle_at_bottom_right,_rgba(220,252,231,0.45),_transparent_34%),linear-gradient(135deg,_#ffffff_0%,_#fdfefe_35%,_#f7fbf8_70%,_#edf7f0_100%)] p-4">
         <div 
             x-data="{ loading: false }"
-            class="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden animate-[fadeIn_0.5s_ease]"
+            class="w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-[0_24px_60px_rgba(6,95,70,0.12)] animate-[fadeIn_0.5s_ease]"
         >
             <!-- Header -->
             <div class="bg-gradient-to-r from-primary-600 to-primary-800 p-8 text-center">
