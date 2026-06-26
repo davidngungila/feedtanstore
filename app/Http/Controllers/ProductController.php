@@ -10,6 +10,26 @@ use Illuminate\Http\Request;
 
 class ProductController extends Controller
 {
+    protected function generateUniqueSku(?string $name = null): string
+    {
+        $base = strtoupper(substr(preg_replace('/[^A-Za-z0-9]+/', '', $name ?? 'PRD') ?: 'PRD', 0, 4));
+
+        do {
+            $sku = $base . '-' . now()->format('ymd') . '-' . strtoupper(substr(bin2hex(random_bytes(3)), 0, 6));
+        } while (Product::where('sku', $sku)->exists());
+
+        return $sku;
+    }
+
+    protected function generateUniqueBarcode(): string
+    {
+        do {
+            $barcode = now()->format('ymdHis') . random_int(1000, 9999);
+        } while (Product::where('barcode', $barcode)->exists());
+
+        return $barcode;
+    }
+
     public function index(Request $request)
     {
         $search = $request->input('search');
@@ -56,7 +76,10 @@ class ProductController extends Controller
         $categories = Category::all();
         $brands = Brand::all();
         $units = Unit::all();
-        return view('inventory.products-create', compact('categories', 'brands', 'units'));
+        $generatedSku = $this->generateUniqueSku();
+        $generatedBarcode = $this->generateUniqueBarcode();
+
+        return view('inventory.products-create', compact('categories', 'brands', 'units', 'generatedSku', 'generatedBarcode'));
     }
 
     public function store(Request $request)
@@ -64,7 +87,7 @@ class ProductController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'sku' => 'nullable|string|max:255|unique:products,sku',
-            'barcode' => 'nullable|string|max:255',
+            'barcode' => 'nullable|string|max:255|unique:products,barcode',
             'category_id' => 'required|exists:categories,id',
             'brand_id' => 'nullable|exists:brands,id',
             'unit_id' => 'required|exists:units,id',
@@ -80,7 +103,12 @@ class ProductController extends Controller
             'is_available_online' => 'boolean'
         ]);
 
-        Product::create($request->all() + ['is_available_online' => $request->has('is_available_online')]);
+        $payload = $request->all();
+        $payload['sku'] = $request->filled('sku') ? $request->sku : $this->generateUniqueSku($request->name);
+        $payload['barcode'] = $request->filled('barcode') ? $request->barcode : $this->generateUniqueBarcode();
+        $payload['is_available_online'] = $request->has('is_available_online');
+
+        Product::create($payload);
 
         return redirect()->route('inventory.products')->with('success', 'Product created successfully!');
     }
@@ -98,7 +126,7 @@ class ProductController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'sku' => 'nullable|string|max:255|unique:products,sku,' . $product->id,
-            'barcode' => 'nullable|string|max:255',
+            'barcode' => 'nullable|string|max:255|unique:products,barcode,' . $product->id,
             'category_id' => 'required|exists:categories,id',
             'brand_id' => 'nullable|exists:brands,id',
             'unit_id' => 'required|exists:units,id',

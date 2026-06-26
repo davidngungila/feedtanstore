@@ -32,12 +32,14 @@
 
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">SKU</label>
-                    <input type="text" name="sku" value="{{ old('sku') }}" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                    <input type="text" name="sku" id="sku" value="{{ old('sku', $generatedSku) }}" readonly class="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-700 focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                    <p class="mt-1 text-xs text-gray-500">Auto-generated when creating the product.</p>
                 </div>
 
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Barcode</label>
-                    <input type="text" name="barcode" value="{{ old('barcode') }}" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                    <input type="text" name="barcode" id="barcode" value="{{ old('barcode', $generatedBarcode) }}" readonly class="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-700 focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                    <p class="mt-1 text-xs text-gray-500">Auto-generated and saved to the database.</p>
                 </div>
 
                 <div>
@@ -159,6 +161,29 @@
     </div>
 </div>
 <script>
+    function slugCodeSegment(value) {
+        const cleaned = (value || '').replace(/[^A-Za-z0-9]+/g, '').toUpperCase();
+        return (cleaned || 'PRD').slice(0, 4);
+    }
+
+    function randomHex(length) {
+        const chars = '0123456789ABCDEF';
+        let output = '';
+        for (let i = 0; i < length; i++) {
+            output += chars[Math.floor(Math.random() * chars.length)];
+        }
+        return output;
+    }
+
+    function generateSkuPreview() {
+        const name = document.querySelector('input[name="name"]').value;
+        const now = new Date();
+        const y = String(now.getFullYear()).slice(-2);
+        const m = String(now.getMonth() + 1).padStart(2, '0');
+        const d = String(now.getDate()).padStart(2, '0');
+        document.getElementById('sku').value = `${slugCodeSegment(name)}-${y}${m}${d}-${randomHex(6)}`;
+    }
+
     function calculateProfit() {
         const costPrice = parseFloat(document.getElementById('cost_price').value) || 0;
         const sellingPrice = parseFloat(document.getElementById('selling_price').value) || 0;
@@ -186,6 +211,7 @@
     }
 
     document.addEventListener('DOMContentLoaded', function() {
+        document.querySelector('input[name="name"]').addEventListener('input', generateSkuPreview);
         document.getElementById('cost_price').addEventListener('input', calculateSellingPrice);
         document.getElementById('pricing_method').addEventListener('change', calculateSellingPrice);
         document.getElementById('profit_value').addEventListener('input', calculateSellingPrice);

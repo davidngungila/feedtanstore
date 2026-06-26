@@ -57,6 +57,7 @@
                         </th>
                         <th class="text-left">Name</th>
                         <th class="text-left">SKU</th>
+                        <th class="text-left">Barcode</th>
                         <th class="text-left">Category</th>
                         <th class="text-left">Brand</th>
                         <th class="text-left">Quantity</th>
@@ -76,6 +77,7 @@
                             <a href="{{ route('inventory.products.show', $product) }}" class="hover:underline">{{ $product->name }}</a>
                         </td>
                         <td class="text-gray-600">{{ $product->sku ?? '-' }}</td>
+                        <td class="text-gray-600">{{ $product->barcode ?? '-' }}</td>
                         <td class="text-gray-600">{{ $product->category->name ?? '-' }}</td>
                         <td class="text-gray-600">{{ $product->brand->name ?? '-' }}</td>
                         <td class="font-semibold {{ $product->quantity <= $product->reorder_level ? 'text-red-600' : 'text-primary-900' }}">
