@@ -706,7 +706,7 @@ class OnlineOrderController extends Controller
     {
         $order = OnlineOrder::where('order_number', $orderNumber)->firstOrFail();
 
-        $orderReference = $order->payment_order_reference ?: $order->order_number;
+        $orderReference = $this->ensureGatewayOrderReference($order);
 
         if ($orderReference) {
             try {
@@ -772,6 +772,7 @@ class OnlineOrderController extends Controller
     private function buildPaymentPayload(OnlineOrder $order): array
     {
         $order->loadMissing(['items.product']);
+        $gatewayOrderReference = $this->ensureGatewayOrderReference($order);
 
         $cartItemsForMetadata = $order->items->map(function ($item) {
             $name = $item->product ? $item->product->name : 'Item';
@@ -788,7 +789,7 @@ class OnlineOrderController extends Controller
             'phone_number' => $this->normalizePhoneNumber($order->customer_phone),
             'payer_name' => $order->customer_name,
             'description' => "Order {$order->order_number} - Shopping Cart",
-            'order_reference' => $order->payment_order_reference ?: $order->order_number,
+            'order_reference' => $gatewayOrderReference,
             'email' => $order->customer_email,
             'callback_url' => route('api.shop.payments.feedtan.callback'),
             'metadata' => [
@@ -819,6 +820,27 @@ class OnlineOrderController extends Controller
         return $digits;
     }
 
+    private function ensureGatewayOrderReference(OnlineOrder $order): string
+    {
+        $currentReference = strtoupper((string) $order->payment_order_reference);
+        if ($currentReference !== '' && preg_match('/^[A-Z0-9]+$/', $currentReference)) {
+            return $currentReference;
+        }
+
+        $generatedReference = strtoupper(preg_replace('/[^A-Za-z0-9]/', '', (string) $order->order_number));
+        if ($generatedReference === '') {
+            $generatedReference = 'ORD' . $order->id . strtoupper(substr(md5((string) $order->id), 0, 8));
+        }
+
+        if ($order->payment_order_reference !== $generatedReference) {
+            $order->forceFill([
+                'payment_order_reference' => $generatedReference,
+            ])->save();
+        }
+
+        return $generatedReference;
+    }
+
     private function syncOrderPaymentState(OnlineOrder $order, array $paymentData, string $historyNotePrefix = 'Payment sync'): void
     {
         $gatewayStatus = strtoupper((string) ($paymentData['status'] ?? $paymentData['clickpesa_status'] ?? ''));
@@ -826,7 +848,7 @@ class OnlineOrderController extends Controller
 
         $updates = [
             'payment_transaction_id' => $paymentData['transaction_id'] ?? $order->payment_transaction_id,
-            'payment_order_reference' => $paymentData['order_reference'] ?? $order->payment_order_reference ?? $order->order_number,
+            'payment_order_reference' => $paymentData['order_reference'] ?? $this->ensureGatewayOrderReference($order),
             'clickpesa_status' => $gatewayStatus !== '' ? $gatewayStatus : $order->clickpesa_status,
         ];
 
