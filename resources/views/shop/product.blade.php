@@ -217,6 +217,24 @@ footer{background:var(--green-900);color:#BFD6C8;padding:54px 0 0;margin-top:40p
 .toast.show{opacity:1;visibility:visible;transform:translateX(-50%) translateY(0);}
 .toast svg{color:var(--orange);flex-shrink:0;}
 
+.page-loader{
+  position:fixed;inset:0;z-index:9999;background:rgba(247,244,237,0.94);backdrop-filter:blur(8px);
+  display:flex;align-items:center;justify-content:center;transition:opacity .3s ease, visibility .3s ease;
+}
+.page-loader.hidden{opacity:0;visibility:hidden;pointer-events:none;}
+.page-loader-card{text-align:center;padding:24px;}
+.page-loader-ring{
+  position:relative;width:110px;height:110px;margin:0 auto 16px;display:flex;align-items:center;justify-content:center;
+}
+.page-loader-ring::before{
+  content:'';position:absolute;inset:0;border-radius:50%;border:4px solid rgba(35,90,65,0.12);border-top-color:var(--green-700);
+  animation:spinLoader 1s linear infinite;
+}
+.page-loader-logo{
+  width:74px;height:74px;border-radius:50%;object-fit:cover;background:#fff;box-shadow:var(--shadow-card);padding:4px;
+}
+@keyframes spinLoader{to{transform:rotate(360deg);}}
+
 @media(max-width:880px){
   .search-bar{display:none;}
   .mobile-search{display:block;}
@@ -231,9 +249,21 @@ footer{background:var(--green-900);color:#BFD6C8;padding:54px 0 0;margin-top:40p
   .pd-title{font-size:28px;}
   .pd-price{font-size:26px;}
 }
+@media (prefers-reduced-motion: reduce){
+  .page-loader-ring::before{animation:none;}
+}
 </style>
 </head>
 <body>
+
+<div id="pageLoader" class="page-loader" aria-live="polite" aria-label="Page loading">
+  <div class="page-loader-card">
+    <div class="page-loader-ring">
+      <img src="{{ asset('logo-image-feedtan-store.png') }}" alt="Feedtan Store" class="page-loader-logo">
+    </div>
+    <div style="font-weight:700;color:var(--green-700);font-size:18px;">Loading...</div>
+  </div>
+</div>
 
 <div class="topbar">
   <div class="wrap">
@@ -612,7 +642,18 @@ function toggleMobileSearch() {
   box.style.display = box.style.display === 'none' ? 'block' : 'none';
 }
 
-document.addEventListener('DOMContentLoaded', initCart);
+function hidePageLoader() {
+  const loader = document.getElementById('pageLoader');
+  if (!loader) return;
+  loader.classList.add('hidden');
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  initCart();
+  setTimeout(hidePageLoader, 350);
+});
+
+window.addEventListener('load', hidePageLoader);
 </script>
 </body>
 </html>
