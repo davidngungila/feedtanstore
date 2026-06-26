@@ -35,6 +35,12 @@
                 </tbody>
             </table>
         </div>
+
+        @if($sales->hasPages())
+            <div class="mt-6">
+                {{ $sales->links() }}
+            </div>
+        @endif
     </div>
 </div>
 @endsection

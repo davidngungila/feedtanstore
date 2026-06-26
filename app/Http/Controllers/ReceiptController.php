@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 
 class ReceiptController extends Controller {
     public function index() {
-        $sales = Sale::with(['customer', 'user'])->orderBy('created_at', 'desc')->get();
+        $sales = Sale::with(['customer', 'user'])->orderBy('created_at', 'desc')->paginate(20);
         return view('sales.receipts', compact('sales'));
     }
 
