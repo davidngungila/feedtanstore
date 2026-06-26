@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\OnlineOrderPlaced;
 use App\Models\Customer;
 use App\Models\OnlineOrder;
 use App\Models\OnlineOrderItem;
@@ -23,7 +24,6 @@ class OnlineOrderController extends Controller
     {
         $trackingUrl = url('/shop/tracking/' . $order->order_number);
         $pdfUrl = url('/shop/tracking/' . $order->order_number . '/pdf');
-        $payUrl = $trackingUrl . '?pay=1';
 
         $smsProfile = CommunicationProfile::where('type', 'sms')->where('is_active', true)->first();
         if ($smsProfile && $order->customer_phone) {
@@ -32,7 +32,7 @@ class OnlineOrderController extends Controller
                 $phoneNumber = '255' . substr($phoneNumber, 1);
             }
             try {
-                $smsText = "Dear {$order->customer_name}, your order {$order->order_number} has been placed successfully.\nTrack: {$trackingUrl}\nPay: {$payUrl}\nDownload: {$pdfUrl}\nFeedtan Store";
+                $smsText = "Thanks {$order->customer_name}. Order {$order->order_number} received. Feedtan Store.";
                 $messagingService = new MessagingService($smsProfile->sms_api_key, $smsProfile->messaging_sender_id, false);
                 $messagingService->sendSms($phoneNumber, $smsText);
             } catch (\Exception $e) {
@@ -60,11 +60,7 @@ class OnlineOrderController extends Controller
             ]);
 
             try {
-                $subject = "Order Placed: {$order->order_number}";
-                $body = "Dear {$order->customer_name},\n\nYour order has been placed successfully.\n\nOrder Number: {$order->order_number}\nTotal: TZS " . number_format($order->total, 0) . "\n\nTrack your order:\n{$trackingUrl}\n\nPay for this order:\n{$payUrl}\n\nDownload order document (PDF):\n{$pdfUrl}\n\nThank you,\nFeedtan Store";
-                Mail::mailer('test_smtp')->raw($body, function ($message) use ($order, $subject) {
-                    $message->to($order->customer_email)->subject($subject);
-                });
+                Mail::mailer('test_smtp')->to($order->customer_email)->send(new OnlineOrderPlaced($order));
             } catch (\Exception $e) {
                 \Log::error('Failed to send online order email: ' . $e->getMessage());
             }
