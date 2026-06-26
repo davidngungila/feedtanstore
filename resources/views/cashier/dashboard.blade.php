@@ -3,9 +3,9 @@
 @section('page-title', 'Cashier Dashboard')
 
 @section('content')
-<div class="animate-[fadeIn_0.4s_ease] min-h-screen p-4">
+<div class="animate-[fadeIn_0.4s_ease] min-h-screen p-3 sm:p-4">
     <!-- Dashboard Stats -->
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
         <div class="card rounded-2xl p-4">
             <h4 class="text-sm font-medium text-gray-600 mb-1">Today's Sales</h4>
             <p class="text-xl font-bold text-primary-900" id="todaySales">TZS 0.00</p>
@@ -37,12 +37,12 @@
                         <div class="mb-3 p-2 bg-green-50 border border-green-200 rounded-lg">
                             <p class="text-xs text-green-700"><i class="fas fa-barcode mr-2"></i>Use a barcode scanner, your phone/PC camera, or manual code entry to add products fast.</p>
                         </div>
-                        <div class="flex gap-2 items-center mb-3">
+                        <div class="flex flex-col sm:flex-row gap-2 sm:items-center mb-3">
                             <div class="flex-1 relative">
                                 <i class="fas fa-barcode absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
                                 <input type="text" id="barcodeInput" placeholder="Scan or type barcode / SKU..." class="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm" autofocus>
                             </div>
-                            <div class="text-green-600 text-sm font-medium scan-indicator">
+                            <div class="text-green-600 text-sm font-medium scan-indicator sm:whitespace-nowrap">
                                 <i class="fas fa-circle mr-1 text-xs"></i>Scan Ready
                             </div>
                         </div>
@@ -93,7 +93,7 @@
 
             <!-- Cart -->
             <div class="card rounded-2xl p-4">
-                <div class="flex items-center justify-between mb-3">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-3">
                     <h2 class="text-lg font-bold text-primary-900">Cart</h2>
                     <div class="flex gap-2">
                         <button type="button" onclick="showAllDetails()" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium">
@@ -109,15 +109,15 @@
                         <span class="text-gray-600">Subtotal:</span>
                         <span id="subtotal" class="font-semibold">TZS 0.00</span>
                     </div>
-                    <div class="flex justify-between mb-1.5 items-center text-sm">
+                    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 mb-1.5 text-sm">
                         <label class="text-gray-600">Discount:</label>
-                        <div class="flex items-center gap-2">
-                            <div class="flex border border-gray-300 rounded overflow-hidden">
+                        <div class="flex flex-col sm:flex-row sm:items-center gap-2">
+                            <div class="flex w-full sm:w-auto border border-gray-300 rounded overflow-hidden">
                                 <select id="discountType" class="px-2 py-1 border-r border-gray-300 bg-gray-50 text-sm" onchange="updateTotals()">
                                     <option value="amount">TZS</option>
                                     <option value="percent">%</option>
                                 </select>
-                                <input type="number" id="discountInput" placeholder="0" class="w-24 px-2 py-1 border-0 text-sm" onchange="updateTotals()">
+                                <input type="number" id="discountInput" placeholder="0" class="w-full sm:w-24 px-2 py-1 border-0 text-sm" onchange="updateTotals()">
                             </div>
                             <span id="discountAmount" class="font-semibold text-red-600">-TZS 0.00</span>
                         </div>
@@ -135,7 +135,7 @@
             <!-- Quick Actions -->
             <div class="card rounded-2xl p-4">
                 <h2 class="text-lg font-bold text-primary-900 mb-3">Quick Actions</h2>
-                <div class="grid grid-cols-2 gap-2">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     <button type="button" onclick="toggleFullscreen()" class="py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-700 text-sm font-medium" id="fullscreenBtn">
                         <i class="fas fa-expand mr-1"></i>Fullscreen
                     </button>
@@ -148,7 +148,7 @@
                     <button type="button" onclick="clearCart()" class="py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-700 text-sm font-medium">
                         <i class="fas fa-trash mr-1"></i>Clear Cart
                     </button>
-                    <button type="button" onclick="cancelSale()" class="py-2 border border-red-300 rounded-lg hover:bg-red-50 text-red-700 text-sm font-medium">
+                    <button type="button" onclick="cancelSale()" class="py-2 border border-red-300 rounded-lg hover:bg-red-50 text-red-700 text-sm font-medium sm:col-span-2">
                         <i class="fas fa-times mr-1"></i>Cancel Sale
                     </button>
                 </div>
@@ -182,7 +182,7 @@
                 </div>
                 <div class="mb-4">
                     <p class="text-gray-700 font-medium mb-2 text-sm">Payment Method</p>
-                    <div class="flex gap-2">
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
                         <button type="button" class="flex-1 py-2.5 border-2 border-primary-600 bg-primary-600 text-white rounded-lg font-semibold text-sm" id="methodCash" onclick="selectPaymentMethod('cash')">
                             <i class="fas fa-money-bill mr-1"></i>Cash
                         </button>
@@ -217,7 +217,7 @@
 
 <!-- Success Modal -->
 <div id="successModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
-    <div class="bg-white rounded-2xl p-8 max-w-md w-full mx-4">
+    <div class="bg-white rounded-2xl p-5 sm:p-8 max-w-md w-full mx-4">
         <div class="text-center">
             <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <i class="fas fa-check text-green-600 text-4xl"></i>
@@ -237,7 +237,7 @@
                     <span id="modalChange">TZS 0.00</span>
                 </div>
             </div>
-            <div class="flex gap-3">
+            <div class="flex flex-col sm:flex-row gap-3">
                 <button onclick="printReceipt()" class="flex-1 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold text-lg">
                     <i class="fas fa-print mr-2"></i>Print Receipt
                 </button>
@@ -251,8 +251,8 @@
 
 <!-- All Details Modal -->
 <div id="detailsModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
-    <div class="bg-white rounded-2xl p-6 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-        <div class="flex items-center justify-between mb-6">
+    <div class="bg-white rounded-2xl p-4 sm:p-6 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+        <div class="flex items-center justify-between gap-4 mb-6">
             <h2 class="text-2xl font-bold text-primary-900">Sales Details</h2>
             <button type="button" onclick="hideAllDetails()" class="text-gray-500 hover:text-gray-700">
                 <i class="fas fa-times text-xl"></i>
@@ -266,8 +266,8 @@
 
 <!-- Recent Transactions Modal -->
 <div id="transactionsModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
-    <div class="bg-white rounded-2xl p-6 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-        <div class="flex items-center justify-between mb-6">
+    <div class="bg-white rounded-2xl p-4 sm:p-6 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+        <div class="flex items-center justify-between gap-4 mb-6">
             <h2 class="text-2xl font-bold text-primary-900">Recent Transactions</h2>
             <button type="button" onclick="hideTransactionsModal()" class="text-gray-500 hover:text-gray-700">
                 <i class="fas fa-times text-xl"></i>
@@ -281,8 +281,8 @@
 
 <!-- Held Sales Modal -->
 <div id="heldSalesModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
-    <div class="bg-white rounded-2xl p-6 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-        <div class="flex items-center justify-between mb-6">
+    <div class="bg-white rounded-2xl p-4 sm:p-6 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+        <div class="flex items-center justify-between gap-4 mb-6">
             <h2 class="text-2xl font-bold text-primary-900">Held Sales</h2>
             <button type="button" onclick="hideHeldSalesModal()" class="text-gray-500 hover:text-gray-700">
                 <i class="fas fa-times text-xl"></i>
@@ -296,8 +296,8 @@
 
 <!-- Create Customer Modal -->
 <div id="createCustomerModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
-    <div class="bg-white rounded-2xl p-6 max-w-md w-full mx-4">
-        <div class="flex items-center justify-between mb-6">
+    <div class="bg-white rounded-2xl p-4 sm:p-6 max-w-md w-full mx-4">
+        <div class="flex items-center justify-between gap-4 mb-6">
             <h2 class="text-xl font-bold text-primary-900">Add New Customer</h2>
             <button type="button" onclick="hideCreateCustomerModal()" class="text-gray-500 hover:text-gray-700">
                 <i class="fas fa-times text-xl"></i>
@@ -320,7 +320,7 @@
                 <label class="block text-gray-700 font-medium mb-2 text-sm">Address</label>
                 <textarea id="customerAddress" rows="2" class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"></textarea>
             </div>
-            <div class="flex gap-3 pt-2">
+            <div class="flex flex-col sm:flex-row gap-3 pt-2">
                 <button type="button" onclick="hideCreateCustomerModal()" class="flex-1 py-2.5 border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 text-sm">Cancel</button>
                 <button type="submit" class="flex-1 py-2.5 bg-primary-600 text-white rounded-lg font-semibold hover:bg-primary-700 text-sm">Add Customer</button>
             </div>
@@ -915,12 +915,12 @@ function renderCart() {
         container.innerHTML = '<p class="text-gray-500 text-center py-8">Cart is empty</p>';
     } else {
         container.innerHTML = cart.map((item, index) => `
-            <div class="flex items-center justify-between py-3 border-b border-gray-100">
-                <div class="flex-1">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 py-3 border-b border-gray-100">
+                <div class="flex-1 min-w-0">
                     <p class="font-medium text-primary-900">${item.name}</p>
                     <p class="text-sm text-gray-600">TZS ${parseFloat(item.price).toFixed(2)}</p>
                 </div>
-                <div class="flex items-center gap-2">
+                <div class="flex items-center justify-between sm:justify-end gap-2 w-full sm:w-auto">
                     <button type="button" class="w-8 h-8 rounded-lg border border-gray-300 flex items-center justify-center hover:bg-gray-100" onclick="updateQuantity(${index}, -1)">-</button>
                     <span class="font-semibold text-gray-800 w-8 text-center">${item.quantity}</span>
                     <button type="button" class="w-8 h-8 rounded-lg border border-gray-300 flex items-center justify-center hover:bg-gray-100" onclick="updateQuantity(${index}, 1)">+</button>
@@ -1129,15 +1129,15 @@ function showTransactionsModal() {
     if (dashboardData.transactions.length > 0) {
         contentDiv.innerHTML = dashboardData.transactions.map(t => `
             <div class="p-4 border border-gray-200 rounded-lg">
-                <div class="flex justify-between items-center mb-2">
+                <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 mb-2">
                     <span class="font-bold text-lg text-primary-900">${t.invoice_number}</span>
                     <span class="text-sm text-gray-500">${t.created_at}</span>
                 </div>
-                <div class="flex justify-between text-sm mb-1">
+                <div class="flex justify-between gap-3 text-sm mb-1">
                     <span class="text-gray-600">${t.items_count} items</span>
                     <span class="font-semibold text-gray-800">TZS ${formatNumber(parseFloat(t.total))}</span>
                 </div>
-                <div class="flex justify-between text-xs">
+                <div class="flex flex-col sm:flex-row sm:justify-between gap-2 text-xs">
                     <span class="text-gray-500">${t.payment_method.toUpperCase()}</span>
                     <button type="button" onclick="printSpecificReceipt('${t.id}')" class="text-blue-600 hover:text-blue-800">
                         <i class="fas fa-print mr-1"></i>Print
@@ -1204,7 +1204,7 @@ function showAllDetails() {
     const shiftCard = parseFloat(dashboardData.shiftBreakdown?.card || 0);
     const shiftMobile = parseFloat(dashboardData.shiftBreakdown?.mobile || 0);
 
-    html += '<div class="grid grid-cols-2 gap-4">';
+        html += '<div class="grid grid-cols-1 md:grid-cols-2 gap-4">';
     html += '<div class="p-4 bg-gray-50 rounded-xl">';
     html += '<h4 class="font-bold text-lg text-primary-900 mb-3">Today</h4>';
     html += '<p class="mb-2"><strong>Total:</strong> TZS ' + todayTotal.toFixed(2) + '</p>';
@@ -1307,12 +1307,12 @@ function showHeldSalesModal() {
     } else {
         content.innerHTML = heldSales.map((sale, index) => `
             <div class="border border-gray-200 rounded-xl p-4 hover:border-gray-300 transition-colors">
-                <div class="flex items-center justify-between mb-3">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3">
                     <div>
                         <p class="font-semibold text-primary-900">Held Sale #${sale.id}</p>
                         <p class="text-sm text-gray-500">${sale.timestamp}</p>
                     </div>
-                    <div class="flex gap-2">
+                    <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                         <button onclick="retrieveSale(${index})" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium">
                             <i class="fas fa-folder-open mr-1"></i>Retrieve
                         </button>
