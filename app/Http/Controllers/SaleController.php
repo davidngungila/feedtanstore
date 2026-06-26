@@ -13,9 +13,27 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class SaleController extends Controller {
-    public function index() {
-        $sales = Sale::with(['customer', 'user', 'items'])->orderBy('created_at', 'desc')->get();
-        return view('sales.history', compact('sales'));
+    public function index(Request $request) {
+        $search = trim((string) $request->input('search'));
+
+        $sales = Sale::with(['customer', 'user', 'items'])
+            ->when($search !== '', function ($query) use ($search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('invoice_number', 'like', '%' . $search . '%')
+                        ->orWhere('type', 'like', '%' . $search . '%')
+                        ->orWhere('status', 'like', '%' . $search . '%')
+                        ->orWhereHas('customer', function ($customerQuery) use ($search) {
+                            $customerQuery->where('name', 'like', '%' . $search . '%')
+                                ->orWhere('phone', 'like', '%' . $search . '%')
+                                ->orWhere('email', 'like', '%' . $search . '%');
+                        });
+                });
+            })
+            ->orderBy('created_at', 'desc')
+            ->paginate(20)
+            ->appends($request->only('search'));
+
+        return view('sales.history', compact('sales', 'search'));
     }
 
     public function create()
