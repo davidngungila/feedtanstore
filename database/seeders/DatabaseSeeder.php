@@ -32,9 +32,7 @@ class DatabaseSeeder extends Seeder
         ]);
 
         // Seed Categories
-        Category::create(['name' => 'Electronics', 'description' => 'All electronic devices and accessories']);
-        Category::create(['name' => 'Food & Beverages', 'description' => 'All food and drink items']);
-        Category::create(['name' => 'Clothing', 'description' => 'All clothing and apparel']);
+        $this->call(CategorySeeder::class);
 
         // Seed Brands
         Brand::create(['name' => 'Apple', 'description' => 'Apple products']);
