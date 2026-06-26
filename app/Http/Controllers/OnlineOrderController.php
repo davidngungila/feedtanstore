@@ -9,13 +9,141 @@ use App\Models\OnlineOrderStatusHistory;
 use App\Models\Product;
 use App\Models\DeliveryRider;
 use App\Models\AccountingEntry;
+use App\Models\CommunicationProfile;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
 use Dompdf\Dompdf;
 use App\Services\ClickPesaService;
+use App\Services\MessagingService;
 
 class OnlineOrderController extends Controller
 {
+    protected function sendPublicOrderNotifications(OnlineOrder $order): void
+    {
+        $trackingUrl = url('/shop/tracking/' . $order->order_number);
+        $pdfUrl = url('/shop/tracking/' . $order->order_number . '/pdf');
+        $payUrl = $trackingUrl . '?pay=1';
+
+        $smsProfile = CommunicationProfile::where('type', 'sms')->where('is_active', true)->first();
+        if ($smsProfile && $order->customer_phone) {
+            $phoneNumber = $order->customer_phone;
+            if (substr($phoneNumber, 0, 1) === '0') {
+                $phoneNumber = '255' . substr($phoneNumber, 1);
+            }
+            try {
+                $smsText = "Dear {$order->customer_name}, your order {$order->order_number} has been placed successfully.\nTrack: {$trackingUrl}\nPay: {$payUrl}\nDownload: {$pdfUrl}\nFeedtan Store";
+                $messagingService = new MessagingService($smsProfile->sms_api_key, $smsProfile->messaging_sender_id, false);
+                $messagingService->sendSms($phoneNumber, $smsText);
+            } catch (\Exception $e) {
+                \Log::error('Failed to send online order SMS: ' . $e->getMessage());
+            }
+        }
+
+        $emailProfile = CommunicationProfile::where('type', 'email')->where('is_active', true)->first();
+        if ($emailProfile && $order->customer_email) {
+            config([
+                'mail.mailers.test_smtp' => [
+                    'transport' => 'smtp',
+                    'host' => $emailProfile->smtp_host,
+                    'port' => $emailProfile->smtp_port,
+                    'encryption' => $emailProfile->smtp_encryption,
+                    'username' => $emailProfile->smtp_username,
+                    'password' => $emailProfile->smtp_password,
+                    'timeout' => 30,
+                    'local_domain' => null,
+                ],
+                'mail.from' => [
+                    'address' => $emailProfile->email_from_address,
+                    'name' => $emailProfile->email_from_name,
+                ],
+            ]);
+
+            try {
+                $subject = "Order Placed: {$order->order_number}";
+                $body = "Dear {$order->customer_name},\n\nYour order has been placed successfully.\n\nOrder Number: {$order->order_number}\nTotal: TZS " . number_format($order->total, 0) . "\n\nTrack your order:\n{$trackingUrl}\n\nPay for this order:\n{$payUrl}\n\nDownload order document (PDF):\n{$pdfUrl}\n\nThank you,\nFeedtan Store";
+                Mail::mailer('test_smtp')->raw($body, function ($message) use ($order, $subject) {
+                    $message->to($order->customer_email)->subject($subject);
+                });
+            } catch (\Exception $e) {
+                \Log::error('Failed to send online order email: ' . $e->getMessage());
+            }
+        }
+    }
+
+    public function initiatePaymentForOrder($orderNumber, ClickPesaService $clickPesaService)
+    {
+        $order = OnlineOrder::where('order_number', $orderNumber)->firstOrFail();
+
+        if (($order->payment_method ?? 'cash') !== 'online') {
+            return response()->json([
+                'success' => false,
+                'message' => 'This order is not set for online payment.'
+            ], 400);
+        }
+
+        $phoneNumber = $order->customer_phone;
+        if (!$phoneNumber) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Customer phone number is missing.'
+            ], 400);
+        }
+
+        if (substr($phoneNumber, 0, 1) === '0') {
+            $phoneNumber = '255' . substr($phoneNumber, 1);
+        }
+
+        $order->loadMissing(['items.product']);
+        $cartItemsForMetadata = $order->items->map(function ($item) {
+            $name = $item->product ? $item->product->name : 'Item';
+            return [
+                'name' => $name,
+                'quantity' => $item->quantity,
+                'price' => $item->price,
+            ];
+        })->values()->all();
+
+        try {
+            $paymentData = [
+                'amount' => $order->total,
+                'phone_number' => $phoneNumber,
+                'payer_name' => $order->customer_name,
+                'description' => "Order {$order->order_number} - Shopping Cart",
+                'order_reference' => $order->order_number,
+                'email' => $order->customer_email,
+                'metadata' => [
+                    'order_id' => $order->id,
+                    'items' => $cartItemsForMetadata
+                ]
+            ];
+
+            $paymentResponse = $clickPesaService->initiatePayment($paymentData);
+
+            if (isset($paymentResponse['success']) && $paymentResponse['success']) {
+                $order->update([
+                    'payment_transaction_id' => $paymentResponse['data']['transaction_id'] ?? $order->payment_transaction_id,
+                    'payment_order_reference' => $paymentResponse['data']['order_reference'] ?? $order->payment_order_reference,
+                    'clickpesa_status' => $paymentResponse['data']['status'] ?? $order->clickpesa_status
+                ]);
+            }
+
+            return response()->json([
+                'success' => true,
+                'order_number' => $order->order_number,
+                'tracking_url' => url('/shop/tracking/' . $order->order_number),
+                'pdf_url' => url('/shop/tracking/' . $order->order_number . '/pdf'),
+                'payment' => $paymentResponse
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('ClickPesa payment initiation failed: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to initiate payment. Please try again.'
+            ], 500);
+        }
+    }
+
     public function index(Request $request)
     {
         $statusFilter = $request->input('status', ['pending', 'confirmed', 'preparing', 'ready', 'out_for_delivery', 'delivered', 'cancelled']);
@@ -476,44 +604,50 @@ class OnlineOrderController extends Controller
             'notes' => 'Order placed from public shop'
         ]);
 
-        // Try to initiate payment with ClickPesa (but don't fail the order if it doesn't work)
-        try {
-            $phoneNumber = $request->customer_phone;
-            // Format phone number to 255xxxxxxxxx
-            if (substr($phoneNumber, 0, 1) === '0') {
-                $phoneNumber = '255' . substr($phoneNumber, 1);
+        $this->sendPublicOrderNotifications($order);
+
+        if ($request->payment_method === 'online') {
+            // Try to initiate payment with ClickPesa (but don't fail the order if it doesn't work)
+            try {
+                $phoneNumber = $request->customer_phone;
+                // Format phone number to 255xxxxxxxxx
+                if (substr($phoneNumber, 0, 1) === '0') {
+                    $phoneNumber = '255' . substr($phoneNumber, 1);
+                }
+
+                $paymentData = [
+                    'amount' => $total,
+                    'phone_number' => $phoneNumber,
+                    'payer_name' => $request->customer_name,
+                    'description' => "Order {$order->order_number} - Shopping Cart",
+                    'order_reference' => $order->order_number,
+                    'email' => $request->customer_email,
+                    'metadata' => [
+                        'order_id' => $order->id,
+                        'items' => $cartItemsForMetadata
+                    ]
+                ];
+
+                $paymentResponse = $clickPesaService->initiatePayment($paymentData);
+
+                if (isset($paymentResponse['success']) && $paymentResponse['success']) {
+                    $order->update([
+                        'payment_transaction_id' => $paymentResponse['data']['transaction_id'],
+                        'payment_order_reference' => $paymentResponse['data']['order_reference'],
+                        'clickpesa_status' => $paymentResponse['data']['status']
+                    ]);
+                }
+            } catch (\Exception $e) {
+                // Do nothing - just log the error and continue
+                \Log::error('ClickPesa payment initiation failed: ' . $e->getMessage());
             }
-
-            $paymentData = [
-                'amount' => $total,
-                'phone_number' => $phoneNumber,
-                'payer_name' => $request->customer_name,
-                'description' => "Order {$order->order_number} - Shopping Cart",
-                'order_reference' => $order->order_number,
-                'email' => $request->customer_email,
-                'metadata' => [
-                    'order_id' => $order->id,
-                    'items' => $cartItemsForMetadata
-                ]
-            ];
-
-            $paymentResponse = $clickPesaService->initiatePayment($paymentData);
-
-            if (isset($paymentResponse['success']) && $paymentResponse['success']) {
-                $order->update([
-                    'payment_transaction_id' => $paymentResponse['data']['transaction_id'],
-                    'payment_order_reference' => $paymentResponse['data']['order_reference'],
-                    'clickpesa_status' => $paymentResponse['data']['status']
-                ]);
-            }
-        } catch (\Exception $e) {
-            // Do nothing - just log the error and continue
-            \Log::error('ClickPesa payment initiation failed: ' . $e->getMessage());
         }
 
         return response()->json([
             'success' => true,
-            'order_number' => $order->order_number
+            'order_number' => $order->order_number,
+            'tracking_url' => url('/shop/tracking/' . $order->order_number),
+            'pdf_url' => url('/shop/tracking/' . $order->order_number . '/pdf')
         ]);
     }
 

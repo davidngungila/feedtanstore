@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Checkout - Feedtan Store</title>
 <meta name="description" content="Complete your order at Feedtan Store">
+<meta name="csrf-token" content="{{ csrf_token() }}">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,600;0,9..144,700;0,9..144,900;1,9..144,500&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
@@ -91,7 +92,7 @@ header.site-header{
   position:sticky;top:0;z-index:60;background:rgba(247,244,237,0.92);
   backdrop-filter:blur(10px);border-bottom:1px solid var(--line);
 }
-.header-inner{display:flex;align-items:center;gap:20px;padding:14px 24px;}
+.header-inner{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:14px 24px;}
 .logo{display:flex;align-items:center;gap:10px;font-family:var(--font-display);font-weight:800;font-size:23px;color:var(--green-900);flex-shrink:0;}
 .logo-mark{
   width:38px;height:38px;border-radius:10px;background:var(--green-700);
@@ -286,9 +287,18 @@ footer{background:var(--green-900);color:#BFD6C8;padding:40px 0 0;margin-top:40p
         </div>
       </div>
 
+      <div id="emptyCartState" class="card" style="display:none;">
+        <h2 style="font-size:20px;margin-bottom:8px;">Your cart is empty</h2>
+        <p style="margin:0 0 16px;color:var(--ink-soft);">Add at least one item to continue to checkout.</p>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <a href="{{ route('shop.index') }}" class="btn btn-primary">Go to shop</a>
+          <a href="{{ route('shop.tracking') }}" class="btn btn-ghost">Track an order</a>
+        </div>
+      </div>
+
       <form id="checkoutForm" class="space-y-6">
         <!-- Delivery Options -->
-        <div class="card">
+        <div class="card" id="stepDelivery">
           <h2 class="text-lg font-bold mb-4">Delivery Option</h2>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <label class="option-card selected" id="opt-delivery">
@@ -313,9 +323,12 @@ footer{background:var(--green-900);color:#BFD6C8;padding:40px 0 0;margin-top:40p
             </label>
           </div>
         </div>
+        <div class="card" style="padding:16px;display:none;justify-content:flex-end;" id="stepDeliveryActions">
+          <button type="button" class="btn btn-dark" id="btnNextDelivery">Next</button>
+        </div>
 
         <!-- Customer Info -->
-        <div class="card">
+        <div class="card" id="stepCustomer">
           <h2 class="text-lg font-bold mb-4">Customer Information</h2>
           <div class="form-grid">
             <div class="field">
@@ -335,6 +348,10 @@ footer{background:var(--green-900);color:#BFD6C8;padding:40px 0 0;margin-top:40p
             </div>
           </div>
         </div>
+        <div class="card" style="padding:16px;display:none;justify-content:space-between;" id="stepCustomerActions">
+          <button type="button" class="btn btn-ghost" id="btnBackCustomer">Back</button>
+          <button type="button" class="btn btn-dark" id="btnNextCustomer">Next</button>
+        </div>
 
         <!-- Delivery Address & Location -->
         <div class="card" id="deliveryAddressSection">
@@ -350,7 +367,7 @@ footer{background:var(--green-900);color:#BFD6C8;padding:40px 0 0;margin-top:40p
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
                 <span>Waiting to detect your location…</span>
               </div>
-              <button class="btn btn-outline btn-sm" onclick="detectLocation()">Use my current location</button>
+              <button type="button" class="btn btn-outline btn-sm" onclick="detectLocation()">Use my current location</button>
             </div>
             <div class="loc-coords" id="locCoords"></div>
             <div class="mini-map" id="mapPreview">
@@ -364,9 +381,13 @@ footer{background:var(--green-900);color:#BFD6C8;padding:40px 0 0;margin-top:40p
             <input type="number" id="deliveryFee" value="0" min="0" step="0.01">
           </div>
         </div>
+        <div class="card" style="padding:16px;display:none;justify-content:space-between;" id="stepAddressActions">
+          <button type="button" class="btn btn-ghost" id="btnBackAddress">Back</button>
+          <button type="button" class="btn btn-dark" id="btnNextAddress">Next</button>
+        </div>
 
         <!-- Payment Method -->
-        <div class="card">
+        <div class="card" id="stepPayment">
           <h2 class="text-lg font-bold mb-4">Payment Method</h2>
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <label class="option-card selected" id="pay-cash">
@@ -401,9 +422,13 @@ footer{background:var(--green-900);color:#BFD6C8;padding:40px 0 0;margin-top:40p
             </label>
           </div>
         </div>
+        <div class="card" style="padding:16px;display:none;justify-content:space-between;" id="stepPaymentActions">
+          <button type="button" class="btn btn-ghost" id="btnBackPayment">Back</button>
+          <button type="button" class="btn btn-dark" id="btnNextPayment">Next</button>
+        </div>
 
         <!-- Order Summary -->
-        <div class="card">
+        <div class="card" id="stepSummary">
           <h2 class="text-lg font-bold mb-4">Order Summary</h2>
           <div id="checkoutItems" class="space-y-3 mb-4"></div>
           <div class="border-t border-gray-100 pt-4 space-y-2">
@@ -463,27 +488,107 @@ footer{background:var(--green-900);color:#BFD6C8;padding:40px 0 0;margin-top:40p
 
 <div id="toast" class="toast" style="position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--green-900);color:#fff;padding:13px 22px;border-radius:999px;font-size:13.5px;font-weight:600;z-index:400;box-shadow:var(--shadow-pop);display:flex;align-items:center;gap:10px;opacity:0;visibility:hidden;transition:all .25s ease;"></div>
 
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 let cart = [];
 let userLocation = { lat: null, lng: null };
+
+function showEmptyCartState() {
+  const emptyState = document.getElementById('emptyCartState');
+  const form = document.getElementById('checkoutForm');
+  if (emptyState) emptyState.style.display = 'block';
+  if (form) form.style.display = 'none';
+}
+
+function normalizeCart(raw) {
+  if (Array.isArray(raw)) return raw;
+  if (raw && typeof raw === 'object') {
+    return Object.entries(raw).map(([id, quantity]) => {
+      return { id: String(id), name: 'Item', price: 0, quantity: Number(quantity) || 0 };
+    }).filter(i => i.quantity > 0);
+  }
+  return [];
+}
+
+function getCsrfToken() {
+  const meta = document.querySelector('meta[name="csrf-token"]');
+  return meta ? meta.getAttribute('content') : '';
+}
+
+function showStep(stepKey) {
+  const ids = ['stepDelivery', 'stepDeliveryActions', 'stepCustomer', 'stepCustomerActions', 'deliveryAddressSection', 'stepAddressActions', 'stepPayment', 'stepPaymentActions', 'stepSummary', 'placeOrderBtn'];
+  const map = {
+    delivery: ['stepDelivery', 'stepDeliveryActions'],
+    customer: ['stepDelivery', 'stepDeliveryActions', 'stepCustomer', 'stepCustomerActions'],
+    address: ['stepDelivery', 'stepDeliveryActions', 'stepCustomer', 'stepCustomerActions', 'deliveryAddressSection', 'stepAddressActions'],
+    payment: ['stepDelivery', 'stepDeliveryActions', 'stepCustomer', 'stepCustomerActions', 'stepPayment', 'stepPaymentActions'],
+    summary: ['stepDelivery', 'stepDeliveryActions', 'stepCustomer', 'stepCustomerActions', 'stepPayment', 'stepPaymentActions', 'stepSummary', 'placeOrderBtn']
+  };
+  ids.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const visible = (map[stepKey] || []).includes(id);
+    el.style.display = visible ? (id.endsWith('Actions') ? 'flex' : 'block') : 'none';
+  });
+}
+
+function setFieldError(fieldId, message) {
+  const err = document.getElementById('err-' + fieldId);
+  const input = document.getElementById(fieldId);
+  if (err) err.textContent = message || '';
+  if (input) {
+    const wrapper = input.closest('.field');
+    if (wrapper) wrapper.classList.toggle('has-error', Boolean(message));
+  }
+}
+
+function validateCustomer() {
+  let ok = true;
+  const name = document.getElementById('customerName').value.trim();
+  const phone = document.getElementById('customerPhone').value.trim();
+  const email = document.getElementById('customerEmail').value.trim();
+
+  if (!name) { setFieldError('customerName', 'Full name is required'); ok = false; } else { setFieldError('customerName', ''); }
+  if (!phone) { setFieldError('customerPhone', 'Phone number is required'); ok = false; } else { setFieldError('customerPhone', ''); }
+  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { setFieldError('customerEmail', 'Enter a valid email'); ok = false; } else { setFieldError('customerEmail', ''); }
+  return ok;
+}
+
+function validateAddressIfNeeded() {
+  const needDelivery = document.querySelector('input[name="need_delivery"]:checked').value;
+  if (needDelivery !== 'yes') {
+    setFieldError('deliveryAddress', '');
+    return true;
+  }
+  const addr = document.getElementById('deliveryAddress').value.trim();
+  if (!addr) {
+    setFieldError('deliveryAddress', 'Delivery address is required');
+    return false;
+  }
+  setFieldError('deliveryAddress', '');
+  return true;
+}
 
 // Initialize cart from localStorage
 function initCart() {
   const saved = localStorage.getItem('shopCart');
   if (saved) {
     try {
-      cart = JSON.parse(saved);
+      cart = normalizeCart(JSON.parse(saved));
       if (cart.length === 0) {
-        window.location.href = '{{ route('shop.index') }}';
+        showEmptyCartState();
       } else {
         renderCheckoutItems();
         updateTotal();
       }
     } catch(e) {
-      window.location.href = '{{ route('shop.index') }}';
+      cart = [];
+      localStorage.removeItem('shopCart');
+      showEmptyCartState();
     }
   } else {
-    window.location.href = '{{ route('shop.index') }}';
+    cart = [];
+    showEmptyCartState();
   }
 }
 
@@ -623,11 +728,199 @@ function toggleMobileSearch() {
   box.style.display = box.style.display === 'none' ? 'block' : 'none';
 }
 
+function extractPaymentStatus(payload) {
+  if (!payload) return null;
+  if (payload.data && payload.data.status) return payload.data.status;
+  if (payload.status) return payload.status;
+  if (payload.data && payload.data.clickpesa_status) return payload.data.clickpesa_status;
+  return null;
+}
+
+function formatPaymentStatus(status) {
+  if (!status) return 'UNKNOWN';
+  return String(status).toUpperCase();
+}
+
+function buildPaymentHtml(orderNumber, status, trackingUrl, pdfUrl) {
+  const s = formatPaymentStatus(status);
+  const note = (s === 'PENDING' || s === 'PROCESSING')
+    ? 'Check your phone to confirm the USSD push.'
+    : (s === 'SUCCESS' || s === 'SETTLED')
+      ? 'Payment completed successfully.'
+      : (s === 'FAILED' || s === 'DECLINED' || s === 'CANCELLED')
+        ? 'Payment did not complete. You can try again or pay cash.'
+        : 'Processing payment...';
+  return 'Order number: <b>' + orderNumber + '</b><br>' +
+    'Payment status: <b>' + s + '</b><br><span style="color:#6b7280;">' + note + '</span>' +
+    '<div style="margin-top:10px;">' +
+    '<a href="' + trackingUrl + '">Track your order</a> · <a href="' + pdfUrl + '">Download order PDF</a>' +
+    '</div>';
+}
+
+function openPaymentProgressModal(orderNumber, trackingUrl, pdfUrl) {
+  return new Promise((resolve) => {
+    if (!window.Swal) {
+      resolve({ result: 'no_swal' });
+      return;
+    }
+
+    let intervalId = null;
+    let timeoutId = null;
+    let finalStatus = null;
+
+    const stop = () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+        intervalId = null;
+      }
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+        timeoutId = null;
+      }
+    };
+
+    const finish = (status) => {
+      finalStatus = formatPaymentStatus(status);
+      stop();
+      const success = finalStatus === 'SUCCESS' || finalStatus === 'SETTLED';
+      const failed = ['FAILED', 'DECLINED', 'CANCELLED'].includes(finalStatus);
+
+      Swal.hideLoading();
+      Swal.update({
+        icon: success ? 'success' : (failed ? 'error' : 'info'),
+        title: success ? 'Payment successful' : (failed ? 'Payment failed' : 'Payment status'),
+        html: buildPaymentHtml(orderNumber, finalStatus, trackingUrl, pdfUrl),
+        showConfirmButton: true,
+        confirmButtonText: success ? 'Continue' : 'Close',
+        showCancelButton: false
+      });
+    };
+
+    Swal.fire({
+      title: 'Processing mobile money payment',
+      html: buildPaymentHtml(orderNumber, 'PENDING', trackingUrl, pdfUrl),
+      allowOutsideClick: false,
+      showCancelButton: true,
+      cancelButtonText: 'Pay later',
+      showConfirmButton: false,
+      didOpen: () => {
+        Swal.showLoading();
+        const startMs = Date.now();
+        timeoutId = setTimeout(() => {
+          stop();
+          Swal.hideLoading();
+          Swal.update({
+            icon: 'info',
+            title: 'Payment window ended',
+            html: buildPaymentHtml(orderNumber, 'PENDING', trackingUrl, pdfUrl) + '<div style="margin-top:8px;color:#6b7280;">Payment status check stopped after 1 minute.</div>',
+            showConfirmButton: true,
+            confirmButtonText: 'Track Order',
+            showCancelButton: true,
+            cancelButtonText: 'Close'
+          });
+        }, 60000);
+
+        intervalId = setInterval(async () => {
+          try {
+            const res = await fetch('/api/shop/orders/' + encodeURIComponent(orderNumber) + '/payment-status', {
+              method: 'GET',
+              headers: { 'Accept': 'application/json' },
+              credentials: 'same-origin'
+            });
+            const payload = await res.json().catch(() => ({}));
+            const status = extractPaymentStatus(payload);
+
+            if (!status) {
+              const extra = payload && payload.message ? ('<div style="margin-top:8px;color:#6b7280;">' + payload.message + '</div>') : '';
+              const elapsed = Math.floor((Date.now() - startMs) / 1000);
+              const remaining = Math.max(0, 60 - elapsed);
+              const timer = '<div style="margin-top:8px;color:#6b7280;">Time remaining: ' + remaining + 's</div>';
+              Swal.update({ html: buildPaymentHtml(orderNumber, 'PROCESSING', trackingUrl, pdfUrl) + timer + extra });
+              return;
+            }
+
+            const normalized = formatPaymentStatus(status);
+            const elapsed = Math.floor((Date.now() - startMs) / 1000);
+            const remaining = Math.max(0, 60 - elapsed);
+            const timer = '<div style="margin-top:8px;color:#6b7280;">Time remaining: ' + remaining + 's</div>';
+            Swal.update({ html: buildPaymentHtml(orderNumber, normalized, trackingUrl, pdfUrl) + timer });
+
+            if (normalized === 'SUCCESS' || normalized === 'SETTLED' || ['FAILED', 'DECLINED', 'CANCELLED'].includes(normalized)) {
+              finish(normalized);
+            }
+          } catch (e) {
+            const elapsed = Math.floor((Date.now() - startMs) / 1000);
+            const remaining = Math.max(0, 60 - elapsed);
+            const timer = '<div style="margin-top:8px;color:#6b7280;">Time remaining: ' + remaining + 's</div>';
+            Swal.update({ html: buildPaymentHtml(orderNumber, 'PROCESSING', trackingUrl, pdfUrl) + timer });
+          }
+        }, 3000);
+      },
+      willClose: () => stop()
+    }).then((modalResult) => {
+      stop();
+      resolve({ result: modalResult, status: finalStatus });
+    });
+  });
+}
+
 document.getElementById('deliveryFee').addEventListener('input', updateTotal);
+
+document.getElementById('btnNextDelivery').addEventListener('click', () => {
+  showStep('customer');
+  document.getElementById('customerName').focus();
+});
+
+document.getElementById('btnBackCustomer').addEventListener('click', () => showStep('delivery'));
+document.getElementById('btnNextCustomer').addEventListener('click', () => {
+  if (!validateCustomer()) {
+    if (window.Swal) Swal.fire({ icon: 'error', title: 'Please fill required fields', text: 'Check your customer information.' });
+    return;
+  }
+  const needDelivery = document.querySelector('input[name="need_delivery"]:checked').value;
+  if (needDelivery === 'yes') {
+    showStep('address');
+    document.getElementById('deliveryAddress').focus();
+  } else {
+    showStep('payment');
+  }
+});
+
+document.getElementById('btnBackAddress').addEventListener('click', () => showStep('customer'));
+document.getElementById('btnNextAddress').addEventListener('click', () => {
+  if (!validateAddressIfNeeded()) {
+    if (window.Swal) Swal.fire({ icon: 'error', title: 'Delivery address required', text: 'Please enter your delivery address to continue.' });
+    return;
+  }
+  showStep('payment');
+});
+
+document.getElementById('btnBackPayment').addEventListener('click', () => {
+  const needDelivery = document.querySelector('input[name="need_delivery"]:checked').value;
+  showStep(needDelivery === 'yes' ? 'address' : 'customer');
+});
+document.getElementById('btnNextPayment').addEventListener('click', () => showStep('summary'));
+
+['customerName','customerPhone','customerEmail'].forEach(id => {
+  const el = document.getElementById(id);
+  if (el) el.addEventListener('blur', validateCustomer);
+});
+document.getElementById('deliveryAddress').addEventListener('blur', validateAddressIfNeeded);
 
 document.getElementById('checkoutForm').addEventListener('submit', async function(e) {
   e.preventDefault();
   
+  if (!validateCustomer()) {
+    if (window.Swal) Swal.fire({ icon: 'error', title: 'Missing information', text: 'Please complete customer information.' });
+    document.getElementById('customerName').focus();
+    return;
+  }
+  if (!validateAddressIfNeeded()) {
+    if (window.Swal) Swal.fire({ icon: 'error', title: 'Missing delivery address', text: 'Please enter delivery address.' });
+    document.getElementById('deliveryAddress').focus();
+    return;
+  }
+
   // Try to capture location for analytics, but don't require it
   if (!userLocation.lat || !userLocation.lng) {
     detectLocation();
@@ -640,12 +933,13 @@ document.getElementById('checkoutForm').addEventListener('submit', async functio
   const items = cart.map(item => ({ product_id: item.id, quantity: item.quantity }));
   const deliveryFee = parseFloat(document.getElementById('deliveryFee').value) || 0;
   const paymentMethod = document.querySelector('input[name="payment_method"]:checked').value;
+  const needDelivery = document.querySelector('input[name="need_delivery"]:checked').value;
   
   const orderData = {
     customer_name: document.getElementById('customerName').value,
     customer_phone: document.getElementById('customerPhone').value,
     customer_email: document.getElementById('customerEmail').value,
-    delivery_address: document.getElementById('deliveryAddress').value || 'Store Pickup',
+    delivery_address: needDelivery === 'yes' ? (document.getElementById('deliveryAddress').value || '') : 'Store Pickup',
     delivery_latitude: userLocation.lat,
     delivery_longitude: userLocation.lng,
     delivery_fee: deliveryFee,
@@ -658,28 +952,77 @@ document.getElementById('checkoutForm').addEventListener('submit', async functio
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Accept': 'application/json'
+        'Accept': 'application/json',
+        'X-CSRF-TOKEN': getCsrfToken()
       },
+      credentials: 'same-origin',
       body: JSON.stringify(orderData)
     });
-    
-    const data = await response.json();
-    
+
+    const data = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      const message = data && data.message ? data.message : 'Failed to place order. Please check your details and try again.';
+      if (window.Swal) {
+        await Swal.fire({ icon: 'error', title: 'Order not submitted', text: message });
+      } else {
+        alert(message);
+      }
+      placeOrderBtn.disabled = false;
+      placeOrderBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg> Place Order';
+      return;
+    }
+
     if (data.success) {
-                cart = [];
-                localStorage.setItem('shopCart', JSON.stringify(cart));
-                window.location.href = `/shop/tracking/${data.order_number}`;
-            }
+      cart = [];
+      localStorage.setItem('shopCart', JSON.stringify(cart));
+      const trackingUrl = data.tracking_url || `/shop/tracking/${data.order_number}`;
+      const pdfUrl = data.pdf_url || `/shop/tracking/${data.order_number}/pdf`;
+      if (paymentMethod === 'online') {
+        const outcome = await openPaymentProgressModal(data.order_number, trackingUrl, pdfUrl);
+        const finalStatus = outcome && outcome.status ? String(outcome.status).toUpperCase() : null;
+        if (finalStatus === 'SUCCESS' || finalStatus === 'SETTLED' || !window.Swal) {
+          window.location.href = trackingUrl;
+          return;
+        }
+        placeOrderBtn.disabled = false;
+        placeOrderBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg> Place Order';
+        return;
+      }
+      if (window.Swal) {
+        const result = await Swal.fire({
+          icon: 'success',
+          title: 'Order placed successfully',
+          html: 'Order number: <b>' + data.order_number + '</b><br><a href="' + trackingUrl + '">Track your order</a> · <a href="' + pdfUrl + '">Download PDF</a>',
+          confirmButtonText: 'Track Order',
+          showCancelButton: true,
+          cancelButtonText: 'Close'
+        });
+        if (result.isConfirmed) {
+          window.location.href = trackingUrl;
+          return;
+        }
+      }
+      window.location.href = trackingUrl;
+      return;
+    }
   } catch (err) {
     console.error(err);
     placeOrderBtn.disabled = false;
     placeOrderBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg> Place Order';
-    alert('Failed to place order. Please try again.');
+    if (window.Swal) {
+      Swal.fire({ icon: 'error', title: 'Network error', text: 'Failed to place order. Please try again.' });
+    } else {
+      alert('Failed to place order. Please try again.');
+    }
   }
 });
 
 initCart();
-detectLocation();
+if (document.getElementById('checkoutForm') && document.getElementById('checkoutForm').style.display !== 'none') {
+  toggleDeliveryOptions();
+  detectLocation();
+}
 </script>
 </body>
 </html>

@@ -428,19 +428,35 @@ footer{background:var(--green-900);color:#BFD6C8;padding:54px 0 0;margin-top:40p
 <div id="toast" class="toast"></div>
 
 <script>
-let cart = {};
+let cart = [];
 const DELIVERY_FEE = 3000;
 const FREE_DELIVERY_THRESHOLD = 50000;
 let productQty = 1;
 const productMaxQty = {{ $product->quantity ?? 999 }};
 
+function normalizeCart(raw) {
+  if (Array.isArray(raw)) return raw;
+  if (raw && typeof raw === 'object') {
+    return Object.entries(raw).map(([id, quantity]) => {
+      let name = 'Item';
+      let price = 0;
+      if (String(id) === '{{ $product->id }}') {
+        name = '{{ addslashes($product->name) }}';
+        price = Number({{ $product->selling_price }}) || 0;
+      }
+      return { id: String(id), name, price, quantity: Number(quantity) || 0 };
+    }).filter(i => i.quantity > 0);
+  }
+  return [];
+}
+
 function initCart() {
   const saved = localStorage.getItem('shopCart');
   if (saved) {
     try {
-      cart = JSON.parse(saved);
+      cart = normalizeCart(JSON.parse(saved));
     } catch(e) {
-      cart = {};
+      cart = [];
     }
   }
   updateCartUI();
@@ -448,10 +464,16 @@ function initCart() {
 
 function addToCart(id, name, price) {
   const qtyToAdd = productQty;
-  cart[id] = (cart[id] || 0) + qtyToAdd;
-  if (productMaxQty > 0) {
-    cart[id] = Math.min(cart[id], productMaxQty);
+  const existing = cart.find(i => String(i.id) === String(id));
+  if (existing) {
+    existing.quantity += qtyToAdd;
+    existing.name = name;
+    existing.price = Number(price) || 0;
+  } else {
+    cart.push({ id: String(id), name, price: Number(price) || 0, quantity: qtyToAdd });
   }
+  const entry = cart.find(i => String(i.id) === String(id));
+  if (entry && productMaxQty > 0) entry.quantity = Math.min(entry.quantity, productMaxQty);
   saveCart();
   updateCartUI();
   showToast(qtyToAdd + 'x ' + name + ' added to cart', 'cart');
@@ -464,17 +486,19 @@ function changeProductQty(delta) {
   document.getElementById('productQty').textContent = productQty;
 }
 
-function changeQty(id, delta) {
-  cart[id] = (cart[id] || 0) + delta;
-  if (cart[id] <= 0) {
-    delete cart[id];
-  }
+function changeQty(id, delta, name = null, price = null) {
+  const idx = cart.findIndex(i => String(i.id) === String(id));
+  if (idx === -1) return;
+  cart[idx].quantity += delta;
+  if (name !== null) cart[idx].name = name;
+  if (price !== null) cart[idx].price = Number(price) || 0;
+  if (cart[idx].quantity <= 0) cart.splice(idx, 1);
   saveCart();
   updateCartUI();
 }
 
 function removeFromCart(id) {
-  delete cart[id];
+  cart = cart.filter(i => String(i.id) !== String(id));
   saveCart();
   updateCartUI();
 }
@@ -483,7 +507,8 @@ function saveCart() {
   localStorage.setItem('shopCart', JSON.stringify(cart));
 }
 
-function cartCount() { return Object.values(cart).reduce((a,b)=>a+b,0); }
+function cartCount() { return cart.reduce((sum, item) => sum + (Number(item.quantity) || 0), 0); }
+function cartSubtotal() { return cart.reduce((sum, item) => sum + (Number(item.price) || 0) * (Number(item.quantity) || 0), 0); }
 
 function updateCartUI() {
   const count = cartCount();
@@ -496,8 +521,7 @@ function updateCartUI() {
 function renderCartList() {
   const list = document.getElementById('cartList');
   const foot = document.getElementById('cartFoot');
-  const entries = Object.entries(cart);
-  if (entries.length === 0) {
+  if (cart.length === 0) {
     list.innerHTML = '<div class="cart-empty">' +
       '<svg width="54" height="54" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>' +
       '<b>Your cart is empty</b>' +
@@ -508,34 +532,29 @@ function renderCartList() {
     return;
   }
   foot.style.display = 'block';
-  let subtotal = 0;
-  list.innerHTML = entries.map(([id, qty]) => {
-    let name = 'Product #' + id;
-    let img = 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=500&q=80';
-    let price = 0;
-    if (id == '{{ $product->id }}') {
-      name = '{{ addslashes($product->name) }}';
+  list.innerHTML = cart.map(item => {
+    let img = 'https://images.unsplash.com/photo-1542831329-92c53300491e?w=500&q=80';
+    if (item.id == '{{ $product->id }}') {
       img = '{{ $imageToShow }}';
-      price = {{ $product->selling_price }};
     }
-    subtotal += price * qty;
     return '<div class="cart-row">' +
-      '<img src="'+img+'" alt="'+name+'">' +
+      '<img src="'+img+'" alt="'+item.name+'">' +
       '<div class="cart-row-info">' +
-        '<b>'+name+'</b>' +
-        '<span class="cr-meta">per item · TZS '+price.toLocaleString()+' each</span>' +
+        '<b>'+item.name+'</b>' +
+        '<span class="cr-meta">per item · TZS '+item.price.toLocaleString()+' each</span>' +
         '<div class="cart-row-bottom">' +
           '<div class="qty-stepper">' +
-            '<button onclick="changeQty(\''+id+'\', -1)" aria-label="Decrease quantity">−</button>' +
-            '<span>'+qty+'</span>' +
-            '<button onclick="changeQty(\''+id+'\', 1)" aria-label="Increase quantity">+</button>' +
+            '<button onclick="changeQty(\''+item.id+'\', -1, \''+item.name+'\', '+item.price+')" aria-label="Decrease quantity">−</button>' +
+            '<span>'+item.quantity+'</span>' +
+            '<button onclick="changeQty(\''+item.id+'\', 1, \''+item.name+'\', '+item.price+')" aria-label="Increase quantity">+</button>' +
           '</div>' +
-          '<span class="cr-price">TZS '+(price*qty).toLocaleString()+'</span>' +
+          '<span class="cr-price">TZS '+(item.price*item.quantity).toLocaleString()+'</span>' +
         '</div>' +
-        '<button class="cr-remove" onclick="removeFromCart(\''+id+'\')">Remove</button>' +
+        '<button class="cr-remove" onclick="removeFromCart(\''+item.id+'\')">Remove</button>' +
       '</div>' +
     '</div>';
   }).join('');
+  const subtotal = cartSubtotal();
   document.getElementById('cartSubtotal').textContent = 'TZS ' + subtotal.toLocaleString();
   document.getElementById('cartTotal').textContent = 'TZS ' + subtotal.toLocaleString();
   document.getElementById('cartDeliveryEst').textContent = subtotal >= FREE_DELIVERY_THRESHOLD ? 'Free (order qualifies)' : 'TZS ' + DELIVERY_FEE.toLocaleString() + ' if delivered';

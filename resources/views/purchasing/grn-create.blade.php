@@ -181,6 +181,15 @@ function calculateSellingPrice(item) {
     calculateProfit(item);
 }
 
+function resolvePoItemProduct(poItem) {
+    if (poItem && poItem.product && poItem.product.id) {
+        return poItem.product;
+    }
+    const id = poItem ? (poItem.product_id ?? poItem.productId) : null;
+    if (!id) return null;
+    return productsData.find(p => String(p.id) === String(id)) || null;
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     // If we have a selected purchase order, auto-fill on page load
     if (typeof selectedPurchaseOrderData !== 'undefined') {
@@ -191,7 +200,10 @@ document.addEventListener('DOMContentLoaded', function() {
         supplierNameInput.value = selectedPurchaseOrderData.supplier.name;
         
         // Hide add product button
-        document.getElementById('add_product').classList.add('hidden');
+        const addBtn = document.getElementById('add_product');
+        if (addBtn) {
+            addBtn.classList.add('hidden');
+        }
         
         // Clear existing products
         const container = document.getElementById('products_container');
@@ -238,11 +250,15 @@ document.addEventListener('DOMContentLoaded', function() {
             productIndex = 0;
             
             // Hide add product button
-            document.getElementById('add_product').classList.add('hidden');
+            const addBtn = document.getElementById('add_product');
+            if (addBtn) {
+                addBtn.classList.add('hidden');
+            }
             
             // Add products from PO
             poData.items.forEach((item, index) => {
-                addProductItemFromPo(item.product_id, item.quantity, item.unit_price);
+                const productData = resolvePoItemProduct(item);
+                addProductItemFromPo(productData, item.quantity, item.unit_price);
             });
         } else {
             // If no PO selected, reset supplier, show add product button, reset container
@@ -251,7 +267,10 @@ document.addEventListener('DOMContentLoaded', function() {
             supplierIdInput.value = '';
             supplierNameInput.value = '';
             
-            document.getElementById('add_product').classList.remove('hidden');
+            const addBtn = document.getElementById('add_product');
+            if (addBtn) {
+                addBtn.classList.remove('hidden');
+            }
             const container = document.getElementById('products_container');
             container.innerHTML = '';
             productIndex = 0;
@@ -320,10 +339,10 @@ function addProductItemFromPo(productData, orderedQuantity, unitPrice) {
     const container = document.getElementById('products_container');
     
     // Extract product details directly from productData
-    const productId = productData.id;
-    const productName = productData.name; // Access name directly
-    const productCostPrice = productData.cost_price;
-    const productSellingPrice = productData.selling_price;
+    const productId = productData ? productData.id : '';
+    const productName = productData ? productData.name : '';
+    const productCostPrice = productData ? productData.cost_price : 0;
+    const productSellingPrice = productData ? productData.selling_price : 0;
 
     // Calculate default profit value
     let defaultProfitValue = 0;

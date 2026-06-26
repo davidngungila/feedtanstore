@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Track Order - Feedtan Store</title>
 <meta name="description" content="Track your order with Feedtan Store">
+<meta name="csrf-token" content="{{ csrf_token() }}">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,600;0,9..144,700;0,9..144,900;1,9..144,500&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
@@ -91,7 +92,7 @@ header.site-header{
   position:sticky;top:0;z-index:60;background:rgba(247,244,237,0.92);
   backdrop-filter:blur(10px);border-bottom:1px solid var(--line);
 }
-.header-inner{display:flex;align-items:center;gap:20px;padding:14px 24px;}
+.header-inner{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:14px 24px;}
 .logo{display:flex;align-items:center;gap:10px;font-family:var(--font-display);font-weight:800;font-size:23px;color:var(--green-900);flex-shrink:0;}
 .logo-mark{
   width:38px;height:38px;border-radius:10px;background:var(--green-700);
@@ -304,6 +305,13 @@ footer{background:var(--green-900);color:#BFD6C8;padding:40px 0 0;margin-top:40p
         <h2 style="margin-bottom:8px;">Order #{{ $order->order_number }}</h2>
         <p style="margin:0 0 16px 0;color:var(--ink-soft);font-size:14px;">Placed on {{ $order->created_at->format('M d, Y • h:i A') }}</p>
 
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin:0 0 16px 0;">
+          <a href="{{ route('shop.tracking.pdf', ['orderNumber' => $order->order_number]) }}" class="btn btn-ghost">Download PDF</a>
+          @if(($order->payment_method ?? 'cash') === 'online' && ($order->payment_status ?? 'pending') !== 'paid')
+            <button type="button" class="btn btn-primary" id="payNowBtn" data-order="{{ $order->order_number }}">Pay Now</button>
+          @endif
+        </div>
+
         <div class="order-summary">
           <div class="stat">
             <div class="label">Status</div>
@@ -442,6 +450,7 @@ footer{background:var(--green-900);color:#BFD6C8;padding:40px 0 0;margin-top:40p
 
 <div id="toast" class="toast" style="position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--green-900);color:#fff;padding:13px 22px;border-radius:999px;font-size:13.5px;font-weight:600;z-index:400;box-shadow:var(--shadow-pop);display:flex;align-items:center;gap:10px;opacity:0;visibility:hidden;transition:all .25s ease;"></div>
 
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 function showToast(msg, icon) {
   const toast = document.getElementById('toast');
@@ -470,6 +479,157 @@ function toggleMobileSearch() {
   box.style.display = box.style.display === 'none' ? 'block' : 'none';
 }
 
+function getCsrfToken() {
+  const meta = document.querySelector('meta[name="csrf-token"]');
+  return meta ? meta.getAttribute('content') : '';
+}
+
+function extractPaymentStatus(payload) {
+  if (!payload) return null;
+  if (payload.data && payload.data.status) return payload.data.status;
+  if (payload.status) return payload.status;
+  if (payload.data && payload.data.clickpesa_status) return payload.data.clickpesa_status;
+  return null;
+}
+
+function formatPaymentStatus(status) {
+  if (!status) return 'UNKNOWN';
+  return String(status).toUpperCase();
+}
+
+function buildPaymentHtml(orderNumber, status, trackingUrl, pdfUrl, remainingSeconds) {
+  const s = formatPaymentStatus(status);
+  const note = (s === 'PENDING' || s === 'PROCESSING')
+    ? 'Check your phone to confirm the USSD push.'
+    : (s === 'SUCCESS' || s === 'SETTLED')
+      ? 'Payment completed successfully.'
+      : (s === 'FAILED' || s === 'DECLINED' || s === 'CANCELLED')
+        ? 'Payment did not complete. You can try again later.'
+        : 'Processing payment...';
+  const timer = typeof remainingSeconds === 'number' ? ('<div style="margin-top:8px;color:#6b7280;">Time remaining: ' + remainingSeconds + 's</div>') : '';
+  return 'Order number: <b>' + orderNumber + '</b><br>' +
+    'Payment status: <b>' + s + '</b><br><span style="color:#6b7280;">' + note + '</span>' +
+    timer +
+    '<div style="margin-top:10px;">' +
+    '<a href="' + trackingUrl + '">Track your order</a> · <a href="' + pdfUrl + '">Download order PDF</a>' +
+    '</div>';
+}
+
+async function initiatePayment(orderNumber) {
+  const res = await fetch('/api/shop/orders/' + encodeURIComponent(orderNumber) + '/initiate-payment', {
+    method: 'POST',
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
+      'X-CSRF-TOKEN': getCsrfToken()
+    },
+    credentials: 'same-origin',
+    body: JSON.stringify({})
+  });
+  const payload = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    const message = payload && payload.message ? payload.message : 'Failed to initiate payment.';
+    throw new Error(message);
+  }
+  return payload;
+}
+
+function openPaymentProgressModal(orderNumber, trackingUrl, pdfUrl) {
+  return new Promise((resolve) => {
+    if (!window.Swal) {
+      resolve({ result: 'no_swal' });
+      return;
+    }
+
+    let intervalId = null;
+    let timeoutId = null;
+    let finalStatus = null;
+
+    const stop = () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+        intervalId = null;
+      }
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+        timeoutId = null;
+      }
+    };
+
+    const finish = (status) => {
+      finalStatus = formatPaymentStatus(status);
+      stop();
+      const success = finalStatus === 'SUCCESS' || finalStatus === 'SETTLED';
+      const failed = ['FAILED', 'DECLINED', 'CANCELLED'].includes(finalStatus);
+
+      Swal.hideLoading();
+      Swal.update({
+        icon: success ? 'success' : (failed ? 'error' : 'info'),
+        title: success ? 'Payment successful' : (failed ? 'Payment failed' : 'Payment status'),
+        html: buildPaymentHtml(orderNumber, finalStatus, trackingUrl, pdfUrl),
+        showConfirmButton: true,
+        confirmButtonText: success ? 'Continue' : 'Close',
+        showCancelButton: false
+      });
+    };
+
+    Swal.fire({
+      title: 'Processing mobile money payment',
+      html: buildPaymentHtml(orderNumber, 'PENDING', trackingUrl, pdfUrl, 60),
+      allowOutsideClick: false,
+      showCancelButton: true,
+      cancelButtonText: 'Close',
+      showConfirmButton: false,
+      didOpen: () => {
+        Swal.showLoading();
+        const startMs = Date.now();
+        timeoutId = setTimeout(() => {
+          stop();
+          Swal.hideLoading();
+          Swal.update({
+            icon: 'info',
+            title: 'Payment window ended',
+            html: buildPaymentHtml(orderNumber, 'PENDING', trackingUrl, pdfUrl, 0) + '<div style="margin-top:8px;color:#6b7280;">Payment status check stopped after 1 minute.</div>',
+            showConfirmButton: true,
+            confirmButtonText: 'OK',
+            showCancelButton: false
+          });
+        }, 60000);
+
+        intervalId = setInterval(async () => {
+          try {
+            const res = await fetch('/api/shop/orders/' + encodeURIComponent(orderNumber) + '/payment-status', {
+              method: 'GET',
+              headers: { 'Accept': 'application/json' },
+              credentials: 'same-origin'
+            });
+            const payload = await res.json().catch(() => ({}));
+            const status = extractPaymentStatus(payload);
+            const elapsed = Math.floor((Date.now() - startMs) / 1000);
+            const remaining = Math.max(0, 60 - elapsed);
+
+            if (!status) {
+              Swal.update({ html: buildPaymentHtml(orderNumber, 'PROCESSING', trackingUrl, pdfUrl, remaining) });
+              return;
+            }
+
+            const normalized = formatPaymentStatus(status);
+            Swal.update({ html: buildPaymentHtml(orderNumber, normalized, trackingUrl, pdfUrl, remaining) });
+
+            if (normalized === 'SUCCESS' || normalized === 'SETTLED' || ['FAILED', 'DECLINED', 'CANCELLED'].includes(normalized)) {
+              finish(normalized);
+            }
+          } catch (e) {}
+        }, 3000);
+      },
+      willClose: () => stop()
+    }).then((modalResult) => {
+      stop();
+      resolve({ result: modalResult, status: finalStatus });
+    });
+  });
+}
+
 document.getElementById('trackForm').addEventListener('submit', function(e) {
   e.preventDefault();
   const orderNumber = document.getElementById('orderNumber').value.trim();
@@ -477,6 +637,30 @@ document.getElementById('trackForm').addEventListener('submit', function(e) {
     window.location.href = `{{ route('shop.tracking') }}?order=${encodeURIComponent(orderNumber)}`;
   }
 });
+
+const payNowBtn = document.getElementById('payNowBtn');
+if (payNowBtn) {
+  payNowBtn.addEventListener('click', async () => {
+    const orderNumber = payNowBtn.getAttribute('data-order');
+    const trackingUrl = `{{ url('/shop/tracking') }}/${encodeURIComponent(orderNumber)}`;
+    const pdfUrl = `{{ url('/shop/tracking') }}/${encodeURIComponent(orderNumber)}/pdf`;
+    try {
+      if (window.Swal) {
+        Swal.fire({ title: 'Starting payment', text: 'Sending USSD push to your phone...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+      }
+      await initiatePayment(orderNumber);
+      if (window.Swal) Swal.close();
+      await openPaymentProgressModal(orderNumber, trackingUrl, pdfUrl);
+    } catch (e) {
+      if (window.Swal) Swal.fire({ icon: 'error', title: 'Payment not started', text: e.message || 'Failed to initiate payment.' });
+    }
+  });
+
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('pay') === '1') {
+    setTimeout(() => payNowBtn.click(), 300);
+  }
+}
 </script>
 </body>
 </html>
