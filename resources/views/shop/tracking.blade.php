@@ -367,7 +367,7 @@ footer{background:var(--green-900);color:#BFD6C8;padding:40px 0 0;margin-top:40p
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin:0 0 16px 0;">
           <a href="{{ route('shop.tracking.pdf', ['orderNumber' => $order->order_number]) }}" class="btn btn-ghost">Download PDF</a>
           @if(($order->payment_method ?? 'cash') === 'online' && ($order->payment_status ?? 'pending') !== 'paid')
-            <button type="button" class="btn btn-primary" id="payNowBtn" data-order="{{ $order->order_number }}">Pay Now</button>
+            <button type="button" class="btn btn-primary" id="payNowBtn" data-order="{{ $order->order_number }}" data-phone="{{ $order->customer_phone }}">Pay Now</button>
           @endif
         </div>
 
@@ -582,7 +582,11 @@ function buildPaymentHtml(orderNumber, status, trackingUrl, pdfUrl, remainingSec
     '</div>';
 }
 
-async function initiatePayment(orderNumber) {
+async function initiatePayment(orderNumber, phoneNumber = '') {
+  const bodyPayload = {};
+  if (phoneNumber) {
+    bodyPayload.phone_number = phoneNumber;
+  }
   const res = await fetch('/api/shop/orders/' + encodeURIComponent(orderNumber) + '/initiate-payment', {
     method: 'POST',
     headers: {
@@ -591,7 +595,7 @@ async function initiatePayment(orderNumber) {
       'X-CSRF-TOKEN': getCsrfToken()
     },
     credentials: 'same-origin',
-    body: JSON.stringify({})
+    body: JSON.stringify(bodyPayload)
   });
   const payload = await res.json().catch(() => ({}));
   if (!res.ok) {
@@ -599,6 +603,39 @@ async function initiatePayment(orderNumber) {
     throw new Error(message);
   }
   return payload;
+}
+
+async function promptPaymentPhoneNumber(defaultPhone = '') {
+  if (window.Swal) {
+    const result = await Swal.fire({
+      title: 'Choose payment number',
+      input: 'text',
+      inputValue: defaultPhone || '',
+      inputLabel: 'Phone number',
+      inputPlaceholder: '255712345678',
+      confirmButtonText: 'Continue',
+      showCancelButton: true,
+      inputValidator: (value) => {
+        if (!value || !value.trim()) {
+          return 'Enter the number to receive the USSD prompt.';
+        }
+        const digits = value.replace(/\D+/g, '');
+        if (!(digits.length === 12 && digits.startsWith('255')) && !(digits.length === 10 && digits.startsWith('0')) && !(digits.length === 9 && digits.startsWith('7'))) {
+          return 'Use a valid mobile money number like 255712345678.';
+        }
+        return null;
+      }
+    });
+
+    if (!result.isConfirmed) {
+      return null;
+    }
+
+    return result.value.trim();
+  }
+
+  const fallback = window.prompt('Enter the number to receive the USSD prompt', defaultPhone || '');
+  return fallback ? fallback.trim() : null;
 }
 
 function openPaymentProgressModal(orderNumber, trackingUrl, pdfUrl) {
@@ -709,13 +746,18 @@ const payNowBtn = document.getElementById('payNowBtn');
 if (payNowBtn) {
   payNowBtn.addEventListener('click', async () => {
     const orderNumber = payNowBtn.getAttribute('data-order');
+    const defaultPhone = payNowBtn.getAttribute('data-phone') || '';
     const trackingUrl = `{{ url('/shop/tracking') }}/${encodeURIComponent(orderNumber)}`;
     const pdfUrl = `{{ url('/shop/tracking') }}/${encodeURIComponent(orderNumber)}/pdf`;
     try {
+      const phoneNumber = await promptPaymentPhoneNumber(defaultPhone);
+      if (!phoneNumber) {
+        return;
+      }
       if (window.Swal) {
         Swal.fire({ title: 'Starting payment', text: 'Sending USSD push to your phone...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
       }
-      await initiatePayment(orderNumber);
+      await initiatePayment(orderNumber, phoneNumber);
       if (window.Swal) Swal.close();
       await openPaymentProgressModal(orderNumber, trackingUrl, pdfUrl);
     } catch (e) {

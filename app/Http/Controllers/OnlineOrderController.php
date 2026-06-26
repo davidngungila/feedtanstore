@@ -12,6 +12,7 @@ use App\Models\DeliveryRider;
 use App\Models\AccountingEntry;
 use App\Models\CommunicationProfile;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
@@ -68,7 +69,7 @@ class OnlineOrderController extends Controller
         }
     }
 
-    public function initiatePaymentForOrder($orderNumber, FeedtanEcommercePaymentService $paymentService)
+    public function initiatePaymentForOrder(Request $request, $orderNumber, FeedtanEcommercePaymentService $paymentService)
     {
         $order = OnlineOrder::where('order_number', $orderNumber)->firstOrFail();
 
@@ -79,7 +80,7 @@ class OnlineOrderController extends Controller
             ], 400);
         }
 
-        $phoneNumber = $this->normalizePhoneNumber($order->customer_phone);
+        $phoneNumber = $this->normalizePhoneNumber($request->input('phone_number', $order->customer_phone));
         if (!$phoneNumber) {
             return response()->json([
                 'success' => false,
@@ -88,7 +89,7 @@ class OnlineOrderController extends Controller
         }
 
         try {
-            $paymentResponse = $paymentService->initiatePayment($this->buildPaymentPayload($order));
+            $paymentResponse = $paymentService->initiatePayment($this->buildPaymentPayload($order, $phoneNumber, true));
 
             if (isset($paymentResponse['success']) && $paymentResponse['success']) {
                 $this->syncOrderPaymentState($order, $paymentResponse['data'] ?? [], 'Payment initiated via FeedTan e-commerce API');
@@ -769,10 +770,12 @@ class OnlineOrderController extends Controller
         ]);
     }
 
-    private function buildPaymentPayload(OnlineOrder $order): array
+    private function buildPaymentPayload(OnlineOrder $order, ?string $phoneNumber = null, bool $refreshReference = false): array
     {
         $order->loadMissing(['items.product']);
-        $gatewayOrderReference = $this->ensureGatewayOrderReference($order);
+        $gatewayOrderReference = $refreshReference
+            ? $this->refreshGatewayOrderReference($order)
+            : $this->ensureGatewayOrderReference($order);
 
         $cartItemsForMetadata = $order->items->map(function ($item) {
             $name = $item->product ? $item->product->name : 'Item';
@@ -786,7 +789,7 @@ class OnlineOrderController extends Controller
 
         return [
             'amount' => (float) $order->total,
-            'phone_number' => $this->normalizePhoneNumber($order->customer_phone),
+            'phone_number' => $phoneNumber ?: $this->normalizePhoneNumber($order->customer_phone),
             'payer_name' => $order->customer_name,
             'description' => "Order {$order->order_number} - Shopping Cart",
             'order_reference' => $gatewayOrderReference,
@@ -831,6 +834,26 @@ class OnlineOrderController extends Controller
         if ($generatedReference === '') {
             $generatedReference = 'ORD' . $order->id . strtoupper(substr(md5((string) $order->id), 0, 8));
         }
+
+        if ($order->payment_order_reference !== $generatedReference) {
+            $order->forceFill([
+                'payment_order_reference' => $generatedReference,
+            ])->save();
+        }
+
+        return $generatedReference;
+    }
+
+    private function refreshGatewayOrderReference(OnlineOrder $order): string
+    {
+        do {
+            $generatedReference = 'ORD'
+                . strtoupper(base_convert((string) $order->id, 10, 36))
+                . strtoupper(Str::random(10));
+        } while (OnlineOrder::query()
+            ->where('payment_order_reference', $generatedReference)
+            ->whereKeyNot($order->id)
+            ->exists());
 
         if ($order->payment_order_reference !== $generatedReference) {
             $order->forceFill([
