@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\CatalogController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\RiderController;
 use App\Http\Controllers\Api\TrackingController;
+use App\Http\Controllers\OnlineOrderController;
 use App\Models\DeliveryRider;
 use App\Models\OnlineOrder;
 use Illuminate\Support\Facades\Route;
@@ -15,6 +16,7 @@ Route::get('/catalog/products', [CatalogController::class, 'products']);
 Route::get('/catalog/products/{id}', [CatalogController::class, 'product']);
 Route::get('/catalog/carousel', [CatalogController::class, 'carousel']);
 Route::get('/tracking/{orderNumber}', [TrackingController::class, 'trackOrder']);
+Route::post('/payments/feedtan/callback', [OnlineOrderController::class, 'handlePaymentCallback'])->name('api.shop.payments.feedtan.callback');
 
 // Real-Time Data (Public)
 Route::get('/realtime/riders', function () {

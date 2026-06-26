@@ -1124,6 +1124,28 @@ document.getElementById('checkoutForm').addEventListener('submit', async functio
       const trackingUrl = data.tracking_url || `/shop/tracking/${data.order_number}`;
       const pdfUrl = data.pdf_url || `/shop/tracking/${data.order_number}/pdf`;
       if (paymentMethod === 'online') {
+        if (!data.payment_initiated) {
+          const paymentNote = data.payment_message || 'Payment request could not be started right now. You can track the order and pay later.';
+          if (window.Swal) {
+            await Swal.fire({
+              icon: 'info',
+              title: 'Order saved, payment pending',
+              html: 'Order number: <b>' + data.order_number + '</b><br>' + paymentNote + '<br><br><a href="' + trackingUrl + '">Track your order</a> · <a href="' + pdfUrl + '">Download PDF</a>',
+              confirmButtonText: 'Track Order',
+              showCancelButton: true,
+              cancelButtonText: 'Close'
+            }).then((result) => {
+              if (result.isConfirmed) {
+                window.location.href = trackingUrl;
+              }
+            });
+          } else {
+            alert(paymentNote);
+          }
+          placeOrderBtn.disabled = false;
+          placeOrderBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg> Place Order';
+          return;
+        }
         const outcome = await openPaymentProgressModal(data.order_number, trackingUrl, pdfUrl);
         const finalStatus = outcome && outcome.status ? String(outcome.status).toUpperCase() : null;
         if (finalStatus === 'SUCCESS' || finalStatus === 'SETTLED' || !window.Swal) {

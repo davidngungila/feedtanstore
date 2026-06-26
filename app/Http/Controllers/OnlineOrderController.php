@@ -13,9 +13,10 @@ use App\Models\AccountingEntry;
 use App\Models\CommunicationProfile;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Dompdf\Dompdf;
-use App\Services\ClickPesaService;
+use App\Services\FeedtanEcommercePaymentService;
 use App\Services\MessagingService;
 
 class OnlineOrderController extends Controller
@@ -67,7 +68,7 @@ class OnlineOrderController extends Controller
         }
     }
 
-    public function initiatePaymentForOrder($orderNumber, ClickPesaService $clickPesaService)
+    public function initiatePaymentForOrder($orderNumber, FeedtanEcommercePaymentService $paymentService)
     {
         $order = OnlineOrder::where('order_number', $orderNumber)->firstOrFail();
 
@@ -78,50 +79,25 @@ class OnlineOrderController extends Controller
             ], 400);
         }
 
-        $phoneNumber = $order->customer_phone;
+        $phoneNumber = $this->normalizePhoneNumber($order->customer_phone);
         if (!$phoneNumber) {
             return response()->json([
                 'success' => false,
-                'message' => 'Customer phone number is missing.'
+                'message' => 'Invalid phone number. Please use format: 255712345678.'
             ], 400);
         }
 
-        if (substr($phoneNumber, 0, 1) === '0') {
-            $phoneNumber = '255' . substr($phoneNumber, 1);
-        }
-
-        $order->loadMissing(['items.product']);
-        $cartItemsForMetadata = $order->items->map(function ($item) {
-            $name = $item->product ? $item->product->name : 'Item';
-            return [
-                'name' => $name,
-                'quantity' => $item->quantity,
-                'price' => $item->price,
-            ];
-        })->values()->all();
-
         try {
-            $paymentData = [
-                'amount' => $order->total,
-                'phone_number' => $phoneNumber,
-                'payer_name' => $order->customer_name,
-                'description' => "Order {$order->order_number} - Shopping Cart",
-                'order_reference' => $order->order_number,
-                'email' => $order->customer_email,
-                'metadata' => [
-                    'order_id' => $order->id,
-                    'items' => $cartItemsForMetadata
-                ]
-            ];
-
-            $paymentResponse = $clickPesaService->initiatePayment($paymentData);
+            $paymentResponse = $paymentService->initiatePayment($this->buildPaymentPayload($order));
 
             if (isset($paymentResponse['success']) && $paymentResponse['success']) {
-                $order->update([
-                    'payment_transaction_id' => $paymentResponse['data']['transaction_id'] ?? $order->payment_transaction_id,
-                    'payment_order_reference' => $paymentResponse['data']['order_reference'] ?? $order->payment_order_reference,
-                    'clickpesa_status' => $paymentResponse['data']['status'] ?? $order->clickpesa_status
-                ]);
+                $this->syncOrderPaymentState($order, $paymentResponse['data'] ?? [], 'Payment initiated via FeedTan e-commerce API');
+            } else {
+                return response()->json([
+                    'success' => false,
+                    'message' => $paymentResponse['message'] ?? 'Failed to initiate payment.',
+                    'payment' => $paymentResponse,
+                ], 422);
             }
 
             return response()->json([
@@ -132,7 +108,7 @@ class OnlineOrderController extends Controller
                 'payment' => $paymentResponse
             ]);
         } catch (\Exception $e) {
-            \Log::error('ClickPesa payment initiation failed: ' . $e->getMessage());
+            Log::error('FeedTan e-commerce payment initiation failed: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to initiate payment. Please try again.'
@@ -613,7 +589,7 @@ class OnlineOrderController extends Controller
         return $pdf->stream($order->order_number . '.pdf');
     }
 
-    public function placeOrder(Request $request, ClickPesaService $clickPesaService)
+    public function placeOrder(Request $request, FeedtanEcommercePaymentService $paymentService)
     {
         $request->validate([
             'customer_name' => 'required|string|max:255',
@@ -690,40 +666,28 @@ class OnlineOrderController extends Controller
 
         $this->sendPublicOrderNotifications($order);
 
+        $paymentResponse = null;
+        $paymentInitiated = false;
+        $paymentMessage = null;
+
         if ($request->payment_method === 'online') {
-            // Try to initiate payment with ClickPesa (but don't fail the order if it doesn't work)
+            // Try to initiate payment but do not fail order creation if the gateway is temporarily unavailable.
             try {
-                $phoneNumber = $request->customer_phone;
-                // Format phone number to 255xxxxxxxxx
-                if (substr($phoneNumber, 0, 1) === '0') {
-                    $phoneNumber = '255' . substr($phoneNumber, 1);
-                }
+                if ($this->normalizePhoneNumber($request->customer_phone)) {
+                    $paymentResponse = $paymentService->initiatePayment($this->buildPaymentPayload($order));
 
-                $paymentData = [
-                    'amount' => $total,
-                    'phone_number' => $phoneNumber,
-                    'payer_name' => $request->customer_name,
-                    'description' => "Order {$order->order_number} - Shopping Cart",
-                    'order_reference' => $order->order_number,
-                    'email' => $request->customer_email,
-                    'metadata' => [
-                        'order_id' => $order->id,
-                        'items' => $cartItemsForMetadata
-                    ]
-                ];
-
-                $paymentResponse = $clickPesaService->initiatePayment($paymentData);
-
-                if (isset($paymentResponse['success']) && $paymentResponse['success']) {
-                    $order->update([
-                        'payment_transaction_id' => $paymentResponse['data']['transaction_id'],
-                        'payment_order_reference' => $paymentResponse['data']['order_reference'],
-                        'clickpesa_status' => $paymentResponse['data']['status']
-                    ]);
+                    if (isset($paymentResponse['success']) && $paymentResponse['success']) {
+                        $this->syncOrderPaymentState($order, $paymentResponse['data'] ?? [], 'Payment initiated via public checkout');
+                        $paymentInitiated = true;
+                    } else {
+                        $paymentMessage = $paymentResponse['message'] ?? 'Payment request was not accepted by the gateway.';
+                    }
+                } else {
+                    $paymentMessage = 'Invalid phone number. Please use format: 255712345678.';
                 }
             } catch (\Exception $e) {
-                // Do nothing - just log the error and continue
-                \Log::error('ClickPesa payment initiation failed: ' . $e->getMessage());
+                Log::error('FeedTan e-commerce payment initiation failed: ' . $e->getMessage());
+                $paymentMessage = 'Payment request could not be started right now. You can track the order and pay later.';
             }
         }
 
@@ -731,40 +695,30 @@ class OnlineOrderController extends Controller
             'success' => true,
             'order_number' => $order->order_number,
             'tracking_url' => url('/shop/tracking/' . $order->order_number),
-            'pdf_url' => url('/shop/tracking/' . $order->order_number . '/pdf')
+            'pdf_url' => url('/shop/tracking/' . $order->order_number . '/pdf'),
+            'payment_initiated' => $paymentInitiated,
+            'payment_message' => $paymentMessage,
+            'payment' => $paymentResponse,
         ]);
     }
 
-    public function checkPaymentStatus($orderNumber, ClickPesaService $clickPesaService)
+    public function checkPaymentStatus($orderNumber, FeedtanEcommercePaymentService $paymentService)
     {
         $order = OnlineOrder::where('order_number', $orderNumber)->firstOrFail();
 
-        if ($order->payment_order_reference) {
+        $orderReference = $order->payment_order_reference ?: $order->order_number;
+
+        if ($orderReference) {
             try {
-                $paymentStatus = $clickPesaService->checkPaymentStatus($order->payment_order_reference);
+                $paymentStatus = $paymentService->checkPaymentStatus($orderReference);
 
                 if (isset($paymentStatus['success']) && $paymentStatus['success']) {
-                    $newClickpesaStatus = $paymentStatus['data']['status'];
-                    $order->update(['clickpesa_status' => $newClickpesaStatus]);
-
-                    if (in_array($newClickpesaStatus, ['SUCCESS', 'SETTLED'])) {
-                        $order->update(['payment_status' => 'paid']);
-
-                        // Update order status history
-                        OnlineOrderStatusHistory::create([
-                            'online_order_id' => $order->id,
-                            'status' => $order->status,
-                            'payment_status' => 'paid',
-                            'notes' => 'Payment received successfully'
-                        ]);
-                    } elseif (in_array($newClickpesaStatus, ['FAILED', 'DECLINED', 'CANCELLED'])) {
-                        $order->update(['payment_status' => 'failed']);
-                    }
+                    $this->syncOrderPaymentState($order, $paymentStatus['data'] ?? [], 'Payment status synced from FeedTan e-commerce API');
                 }
 
                 return response()->json($paymentStatus);
             } catch (\Exception $e) {
-                \Log::error('ClickPesa payment status check failed: ' . $e->getMessage());
+                Log::error('FeedTan e-commerce payment status check failed: ' . $e->getMessage());
                 return response()->json([
                     'success' => false,
                     'message' => 'Failed to check payment status'
@@ -776,6 +730,144 @@ class OnlineOrderController extends Controller
             'success' => false,
             'message' => 'No payment reference found for this order'
         ]);
+    }
+
+    public function handlePaymentCallback(Request $request)
+    {
+        $paymentData = $request->input('data', []);
+        if (!is_array($paymentData) || empty($paymentData)) {
+            $paymentData = $request->all();
+        }
+
+        $orderReference = (string) ($paymentData['order_reference'] ?? '');
+        if ($orderReference === '') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Missing order_reference in callback payload.'
+            ], 422);
+        }
+
+        $order = OnlineOrder::query()
+            ->where('payment_order_reference', $orderReference)
+            ->orWhere('order_number', $orderReference)
+            ->first();
+
+        if (!$order) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Order not found for the provided order_reference.'
+            ], 404);
+        }
+
+        $this->syncOrderPaymentState($order, $paymentData, 'Payment status synced from FeedTan callback');
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Payment callback processed successfully.',
+            'order_number' => $order->order_number,
+            'payment_status' => $order->fresh()->payment_status,
+        ]);
+    }
+
+    private function buildPaymentPayload(OnlineOrder $order): array
+    {
+        $order->loadMissing(['items.product']);
+
+        $cartItemsForMetadata = $order->items->map(function ($item) {
+            $name = $item->product ? $item->product->name : 'Item';
+
+            return [
+                'name' => $name,
+                'quantity' => $item->quantity,
+                'price' => $item->price,
+            ];
+        })->values()->all();
+
+        return [
+            'amount' => (float) $order->total,
+            'phone_number' => $this->normalizePhoneNumber($order->customer_phone),
+            'payer_name' => $order->customer_name,
+            'description' => "Order {$order->order_number} - Shopping Cart",
+            'order_reference' => $order->payment_order_reference ?: $order->order_number,
+            'email' => $order->customer_email,
+            'callback_url' => route('api.shop.payments.feedtan.callback'),
+            'metadata' => [
+                'order_id' => $order->id,
+                'order_number' => $order->order_number,
+                'items' => $cartItemsForMetadata,
+            ],
+        ];
+    }
+
+    private function normalizePhoneNumber(?string $phoneNumber): ?string
+    {
+        $digits = preg_replace('/\D+/', '', (string) $phoneNumber);
+        if (!$digits) {
+            return null;
+        }
+
+        if (str_starts_with($digits, '0') && strlen($digits) === 10) {
+            $digits = '255' . substr($digits, 1);
+        } elseif (strlen($digits) === 9 && str_starts_with($digits, '7')) {
+            $digits = '255' . $digits;
+        }
+
+        if (!str_starts_with($digits, '255') || strlen($digits) !== 12) {
+            return null;
+        }
+
+        return $digits;
+    }
+
+    private function syncOrderPaymentState(OnlineOrder $order, array $paymentData, string $historyNotePrefix = 'Payment sync'): void
+    {
+        $gatewayStatus = strtoupper((string) ($paymentData['status'] ?? $paymentData['clickpesa_status'] ?? ''));
+        $isPaid = (bool) ($paymentData['is_paid'] ?? false);
+
+        $updates = [
+            'payment_transaction_id' => $paymentData['transaction_id'] ?? $order->payment_transaction_id,
+            'payment_order_reference' => $paymentData['order_reference'] ?? $order->payment_order_reference ?? $order->order_number,
+            'clickpesa_status' => $gatewayStatus !== '' ? $gatewayStatus : $order->clickpesa_status,
+        ];
+
+        $resolvedPaymentStatus = $order->payment_status;
+        if ($isPaid || in_array($gatewayStatus, ['SUCCESS', 'SETTLED'], true)) {
+            $resolvedPaymentStatus = 'paid';
+        } elseif ($order->payment_status === 'paid') {
+            $resolvedPaymentStatus = 'paid';
+        } elseif (in_array($gatewayStatus, ['FAILED', 'DECLINED', 'CANCELLED'], true)) {
+            $resolvedPaymentStatus = 'failed';
+        } elseif ($gatewayStatus !== '' && $order->payment_status !== 'paid') {
+            $resolvedPaymentStatus = 'pending';
+        }
+
+        $updates['payment_status'] = $resolvedPaymentStatus;
+
+        $paymentStatusChanged = $resolvedPaymentStatus !== $order->payment_status;
+        $gatewayStatusChanged = ($updates['clickpesa_status'] ?? null) !== $order->clickpesa_status;
+        $transactionChanged = ($updates['payment_transaction_id'] ?? null) !== $order->payment_transaction_id;
+
+        $order->update($updates);
+
+        if ($paymentStatusChanged || $gatewayStatusChanged || $transactionChanged) {
+            $notes = [];
+            if ($gatewayStatusChanged && $updates['clickpesa_status']) {
+                $notes[] = 'Gateway status: ' . $updates['clickpesa_status'];
+            }
+            if ($paymentStatusChanged) {
+                $notes[] = 'Payment status changed to ' . $resolvedPaymentStatus;
+            }
+            if ($transactionChanged && $updates['payment_transaction_id']) {
+                $notes[] = 'Transaction ID: ' . $updates['payment_transaction_id'];
+            }
+
+            OnlineOrderStatusHistory::create([
+                'online_order_id' => $order->id,
+                'status' => $order->status,
+                'payment_status' => $resolvedPaymentStatus,
+                'notes' => trim($historyNotePrefix . ($notes ? ' | ' . implode(' | ', $notes) : '')),
+            ]);
+        }
     }
 
     public function showTracking($orderNumber = null)
