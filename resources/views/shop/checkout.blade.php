@@ -355,12 +355,8 @@ footer{background:var(--green-900);color:#BFD6C8;padding:40px 0 0;margin-top:40p
 
         <!-- Delivery Address & Location -->
         <div class="card" id="deliveryAddressSection">
-          <h2 class="text-lg font-bold mb-4">Delivery Address</h2>
-          <div class="field">
-            <label for="deliveryAddress">Delivery Address *</label>
-            <textarea id="deliveryAddress" required rows="3"></textarea>
-            <div class="field-error" id="err-deliveryAddress"></div>
-          </div>
+          <h2 class="text-lg font-bold mb-4">Delivery Location</h2>
+          <textarea id="deliveryAddress" rows="3" style="display:none;"></textarea>
           <div class="loc-box">
             <div class="loc-box-head">
               <div class="loc-status pending" id="locStatus">
@@ -375,10 +371,13 @@ footer{background:var(--green-900);color:#BFD6C8;padding:40px 0 0;margin-top:40p
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
               </div>
             </div>
+            <div class="field-error" id="err-deliveryAddress" style="margin-top:8px;"></div>
           </div>
-          <div class="field">
-            <label for="deliveryFee">Delivery Fee (optional)</label>
-            <input type="number" id="deliveryFee" value="0" min="0" step="0.01">
+          <div class="loc-box" style="margin-top:0;">
+            <div class="loc-status pending" style="align-items:flex-start;">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="12" cy="12" r="10"/><path d="M12 8h.01M11 12h2v4h-2z"/></svg>
+              <span>Delivery fee is assigned by admin based on your location, distance, and rider.</span>
+            </div>
           </div>
         </div>
         <div class="card" style="padding:16px;display:none;justify-content:space-between;" id="stepAddressActions">
@@ -433,8 +432,8 @@ footer{background:var(--green-900);color:#BFD6C8;padding:40px 0 0;margin-top:40p
           <div id="checkoutItems" class="space-y-3 mb-4"></div>
           <div class="border-t border-gray-100 pt-4 space-y-2">
             <div class="sum-row"><span>Subtotal</span><span id="subtotal">TZS 0</span></div>
-            <div class="sum-row"><span>Delivery Fee</span><span id="deliveryFeeDisplay">TZS 0</span></div>
-            <div class="sum-row total"><span>Total</span><span id="checkoutTotal">TZS 0</span></div>
+            <div class="sum-row"><span>Delivery Fee</span><span id="deliveryFeeDisplay">Assigned by admin</span></div>
+            <div class="sum-row total"><span>Current Total</span><span id="checkoutTotal">TZS 0</span></div>
           </div>
         </div>
 
@@ -557,14 +556,17 @@ function validateCustomer() {
 function validateAddressIfNeeded() {
   const needDelivery = document.querySelector('input[name="need_delivery"]:checked').value;
   if (needDelivery !== 'yes') {
+    document.getElementById('deliveryAddress').value = 'Store Pickup';
     setFieldError('deliveryAddress', '');
     return true;
   }
-  const addr = document.getElementById('deliveryAddress').value.trim();
-  if (!addr) {
-    setFieldError('deliveryAddress', 'Delivery address is required');
+
+  if (!userLocation.lat || !userLocation.lng) {
+    setFieldError('deliveryAddress', 'Your location must be captured automatically for delivery.');
     return false;
   }
+
+  document.getElementById('deliveryAddress').value = `Auto-detected location: ${userLocation.lat.toFixed(6)}, ${userLocation.lng.toFixed(6)}`;
   setFieldError('deliveryAddress', '');
   return true;
 }
@@ -616,11 +618,10 @@ function calculateTotal() {
 
 function updateTotal() {
   const subtotal = calculateTotal();
-  const deliveryFee = parseFloat(document.getElementById('deliveryFee').value) || 0;
-  const total = subtotal + deliveryFee;
+  const total = subtotal;
   
   document.getElementById('subtotal').textContent = 'TZS ' + subtotal.toLocaleString();
-  document.getElementById('deliveryFeeDisplay').textContent = 'TZS ' + deliveryFee.toLocaleString();
+  document.getElementById('deliveryFeeDisplay').textContent = 'Assigned by admin';
   document.getElementById('checkoutTotal').textContent = 'TZS ' + total.toLocaleString();
 }
 
@@ -672,6 +673,8 @@ function detectLocation() {
         
         statusEl.querySelector('span').textContent = 'Location captured!';
         coordsEl.textContent = `${userLocation.lat.toFixed(6)}, ${userLocation.lng.toFixed(6)}`;
+        document.getElementById('deliveryAddress').value = `Auto-detected location: ${userLocation.lat.toFixed(6)}, ${userLocation.lng.toFixed(6)}`;
+        setFieldError('deliveryAddress', '');
       },
       (error) => {
         let errorMsg = 'Unable to get location.';
@@ -688,6 +691,7 @@ function detectLocation() {
         }
         statusEl.classList.add('error');
         statusEl.querySelector('span').textContent = errorMsg;
+        document.getElementById('deliveryAddress').value = '';
       },
       {
         enableHighAccuracy: true,
@@ -864,7 +868,43 @@ function openPaymentProgressModal(orderNumber, trackingUrl, pdfUrl) {
   });
 }
 
-document.getElementById('deliveryFee').addEventListener('input', updateTotal);
+function openOrderProcessingModal() {
+  if (!window.Swal) return { close() {} };
+
+  const stages = [
+    'Validating your order details...',
+    'Saving your order securely...',
+    'Preparing notifications and tracking...'
+  ];
+  let stageIndex = 0;
+  let stageTimer = null;
+
+  Swal.fire({
+    title: 'Processing your order',
+    html: '<div id="orderProcessingStatus" style="color:#6b7280;">' + stages[0] + '</div>',
+    allowOutsideClick: false,
+    allowEscapeKey: false,
+    showConfirmButton: false,
+    didOpen: () => {
+      Swal.showLoading();
+      stageTimer = setInterval(() => {
+        stageIndex = (stageIndex + 1) % stages.length;
+        const statusEl = document.getElementById('orderProcessingStatus');
+        if (statusEl) statusEl.textContent = stages[stageIndex];
+      }, 1300);
+    },
+    willClose: () => {
+      if (stageTimer) clearInterval(stageTimer);
+    }
+  });
+
+  return {
+    close() {
+      if (stageTimer) clearInterval(stageTimer);
+      Swal.close();
+    }
+  };
+}
 
 document.getElementById('btnNextDelivery').addEventListener('click', () => {
   showStep('customer');
@@ -880,7 +920,7 @@ document.getElementById('btnNextCustomer').addEventListener('click', () => {
   const needDelivery = document.querySelector('input[name="need_delivery"]:checked').value;
   if (needDelivery === 'yes') {
     showStep('address');
-    document.getElementById('deliveryAddress').focus();
+    document.getElementById('locStatus').scrollIntoView({ behavior: 'smooth', block: 'center' });
   } else {
     showStep('payment');
   }
@@ -889,7 +929,8 @@ document.getElementById('btnNextCustomer').addEventListener('click', () => {
 document.getElementById('btnBackAddress').addEventListener('click', () => showStep('customer'));
 document.getElementById('btnNextAddress').addEventListener('click', () => {
   if (!validateAddressIfNeeded()) {
-    if (window.Swal) Swal.fire({ icon: 'error', title: 'Delivery address required', text: 'Please enter your delivery address to continue.' });
+    detectLocation();
+    if (window.Swal) Swal.fire({ icon: 'error', title: 'Location required', text: 'Please allow location access to continue with delivery.' });
     return;
   }
   showStep('payment');
@@ -905,10 +946,10 @@ document.getElementById('btnNextPayment').addEventListener('click', () => showSt
   const el = document.getElementById(id);
   if (el) el.addEventListener('blur', validateCustomer);
 });
-document.getElementById('deliveryAddress').addEventListener('blur', validateAddressIfNeeded);
 
 document.getElementById('checkoutForm').addEventListener('submit', async function(e) {
   e.preventDefault();
+  const needDelivery = document.querySelector('input[name="need_delivery"]:checked').value;
   
   if (!validateCustomer()) {
     if (window.Swal) Swal.fire({ icon: 'error', title: 'Missing information', text: 'Please complete customer information.' });
@@ -916,24 +957,23 @@ document.getElementById('checkoutForm').addEventListener('submit', async functio
     return;
   }
   if (!validateAddressIfNeeded()) {
-    if (window.Swal) Swal.fire({ icon: 'error', title: 'Missing delivery address', text: 'Please enter delivery address.' });
-    document.getElementById('deliveryAddress').focus();
+    detectLocation();
+    if (window.Swal) Swal.fire({ icon: 'error', title: 'Location required', text: 'Please allow location access so we can capture your delivery location.' });
     return;
   }
 
   // Try to capture location for analytics, but don't require it
-  if (!userLocation.lat || !userLocation.lng) {
+  if (needDelivery === 'yes' && (!userLocation.lat || !userLocation.lng)) {
     detectLocation();
   }
   
   const placeOrderBtn = document.getElementById('placeOrderBtn');
   placeOrderBtn.disabled = true;
   placeOrderBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg> Processing...';
+  const processingModal = openOrderProcessingModal();
   
   const items = cart.map(item => ({ product_id: item.id, quantity: item.quantity }));
-  const deliveryFee = parseFloat(document.getElementById('deliveryFee').value) || 0;
   const paymentMethod = document.querySelector('input[name="payment_method"]:checked').value;
-  const needDelivery = document.querySelector('input[name="need_delivery"]:checked').value;
   
   const orderData = {
     customer_name: document.getElementById('customerName').value,
@@ -942,7 +982,6 @@ document.getElementById('checkoutForm').addEventListener('submit', async functio
     delivery_address: needDelivery === 'yes' ? (document.getElementById('deliveryAddress').value || '') : 'Store Pickup',
     delivery_latitude: userLocation.lat,
     delivery_longitude: userLocation.lng,
-    delivery_fee: deliveryFee,
     payment_method: paymentMethod,
     items: items
   };
@@ -960,6 +999,7 @@ document.getElementById('checkoutForm').addEventListener('submit', async functio
     });
 
     const data = await response.json().catch(() => ({}));
+    processingModal.close();
 
     if (!response.ok) {
       const message = data && data.message ? data.message : 'Failed to place order. Please check your details and try again.';
@@ -1008,6 +1048,7 @@ document.getElementById('checkoutForm').addEventListener('submit', async functio
     }
   } catch (err) {
     console.error(err);
+    processingModal.close();
     placeOrderBtn.disabled = false;
     placeOrderBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg> Place Order';
     if (window.Swal) {
