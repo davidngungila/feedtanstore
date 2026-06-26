@@ -36,12 +36,13 @@
                   'url' => $logoUrl,
               ],
               'image' => [$logoUrl],
-              'telephone' => '+255700000000',
-              'email' => 'hello@feedtan.store',
+              'telephone' => '+255717358865',
+              'email' => 'feedtanstore@gmail.com',
               'address' => [
                   '@type' => 'PostalAddress',
-                  'streetAddress' => 'Mlimani City Road',
-                  'addressLocality' => 'Dar es Salaam',
+                  'streetAddress' => 'Kiboriloni',
+                  'addressLocality' => 'Moshi',
+                  'addressRegion' => 'Kilimanjaro',
                   'addressCountry' => 'TZ',
               ],
           ],
@@ -528,7 +529,7 @@ footer{background:var(--green-900);color:#BFD6C8;padding:54px 0 0;margin-top:30p
     </div>
     <div class="topbar-msg" id="topbarPhone">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.362 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.338 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-      <span>+255 700 000 000</span>
+      <span>+255 717 358 865</span>
     </div>
   </div>
 </div>
@@ -703,7 +704,7 @@ footer{background:var(--green-900);color:#BFD6C8;padding:54px 0 0;margin-top:30p
         <h4>Support</h4>
         <ul>
           <li><a href="{{ route('shop.tracking') }}">Track my order</a></li>
-          <li><a href="#" onclick="showToast('Reach us on +255 700 000 000','phone')">Contact us</a></li>
+          <li><a href="#" onclick="showToast('Reach us on +255 717 358 865','phone')">Contact us</a></li>
           <li><a href="#" onclick="showToast('Returns accepted within 48 hours of delivery','info')">Returns policy</a></li>
           <li><a href="#" onclick="showToast('Delivery available across Dar es Salaam and nearby regions','info')">Delivery info</a></li>
         </ul>
@@ -711,10 +712,10 @@ footer{background:var(--green-900);color:#BFD6C8;padding:54px 0 0;margin-top:30p
       <div>
         <h4>Visit our store</h4>
         <ul>
-          <li>Mlimani City Road, Dar es Salaam</li>
+          <li>Kiboriloni, Moshi, Kilimanjaro, Tanzania</li>
           <li>Open daily · 8:00 AM – 9:00 PM</li>
-          <li>+255 700 000 000</li>
-          <li>hello@feedtan.store</li>
+          <li>+255 717 358 865</li>
+          <li>feedtanstore@gmail.com</li>
         </ul>
       </div>
     </div>
