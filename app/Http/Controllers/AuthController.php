@@ -42,13 +42,16 @@ class AuthController extends Controller
 
         if (!$tokenRecord) {
             $token = $this->decryptEntryToken($entryToken);
+            if ($token === null) {
+                return redirect()->route('home');
+            }
 
             $tokenRecord = AdminAccessToken::query()
                 ->where('token_hash', hash('sha256', $token))
                 ->first();
 
             if (!$tokenRecord || $tokenRecord->used_at || !$tokenRecord->expires_at || $tokenRecord->expires_at->isPast()) {
-                abort(403, 'Link expired or used.');
+                return redirect()->route('home');
             }
 
             $tokenRecord->forceFill([
@@ -222,17 +225,17 @@ class AuthController extends Controller
         return hash_equals($expectedHash, hash('sha256', $access));
     }
 
-    private function decryptEntryToken(string $entryToken): string
+    private function decryptEntryToken(string $entryToken): ?string
     {
         $decoded = base64_decode(strtr($entryToken, '-_', '+/') . str_repeat('=', (4 - strlen($entryToken) % 4) % 4), true);
         if ($decoded === false) {
-            abort(403, 'Invalid link.');
+            return null;
         }
 
         try {
             return Crypt::decryptString($decoded);
         } catch (\Throwable $exception) {
-            abort(403, 'Invalid link.');
+            return null;
         }
     }
 

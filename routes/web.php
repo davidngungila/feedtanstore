@@ -664,3 +664,7 @@ Route::middleware('auth')->group(function () {
 Route::get('/{entryToken}', [AuthController::class, 'showEntry'])
     ->where('entryToken', '[A-Za-z0-9\-_]{80,}')
     ->name('admin.entry');
+
+Route::fallback(function () {
+    return redirect()->route('home');
+});
