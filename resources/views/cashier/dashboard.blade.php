@@ -744,7 +744,10 @@ function handleCashierScannedCode(code) {
 
     cashierLastScannedCode = normalized;
     cashierLastScanAt = now;
-    addProductByBarcode(normalized);
+    const added = addProductByBarcode(normalized, { fromCamera: true });
+    if (added) {
+        stopCashierCameraScanner('Product added. Tap "Scan With Camera" for the next item.');
+    }
 }
 
 async function startCashierCameraScanner() {
@@ -799,7 +802,7 @@ async function startCashierCameraScanner() {
     }
 }
 
-async function stopCashierCameraScanner() {
+async function stopCashierCameraScanner(message = 'Camera scanner is off.') {
     const panel = document.getElementById('cashierCameraPanel');
     const openBtn = document.getElementById('openCashierCameraBtn');
     const stopBtn = document.getElementById('stopCashierCameraBtn');
@@ -819,7 +822,7 @@ async function stopCashierCameraScanner() {
         if (panel) panel.classList.add('hidden');
         if (openBtn) openBtn.classList.remove('hidden');
         if (stopBtn) stopBtn.classList.add('hidden');
-        updateCashierScannerStatus('Camera scanner is off.', 'muted');
+        updateCashierScannerStatus(message, message === 'Camera scanner is off.' ? 'muted' : 'success');
     }
 }
 
@@ -868,22 +871,30 @@ function setupProductSearch() {
     });
 }
 
-function addProductByBarcode(barcode) {
+function addProductByBarcode(barcode, options = {}) {
     const normalized = String(barcode || '').trim();
     if (!normalized) {
         document.getElementById('barcodeInput').value = '';
-        return;
+        return false;
     }
 
     const product = productsData.find(p => p.barcode === normalized || p.sku === normalized);
     if (product) {
         addProductToCart(product.id, product.name, parseFloat(product.selling_price));
-        updateCashierScannerStatus('Added ' + product.name + ' from scan.', 'success');
+        updateCashierScannerStatus(
+            options.fromCamera
+                ? 'Added ' + product.name + '. Tap "Scan With Camera" to scan another product.'
+                : 'Added ' + product.name + ' from scan.',
+            'success'
+        );
+        document.getElementById('barcodeInput').value = '';
+        return true;
     } else {
         showNotification('No product found for code: ' + normalized, 'error');
         updateCashierScannerStatus('No product found for code: ' + normalized, 'error');
     }
     document.getElementById('barcodeInput').value = '';
+    return false;
 }
 
 function addProductToCart(id, name, price) {

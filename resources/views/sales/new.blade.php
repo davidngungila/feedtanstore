@@ -304,7 +304,7 @@ async function startScanner() {
     }
 }
 
-async function stopScanner() {
+async function stopScanner(message = 'Camera scanner is off.') {
     if (html5QrCodeScanner) {
         try {
             if (saleScannerActive) {
@@ -319,7 +319,7 @@ async function stopScanner() {
     saleScannerActive = false;
     document.getElementById('startSaleScannerBtn').classList.remove('hidden');
     document.getElementById('stopSaleScannerBtn').classList.add('hidden');
-    updateScannerStatus('Camera scanner is off.', 'muted');
+    updateScannerStatus(message, message === 'Camera scanner is off.' ? 'muted' : 'success');
 }
 
 function onScanSuccess(decodedText) {
@@ -333,7 +333,10 @@ function onScanSuccess(decodedText) {
 
     lastScannedCode = normalized;
     lastScannedAt = now;
-    findProductByCode(normalized);
+    const added = findProductByCode(normalized, { fromCamera: true });
+    if (added) {
+        stopScanner('Product added. Click "Start Camera" to scan another product.');
+    }
 }
 
 function onScanFailure(error) {
@@ -379,14 +382,20 @@ function showNotification(message, type) {
     setTimeout(() => notification.remove(), 3000);
 }
 
-function findProductByCode(code) {
+function findProductByCode(code, options = {}) {
     // Search by barcode, then by SKU
     const product = productsData.find(p => p.barcode === code || p.sku === code);
     if (product) {
         if (product.quantity > 0) {
             addToCart(product.id, product.name, product.selling_price);
             addToScannedList(product.name);
-            updateScannerStatus(`Added ${product.name} from scan.`, 'success');
+            updateScannerStatus(
+                options.fromCamera
+                    ? `Added ${product.name}. Click "Start Camera" to scan another product.`
+                    : `Added ${product.name} from scan.`,
+                'success'
+            );
+            return true;
         } else {
             showNotification(`Product "${product.name}" is out of stock!`, 'error');
             updateScannerStatus(`Product "${product.name}" is out of stock.`, 'error');
@@ -395,6 +404,7 @@ function findProductByCode(code) {
         showNotification(`No product found with barcode/SKU: ${code}`, 'error');
         updateScannerStatus(`No product found for code: ${code}`, 'error');
     }
+    return false;
 }
 
 function addToScannedList(productName) {
