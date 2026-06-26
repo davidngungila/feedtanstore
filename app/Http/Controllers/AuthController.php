@@ -8,6 +8,7 @@ use App\Models\UserDevice;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\URL;
 
 class AuthController extends Controller
 {
@@ -15,6 +16,11 @@ class AuthController extends Controller
     {
         if (Auth::check()) {
             return redirect()->intended(route('dashboard'));
+        }
+
+        $hasValidSignature = URL::hasValidSignature($request) || URL::hasValidSignature($request, false);
+        if (!$hasValidSignature) {
+            abort(403, 'Invalid signature.');
         }
 
         $token = (string) $request->query('token', '');

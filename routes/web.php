@@ -4,10 +4,11 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 
 // Auth Routes
-Route::get('/entry', [AuthController::class, 'showEntry'])->name('admin.entry')->middleware('signed');
+Route::get('/entry', [AuthController::class, 'showEntry'])->name('admin.entry');
 Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+Route::get('/', [\App\Http\Controllers\OnlineOrderController::class, 'shop'])->name('home');
 
 // Public verify route
 Route::get('/sales/receipts/{sale}/verify', [\App\Http\Controllers\ReceiptController::class, 'verify'])->name('sales.receipts.verify');
@@ -28,10 +29,6 @@ Route::post('/api/shop/orders/{orderNumber}/initiate-payment', [\App\Http\Contro
 
 // Protected Routes (must be authenticated)
 Route::middleware('auth')->group(function () {
-    Route::get('/', function () {
-        return redirect()->route('dashboard');
-    });
-
     // Messaging Test
     Route::get('/messaging/test', [App\Http\Controllers\MessagingTestController::class, 'index'])->name('messaging.test');
     Route::post('/messaging/test/send', [App\Http\Controllers\MessagingTestController::class, 'sendTestMessage'])->name('messaging.test.send');
