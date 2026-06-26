@@ -3,47 +3,68 @@
 namespace App\Http\Controllers;
 
 use App\Models\ActionLog;
+use App\Models\AdminAccessToken;
 use App\Models\LoginHistory;
 use App\Models\UserDevice;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Str;
 
 class AuthController extends Controller
 {
-    public function showEntry(Request $request)
+    public function showEntry(Request $request, string $entryToken)
     {
         if (Auth::check()) {
             return redirect()->intended(route('dashboard'));
         }
 
-        $hasValidSignature = URL::hasValidSignature($request) || URL::hasValidSignature($request, false);
-        if (!$hasValidSignature) {
-            abort(403, 'Invalid signature.');
+        $entryTokenHash = hash('sha256', $entryToken);
+        $currentTokenId = (int) $request->session()->get('admin_entry_token_id', 0);
+        $tokenRecord = null;
+
+        if (
+            $this->hasValidEntryGrant($request)
+            && $currentTokenId > 0
+            && hash_equals((string) $request->session()->get('admin_entry_path_hash', ''), $entryTokenHash)
+        ) {
+            $tokenRecord = AdminAccessToken::find($currentTokenId);
         }
 
-        $token = (string) $request->query('token', '');
-        if ($token === '') {
-            abort(403, 'Invalid entry token.');
+        if (!$tokenRecord) {
+            $token = $this->decryptEntryToken($entryToken);
+
+            $tokenRecord = AdminAccessToken::query()
+                ->where('token_hash', hash('sha256', $token))
+                ->first();
+
+            if (!$tokenRecord || $tokenRecord->used_at || !$tokenRecord->expires_at || $tokenRecord->expires_at->isPast()) {
+                abort(403, 'Link expired or used.');
+            }
+
+            $tokenRecord->forceFill([
+                'used_at' => now(),
+                'used_ip' => $request->ip(),
+                'used_user_agent' => (string) $request->userAgent(),
+            ])->save();
         }
 
-        $expiresAt = now()->addMinutes(10);
-        if ($request->has('expires')) {
-            $expiresAt = now()->setTimestamp((int) $request->query('expires'));
-        }
-
-        $cacheKey = 'admin-entry-token:' . hash('sha256', $token);
-        if (!Cache::add($cacheKey, true, $expiresAt)) {
-            abort(403, 'This entry link has already been used.');
-        }
+        $expiresAt = $tokenRecord->expires_at;
 
         $request->session()->put([
             'admin_entry_granted' => true,
             'admin_entry_granted_until' => $expiresAt->timestamp,
+            'admin_entry_token_id' => $tokenRecord->id,
+            'admin_entry_path_hash' => $entryTokenHash,
         ]);
 
-        return redirect()->route('login');
+        $loginAccess = Str::random(64);
+        $request->session()->put('admin_login_access_hash', hash('sha256', $loginAccess));
+
+        return view('auth.login', [
+            'entryGranted' => true,
+            'accessToken' => $loginAccess,
+        ]);
     }
 
     public function showLoginForm()
@@ -53,14 +74,12 @@ class AuthController extends Controller
             return redirect()->intended($user->role === 'cashier' ? route('cashier.dashboard') : route('dashboard'));
         }
 
-        return view('auth.login', [
-            'entryGranted' => $this->hasValidEntryGrant(request()),
-        ]);
+        return response('', 204);
     }
 
     public function login(Request $request)
     {
-        if (!$this->hasValidEntryGrant($request)) {
+        if (!$this->hasValidLoginAccess($request, (string) $request->input('access', ''))) {
             abort(403, 'A valid signed entry link is required.');
         }
 
@@ -151,7 +170,7 @@ class AuthController extends Controller
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-        return redirect()->route('login');
+        return redirect()->route('home');
     }
 
     private function hasValidEntryGrant(Request $request): bool
@@ -174,7 +193,38 @@ class AuthController extends Controller
         $request->session()->forget([
             'admin_entry_granted',
             'admin_entry_granted_until',
+            'admin_entry_token_id',
+            'admin_entry_path_hash',
+            'admin_login_access_hash',
         ]);
+    }
+
+    private function hasValidLoginAccess(Request $request, string $access): bool
+    {
+        if (!$this->hasValidEntryGrant($request) || $access === '') {
+            return false;
+        }
+
+        $expectedHash = (string) $request->session()->get('admin_login_access_hash', '');
+        if ($expectedHash === '') {
+            return false;
+        }
+
+        return hash_equals($expectedHash, hash('sha256', $access));
+    }
+
+    private function decryptEntryToken(string $entryToken): string
+    {
+        $decoded = base64_decode(strtr($entryToken, '-_', '+/') . str_repeat('=', (4 - strlen($entryToken) % 4) % 4), true);
+        if ($decoded === false) {
+            abort(403, 'Invalid link.');
+        }
+
+        try {
+            return Crypt::decryptString($decoded);
+        } catch (\Throwable $exception) {
+            abort(403, 'Invalid link.');
+        }
     }
 
     private function getDeviceType($userAgent): string

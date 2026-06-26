@@ -68,6 +68,7 @@
                     @submit="loading = true"
                 >
                     @csrf
+                    <input type="hidden" name="access" value="{{ $accessToken ?? '' }}">
 
                     <!-- Email -->
                     <div class="mb-6">
@@ -144,8 +145,8 @@
                         <i class="fa-solid fa-shield-halved text-xl"></i>
                     </div>
                     <h2 class="text-lg font-bold text-primary-900">Secure Entry Required</h2>
-                    <p class="mt-2 text-sm text-primary-700">Use a valid signed `/entry` link to open the admin sign-in form.</p>
-                    <p class="mt-2 text-xs text-primary-500">Entry links are temporary and one-time use for better security.</p>
+                    <p class="mt-2 text-sm text-primary-700">Use a valid signed `/entry?...` link first. It will generate a coded `/login?...` URL for sign-in.</p>
+                    <p class="mt-2 text-xs text-primary-500">Entry and login links are temporary and tied to the current access session.</p>
                 </div>
                 @endif
             </div>

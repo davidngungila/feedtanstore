@@ -4,7 +4,6 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 
 // Auth Routes
-Route::get('/entry', [AuthController::class, 'showEntry'])->name('admin.entry');
 Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
@@ -659,3 +658,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/thank-you', [\App\Http\Controllers\VFDController::class, 'thankYou'])->name('thank-you');
     });
 });
+
+Route::get('/{entryToken}', [AuthController::class, 'showEntry'])
+    ->where('entryToken', '[A-Za-z0-9\-_]{80,}')
+    ->name('admin.entry');
