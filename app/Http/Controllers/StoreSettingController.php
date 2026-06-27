@@ -20,7 +20,7 @@ class StoreSettingController extends Controller
     public function update(Request $request)
     {
         $settings = StoreSetting::firstOrCreate();
-        
+        \Log::info('StoreSettingController update - Request received:', $request->all());
         $request->validate([
             'store_name' => 'sometimes|required|string|max:255',
             'store_email' => 'nullable|email|max:255',
@@ -94,6 +94,8 @@ class StoreSettingController extends Controller
             $data[$field] = $request->has($field) ? true : false;
         }
         
+        \Log::info('StoreSettingController update - Data after checkbox processing:', $data);
+
         // Handle logo upload
         if ($request->hasFile('store_logo')) {
             // Delete old logo if exists
@@ -105,6 +107,9 @@ class StoreSettingController extends Controller
         }
 
         $settings->update($data);
+        
+        $settings2 = StoreSetting::first();
+        \Log::info('StoreSettingController update - Settings after saving:', $settings2->toArray());
 
         return back()->with('success', 'Settings updated successfully!');
     }
