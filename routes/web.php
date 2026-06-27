@@ -612,6 +612,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/receipt', [\App\Http\Controllers\StoreSettingController::class, 'receipt'])->name('receipt');
         Route::get('/barcode', [\App\Http\Controllers\StoreSettingController::class, 'barcode'])->name('barcode');
         Route::get('/communication', [\App\Http\Controllers\StoreSettingController::class, 'communication'])->name('communication');
+        Route::get('/vfd', [\App\Http\Controllers\StoreSettingController::class, 'vfd'])->name('vfd');
         Route::get('/backup', [\App\Http\Controllers\StoreSettingController::class, 'backup'])->name('backup');
         Route::get('/database', [\App\Http\Controllers\StoreSettingController::class, 'database'])->name('database');
         Route::get('/logs', [\App\Http\Controllers\StoreSettingController::class, 'logs'])->name('logs');

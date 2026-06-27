@@ -48,6 +48,13 @@ class StoreSetting extends Model
         'sms_api_secret',
         'sms_from_number',
         'messaging_sender_id',
+        // VFD Settings
+        'vfd_enabled',
+        'vfd_port',
+        'vfd_baud',
+        'vfd_data_bits',
+        'vfd_stop_bits',
+        'vfd_parity',
     ];
     
     protected $casts = [
@@ -61,6 +68,7 @@ class StoreSetting extends Model
         'kiosk_prevent_tab_switch' => 'boolean',
         'kiosk_lock_keyboard_shortcuts' => 'boolean',
         'kiosk_auto_focus_cashier' => 'boolean',
-        'barcode_show_text' => 'boolean'
+        'barcode_show_text' => 'boolean',
+        'vfd_enabled' => 'boolean'
     ];
 }

@@ -63,6 +63,13 @@ class StoreSettingController extends Controller
             'sms_api_secret' => 'nullable|string|max:255',
             'sms_from_number' => 'nullable|string|max:255',
             'messaging_sender_id' => 'nullable|string|max:255',
+            // VFD fields
+            'vfd_enabled' => 'boolean',
+            'vfd_port' => 'nullable|string|max:255',
+            'vfd_baud' => 'nullable|integer|min:300|max:115200',
+            'vfd_data_bits' => 'nullable|integer|in:5,6,7,8',
+            'vfd_stop_bits' => 'nullable|integer|in:1,2',
+            'vfd_parity' => 'nullable|string|in:none,odd,even',
         ]);
 
         $data = $request->all();
@@ -79,7 +86,8 @@ class StoreSettingController extends Controller
             'kiosk_prevent_tab_switch',
             'kiosk_lock_keyboard_shortcuts',
             'kiosk_auto_focus_cashier',
-            'barcode_show_text'
+            'barcode_show_text',
+            'vfd_enabled'
         ];
         
         foreach ($checkboxFields as $field) {
@@ -199,5 +207,11 @@ class StoreSettingController extends Controller
         } catch (\Exception $e) {
             return back()->with('error', 'Error clearing logs: ' . $e->getMessage());
         }
+    }
+
+    public function vfd()
+    {
+        $settings = StoreSetting::firstOrCreate();
+        return view('system.vfd', compact('settings'));
     }
 }

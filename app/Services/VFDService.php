@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Models\StoreSetting;
+
 class VFDService
 {
     private $port;
@@ -10,15 +12,18 @@ class VFDService
     private $stopBits;
     private $parity;
     private $isWindows;
+    private $enabled;
 
     public function __construct()
     {
-        // VFD Configuration - customize these values!
-        $this->port = env('VFD_PORT', 'COM3'); // Windows: COM3, Linux: /dev/ttyUSB0
-        $this->baudRate = env('VFD_BAUD', 9600);
-        $this->dataBits = env('VFD_DATA_BITS', 8);
-        $this->stopBits = env('VFD_STOP_BITS', 1);
-        $this->parity = env('VFD_PARITY', 'none');
+        $settings = StoreSetting::firstOrCreate();
+        
+        $this->enabled = $settings->vfd_enabled ?? false;
+        $this->port = $settings->vfd_port ?? env('VFD_PORT', 'COM3');
+        $this->baudRate = $settings->vfd_baud ?? env('VFD_BAUD', 9600);
+        $this->dataBits = $settings->vfd_data_bits ?? env('VFD_DATA_BITS', 8);
+        $this->stopBits = $settings->vfd_stop_bits ?? env('VFD_STOP_BITS', 1);
+        $this->parity = $settings->vfd_parity ?? env('VFD_PARITY', 'none');
         $this->isWindows = strtoupper(substr(PHP_OS, 0, 3)) === 'WIN';
     }
 
@@ -88,6 +93,12 @@ class VFDService
     {
         // Log the message for debugging purposes
         \Log::info('VFD Output:', ['message' => $message]);
+
+        // Check if VFD is enabled
+        if (!$this->enabled) {
+            \Log::info('VFD is disabled, skipping message');
+            return;
+        }
 
         try {
             if ($this->isWindows) {
