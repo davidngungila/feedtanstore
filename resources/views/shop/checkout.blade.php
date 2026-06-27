@@ -181,6 +181,12 @@ header.site-header{
 .option-card .ic{width:40px;height:40px;border-radius:10px;background:var(--parchment-dim);display:flex;align-items:center;justify-content:center;color:var(--green-700);flex-shrink:0;}
 .option-card b{display:block;font-size:14.5px;}
 .option-card span{font-size:12.5px;color:var(--ink-soft);}
+.option-grid-two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;}
+.option-grid-three{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;}
+.option-grid-two .option-card,
+.option-grid-three .option-card{margin-bottom:0;height:100%;}
+.checkout-bottom-grid{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(320px,0.85fr);gap:24px;align-items:start;}
+.checkout-bottom-grid > .card{margin-bottom:0;}
 
 .form-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;}
 @media(max-width:600px){.form-grid{grid-template-columns:1fr;}}
@@ -235,6 +241,15 @@ footer{background:var(--green-900);color:#BFD6C8;padding:40px 0 0;margin-top:40p
   .logo-mark{width:32px;height:32px;font-size:16px;}
   .wrap{padding:0 16px;}
   .section{padding:38px 0;}
+}
+@media(max-width:900px){
+  .checkout-bottom-grid{grid-template-columns:1fr;}
+}
+@media(max-width:760px){
+  .option-grid-three{grid-template-columns:1fr;}
+}
+@media(max-width:640px){
+  .option-grid-two{grid-template-columns:1fr;}
 }
 .page-loader{
   position:fixed;inset:0;z-index:9999;background:rgba(247,244,237,0.94);backdrop-filter:blur(8px);
@@ -353,7 +368,7 @@ footer{background:var(--green-900);color:#BFD6C8;padding:40px 0 0;margin-top:40p
         <!-- Delivery Options -->
         <div class="card" id="stepDelivery">
           <h2 class="text-lg font-bold mb-4">Delivery Option</h2>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="option-grid-two">
             <label class="option-card selected" id="opt-delivery">
               <input type="radio" name="need_delivery" value="yes" checked onchange="toggleDeliveryOptions()">
               <div class="ic">
@@ -438,40 +453,53 @@ footer{background:var(--green-900);color:#BFD6C8;padding:40px 0 0;margin-top:40p
           <button type="button" class="btn btn-dark" id="btnNextAddress">Next</button>
         </div>
 
-        <!-- Payment Method -->
-        <div class="card" id="stepPayment">
-          <h2 class="text-lg font-bold mb-4">Payment Method</h2>
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <label class="option-card selected" id="pay-cash">
-              <input type="radio" name="payment_method" value="cash" checked onchange="selectPaymentMethod('cash')">
-              <div class="ic">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="1.5"/><circle cx="18.5" cy="18.5" r="1.5"/></svg>
-              </div>
-              <div>
-                <b>Cash</b>
-                <span>Pay on delivery/pickup</span>
-              </div>
-            </label>
-            <label class="option-card" id="pay-online">
-              <input type="radio" name="payment_method" value="online" onchange="selectPaymentMethod('online')">
-              <div class="ic">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
-              </div>
-              <div>
-                <b>Online Payment</b>
-                <span>Pay via mobile money</span>
-              </div>
-            </label>
-            <label class="option-card" id="pay-bank">
-              <input type="radio" name="payment_method" value="bank" onchange="selectPaymentMethod('bank')">
-              <div class="ic">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7v10l10 5 10-5V7L12 2z"/><path d="M12 22V12"/></svg>
-              </div>
-              <div>
-                <b>Bank Transfer</b>
-                <span>Pay via bank deposit</span>
-              </div>
-            </label>
+        <div class="checkout-bottom-grid">
+          <!-- Payment Method -->
+          <div class="card" id="stepPayment">
+            <h2 class="text-lg font-bold mb-4">Payment Method</h2>
+            <div class="option-grid-three">
+              <label class="option-card selected" id="pay-cash">
+                <input type="radio" name="payment_method" value="cash" checked onchange="selectPaymentMethod('cash')">
+                <div class="ic">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="1.5"/><circle cx="18.5" cy="18.5" r="1.5"/></svg>
+                </div>
+                <div>
+                  <b>Cash</b>
+                  <span>Pay on delivery/pickup</span>
+                </div>
+              </label>
+              <label class="option-card" id="pay-online">
+                <input type="radio" name="payment_method" value="online" onchange="selectPaymentMethod('online')">
+                <div class="ic">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
+                </div>
+                <div>
+                  <b>Online Payment</b>
+                  <span>Pay via mobile money</span>
+                </div>
+              </label>
+              <label class="option-card" id="pay-bank">
+                <input type="radio" name="payment_method" value="bank" onchange="selectPaymentMethod('bank')">
+                <div class="ic">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7v10l10 5 10-5V7L12 2z"/><path d="M12 22V12"/></svg>
+                </div>
+                <div>
+                  <b>Bank Transfer</b>
+                  <span>Pay via bank deposit</span>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <!-- Order Summary -->
+          <div class="card" id="stepSummary">
+            <h2 class="text-lg font-bold mb-4">Order Summary</h2>
+            <div id="checkoutItems" class="space-y-3 mb-4"></div>
+            <div class="border-t border-gray-100 pt-4 space-y-2">
+              <div class="sum-row"><span>Subtotal</span><span id="subtotal">TZS 0</span></div>
+              <div class="sum-row"><span>Delivery Fee</span><span id="deliveryFeeDisplay">Assigned by admin</span></div>
+              <div class="sum-row total"><span>Current Total</span><span id="checkoutTotal">TZS 0</span></div>
+            </div>
           </div>
         </div>
         <div class="card" style="padding:16px;display:none;justify-content:space-between;" id="stepPaymentActions">
@@ -479,19 +507,8 @@ footer{background:var(--green-900);color:#BFD6C8;padding:40px 0 0;margin-top:40p
           <button type="button" class="btn btn-dark" id="btnNextPayment">Next</button>
         </div>
 
-        <!-- Order Summary -->
-        <div class="card" id="stepSummary">
-          <h2 class="text-lg font-bold mb-4">Order Summary</h2>
-          <div id="checkoutItems" class="space-y-3 mb-4"></div>
-          <div class="border-t border-gray-100 pt-4 space-y-2">
-            <div class="sum-row"><span>Subtotal</span><span id="subtotal">TZS 0</span></div>
-            <div class="sum-row"><span>Delivery Fee</span><span id="deliveryFeeDisplay">Assigned by admin</span></div>
-            <div class="sum-row total"><span>Current Total</span><span id="checkoutTotal">TZS 0</span></div>
-          </div>
-        </div>
-
         <!-- Place Order -->
-        <button type="submit" id="placeOrderBtn" class="btn btn-primary btn-block">
+        <button type="submit" id="placeOrderBtn" class="btn btn-primary">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>
           Place Order
         </button>
