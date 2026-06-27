@@ -219,10 +219,93 @@ class StoreSettingController extends Controller
     {
         try {
             $vfdService = new \App\Services\VFDService();
-            $vfdService->displayWelcome();
-            return response()->json(['success' => true, 'message' => 'Test message sent to VFD']);
+            
+            // Use reflection to call private method for testing (or better, make it public for test)
+            // Wait, let's modify our approach - we'll call displayWelcome which now returns logs
+            // But actually, let's update our service to have the test return results
+            
+            // Wait, let's create a test method specifically in the service
+            // Since I don't want to modify the service too much, let's directly call the logic
+            
+            $settings = \App\Models\StoreSetting::firstOrCreate();
+            
+            $logs = [];
+            $logs[] = "Testing VFD...";
+            $logs[] = "Enabled: " . ($settings->vfd_enabled ? "Yes" : "No");
+            $logs[] = "Port: " . ($settings->vfd_port ?? 'COM3');
+            $logs[] = "Baud: " . ($settings->vfd_baud ?? 9600);
+            
+            $result = $vfdService->displayWelcome(); // Wait, no, our service methods don't return anything. Let's modify this to get logs properly.
+            
+            // Wait, actually, let's update our test method to manually test using the service logic:
+            $port = $settings->vfd_port ?? env('VFD_PORT', 'COM3');
+            $baud = $settings->vfd_baud ?? env('VFD_BAUD', 9600);
+            $enabled = $settings->vfd_enabled ?? false;
+            $isWindows = strtoupper(substr(PHP_OS, 0, 3)) === 'WIN';
+            
+            $logs[] = "OS: " . ($isWindows ? "Windows" : "Linux");
+            
+            if (!$enabled) {
+                $logs[] = "ERROR: VFD is NOT enabled in settings!";
+                return response()->json([
+                    'success' => false, 
+                    'message' => 'VFD is disabled', 
+                    'logs' => $logs
+                ]);
+            }
+            
+            $logs[] = "Trying to open port: " . $port;
+            
+            // Let's directly test the port
+            $handle = @fopen($port, 'w');
+            if (!$handle) {
+                $error = error_get_last();
+                $logs[] = "FAILED: Could not open port!";
+                $logs[] = "Error: " . ($error['message'] ?? 'Unknown error');
+                return response()->json([
+                    'success' => false, 
+                    'message' => 'Could not open port: ' . ($error['message'] ?? 'Unknown error'), 
+                    'logs' => $logs
+                ]);
+            }
+            
+            $logs[] = "Port opened successfully!";
+            
+            // Now send test messages with different protocols
+            $testMessage = "WELCOME\r\nFEEDTAN";
+            $logs[] = "Sending test message: " . $testMessage;
+            
+            $initCodes = [
+                "\x1B\x40", // ESC @
+                "\x0C",     // Form feed
+                ""
+            ];
+            
+            foreach ($initCodes as $i => $code) {
+                $fullMsg = $code . $testMessage . "\r\n";
+                $bytes = fwrite($handle, $fullMsg);
+                $logs[] = "Attempt " . ($i+1) . ": Wrote " . $bytes . " bytes";
+                fflush($handle);
+                usleep(200000); // 200ms delay
+            }
+            
+            fclose($handle);
+            
+            $logs[] = "Test complete!";
+            
+            return response()->json([
+                'success' => true, 
+                'message' => 'Test sent! Check your VFD display.', 
+                'logs' => $logs
+            ]);
+            
         } catch (\Exception $e) {
-            return response()->json(['success' => false, 'message' => $e->getMessage()]);
+            $logs[] = "EXCEPTION: " . $e->getMessage();
+            return response()->json([
+                'success' => false, 
+                'message' => $e->getMessage(), 
+                'logs' => $logs
+            ]);
         }
     }
 }

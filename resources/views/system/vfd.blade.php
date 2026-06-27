@@ -1,12 +1,12 @@
 @extends('layouts.app')
 
-@section('page-title', 'VFD Customer Display Settings')
+@section('page-title', 'Customer Display (VFD) Settings')
 
 @section('content')
 <div class="animate-[fadeIn_0.4s_ease]">
     <div class="card rounded-2xl p-6">
         <div class="flex items-center justify-between mb-6">
-            <h2 class="text-xl font-bold text-primary-900">VFD Customer Display Settings</h2>
+            <h2 class="text-xl font-bold text-primary-900">Customer Display (VFD) Settings</h2>
         </div>
 
         <form action="{{ route('system.update') }}" method="POST">
@@ -82,12 +82,26 @@
             </div>
         </form>
     </div>
+
+    <!-- Test Logs Section -->
+    <div class="card rounded-2xl p-6 mt-4" id="vfdTestLogs" style="display: none;">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold text-gray-700">Test Logs</h3>
+            <button id="closeLogsBtn" class="text-gray-500 hover:text-gray-700">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div id="vfdLogContent" class="bg-gray-900 text-gray-100 p-4 rounded-lg font-mono text-sm overflow-x-auto max-h-80 overflow-y-auto">
+        </div>
+    </div>
 </div>
 
 <script>
 document.getElementById('testVfdBtn').addEventListener('click', async function() {
     const btn = this;
     const originalText = btn.innerHTML;
+    const logsSection = document.getElementById('vfdTestLogs');
+    const logContent = document.getElementById('vfdLogContent');
     
     btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Testing...';
     btn.disabled = true;
@@ -103,6 +117,14 @@ document.getElementById('testVfdBtn').addEventListener('click', async function()
         
         const result = await response.json();
         
+        // Show logs
+        logsSection.style.display = 'block';
+        if (result.logs) {
+            logContent.innerHTML = result.logs.map(log => `<div>${log}</div>`).join('');
+        } else {
+            logContent.innerHTML = '<div>No logs available</div>';
+        }
+        
         if (result.success) {
             btn.innerHTML = '<i class="fas fa-check mr-2"></i>Test Sent!';
             btn.classList.remove('bg-green-600', 'hover:bg-green-700');
@@ -111,31 +133,36 @@ document.getElementById('testVfdBtn').addEventListener('click', async function()
                 btn.innerHTML = originalText;
                 btn.classList.remove('bg-green-500');
                 btn.classList.add('bg-green-600', 'hover:bg-green-700');
-            }, 2000);
+            }, 3000);
         } else {
             btn.innerHTML = '<i class="fas fa-times mr-2"></i>Failed';
             btn.classList.remove('bg-green-600', 'hover:bg-green-700');
             btn.classList.add('bg-red-500');
-            alert('Error: ' + (result.message || 'Unknown error'));
             setTimeout(() => {
                 btn.innerHTML = originalText;
                 btn.classList.remove('bg-red-500');
                 btn.classList.add('bg-green-600', 'hover:bg-green-700');
-            }, 2000);
+            }, 3000);
         }
     } catch (error) {
+        logsSection.style.display = 'block';
+        logContent.innerHTML = `<div>Error: ${error.message}</div>`;
+        
         btn.innerHTML = '<i class="fas fa-times mr-2"></i>Failed';
         btn.classList.remove('bg-green-600', 'hover:bg-green-700');
         btn.classList.add('bg-red-500');
-        alert('Error: ' + error.message);
         setTimeout(() => {
             btn.innerHTML = originalText;
             btn.classList.remove('bg-red-500');
             btn.classList.add('bg-green-600', 'hover:bg-green-700');
-        }, 2000);
+        }, 3000);
     }
     
     btn.disabled = false;
+});
+
+document.getElementById('closeLogsBtn').addEventListener('click', function() {
+    document.getElementById('vfdTestLogs').style.display = 'none';
 });
 </script>
 @endsection
