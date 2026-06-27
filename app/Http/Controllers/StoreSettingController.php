@@ -214,4 +214,15 @@ class StoreSettingController extends Controller
         $settings = StoreSetting::firstOrCreate();
         return view('system.vfd', compact('settings'));
     }
+
+    public function testVfd()
+    {
+        try {
+            $vfdService = new \App\Services\VFDService();
+            $vfdService->displayWelcome();
+            return response()->json(['success' => true, 'message' => 'Test message sent to VFD']);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()]);
+        }
+    }
 }

@@ -72,7 +72,10 @@
                 </div>
             </div>
 
-            <div class="flex justify-end">
+            <div class="flex items-center justify-between">
+                <button type="button" id="testVfdBtn" class="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors">
+                    <i class="fas fa-play mr-2"></i>Test VFD Display
+                </button>
                 <button type="submit" class="px-6 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg font-medium transition-colors">
                     Save Settings
                 </button>
@@ -80,4 +83,59 @@
         </form>
     </div>
 </div>
+
+<script>
+document.getElementById('testVfdBtn').addEventListener('click', async function() {
+    const btn = this;
+    const originalText = btn.innerHTML;
+    
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Testing...';
+    btn.disabled = true;
+    
+    try {
+        const response = await fetch('{{ route('system.vfd.test') }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+            }
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            btn.innerHTML = '<i class="fas fa-check mr-2"></i>Test Sent!';
+            btn.classList.remove('bg-green-600', 'hover:bg-green-700');
+            btn.classList.add('bg-green-500');
+            setTimeout(() => {
+                btn.innerHTML = originalText;
+                btn.classList.remove('bg-green-500');
+                btn.classList.add('bg-green-600', 'hover:bg-green-700');
+            }, 2000);
+        } else {
+            btn.innerHTML = '<i class="fas fa-times mr-2"></i>Failed';
+            btn.classList.remove('bg-green-600', 'hover:bg-green-700');
+            btn.classList.add('bg-red-500');
+            alert('Error: ' + (result.message || 'Unknown error'));
+            setTimeout(() => {
+                btn.innerHTML = originalText;
+                btn.classList.remove('bg-red-500');
+                btn.classList.add('bg-green-600', 'hover:bg-green-700');
+            }, 2000);
+        }
+    } catch (error) {
+        btn.innerHTML = '<i class="fas fa-times mr-2"></i>Failed';
+        btn.classList.remove('bg-green-600', 'hover:bg-green-700');
+        btn.classList.add('bg-red-500');
+        alert('Error: ' + error.message);
+        setTimeout(() => {
+            btn.innerHTML = originalText;
+            btn.classList.remove('bg-red-500');
+            btn.classList.add('bg-green-600', 'hover:bg-green-700');
+        }, 2000);
+    }
+    
+    btn.disabled = false;
+});
+</script>
 @endsection

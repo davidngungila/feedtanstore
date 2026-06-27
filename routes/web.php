@@ -617,6 +617,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/database', [\App\Http\Controllers\StoreSettingController::class, 'database'])->name('database');
         Route::get('/logs', [\App\Http\Controllers\StoreSettingController::class, 'logs'])->name('logs');
         Route::post('/update', [\App\Http\Controllers\StoreSettingController::class, 'update'])->name('update');
+        Route::post('/vfd/test', [\App\Http\Controllers\StoreSettingController::class, 'testVfd'])->name('vfd.test');
         Route::post('/backup/create', [\App\Http\Controllers\StoreSettingController::class, 'createBackup'])->name('backup.create');
         Route::get('/backup/download/{filename}', [\App\Http\Controllers\StoreSettingController::class, 'downloadBackup'])->name('backup.download');
         Route::post('/logs/clear', [\App\Http\Controllers\StoreSettingController::class, 'clearLogs'])->name('logs.clear');
