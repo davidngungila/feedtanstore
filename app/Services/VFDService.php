@@ -17,7 +17,7 @@ class VFDService
     public function __construct()
     {
         $settings = StoreSetting::firstOrCreate();
-        
+
         $this->enabled = $settings->vfd_enabled ?? false;
         $this->port = $settings->vfd_port ?? env('VFD_PORT', 'COM3');
         $this->baudRate = $settings->vfd_baud ?? env('VFD_BAUD', 9600);
@@ -27,170 +27,122 @@ class VFDService
         $this->isWindows = strtoupper(substr(PHP_OS, 0, 3)) === 'WIN';
     }
 
-    /**
-     * Display welcome message on VFD
-     */
     public function displayWelcome()
     {
-        // Try common VFD protocols
-        $this->sendVFDMessage("WELCOME\r\nFEEDTAN STORE");
+        $this->sendVFDMessage("WELCOME", "FEEDTAN STORE");
     }
 
-    /**
-     * Display product on VFD
-     */
     public function displayProduct($productName, $quantity, $price, $total)
     {
-        $message = substr($productName, 0, 20) . "\r\n";
-        $message .= "Qty: " . $quantity . "  TZS " . number_format($total, 0);
-        $this->sendVFDMessage($message);
+        $line1 = substr($productName, 0, 20);
+        $line2 = "Qty: $quantity  TZS " . number_format($total, 0);
+        $this->sendVFDMessage($line1, $line2);
     }
 
-    /**
-     * Display payment info on VFD
-     */
     public function displayPayment($total, $paid, $change, $paymentMethod)
     {
-        $message = "TOTAL: TZS " . number_format($total, 0) . "\r\n";
-        $message .= strtoupper($paymentMethod) . ": " . number_format($paid, 0) . "\r\n";
-        $message .= "CHANGE: TZS " . number_format($change, 0);
-        $this->sendVFDMessage($message);
+        $line1 = "TOTAL: TZS " . number_format($total, 0);
+        $line2 = strtoupper($paymentMethod) . ": " . number_format($paid, 0);
+        $this->sendVFDMessage($line1, $line2);
+        usleep(200000);
+        $this->sendVFDMessage("CHANGE: TZS " . number_format($change, 0), "");
     }
 
-    /**
-     * Display thank you message on VFD
-     */
     public function displayThankYou()
     {
-        $this->sendVFDMessage("THANK YOU\r\nCOME AGAIN");
+        $this->sendVFDMessage("THANK YOU", "COME AGAIN");
     }
 
-    /**
-     * Send message to VFD with better protocol handling
-     */
-    private function sendVFDMessage($message)
+    private function sendVFDMessage($line1, $line2 = '')
     {
         $logs = [];
-        $logs[] = "VFD Configuration:";
-        $logs[] = "  Enabled: " . ($this->enabled ? "Yes" : "No");
-        $logs[] = "  Port: " . $this->port;
-        $logs[] = "  Baud Rate: " . $this->baudRate;
-        $logs[] = "  OS: " . ($this->isWindows ? "Windows" : "Linux");
-        $logs[] = "Message: " . $message;
+        $logs[] = "VFD Config: Enabled=". ($this->enabled ? 'Yes' : 'No') . ", Port={$this->port}, Baud={$this->baudRate}";
 
-        // Log the message for debugging
-        \Log::info('VFD Attempt', ['message' => $message, 'config' => [
-            'enabled' => $this->enabled,
-            'port' => $this->port,
-            'baud' => $this->baudRate,
-            'os' => $this->isWindows ? 'Windows' : 'Linux'
-        ]]);
-
-        // Check if VFD is enabled
         if (!$this->enabled) {
-            $logs[] = "VFD is disabled, skipping message";
-            \Log::info('VFD Disabled');
-            return ['success' => false, 'logs' => $logs, 'error' => 'VFD is disabled'];
+            \Log::info('VFD is disabled');
+            $logs[] = 'VFD is disabled';
+            return ['success' => false, 'logs' => $logs];
         }
 
         try {
-            $success = false;
-            
+            // Configure port
             if ($this->isWindows) {
-                $logs[] = "Configuring Windows port...";
                 $this->configureWindowsPort($logs);
-                
-                $logs[] = "Opening port: " . $this->port;
-                $handle = @fopen($this->port, 'w');
-                
-                if ($handle) {
-                    $logs[] = "Port opened successfully";
-                    
-                    // Try multiple VFD initialization sequences
-                    $initCodes = [
-                        "\x1B\x40", // ESC @ (initialize)
-                        "\x0C",     // Form feed (clear screen)
-                        ""          // No initialization
-                    ];
-                    
-                    foreach ($initCodes as $i => $initCode) {
-                        $fullMessage = $initCode . $message . "\r\n";
-                        $bytesWritten = fwrite($handle, $fullMessage);
-                        $logs[] = "Attempt " . ($i + 1) . ": Wrote " . $bytesWritten . " bytes";
-                        fflush($handle);
-                        usleep(100000); // 100ms delay
-                    }
-                    
-                    fclose($handle);
-                    $success = true;
-                } else {
-                    $error = error_get_last();
-                    $logs[] = "Failed to open VFD port: " . ($error['message'] ?? 'Unknown error');
-                    \Log::error('VFD Port Open Failed', ['port' => $this->port, 'error' => $error]);
-                }
             } else {
-                $logs[] = "Configuring Linux port...";
                 $this->configureLinuxPort($logs);
-                
-                $logs[] = "Opening port: " . $this->port;
-                $handle = @fopen($this->port, 'w');
-                
-                if ($handle) {
-                    $logs[] = "Port opened successfully";
-                    
-                    // Try multiple VFD initialization sequences
-                    $initCodes = [
-                        "\x1B\x40", // ESC @ (initialize)
-                        "\x0C",     // Form feed (clear screen)
-                        ""          // No initialization
-                    ];
-                    
-                    foreach ($initCodes as $i => $initCode) {
-                        $fullMessage = $initCode . $message . "\r\n";
-                        $bytesWritten = fwrite($handle, $fullMessage);
-                        $logs[] = "Attempt " . ($i + 1) . ": Wrote " . $bytesWritten . " bytes";
-                        fflush($handle);
-                        usleep(100000); // 100ms delay
-                    }
-                    
-                    fclose($handle);
-                    $success = true;
-                } else {
-                    $error = error_get_last();
-                    $logs[] = "Failed to open VFD port: " . ($error['message'] ?? 'Unknown error');
-                    \Log::error('VFD Port Open Failed', ['port' => $this->port, 'error' => $error]);
-                }
             }
 
-            \Log::info('VFD Result', ['success' => $success, 'logs' => $logs]);
-            return ['success' => $success, 'logs' => $logs];
-            
+            // Open port
+            $handle = @fopen($this->port, 'w');
+            if (!$handle) {
+                $error = error_get_last();
+                $logs[] = "ERROR: Cannot open port {$this->port}: " . ($error['message'] ?? 'Unknown');
+                \Log::error('VFD port open failed', $error);
+                return ['success' => false, 'logs' => $logs];
+            }
+            $logs[] = "SUCCESS: Port opened";
+
+            // Common VFD initialization and display sequences
+            $protocols = [
+                // Protocol 1: ESC @ to init, CR+LF line endings
+                'ESC @ Init' => function ($l1, $l2) {
+                    return "\x1B@" . $l1 . "\r\n" . $l2 . "\r\n";
+                },
+                // Protocol 2: Form Feed to clear screen
+                'Form Feed Init' => function ($l1, $l2) {
+                    return "\x0C" . $l1 . "\r\n" . $l2 . "\r\n";
+                },
+                // Protocol 3: ESC @, then move cursor to home
+                'ESC @ + Home' => function ($l1, $l2) {
+                    return "\x1B@" . "\x1B[H" . $l1 . "\r\n" . $l2 . "\r\n";
+                },
+                // Protocol 4: ESC [2J to clear display
+                'Clear Display (ESC [2J)' => function ($l1, $l2) {
+                    return "\x1B[2J" . $l1 . "\r\n" . $l2 . "\r\n";
+                },
+                // Protocol 5: Common POS Display (like Bixolon)
+                'POS Protocol' => function ($l1, $l2) {
+                    return "\x1B@" . "\x1B" . "|" . "lA" . $l1 . "\r\n" . $l2 . "\r\n" . "\x0C";
+                },
+                // Protocol 6: Epson-like
+                'Epson-like' => function ($l1, $l2) {
+                    return "\x1B@" . "\x1B" . "c" . "\x03" . $l1 . "\r\n" . $l2 . "\r\n" . "\x0C";
+                },
+                // Protocol 7: Simple, no init codes
+                'Simple No Init' => function ($l1, $l2) {
+                    return $l1 . "\r\n" . $l2 . "\r\n";
+                },
+            ];
+
+            foreach ($protocols as $name => $generator) {
+                $message = $generator($line1, $line2);
+                $bytesWritten = fwrite($handle, $message);
+                fflush($handle);
+                $logs[] = "Protocol $name: wrote $bytesWritten bytes";
+                usleep(250000); // 0.25 seconds between attempts
+            }
+
+            fclose($handle);
+            \Log::info('VFD sent successfully', $logs);
+
+            return ['success' => true, 'logs' => $logs];
         } catch (\Exception $e) {
-            $logs[] = "Exception: " . $e->getMessage();
-            \Log::error('VFD Exception', ['message' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
-            return ['success' => false, 'logs' => $logs, 'error' => $e->getMessage()];
+            $logs[] = 'Exception: ' . $e->getMessage();
+            \Log::error('VFD exception', ['message' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
+            return ['success' => false, 'logs' => $logs];
         }
     }
 
-    /**
-     * Configure serial port on Windows
-     */
     private function configureWindowsPort(&$logs = [])
     {
         $parityCode = ['none' => 'n', 'odd' => 'o', 'even' => 'e'][$this->parity] ?? 'n';
-        $modeCommand = "mode {$this->port}: BAUD={$this->baudRate} PARITY={$parityCode} DATA={$this->dataBits} STOP={$this->stopBits}";
-        $logs[] = "Running Windows config: " . $modeCommand;
-        
-        exec($modeCommand, $output, $resultCode);
-        $logs[] = "Mode exit code: " . $resultCode;
-        $logs[] = "Mode output: " . implode("\n", $output);
-        
-        \Log::info('Windows VFD Port Config', ['command' => $modeCommand, 'output' => $output, 'code' => $resultCode]);
+        $command = "mode {$this->port}: BAUD={$this->baudRate} PARITY={$parityCode} DATA={$this->dataBits} STOP={$this->stopBits}";
+        $logs[] = "Running: $command";
+        exec($command, $output, $exitCode);
+        $logs[] = "Exit code: $exitCode, Output: " . implode(' ', $output);
+        \Log::info('Windows VFD port config', ['command' => $command, 'output' => $output, 'code' => $exitCode]);
     }
 
-    /**
-     * Configure serial port on Linux
-     */
     private function configureLinuxPort(&$logs = [])
     {
         $parityArg = [
@@ -198,17 +150,13 @@ class VFDService
             'odd' => 'parenb parodd',
             'even' => 'parenb -parodd'
         ][$this->parity] ?? '-parenb';
-        
-        $sttyCommand = "stty -F {$this->port} {$this->baudRate} cs{$this->dataBits} " . 
-                       ($this->stopBits == 2 ? 'cstopb' : '-cstopb') . " " . 
-                       $parityArg . " -echo -echoe -echok -echoctl -echoke -icrnl -onlcr -opost -isig -icanon -iexten";
-        
-        $logs[] = "Running Linux config: " . $sttyCommand;
-        
-        exec($sttyCommand, $output, $resultCode);
-        $logs[] = "Stty exit code: " . $resultCode;
-        $logs[] = "Stty output: " . implode("\n", $output);
-        
-        \Log::info('Linux VFD Port Config', ['command' => $sttyCommand, 'output' => $output, 'code' => $resultCode]);
+
+        $command = "stty -F {$this->port} {$this->baudRate} cs{$this->dataBits} " .
+            ($this->stopBits == 2 ? 'cstopb' : '-cstopb') . " $parityArg -echo -echoe -echok -echoctl -echoke -icrnl -onlcr -opost -isig -icanon -iexten";
+
+        $logs[] = "Running: $command";
+        exec($command, $output, $exitCode);
+        $logs[] = "Exit code: $exitCode, Output: " . implode(' ', $output);
+        \Log::info('Linux VFD port config', ['command' => $command, 'output' => $output, 'code' => $exitCode]);
     }
 }

@@ -310,18 +310,43 @@ class StoreSettingController extends Controller
             $testMsgLine2 = "FEEDTAN";
             $logs[] = "Test data: \"$testMsgLine1\", \"$testMsgLine2\"";
             
-            // Try different initialization sequences
-            $initCodes = [
-                'ESC @' => "\x1B\x40",
-                'Form Feed' => "\x0C",
-                'No Init' => ""
+            // Try different initialization sequences (Multi-protocol test)
+            $protocols = [
+                // Protocol 1: ESC @ to init, CR+LF line endings
+                'ESC @ Init' => function ($l1, $l2) {
+                    return "\x1B@" . $l1 . "\r\n" . $l2 . "\r\n";
+                },
+                // Protocol 2: Form Feed to clear screen
+                'Form Feed Init' => function ($l1, $l2) {
+                    return "\x0C" . $l1 . "\r\n" . $l2 . "\r\n";
+                },
+                // Protocol 3: ESC @, then move cursor to home
+                'ESC @ + Home' => function ($l1, $l2) {
+                    return "\x1B@" . "\x1B[H" . $l1 . "\r\n" . $l2 . "\r\n";
+                },
+                // Protocol 4: ESC [2J to clear display
+                'Clear Display (ESC [2J)' => function ($l1, $l2) {
+                    return "\x1B[2J" . $l1 . "\r\n" . $l2 . "\r\n";
+                },
+                // Protocol 5: Common POS Display (like Bixolon)
+                'POS Protocol' => function ($l1, $l2) {
+                    return "\x1B@" . "\x1B" . "|" . "lA" . $l1 . "\r\n" . $l2 . "\r\n" . "\x0C";
+                },
+                // Protocol 6: Epson-like
+                'Epson-like' => function ($l1, $l2) {
+                    return "\x1B@" . "\x1B" . "c" . "\x03" . $l1 . "\r\n" . $l2 . "\r\n" . "\x0C";
+                },
+                // Protocol 7: Simple, no init codes
+                'Simple No Init' => function ($l1, $l2) {
+                    return $l1 . "\r\n" . $l2 . "\r\n";
+                },
             ];
-            foreach ($initCodes as $name => $code) {
-                $fullMsg = $code . $testMsgLine1 . "\r\n" . $testMsgLine2 . "\r\n";
+            foreach ($protocols as $name => $generator) {
+                $fullMsg = $generator($testMsgLine1, $testMsgLine2);
                 $bytesWritten = fwrite($handle, $fullMsg);
-                $logs[] = "  - $name: wrote $bytesWritten bytes sent";
+                $logs[] = "Protocol $name: wrote $bytesWritten bytes";
                 fflush($handle);
-                usleep(200000); // 200ms between attempts
+                usleep(250000); // 250ms between attempts
             }
             
             fclose($handle);
