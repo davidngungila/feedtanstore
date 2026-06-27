@@ -103,6 +103,14 @@ document.getElementById('testVfdBtn').addEventListener('click', async function()
     const logsSection = document.getElementById('vfdTestLogs');
     const logContent = document.getElementById('vfdLogContent');
     
+    // Collect form values
+    const vfdEnabled = document.getElementById('vfd_enabled').checked;
+    const vfdPort = document.querySelector('input[name="vfd_port"]').value;
+    const vfdBaud = parseInt(document.querySelector('select[name="vfd_baud"]').value);
+    const vfdDataBits = parseInt(document.querySelector('select[name="vfd_data_bits"]').value);
+    const vfdStopBits = parseInt(document.querySelector('select[name="vfd_stop_bits"]').value);
+    const vfdParity = document.querySelector('select[name="vfd_parity"]').value;
+    
     btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Testing...';
     btn.disabled = true;
     
@@ -112,7 +120,15 @@ document.getElementById('testVfdBtn').addEventListener('click', async function()
             headers: {
                 'Content-Type': 'application/json',
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-            }
+            },
+            body: JSON.stringify({
+                vfd_enabled: vfdEnabled,
+                vfd_port: vfdPort,
+                vfd_baud: vfdBaud,
+                vfd_data_bits: vfdDataBits,
+                vfd_stop_bits: vfdStopBits,
+                vfd_parity: vfdParity
+            })
         });
         
         const result = await response.json();
@@ -120,7 +136,13 @@ document.getElementById('testVfdBtn').addEventListener('click', async function()
         // Show logs
         logsSection.style.display = 'block';
         if (result.logs) {
-            logContent.innerHTML = result.logs.map(log => `<div>${log}</div>`).join('');
+            logContent.innerHTML = result.logs.map(log => 
+                log.includes('ERROR') || log.includes('FAILED') 
+                    ? `<div class="text-red-400">${log}</div>` 
+                    : log.includes('SUCCESS') || log.includes('Wrote')
+                        ? `<div class="text-green-400">${log}</div>`
+                        : `<div>${log}</div>`
+            ).join('');
         } else {
             logContent.innerHTML = '<div>No logs available</div>';
         }
@@ -146,7 +168,7 @@ document.getElementById('testVfdBtn').addEventListener('click', async function()
         }
     } catch (error) {
         logsSection.style.display = 'block';
-        logContent.innerHTML = `<div>Error: ${error.message}</div>`;
+        logContent.innerHTML = `<div class="text-red-400">Error: ${error.message}</div>`;
         
         btn.innerHTML = '<i class="fas fa-times mr-2"></i>Failed';
         btn.classList.remove('bg-green-600', 'hover:bg-green-700');

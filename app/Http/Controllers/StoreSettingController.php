@@ -220,95 +220,127 @@ class StoreSettingController extends Controller
         return view('system.vfd', compact('settings'));
     }
 
-    public function testVfd()
+    public function testVfd(Request $request)
     {
         try {
-            $vfdService = new \App\Services\VFDService();
-            
-            // Use reflection to call private method for testing (or better, make it public for test)
-            // Wait, let's modify our approach - we'll call displayWelcome which now returns logs
-            // But actually, let's update our service to have the test return results
-            
-            // Wait, let's create a test method specifically in the service
-            // Since I don't want to modify the service too much, let's directly call the logic
-            
-            $settings = \App\Models\StoreSetting::firstOrCreate();
-            
             $logs = [];
-            $logs[] = "Testing VFD...";
-            $logs[] = "Enabled: " . ($settings->vfd_enabled ? "Yes" : "No");
-            $logs[] = "Port: " . ($settings->vfd_port ?? 'COM3');
-            $logs[] = "Baud: " . ($settings->vfd_baud ?? 9600);
+            $logs[] = "========== VFD Test Started ==========";
             
-            $result = $vfdService->displayWelcome(); // Wait, no, our service methods don't return anything. Let's modify this to get logs properly.
+            // Get values from POST request (form values, not DB!)
+            $vfdEnabled = $request->input('vfd_enabled', false);
+            $vfdPort = $request->input('vfd_port', 'COM3');
+            $vfdBaud = $request->input('vfd_baud', 9600);
+            $vfdDataBits = $request->input('vfd_data_bits', 8);
+            $vfdStopBits = $request->input('vfd_stop_bits', 1);
+            $vfdParity = $request->input('vfd_parity', 'none');
             
-            // Wait, actually, let's update our test method to manually test using the service logic:
-            $port = $settings->vfd_port ?? env('VFD_PORT', 'COM3');
-            $baud = $settings->vfd_baud ?? env('VFD_BAUD', 9600);
-            $enabled = $settings->vfd_enabled ?? false;
             $isWindows = strtoupper(substr(PHP_OS, 0, 3)) === 'WIN';
+            $logs[] = "1. Operating System: " . ($isWindows ? "Windows" : "Linux");
+            $logs[] = "2. VFD Enabled: " . ($vfdEnabled ? "Yes" : "No");
+            $logs[] = "3. Port: " . $vfdPort;
+            $logs[] = "4. Baud Rate: " . $vfdBaud;
+            $logs[] = "5. Data Bits: " . $vfdDataBits;
+            $logs[] = "6. Stop Bits: " . $vfdStopBits;
+            $logs[] = "7. Parity: " . $vfdParity;
             
-            $logs[] = "OS: " . ($isWindows ? "Windows" : "Linux");
-            
-            if (!$enabled) {
-                $logs[] = "ERROR: VFD is NOT enabled in settings!";
+            if (!$vfdEnabled) {
+                $logs[] = "ERROR: VFD is not enabled - enable it in the form!";
                 return response()->json([
-                    'success' => false, 
-                    'message' => 'VFD is disabled', 
+                    'success' => false,
+                    'message' => 'VFD not enabled',
                     'logs' => $logs
                 ]);
             }
             
-            $logs[] = "Trying to open port: " . $port;
+            // Configure port first
+            $logs[] = "";
+            $logs[] = "========== Step 1: Configuring port... ==========";
+            try {
+                if ($isWindows) {
+                    $parityCode = ['none' => 'n', 'odd' => 'o', 'even' => 'e'][$vfdParity] ?? 'n';
+                    $modeCommand = "mode " . $vfdPort . ": BAUD=" . $vfdBaud . " PARITY=" . $parityCode . " DATA=" . $vfdDataBits . " STOP=" . $vfdStopBits;
+                    $logs[] = "Running command: " . $modeCommand;
+                    exec($modeCommand, $cmdOutput, $exitCode);
+                    $logs[] = "Command exit code: " . $exitCode;
+                    if ($exitCode === 0) {
+                        $logs[] = "SUCCESS: Port configuration command completed";
+                    } else {
+                        $logs[] = "WARNING: Port configuration might have failed (exit code: $exitCode)";
+                    }
+                } else {
+                    $parityArg = [
+                        'none' => '-parenb',
+                        'odd' => 'parenb parodd',
+                        'even' => 'parenb -parodd'
+                    ][$vfdParity] ?? '-parenb';
+                    $sttyCmd = "stty -F " . $vfdPort . " " . $vfdBaud . " cs" . $vfdDataBits . " " . ($vfdStopBits == 2 ? 'cstopb' : '-cstopb') . " " . $parityArg . " -echo -echoe -echok -echoctl -echoke -icrnl -onlcr -opost -isig -icanon -iexten";
+                    $logs[] = "Running command: " . $sttyCmd;
+                    exec($sttyCmd, $cmdOutput, $exitCode);
+                    $logs[] = "Command exit code: " . $exitCode;
+                    if ($exitCode === 0) {
+                        $logs[] = "SUCCESS: Port configuration completed";
+                    } else {
+                        $logs[] = "WARNING: Port configuration might have failed (exit code: $exitCode)";
+                    }
+                }
+            } catch (\Exception $configErr) {
+                $logs[] = "WARNING: Port config exception: " . $configErr->getMessage();
+            }
             
-            // Let's directly test the port
-            $handle = @fopen($port, 'w');
+            // Now open the port
+            $logs[] = "";
+            $logs[] = "========== Step 2: Opening port... ==========";
+            $handle = @fopen($vfdPort, 'w');
             if (!$handle) {
                 $error = error_get_last();
-                $logs[] = "FAILED: Could not open port!";
-                $logs[] = "Error: " . ($error['message'] ?? 'Unknown error');
+                $logs[] = "FAILED: Could not open port! This means either: 1) the port doesn't exist, 2) is already in use, 3) you don't have permission!";
+                $logs[] = "Error Details: " . ($error['message'] ?? 'Unknown error');
                 return response()->json([
-                    'success' => false, 
-                    'message' => 'Could not open port: ' . ($error['message'] ?? 'Unknown error'), 
+                    'success' => false,
+                    'message' => 'Could not open port',
                     'logs' => $logs
                 ]);
             }
+            $logs[] = "SUCCESS: Port opened successfully!";
             
-            $logs[] = "Port opened successfully!";
+            // Send test data
+            $logs[] = "";
+            $logs[] = "========== Step 3: Sending test messages ==========";
+            $testMsgLine1 = "WELCOME";
+            $testMsgLine2 = "FEEDTAN";
+            $logs[] = "Test data: \"$testMsgLine1\", \"$testMsgLine2\"";
             
-            // Now send test messages with different protocols
-            $testMessage = "WELCOME\r\nFEEDTAN";
-            $logs[] = "Sending test message: " . $testMessage;
-            
+            // Try different initialization sequences
             $initCodes = [
-                "\x1B\x40", // ESC @
-                "\x0C",     // Form feed
-                ""
+                'ESC @' => "\x1B\x40",
+                'Form Feed' => "\x0C",
+                'No Init' => ""
             ];
-            
-            foreach ($initCodes as $i => $code) {
-                $fullMsg = $code . $testMessage . "\r\n";
-                $bytes = fwrite($handle, $fullMsg);
-                $logs[] = "Attempt " . ($i+1) . ": Wrote " . $bytes . " bytes";
+            foreach ($initCodes as $name => $code) {
+                $fullMsg = $code . $testMsgLine1 . "\r\n" . $testMsgLine2 . "\r\n";
+                $bytesWritten = fwrite($handle, $fullMsg);
+                $logs[] = "  - $name: wrote $bytesWritten bytes sent";
                 fflush($handle);
-                usleep(200000); // 200ms delay
+                usleep(200000); // 200ms between attempts
             }
             
             fclose($handle);
-            
-            $logs[] = "Test complete!";
-            
+            $logs[] = "";
+            $logs[] = "========== Step 4: Port closed ==========";
+            $logs[] = "SUCCESS: All test messages sent! Check your VFD display now!";
+            $logs[] = "========== Test Complete ==========";
             return response()->json([
-                'success' => true, 
-                'message' => 'Test sent! Check your VFD display.', 
+                'success' => true,
+                'message' => 'Test completed',
                 'logs' => $logs
             ]);
             
         } catch (\Exception $e) {
             $logs[] = "EXCEPTION: " . $e->getMessage();
+            $logs[] = $e->getTraceAsString();
             return response()->json([
-                'success' => false, 
-                'message' => $e->getMessage(), 
+                'success' => false,
+                'message' => $e->getMessage(),
                 'logs' => $logs
             ]);
         }
