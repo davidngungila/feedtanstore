@@ -13,6 +13,18 @@ class VFDService
     private $parity;
     private $isWindows;
     private $enabled;
+    private $protocol;
+
+    // Define all available protocols
+    private $availableProtocols = [
+        'esc_at' => 'ESC @ Init',
+        'form_feed' => 'Form Feed',
+        'esc_at_home' => 'ESC @ + Home',
+        'clear_display' => 'Clear Display (ESC [2J)',
+        'pos' => 'POS Protocol',
+        'epson' => 'Epson-like',
+        'simple' => 'Simple No Init',
+    ];
 
     public function __construct()
     {
@@ -24,7 +36,13 @@ class VFDService
         $this->dataBits = $settings->vfd_data_bits ?? env('VFD_DATA_BITS', 8);
         $this->stopBits = $settings->vfd_stop_bits ?? env('VFD_STOP_BITS', 1);
         $this->parity = $settings->vfd_parity ?? env('VFD_PARITY', 'none');
+        $this->protocol = $settings->vfd_protocol ?? 'esc_at';
         $this->isWindows = strtoupper(substr(PHP_OS, 0, 3)) === 'WIN';
+    }
+
+    public function getAvailableProtocols()
+    {
+        return $this->availableProtocols;
     }
 
     public function displayWelcome()
@@ -53,10 +71,25 @@ class VFDService
         $this->sendVFDMessage("THANK YOU", "COME AGAIN");
     }
 
+    private function getProtocolGenerator($protocolName)
+    {
+        $protocols = [
+            'esc_at' => function ($l1, $l2) { return "\x1B@" . $l1 . "\r\n" . $l2 . "\r\n"; },
+            'form_feed' => function ($l1, $l2) { return "\x0C" . $l1 . "\r\n" . $l2 . "\r\n"; },
+            'esc_at_home' => function ($l1, $l2) { return "\x1B@" . "\x1B[H" . $l1 . "\r\n" . $l2 . "\r\n"; },
+            'clear_display' => function ($l1, $l2) { return "\x1B[2J" . $l1 . "\r\n" . $l2 . "\r\n"; },
+            'pos' => function ($l1, $l2) { return "\x1B@" . "\x1B" . "|" . "lA" . $l1 . "\r\n" . $l2 . "\r\n" . "\x0C"; },
+            'epson' => function ($l1, $l2) { return "\x1B@" . "\x1B" . "c" . "\x03" . $l1 . "\r\n" . $l2 . "\r\n" . "\x0C"; },
+            'simple' => function ($l1, $l2) { return $l1 . "\r\n" . $l2 . "\r\n"; },
+        ];
+
+        return $protocols[$protocolName] ?? $protocols['esc_at'];
+    }
+
     private function sendVFDMessage($line1, $line2 = '')
     {
         $logs = [];
-        $logs[] = "VFD Config: Enabled=". ($this->enabled ? 'Yes' : 'No') . ", Port={$this->port}, Baud={$this->baudRate}";
+        $logs[] = "VFD Config: Enabled=". ($this->enabled ? 'Yes' : 'No') . ", Port={$this->port}, Baud={$this->baudRate}, Protocol={$this->protocol}";
 
         if (!$this->enabled) {
             \Log::info('VFD is disabled');
@@ -82,45 +115,11 @@ class VFDService
             }
             $logs[] = "SUCCESS: Port opened";
 
-            // Common VFD initialization and display sequences
-            $protocols = [
-                // Protocol 1: ESC @ to init, CR+LF line endings
-                'ESC @ Init' => function ($l1, $l2) {
-                    return "\x1B@" . $l1 . "\r\n" . $l2 . "\r\n";
-                },
-                // Protocol 2: Form Feed to clear screen
-                'Form Feed Init' => function ($l1, $l2) {
-                    return "\x0C" . $l1 . "\r\n" . $l2 . "\r\n";
-                },
-                // Protocol 3: ESC @, then move cursor to home
-                'ESC @ + Home' => function ($l1, $l2) {
-                    return "\x1B@" . "\x1B[H" . $l1 . "\r\n" . $l2 . "\r\n";
-                },
-                // Protocol 4: ESC [2J to clear display
-                'Clear Display (ESC [2J)' => function ($l1, $l2) {
-                    return "\x1B[2J" . $l1 . "\r\n" . $l2 . "\r\n";
-                },
-                // Protocol 5: Common POS Display (like Bixolon)
-                'POS Protocol' => function ($l1, $l2) {
-                    return "\x1B@" . "\x1B" . "|" . "lA" . $l1 . "\r\n" . $l2 . "\r\n" . "\x0C";
-                },
-                // Protocol 6: Epson-like
-                'Epson-like' => function ($l1, $l2) {
-                    return "\x1B@" . "\x1B" . "c" . "\x03" . $l1 . "\r\n" . $l2 . "\r\n" . "\x0C";
-                },
-                // Protocol 7: Simple, no init codes
-                'Simple No Init' => function ($l1, $l2) {
-                    return $l1 . "\r\n" . $l2 . "\r\n";
-                },
-            ];
-
-            foreach ($protocols as $name => $generator) {
-                $message = $generator($line1, $line2);
-                $bytesWritten = fwrite($handle, $message);
-                fflush($handle);
-                $logs[] = "Protocol $name: wrote $bytesWritten bytes";
-                usleep(250000); // 0.25 seconds between attempts
-            }
+            $generator = $this->getProtocolGenerator($this->protocol);
+            $message = $generator($line1, $line2);
+            $bytesWritten = fwrite($handle, $message);
+            fflush($handle);
+            $logs[] = "Protocol " . $this->availableProtocols[$this->protocol] . ": wrote $bytesWritten bytes";
 
             fclose($handle);
             \Log::info('VFD sent successfully', $logs);
@@ -129,6 +128,54 @@ class VFDService
         } catch (\Exception $e) {
             $logs[] = 'Exception: ' . $e->getMessage();
             \Log::error('VFD exception', ['message' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
+            return ['success' => false, 'logs' => $logs];
+        }
+    }
+
+    // Also add a method that can test ALL protocols (for the test button!)
+    public function testAllProtocols($line1, $line2)
+    {
+        $logs = [];
+        $logs[] = "=== Testing All VFD Protocols ===";
+        $logs[] = "VFD Config: Port={$this->port}, Baud={$this->baudRate}";
+
+        try {
+            if ($this->isWindows) {
+                $this->configureWindowsPort($logs);
+            } else {
+                $this->configureLinuxPort($logs);
+            }
+
+            $handle = @fopen($this->port, 'w');
+            if (!$handle) {
+                $error = error_get_last();
+                $logs[] = "ERROR: Cannot open port {$this->port}: " . ($error['message'] ?? 'Unknown');
+                return ['success' => false, 'logs' => $logs];
+            }
+
+            $protocols = [
+                'esc_at' => 'ESC @ Init',
+                'form_feed' => 'Form Feed',
+                'esc_at_home' => 'ESC @ + Home',
+                'clear_display' => 'Clear Display (ESC [2J)',
+                'pos' => 'POS Protocol',
+                'epson' => 'Epson-like',
+                'simple' => 'Simple No Init',
+            ];
+
+            foreach ($protocols as $key => $name) {
+                $generator = $this->getProtocolGenerator($key);
+                $message = $generator($line1, $line2);
+                $bytes = fwrite($handle, $message);
+                fflush($handle);
+                $logs[] = "Protocol $name: wrote $bytes bytes";
+                usleep(300000);
+            }
+
+            fclose($handle);
+            return ['success' => true, 'logs' => $logs];
+        } catch (\Exception $e) {
+            $logs[] = 'Exception: ' . $e->getMessage();
             return ['success' => false, 'logs' => $logs];
         }
     }

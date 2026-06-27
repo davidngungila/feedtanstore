@@ -55,6 +55,7 @@ class StoreSetting extends Model
         'vfd_data_bits',
         'vfd_stop_bits',
         'vfd_parity',
+        'vfd_protocol',
     ];
     
     protected $casts = [

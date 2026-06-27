@@ -63,11 +63,24 @@
 
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Parity</label>
-                    <select name="vfd_parity" 
+                    <select name="vfd_parity"
                             class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
                         <option value="none" {{ old('vfd_parity', $settings->vfd_parity ?? 'none') == 'none' ? 'selected' : '' }}>None</option>
                         <option value="odd" {{ old('vfd_parity', $settings->vfd_parity ?? 'none') == 'odd' ? 'selected' : '' }}>Odd</option>
                         <option value="even" {{ old('vfd_parity', $settings->vfd_parity ?? 'none') == 'even' ? 'selected' : '' }}>Even</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Protocol</label>
+                    <select name="vfd_protocol"
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                        <option value="esc_at" {{ old('vfd_protocol', $settings->vfd_protocol ?? 'esc_at') == 'esc_at' ? 'selected' : '' }}>ESC @ Init</option>
+                        <option value="form_feed" {{ old('vfd_protocol', $settings->vfd_protocol ?? 'esc_at') == 'form_feed' ? 'selected' : '' }}>Form Feed</option>
+                        <option value="esc_at_home" {{ old('vfd_protocol', $settings->vfd_protocol ?? 'esc_at') == 'esc_at_home' ? 'selected' : '' }}>ESC @ + Home</option>
+                        <option value="clear_display" {{ old('vfd_protocol', $settings->vfd_protocol ?? 'esc_at') == 'clear_display' ? 'selected' : '' }}>Clear Display (ESC [2J)</option>
+                        <option value="pos" {{ old('vfd_protocol', $settings->vfd_protocol ?? 'esc_at') == 'pos' ? 'selected' : '' }}>POS Protocol</option>
+                        <option value="epson" {{ old('vfd_protocol', $settings->vfd_protocol ?? 'esc_at') == 'epson' ? 'selected' : '' }}>Epson-like</option>
+                        <option value="simple" {{ old('vfd_protocol', $settings->vfd_protocol ?? 'esc_at') == 'simple' ? 'selected' : '' }}>Simple No Init</option>
                     </select>
                 </div>
             </div>
