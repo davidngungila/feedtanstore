@@ -475,20 +475,22 @@ footer{background:var(--green-900);color:#BFD6C8;padding:40px 0 0;margin-top:40p
 
           <!-- Other Location Section -->
           <div class="loc-box" id="otherLocationBox" style="display:none;">
-            <div class="field" style="margin-bottom:12px;">
-              <label for="manualAddress">Delivery Address *</label>
-              <input type="text" id="manualAddress" placeholder="Enter your delivery address (e.g., Kiboriloni, Moshi)">
-              <div class="field-error" id="err-manualAddress"></div>
-            </div>
-            
-            <!-- Address Search -->
-            <div class="field" style="margin-bottom:12px;">
-              <label for="addressSearch">Search Location</label>
-              <div style="display:flex;gap:8px;">
-                <input type="text" id="addressSearch" placeholder="Search for a place (e.g., Kariakoo market)" style="flex:1;" onkeypress="if(event.key === 'Enter') searchAddress()">
-                <button type="button" class="btn btn-outline btn-sm" onclick="searchAddress()">Search</button>
+            <div class="form-grid">
+              <div class="field">
+                <label for="manualAddress">Delivery Address *</label>
+                <input type="text" id="manualAddress" placeholder="Enter your delivery address (e.g., Kiboriloni, Moshi)">
+                <div class="field-error" id="err-manualAddress"></div>
               </div>
-              <div class="field-error" id="err-addressSearch"></div>
+              
+              <!-- Address Search -->
+              <div class="field">
+                <label for="addressSearch">Search Location</label>
+                <div style="display:flex;gap:8px;">
+                  <input type="text" id="addressSearch" placeholder="Search for a place (e.g., Kariakoo market)" style="flex:1;" onkeypress="if(event.key === 'Enter') searchAddress()">
+                  <button type="button" class="btn btn-outline btn-sm" onclick="searchAddress()">Search</button>
+                </div>
+                <div class="field-error" id="err-addressSearch"></div>
+              </div>
             </div>
             
             <!-- Search Results -->
