@@ -364,7 +364,7 @@ class RiderDashboardController extends Controller
                 } else {
                     $messagingService = new \App\Services\MessagingService();
                     $customerPhone = $this->formatPhoneNumber($order->customer_phone);
-                    $storeUrl = route('shop.index');
+                    $storeUrl = url('/');
                     $message = "Thank you for your order #{$order->short_customer_reference}! Your delivery has been completed successfully. We hope you enjoy your purchase. Order again at {$storeUrl} for more great products!";
                     
                     $result = $messagingService->sendSms($customerPhone, $message);
