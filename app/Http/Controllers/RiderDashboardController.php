@@ -353,20 +353,42 @@ class RiderDashboardController extends Controller
         ]);
 
         // Send thank you message when order is delivered
+        $messageSent = false;
         if ($request->status === 'delivered') {
             try {
-                $messagingService = new \App\Services\MessagingService();
-                $customerPhone = $this->formatPhoneNumber($order->customer_phone);
-                $message = "Thank you for your order #{$order->short_customer_reference}! Your delivery has been completed successfully. We hope you enjoy your purchase. Order again at our store for more great products!";
+                // Check if SMS communication profile is configured
+                $smsProfile = \App\Models\CommunicationProfile::where('type', 'sms')->where('is_active', true)->first();
                 
-                $messagingService->sendSms($customerPhone, $message);
+                if (!$smsProfile || empty($smsProfile->sms_api_key)) {
+                    Log::warning('SMS communication profile not configured or missing API key for order #' . $order->short_customer_reference);
+                } else {
+                    $messagingService = new \App\Services\MessagingService();
+                    $customerPhone = $this->formatPhoneNumber($order->customer_phone);
+                    $message = "Thank you for your order #{$order->short_customer_reference}! Your delivery has been completed successfully. We hope you enjoy your purchase. Order again at our store for more great products!";
+                    
+                    $result = $messagingService->sendSms($customerPhone, $message);
+                    
+                    if ($result['success']) {
+                        $messageSent = true;
+                        Log::info('Thank you message sent successfully for order #' . $order->short_customer_reference . ' to ' . $customerPhone);
+                    } else {
+                        Log::warning('Thank you message failed for order #' . $order->short_customer_reference . ': ' . json_encode($result['response']));
+                    }
+                }
             } catch (\Exception $e) {
                 // Log error but don't fail the delivery update
-                Log::error('Failed to send thank you message: ' . $e->getMessage());
+                Log::error('Failed to send thank you message for order #' . $order->short_customer_reference . ': ' . $e->getMessage());
             }
         }
 
-        return back()->with('success', 'Order status updated successfully!');
+        $successMessage = 'Order status updated successfully!';
+        if ($messageSent) {
+            $successMessage .= ' Thank you message sent to customer.';
+        } else if ($request->status === 'delivered') {
+            $successMessage .= ' (SMS not configured - thank you message not sent)';
+        }
+
+        return back()->with('success', $successMessage);
     }
 
     private function formatPhoneNumber($phone)
