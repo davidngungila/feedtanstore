@@ -67,8 +67,6 @@
                         <tr>
                             <th class="px-4 py-3 text-left text-gray-700">Product</th>
                             <th class="px-4 py-3 text-left text-gray-700">Quantity</th>
-                            <th class="px-4 py-3 text-left text-gray-700">Price</th>
-                            <th class="px-4 py-3 text-left text-gray-700">Total</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y">
@@ -76,30 +74,18 @@
                         <tr>
                             <td class="px-4 py-3">{{ $item->product ? $item->product->name : 'Product' }}</td>
                             <td class="px-4 py-3">{{ $item->quantity }}</td>
-                            <td class="px-4 py-3">TZS {{ number_format($item->price, 2) }}</td>
-                            <td class="px-4 py-3 font-semibold">TZS {{ number_format($item->total, 2) }}</td>
                         </tr>
                         @endforeach
-                        <tr class="bg-gray-50">
-                            <td colspan="3" class="px-4 py-3 font-semibold text-right">Subtotal</td>
-                            <td class="px-4 py-3 font-semibold">TZS {{ number_format($order->subtotal, 2) }}</td>
-                        </tr>
-                        @if($order->discount > 0)
-                        <tr class="bg-gray-50">
-                            <td colspan="3" class="px-4 py-3 font-semibold text-right">Discount</td>
-                            <td class="px-4 py-3 font-semibold text-green-600">-TZS {{ number_format($order->discount, 2) }}</td>
-                        </tr>
-                        @endif
-                        <tr class="bg-gray-50">
-                            <td colspan="3" class="px-4 py-3 font-semibold text-right">Delivery Fee</td>
-                            <td class="px-4 py-3 font-semibold">TZS {{ number_format($order->delivery_fee, 2) }}</td>
-                        </tr>
-                        <tr class="bg-gray-100">
-                            <td colspan="3" class="px-4 py-3 font-bold text-lg text-right">Total</td>
-                            <td class="px-4 py-3 font-bold text-lg">TZS {{ number_format($order->total, 2) }}</td>
-                        </tr>
                     </tbody>
                 </table>
+            </div>
+        </div>
+
+        <!-- Delivery Fee -->
+        <div class="mb-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-3">Delivery Fee</h3>
+            <div class="p-4 bg-gray-50 rounded-lg">
+                <div class="text-2xl font-bold text-gray-900">TZS {{ number_format($order->delivery_fee, 2) }}</div>
             </div>
         </div>
 
