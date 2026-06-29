@@ -328,7 +328,7 @@ Route::middleware('auth')->group(function () {
     });
 
     // Rider Dashboard
-    Route::prefix('rider')->name('rider.')->group(function () {
+    Route::prefix('rider')->name('rider.')->middleware('auth')->group(function () {
         Route::get('/dashboard', [\App\Http\Controllers\RiderDashboardController::class, 'index'])->name('dashboard');
         Route::get('/orders/{order}', [\App\Http\Controllers\RiderDashboardController::class, 'showOrder'])->name('orders.show');
         Route::put('/orders/{order}/status', [\App\Http\Controllers\RiderDashboardController::class, 'updateOrderStatus'])->name('orders.update-status');
