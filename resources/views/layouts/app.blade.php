@@ -229,6 +229,7 @@
     loading: false,
     activeSection: {{ $activeSection ? "'$activeSection'" : 'null' }},
     isCashier: {{ (Auth::check() && Auth::user()->role === 'cashier') ? 'true' : 'false' }},
+    isRider: {{ (Auth::check() && Auth::user()->role === 'rider') ? 'true' : 'false' }},
     currentTime: '',
     currentUser: {
         name: '{{ Auth::check() ? Auth::user()->name : 'Admin User' }}',
@@ -281,7 +282,35 @@
   <!-- ============================================================
        SIDEBAR
        ============================================================ -->
-  <template x-if="!isCashier">
+  <!-- Rider Sidebar -->
+  <template x-if="isRider">
+    <aside :class="[sidebarOpen?'translate-x-0':'lg:translate-x-0 -translate-x-full','sidebar sidebar-bg fixed lg:relative h-screen z-50 flex flex-col transition-all duration-300',sidebarCollapsed&&window.innerWidth>=1024?'w-16':'w-[260px]']"
+           class="sidebar-bg">
+      <!-- Sidebar Header -->
+      <div class="flex items-center justify-between p-4 border-b border-white/20 flex-shrink-0">
+        <div class="flex items-center gap-3" x-show="!sidebarCollapsed || window.innerWidth<1024">
+          <img src="{{ asset('feedtanstorelogo.png') }}" alt="FEEDTAN STORE" class="w-full h-12 rounded-lg flex-shrink-0 object-contain" style="max-width: 180px; filter: brightness(0) invert(1);">
+        </div>
+        <div x-show="sidebarCollapsed && window.innerWidth>=1024" class="w-10 h-10 rounded-lg flex items-center justify-center mx-auto">
+          <img src="{{ asset('feedtanstorelogo.png') }}" alt="FEEDTAN STORE" class="w-full h-full rounded-lg object-contain" style="filter: brightness(0) invert(1);">
+        </div>
+        <button @click="sidebarCollapsed=!sidebarCollapsed" class="text-primary-300 hover:text-white transition-colors hidden lg:block">
+          <i :class="sidebarCollapsed?'fa-solid fa-chevron-right':'fa-solid fa-chevron-left'" class="text-xs"></i>
+        </button>
+      </div>
+
+      <!-- Rider Navigation -->
+      <nav class="flex-1 overflow-y-auto py-3 px-2 space-y-0.5">
+        <a href="{{ route('rider.dashboard') }}" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-150 group {{ request()->routeIs('rider.dashboard') ? 'bg-primary-600 text-white' : 'text-primary-200 hover:bg-white/10 hover:text-white' }}">
+          <i class="fa-solid fa-gauge-high w-4 text-center flex-shrink-0"></i>
+          <span x-show="!sidebarCollapsed" class="font-medium">Dashboard</span>
+        </a>
+      </nav>
+    </aside>
+  </template>
+
+  <!-- Regular Sidebar -->
+  <template x-if="!isCashier && !isRider">
     <aside :class="[sidebarOpen?'translate-x-0':'lg:translate-x-0 -translate-x-full','sidebar sidebar-bg fixed lg:relative h-screen z-50 flex flex-col transition-all duration-300',sidebarCollapsed&&window.innerWidth>=1024?'w-16':'w-[260px]']"
            class="sidebar-bg">
 
