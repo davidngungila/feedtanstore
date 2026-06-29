@@ -210,6 +210,11 @@ header.site-header{
 .mini-map .leaflet-control-container .leaflet-control{border-radius:10px;overflow:hidden;}
 .mini-map .leaflet-control-layers,
 .mini-map .leaflet-bar{box-shadow:0 8px 22px rgba(15,42,31,0.12);}
+.search-result-item{padding:10px 12px;cursor:pointer;border-bottom:1px solid var(--line);transition:background .15s;}
+.search-result-item:hover{background:var(--green-100);}
+.search-result-item:last-child{border-bottom:none;}
+.search-result-name{font-size:13px;font-weight:600;color:var(--ink);}
+.search-result-address{font-size:11px;color:var(--ink-soft);margin-top:2px;}
 
 .summary-card{background:var(--parchment);border-radius:var(--radius-m);padding:18px;}
 .summary-card h4{font-size:14px;margin-bottom:12px;}
@@ -475,6 +480,20 @@ footer{background:var(--green-900);color:#BFD6C8;padding:40px 0 0;margin-top:40p
               <input type="text" id="manualAddress" placeholder="Enter your delivery address (e.g., Kiboriloni, Moshi)">
               <div class="field-error" id="err-manualAddress"></div>
             </div>
+            
+            <!-- Address Search -->
+            <div class="field" style="margin-bottom:12px;">
+              <label for="addressSearch">Search Location</label>
+              <div style="display:flex;gap:8px;">
+                <input type="text" id="addressSearch" placeholder="Search for a place (e.g., Kariakoo market)" style="flex:1;" onkeypress="if(event.key === 'Enter') searchAddress()">
+                <button type="button" class="btn btn-outline btn-sm" onclick="searchAddress()">Search</button>
+              </div>
+              <div class="field-error" id="err-addressSearch"></div>
+            </div>
+            
+            <!-- Search Results -->
+            <div id="searchResults" style="display:none;margin-bottom:12px;max-height:200px;overflow-y:auto;border:1px solid var(--line);border-radius:8px;"></div>
+            
             <div class="loc-box-head">
               <div class="loc-status pending" id="mapLocStatus">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="12" cy="12" r="10"/><path d="M12 8h.01M11 12h2v4h-2z"/></svg>
@@ -750,6 +769,77 @@ function toggleLocationType() {
   
   // Clear errors
   setFieldError('deliveryAddress', '');
+  setFieldError('manualAddress', '');
+  setFieldError('mapLocation', '');
+}
+
+// Search address using Nominatim API
+async function searchAddress() {
+  const searchInput = document.getElementById('addressSearch');
+  const searchResults = document.getElementById('searchResults');
+  const query = searchInput.value.trim();
+  
+  if (!query) {
+    setFieldError('addressSearch', 'Please enter a location to search');
+    searchResults.style.display = 'none';
+    return;
+  }
+  
+  setFieldError('addressSearch', '');
+  searchResults.innerHTML = '<div style="padding:12px;text-align:center;color:var(--ink-soft);">Searching...</div>';
+  searchResults.style.display = 'block';
+  
+  try {
+    const response = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query + ', Tanzania')}&format=json&limit=5`);
+    const data = await response.json();
+    
+    if (data.length === 0) {
+      searchResults.innerHTML = '<div style="padding:12px;text-align:center;color:var(--ink-soft);">No results found. Try a different search term.</div>';
+      return;
+    }
+    
+    let html = '';
+    data.forEach((result, index) => {
+      html += `
+        <div class="search-result-item" onclick="selectSearchResult(${result.lat}, ${result.lon}, '${result.display_name.replace(/'/g, "\\'")}')">
+          <div class="search-result-name">${result.display_name.split(',')[0]}</div>
+          <div class="search-result-address">${result.display_name}</div>
+        </div>
+      `;
+    });
+    searchResults.innerHTML = html;
+  } catch (error) {
+    console.error('Search error:', error);
+    searchResults.innerHTML = '<div style="padding:12px;text-align:center;color:var(--red);">Search failed. Please try again.</div>';
+  }
+}
+
+// Select search result and update map
+function selectSearchResult(lat, lng, displayName) {
+  selectedLocation.lat = parseFloat(lat);
+  selectedLocation.lng = parseFloat(lng);
+  
+  // Update manual address with the selected location
+  document.getElementById('manualAddress').value = displayName.split(',')[0];
+  document.getElementById('addressSearch').value = '';
+  document.getElementById('searchResults').style.display = 'none';
+  
+  // Update map
+  if (checkoutMarkerOther) {
+    checkoutMarkerOther.setLatLng([selectedLocation.lat, selectedLocation.lng]);
+  } else {
+    checkoutMarkerOther = L.marker([selectedLocation.lat, selectedLocation.lng]).addTo(checkoutMapOther);
+  }
+  
+  checkoutMarkerOther.bindPopup(`Selected location<br>${displayName}`).openPopup();
+  checkoutMapOther.setView([selectedLocation.lat, selectedLocation.lng], 15);
+  
+  // Update coordinates display
+  document.getElementById('mapLocCoords').textContent = `${selectedLocation.lat.toFixed(6)}, ${selectedLocation.lng.toFixed(6)}`;
+  document.getElementById('mapLocStatus').querySelector('span').textContent = 'Location selected!';
+  document.getElementById('mapLocStatus').classList.remove('pending', 'error');
+  
+  // Clear errors
   setFieldError('manualAddress', '');
   setFieldError('mapLocation', '');
 }
