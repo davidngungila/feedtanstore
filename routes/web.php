@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\AuthController;
 
 // Auth Routes
@@ -30,18 +31,8 @@ Route::post('/api/shop/orders/{orderNumber}/initiate-payment', [\App\Http\Contro
 
 // Protected Routes (must be authenticated)
 Route::middleware('auth')->group(function () {
-    // Redirect riders to their dashboard if they try to access non-rider routes
-    Route::middleware(function ($request, $next) {
-        if (Auth::check() && Auth::user()->role === 'rider') {
-            // Allow rider routes
-            if ($request->routeIs('rider.*')) {
-                return $next($request);
-            }
-            // Redirect riders to rider dashboard
-            return redirect()->route('rider.dashboard');
-        }
-        return $next($request);
-    })->group(function () {
+    // Non-rider routes (redirect riders away)
+    Route::middleware(\App\Http\Middleware\RedirectIfRider::class)->group(function () {
     // Messaging Test
     Route::get('/messaging/test', [App\Http\Controllers\MessagingTestController::class, 'index'])->name('messaging.test');
     Route::post('/messaging/test/send', [App\Http\Controllers\MessagingTestController::class, 'sendTestMessage'])->name('messaging.test.send');
