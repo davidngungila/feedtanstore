@@ -301,13 +301,97 @@
 
       <!-- Rider Navigation -->
       <nav class="flex-1 overflow-y-auto py-3 px-2 space-y-0.5">
+        <!-- Dashboard -->
         <a href="{{ route('rider.dashboard') }}" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-150 group {{ request()->routeIs('rider.dashboard') ? 'bg-primary-600 text-white' : 'text-primary-200 hover:bg-white/10 hover:text-white' }}">
-          <i class="fa-solid fa-gauge-high w-4 text-center flex-shrink-0"></i>
+          <i class="fa-solid fa-house w-4 text-center flex-shrink-0"></i>
           <span x-show="!sidebarCollapsed" class="font-medium">Dashboard</span>
         </a>
-        <a href="{{ route('rider.orders') }}" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-150 group {{ request()->routeIs('rider.orders') ? 'bg-primary-600 text-white' : 'text-primary-200 hover:bg-white/10 hover:text-white' }}">
-          <i class="fas fa-box w-4 text-center flex-shrink-0"></i>
-          <span x-show="!sidebarCollapsed" class="font-medium">My Orders</span>
+
+        <!-- Orders Dropdown -->
+        <div x-data="{ open: false }">
+          <button @click="open = !open" class="w-full flex items-center justify-between gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-150 {{ request()->routeIs('rider.orders*') ? 'bg-white/10 text-white' : 'text-primary-200 hover:bg-white/10 hover:text-white' }}">
+            <div class="flex items-center gap-3">
+              <i class="fa-solid fa-box w-4 text-center flex-shrink-0"></i>
+              <span x-show="!sidebarCollapsed" class="font-medium">Orders</span>
+            </div>
+            <i x-show="!sidebarCollapsed" :class="open ? 'fa-solid fa-chevron-up' : 'fa-solid fa-chevron-down'" class="text-[10px] text-primary-400"></i>
+          </button>
+          <div x-show="open && !sidebarCollapsed" :class="open ? 'max-h-[2000px]' : 'max-h-0'" class="overflow-hidden transition-all duration-300 ml-3">
+            <a href="{{ route('rider.orders.today') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('rider.orders.today') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+              <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
+              Today's Deliveries
+            </a>
+            <a href="{{ route('rider.orders.assigned') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('rider.orders.assigned') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+              <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
+              Assigned Orders
+            </a>
+            <a href="{{ route('rider.orders.transit') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('rider.orders.transit') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+              <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
+              In Transit
+            </a>
+            <a href="{{ route('rider.orders.delivered') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('rider.orders.delivered') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+              <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
+              Delivered
+            </a>
+            <a href="{{ route('rider.orders.failed') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('rider.orders.failed') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+              <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
+              Failed Deliveries
+            </a>
+          </div>
+        </div>
+
+        <!-- Navigation Dropdown -->
+        <div x-data="{ open: false }">
+          <button @click="open = !open" class="w-full flex items-center justify-between gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-150 {{ request()->routeIs('rider.navigation*') ? 'bg-white/10 text-white' : 'text-primary-200 hover:bg-white/10 hover:text-white' }}">
+            <div class="flex items-center gap-3">
+              <i class="fa-solid fa-map w-4 text-center flex-shrink-0"></i>
+              <span x-show="!sidebarCollapsed" class="font-medium">Navigation</span>
+            </div>
+            <i x-show="!sidebarCollapsed" :class="open ? 'fa-solid fa-chevron-up' : 'fa-solid fa-chevron-down'" class="text-[10px] text-primary-400"></i>
+          </button>
+          <div x-show="open && !sidebarCollapsed" :class="open ? 'max-h-[2000px]' : 'max-h-0'" class="overflow-hidden transition-all duration-300 ml-3">
+            <a href="{{ route('rider.navigation.route-planner') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('rider.navigation.route-planner') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+              <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
+              Route Planner
+            </a>
+            <a href="{{ route('rider.navigation.live-location') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('rider.navigation.live-location') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+              <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
+              Live Location
+            </a>
+          </div>
+        </div>
+
+        <!-- Payments Dropdown -->
+        <div x-data="{ open: false }">
+          <button @click="open = !open" class="w-full flex items-center justify-between gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-150 {{ request()->routeIs('rider.payments*') ? 'bg-white/10 text-white' : 'text-primary-200 hover:bg-white/10 hover:text-white' }}">
+            <div class="flex items-center gap-3">
+              <i class="fa-solid fa-dollar-sign w-4 text-center flex-shrink-0"></i>
+              <span x-show="!sidebarCollapsed" class="font-medium">Payments</span>
+            </div>
+            <i x-show="!sidebarCollapsed" :class="open ? 'fa-solid fa-chevron-up' : 'fa-solid fa-chevron-down'" class="text-[10px] text-primary-400"></i>
+          </button>
+          <div x-show="open && !sidebarCollapsed" :class="open ? 'max-h-[2000px]' : 'max-h-0'" class="overflow-hidden transition-all duration-300 ml-3">
+            <a href="{{ route('rider.payments.cod') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('rider.payments.cod') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+              <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
+              Cash on Delivery
+            </a>
+            <a href="{{ route('rider.payments.history') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('rider.payments.history') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+              <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
+              Payment History
+            </a>
+          </div>
+        </div>
+
+        <!-- Customers -->
+        <a href="{{ route('rider.customers') }}" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-150 group {{ request()->routeIs('rider.customers') ? 'bg-primary-600 text-white' : 'text-primary-200 hover:bg-white/10 hover:text-white' }}">
+          <i class="fa-solid fa-users w-4 text-center flex-shrink-0"></i>
+          <span x-show="!sidebarCollapsed" class="font-medium">Customers</span>
+        </a>
+
+        <!-- Notifications -->
+        <a href="{{ route('rider.notifications') }}" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-150 group {{ request()->routeIs('rider.notifications') ? 'bg-primary-600 text-white' : 'text-primary-200 hover:bg-white/10 hover:text-white' }}">
+          <i class="fa-solid fa-bell w-4 text-center flex-shrink-0"></i>
+          <span x-show="!sidebarCollapsed" class="font-medium">Notifications</span>
         </a>
       </nav>
     </aside>

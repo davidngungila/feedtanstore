@@ -671,8 +671,19 @@ Route::middleware('auth')->group(function () {
 Route::middleware('auth')->prefix('rider')->name('rider.')->group(function () {
     Route::get('/dashboard', [\App\Http\Controllers\RiderDashboardController::class, 'index'])->name('dashboard');
     Route::get('/orders', [\App\Http\Controllers\RiderDashboardController::class, 'myOrders'])->name('orders');
+    Route::get('/orders/today', [\App\Http\Controllers\RiderDashboardController::class, 'todayOrders'])->name('orders.today');
+    Route::get('/orders/assigned', [\App\Http\Controllers\RiderDashboardController::class, 'assignedOrders'])->name('orders.assigned');
+    Route::get('/orders/transit', [\App\Http\Controllers\RiderDashboardController::class, 'transitOrders'])->name('orders.transit');
+    Route::get('/orders/delivered', [\App\Http\Controllers\RiderDashboardController::class, 'deliveredOrders'])->name('orders.delivered');
+    Route::get('/orders/failed', [\App\Http\Controllers\RiderDashboardController::class, 'failedOrders'])->name('orders.failed');
     Route::get('/orders/{order}', [\App\Http\Controllers\RiderDashboardController::class, 'showOrder'])->name('orders.show');
     Route::put('/orders/{order}/status', [\App\Http\Controllers\RiderDashboardController::class, 'updateOrderStatus'])->name('orders.update-status');
+    Route::get('/navigation/route-planner', [\App\Http\Controllers\RiderDashboardController::class, 'routePlanner'])->name('navigation.route-planner');
+    Route::get('/navigation/live-location', [\App\Http\Controllers\RiderDashboardController::class, 'liveLocation'])->name('navigation.live-location');
+    Route::get('/payments/cod', [\App\Http\Controllers\RiderDashboardController::class, 'codPayments'])->name('payments.cod');
+    Route::get('/payments/history', [\App\Http\Controllers\RiderDashboardController::class, 'paymentHistory'])->name('payments.history');
+    Route::get('/customers', [\App\Http\Controllers\RiderDashboardController::class, 'customers'])->name('customers');
+    Route::get('/notifications', [\App\Http\Controllers\RiderDashboardController::class, 'notifications'])->name('notifications');
 });
 
 Route::get('/{entryToken}', [AuthController::class, 'showEntry'])
