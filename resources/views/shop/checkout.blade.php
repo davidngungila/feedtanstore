@@ -425,7 +425,33 @@ footer{background:var(--green-900);color:#BFD6C8;padding:40px 0 0;margin-top:40p
         <div class="card" id="deliveryAddressSection">
           <h2 class="text-lg font-bold mb-4">Delivery Location</h2>
           <textarea id="deliveryAddress" rows="3" style="display:none;"></textarea>
-          <div class="loc-box">
+          
+          <!-- Location Type Selection -->
+          <div class="option-grid-two mb-4">
+            <label class="option-card selected" id="opt-current-location">
+              <input type="radio" name="location_type" value="current" checked onchange="toggleLocationType()">
+              <div class="ic">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg>
+              </div>
+              <div>
+                <b>Current Location</b>
+                <span>Use your current GPS location</span>
+              </div>
+            </label>
+            <label class="option-card" id="opt-other-location">
+              <input type="radio" name="location_type" value="other" onchange="toggleLocationType()">
+              <div class="ic">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              </div>
+              <div>
+                <b>Other Location</b>
+                <span>Select location on map or enter address</span>
+              </div>
+            </label>
+          </div>
+
+          <!-- Current Location Section -->
+          <div class="loc-box" id="currentLocationBox">
             <div class="loc-box-head">
               <div class="loc-status pending" id="locStatus">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
@@ -441,6 +467,29 @@ footer{background:var(--green-900);color:#BFD6C8;padding:40px 0 0;margin-top:40p
             </div>
             <div class="field-error" id="err-deliveryAddress" style="margin-top:8px;"></div>
           </div>
+
+          <!-- Other Location Section -->
+          <div class="loc-box" id="otherLocationBox" style="display:none;">
+            <div class="field" style="margin-bottom:12px;">
+              <label for="manualAddress">Delivery Address *</label>
+              <input type="text" id="manualAddress" placeholder="Enter your delivery address (e.g., Kiboriloni, Moshi)">
+              <div class="field-error" id="err-manualAddress"></div>
+            </div>
+            <div class="loc-box-head">
+              <div class="loc-status pending" id="mapLocStatus">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="12" cy="12" r="10"/><path d="M12 8h.01M11 12h2v4h-2z"/></svg>
+                <span>Click on the map to select delivery location</span>
+              </div>
+            </div>
+            <div class="loc-coords" id="mapLocCoords"></div>
+            <div class="mini-map" id="mapPreviewOther" style="display:none;">
+              <div class="pin">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+              </div>
+            </div>
+            <div class="field-error" id="err-mapLocation" style="margin-top:8px;"></div>
+          </div>
+
           <div class="loc-box" style="margin-top:0;">
             <div class="loc-status pending" style="align-items:flex-start;">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="12" cy="12" r="10"/><path d="M12 8h.01M11 12h2v4h-2z"/></svg>
@@ -565,6 +614,9 @@ let cart = [];
 let userLocation = { lat: null, lng: null };
 let checkoutMap = null;
 let checkoutMarker = null;
+let checkoutMapOther = null;
+let checkoutMarkerOther = null;
+let selectedLocation = { lat: null, lng: null };
 
 function initializeCheckoutMap() {
   if (checkoutMap || typeof L === 'undefined') return;
@@ -607,6 +659,100 @@ function updateCheckoutMap(lat, lng, zoom = 15) {
   checkoutMap.setView([lat, lng], zoom);
   checkoutMarker.bindPopup(`Delivery location<br>${lat.toFixed(6)}, ${lng.toFixed(6)}`).openPopup();
   setTimeout(() => checkoutMap.invalidateSize(), 100);
+}
+
+function initializeCheckoutMapOther() {
+  if (checkoutMapOther || typeof L === 'undefined') return;
+  const mapEl = document.getElementById('mapPreviewOther');
+  if (!mapEl) return;
+
+  const initialLat = selectedLocation.lat || -6.7924;
+  const initialLng = selectedLocation.lng || 39.2083;
+
+  checkoutMapOther = L.map('mapPreviewOther', {
+    zoomControl: true,
+    attributionControl: true,
+  }).setView([initialLat, initialLng], 12);
+
+  const osmLayer = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+  });
+
+  const worldImageryLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+    attribution: 'Tiles &copy; Esri'
+  });
+
+  osmLayer.addTo(checkoutMapOther);
+  L.control.layers({
+    'OpenStreetMap': osmLayer,
+    'World Imagery': worldImageryLayer
+  }).addTo(checkoutMapOther);
+
+  // Add click handler to select location
+  checkoutMapOther.on('click', function(e) {
+    const lat = e.latlng.lat;
+    const lng = e.latlng.lng;
+    
+    selectedLocation.lat = lat;
+    selectedLocation.lng = lng;
+    
+    if (checkoutMarkerOther) {
+      checkoutMarkerOther.setLatLng([lat, lng]);
+    } else {
+      checkoutMarkerOther = L.marker([lat, lng]).addTo(checkoutMapOther);
+    }
+    
+    checkoutMarkerOther.bindPopup(`Selected location<br>${lat.toFixed(6)}, ${lng.toFixed(6)}`).openPopup();
+    checkoutMapOther.setView([lat, lng], 15);
+    
+    document.getElementById('mapLocCoords').textContent = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+    document.getElementById('mapLocStatus').querySelector('span').textContent = 'Location selected!';
+    document.getElementById('mapLocStatus').classList.remove('pending', 'error');
+    setFieldError('mapLocation', '');
+  });
+
+  // Add initial marker if location exists
+  if (selectedLocation.lat && selectedLocation.lng) {
+    checkoutMarkerOther = L.marker([selectedLocation.lat, selectedLocation.lng]).addTo(checkoutMapOther)
+      .bindPopup(`Selected location<br>${selectedLocation.lat.toFixed(6)}, ${selectedLocation.lng.toFixed(6)}`)
+      .openPopup();
+  }
+
+  setTimeout(() => checkoutMapOther.invalidateSize(), 150);
+}
+
+function toggleLocationType() {
+  const locationType = document.querySelector('input[name="location_type"]:checked').value;
+  const currentLocationBox = document.getElementById('currentLocationBox');
+  const otherLocationBox = document.getElementById('otherLocationBox');
+  const optCurrent = document.getElementById('opt-current-location');
+  const optOther = document.getElementById('opt-other-location');
+  
+  if (locationType === 'current') {
+    currentLocationBox.style.display = 'block';
+    otherLocationBox.style.display = 'none';
+    optCurrent.classList.add('selected');
+    optOther.classList.remove('selected');
+    initializeCheckoutMap();
+    setTimeout(() => {
+      if (checkoutMap) checkoutMap.invalidateSize();
+    }, 150);
+  } else {
+    currentLocationBox.style.display = 'none';
+    otherLocationBox.style.display = 'block';
+    optOther.classList.add('selected');
+    optCurrent.classList.remove('selected');
+    document.getElementById('mapPreviewOther').style.display = 'block';
+    initializeCheckoutMapOther();
+    setTimeout(() => {
+      if (checkoutMapOther) checkoutMapOther.invalidateSize();
+    }, 150);
+  }
+  
+  // Clear errors
+  setFieldError('deliveryAddress', '');
+  setFieldError('manualAddress', '');
+  setFieldError('mapLocation', '');
 }
 
 function showEmptyCartState() {
@@ -678,14 +824,34 @@ function validateAddressIfNeeded() {
     return true;
   }
 
-  if (!userLocation.lat || !userLocation.lng) {
-    setFieldError('deliveryAddress', 'Your location must be captured automatically for delivery.');
-    return false;
+  const locationType = document.querySelector('input[name="location_type"]:checked').value;
+  
+  if (locationType === 'current') {
+    if (!userLocation.lat || !userLocation.lng) {
+      setFieldError('deliveryAddress', 'Your location must be captured automatically for delivery.');
+      return false;
+    }
+    document.getElementById('deliveryAddress').value = `Auto-detected location: ${userLocation.lat.toFixed(6)}, ${userLocation.lng.toFixed(6)}`;
+    setFieldError('deliveryAddress', '');
+    return true;
+  } else {
+    // Other location validation
+    const manualAddress = document.getElementById('manualAddress').value.trim();
+    if (!manualAddress) {
+      setFieldError('manualAddress', 'Delivery address is required');
+      return false;
+    }
+    setFieldError('manualAddress', '');
+    
+    if (!selectedLocation.lat || !selectedLocation.lng) {
+      setFieldError('mapLocation', 'Please select a location on the map');
+      return false;
+    }
+    setFieldError('mapLocation', '');
+    
+    document.getElementById('deliveryAddress').value = `${manualAddress} (${selectedLocation.lat.toFixed(6)}, ${selectedLocation.lng.toFixed(6)})`;
+    return true;
   }
-
-  document.getElementById('deliveryAddress').value = `Auto-detected location: ${userLocation.lat.toFixed(6)}, ${userLocation.lng.toFixed(6)}`;
-  setFieldError('deliveryAddress', '');
-  return true;
 }
 
 // Initialize cart from localStorage
@@ -753,10 +919,7 @@ function toggleDeliveryOptions() {
     deliveryAddressSection.style.display = 'block';
     optDelivery.classList.add('selected');
     optPickup.classList.remove('selected');
-    initializeCheckoutMap();
-    setTimeout(() => {
-      if (checkoutMap) checkoutMap.invalidateSize();
-    }, 150);
+    toggleLocationType(); // Initialize location type
   } else {
     deliveryAddressSection.style.display = 'none';
     optPickup.classList.add('selected');
@@ -1079,15 +1242,17 @@ document.getElementById('checkoutForm').addEventListener('submit', async functio
     return;
   }
   if (!validateAddressIfNeeded()) {
-    detectLocation();
-    if (window.Swal) Swal.fire({ icon: 'error', title: 'Location required', text: 'Please allow location access so we can capture your delivery location.' });
+    const locationType = document.querySelector('input[name="location_type"]:checked').value;
+    if (locationType === 'current') {
+      detectLocation();
+    }
+    if (window.Swal) Swal.fire({ icon: 'error', title: 'Location required', text: 'Please complete location information for delivery.' });
     return;
   }
 
-  // Try to capture location for analytics, but don't require it
-  if (needDelivery === 'yes' && (!userLocation.lat || !userLocation.lng)) {
-    detectLocation();
-  }
+  // Determine which location to use
+  const locationType = document.querySelector('input[name="location_type"]:checked').value;
+  const finalLocation = locationType === 'current' ? userLocation : selectedLocation;
   
   const placeOrderBtn = document.getElementById('placeOrderBtn');
   placeOrderBtn.disabled = true;
@@ -1102,8 +1267,8 @@ document.getElementById('checkoutForm').addEventListener('submit', async functio
     customer_phone: document.getElementById('customerPhone').value,
     customer_email: document.getElementById('customerEmail').value,
     delivery_address: needDelivery === 'yes' ? (document.getElementById('deliveryAddress').value || '') : 'Store Pickup',
-    delivery_latitude: userLocation.lat,
-    delivery_longitude: userLocation.lng,
+    delivery_latitude: finalLocation.lat,
+    delivery_longitude: finalLocation.lng,
     payment_method: paymentMethod,
     items: items
   };
@@ -1212,8 +1377,7 @@ function hidePageLoader() {
 initCart();
 if (document.getElementById('checkoutForm') && document.getElementById('checkoutForm').style.display !== 'none') {
   toggleDeliveryOptions();
-  initializeCheckoutMap();
-  detectLocation();
+  // Don't auto-detect location anymore since user can choose between current and other location
 }
 
 setTimeout(hidePageLoader, 350);
