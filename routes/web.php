@@ -327,6 +327,13 @@ Route::middleware('auth')->group(function () {
         Route::get('/reports', [\App\Http\Controllers\FinanceController::class, 'reports'])->name('reports');
     });
 
+    // Rider Dashboard
+    Route::prefix('rider')->name('rider.')->group(function () {
+        Route::get('/dashboard', [\App\Http\Controllers\RiderDashboardController::class, 'index'])->name('dashboard');
+        Route::get('/orders/{order}', [\App\Http\Controllers\RiderDashboardController::class, 'showOrder'])->name('orders.show');
+        Route::put('/orders/{order}/status', [\App\Http\Controllers\RiderDashboardController::class, 'updateOrderStatus'])->name('orders.update-status');
+    });
+
     // Online Sales
     Route::prefix('online')->name('online.')->group(function () {
         Route::get('/orders', [\App\Http\Controllers\OnlineOrderController::class, 'index'])->name('orders');
