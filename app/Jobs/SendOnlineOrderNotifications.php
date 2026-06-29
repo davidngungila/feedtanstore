@@ -30,7 +30,11 @@ class SendOnlineOrderNotifications implements ShouldQueue
     public function handle(): void
     {
         $order = $this->order;
-        $trackingUrl = url('/shop/tracking/' . $order->order_number);
+        
+        // Get store settings to use store_url if available
+        $settings = \App\Models\StoreSetting::firstOrCreate();
+        $baseUrl = $settings->store_url ?? config('app.url');
+        $trackingUrl = $baseUrl . '/shop/tracking/' . $order->order_number;
 
         // 1. Send SMS
         $smsProfile = CommunicationProfile::where('type', 'sms')->where('is_active', true)->first();

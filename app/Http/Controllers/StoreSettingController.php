@@ -49,6 +49,7 @@ class StoreSettingController extends Controller
             'openrouteservice_api_key' => 'nullable|string',
             'store_latitude' => 'nullable|numeric',
             'store_longitude' => 'nullable|numeric',
+            'store_url' => 'nullable|url|max:255',
             'share_price' => 'nullable|numeric|min:0',
             // Communication fields
             'smtp_host' => 'nullable|string|max:255',

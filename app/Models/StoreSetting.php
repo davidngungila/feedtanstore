@@ -34,6 +34,7 @@ class StoreSetting extends Model
         'openrouteservice_api_key',
         'store_latitude',
         'store_longitude',
+        'store_url',
         'share_price',
         // Communication Settings
         'smtp_host',

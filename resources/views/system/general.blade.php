@@ -45,6 +45,13 @@
                 </div>
 
                 <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Store URL (for links in SMS/Emails)</label>
+                    <input type="url" name="store_url" value="{{ old('store_url', $settings->store_url) }}" 
+                           placeholder="https://yourstore.com"
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                </div>
+
+                <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Store Logo</label>
                     @if($settings->store_logo)
                         <img src="{{ asset('storage/' . $settings->store_logo) }}" alt="Logo" class="h-16 mb-2">
