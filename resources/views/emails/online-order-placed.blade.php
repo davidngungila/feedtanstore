@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="x-apple-disable-message-reformatting">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Your Feedtan Order {{ $order->order_number }}</title>
+    <title>Your Feedtan Order {{ $order->short_customer_reference }}</title>
     <style type="text/css">
         html, body { margin: 0; padding: 0; width: 100%; background: #f3f4f6; }
         body { font-family: Arial, Helvetica, sans-serif; color: #1f2937; }
@@ -59,7 +59,7 @@
                         <tr>
                             <td width="50%">
                                 <div class="label">Order Number</div>
-                                <div class="value">{{ $order->order_number }}</div>
+                                <div class="value">{{ $order->short_customer_reference }}</div>
                             </td>
                             <td width="50%">
                                 <div class="label">Total</div>

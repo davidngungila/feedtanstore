@@ -26,9 +26,13 @@ class OnlineOrderController extends Controller
 
     public function initiatePaymentForOrder(Request $request, $trackingIdentifier, FeedtanEcommercePaymentService $paymentService)
     {
-        $order = OnlineOrder::where('tracking_token', $trackingIdentifier)->first();
+        $cleanIdentifier = ltrim($trackingIdentifier, '#');
+        $order = OnlineOrder::where('tracking_token', $cleanIdentifier)->first();
         if (!$order) {
-            $order = OnlineOrder::where('order_number', $trackingIdentifier)->firstOrFail();
+            $order = OnlineOrder::where('order_number', $cleanIdentifier)->first();
+        }
+        if (!$order) {
+            $order = OnlineOrder::where('order_number', 'LIKE', '%' . $cleanIdentifier)->firstOrFail();
         }
         $settings = \App\Models\StoreSetting::firstOrCreate();
         $baseUrl = $settings->store_url ?? config('app.url');
@@ -693,9 +697,13 @@ class OnlineOrderController extends Controller
 
     public function checkPaymentStatus($trackingIdentifier, FeedtanEcommercePaymentService $paymentService)
     {
-        $order = OnlineOrder::where('tracking_token', $trackingIdentifier)->first();
+        $cleanIdentifier = ltrim($trackingIdentifier, '#');
+        $order = OnlineOrder::where('tracking_token', $cleanIdentifier)->first();
         if (!$order) {
-            $order = OnlineOrder::where('order_number', $trackingIdentifier)->firstOrFail();
+            $order = OnlineOrder::where('order_number', $cleanIdentifier)->first();
+        }
+        if (!$order) {
+            $order = OnlineOrder::where('order_number', 'LIKE', '%' . $cleanIdentifier)->firstOrFail();
         }
 
         $orderReference = $this->ensureGatewayOrderReference($order);
@@ -913,19 +921,29 @@ class OnlineOrderController extends Controller
         $settings = \App\Models\StoreSetting::firstOrCreate();
 
         if ($trackingIdentifier) {
+            // Clean up identifier (remove # if present)
+            $cleanIdentifier = ltrim($trackingIdentifier, '#');
             // Try to find by tracking token first
-            $order = OnlineOrder::where('tracking_token', $trackingIdentifier)->with(['items', 'rider', 'statusHistory'])->first();
+            $order = OnlineOrder::where('tracking_token', $cleanIdentifier)->with(['items', 'rider', 'statusHistory'])->first();
             // If not found, try order number for backwards compatibility
             if (!$order) {
-                $order = OnlineOrder::where('order_number', $trackingIdentifier)->with(['items', 'rider', 'statusHistory'])->first();
+                $order = OnlineOrder::where('order_number', $cleanIdentifier)->with(['items', 'rider', 'statusHistory'])->first();
+            }
+            // If still not found, try short customer reference (search by last 5 chars of order_number)
+            if (!$order) {
+                $order = OnlineOrder::where('order_number', 'LIKE', '%' . $cleanIdentifier)->with(['items', 'rider', 'statusHistory'])->first();
             }
         }
         // Also check request query parameter
         if (!$order && request('order')) {
             $queryOrder = request('order');
-            $order = OnlineOrder::where('tracking_token', $queryOrder)->with(['items', 'rider', 'statusHistory'])->first();
+            $cleanQueryOrder = ltrim($queryOrder, '#');
+            $order = OnlineOrder::where('tracking_token', $cleanQueryOrder)->with(['items', 'rider', 'statusHistory'])->first();
             if (!$order) {
-                $order = OnlineOrder::where('order_number', $queryOrder)->with(['items', 'rider', 'statusHistory'])->first();
+                $order = OnlineOrder::where('order_number', $cleanQueryOrder)->with(['items', 'rider', 'statusHistory'])->first();
+            }
+            if (!$order) {
+                $order = OnlineOrder::where('order_number', 'LIKE', '%' . $cleanQueryOrder)->with(['items', 'rider', 'statusHistory'])->first();
             }
         }
 
@@ -957,9 +975,13 @@ class OnlineOrderController extends Controller
 
     public function downloadTrackingPDF($trackingIdentifier)
     {
-        $order = OnlineOrder::where('tracking_token', $trackingIdentifier)->first();
+        $cleanIdentifier = ltrim($trackingIdentifier, '#');
+        $order = OnlineOrder::where('tracking_token', $cleanIdentifier)->first();
         if (!$order) {
-            $order = OnlineOrder::where('order_number', $trackingIdentifier)->firstOrFail();
+            $order = OnlineOrder::where('order_number', $cleanIdentifier)->first();
+        }
+        if (!$order) {
+            $order = OnlineOrder::where('order_number', 'LIKE', '%' . $cleanIdentifier)->firstOrFail();
         } else {
             $order->load(['items.product', 'rider', 'user']);
         }

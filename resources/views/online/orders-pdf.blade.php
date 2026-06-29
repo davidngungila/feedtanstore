@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Order #{{ $order->order_number }}</title>
+    <title>Order {{ $order->short_customer_reference }}</title>
     <style>
         body {
             font-family: 'Helvetica', 'Arial', sans-serif;
@@ -175,7 +175,7 @@
         <div class="header">
             <img src="data:image/png;base64,{{ base64_encode(file_get_contents(public_path('feedtanstorelogo.png'))) }}" alt="FEEDTAN STORE" style="max-width: 150px; margin: 0 auto 8px auto;">
             <div class="sub-header" style="font-size: 10px; margin-top: 4px;">Inventory & Sales Management System</div>
-            <div class="receipt-title">ORDER #{{ $order->order_number }}</div>
+            <div class="receipt-title">ORDER {{ $order->short_customer_reference }}</div>
         </div>
 
         <table style="width: 100%; margin-bottom: 15px;">

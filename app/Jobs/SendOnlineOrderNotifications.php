@@ -45,7 +45,7 @@ class SendOnlineOrderNotifications implements ShouldQueue
                 $phoneNumber = '255' . substr($phoneNumber, 1);
             }
             try {
-                $smsText = "Thanks $order->customer_name. Your order $order->order_number has been received. Delivery Code: $order->delivery_code. Please keep this code safe and provide it upon delivery. Track: $trackingUrl";
+                $smsText = "Thanks $order->customer_name. Your order $order->short_customer_reference has been received. Delivery Code: $order->delivery_code. Please keep this code safe and provide it upon delivery. Track: $trackingUrl";
                 $messagingService = new MessagingService($smsProfile->sms_api_key, $smsProfile->messaging_sender_id, false);
                 $messagingService->sendSms($phoneNumber, $smsText);
             } catch (\Exception $e) {

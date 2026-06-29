@@ -360,8 +360,11 @@ footer{background:var(--green-900);color:#BFD6C8;padding:40px 0 0;margin-top:40p
       </div>
 
       @if(isset($order))
+      <script>
+        window.shortCustomerReference = @json($order->short_customer_reference);
+      </script>
       <div class="card" id="orderDetails">
-        <h2 style="margin-bottom:8px;">Order #{{ $order->order_number }}</h2>
+        <h2 style="margin-bottom:8px;">Order {{ $order->short_customer_reference }}</h2>
         <p style="margin:0 0 16px 0;color:var(--ink-soft);font-size:14px;">Placed on {{ $order->created_at->format('M d, Y • h:i A') }}</p>
 
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin:0 0 16px 0;">
@@ -574,7 +577,7 @@ function buildPaymentHtml(orderNumber, status, trackingUrl, pdfUrl, remainingSec
         ? 'Payment did not complete. You can try again later.'
         : 'Processing payment...';
   const timer = typeof remainingSeconds === 'number' ? ('<div style="margin-top:8px;color:#6b7280;">Time remaining: ' + remainingSeconds + 's</div>') : '';
-  return 'Order number: <b>' + orderNumber + '</b><br>' +
+  return 'Order number: <b>' + (window.shortCustomerReference || orderNumber) + '</b><br>' +
     'Payment status: <b>' + s + '</b><br><span style="color:#6b7280;">' + note + '</span>' +
     timer +
     '<div style="margin-top:10px;">' +
