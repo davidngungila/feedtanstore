@@ -24,11 +24,15 @@ class OnlineOrderController extends Controller
 {
 
 
-    public function initiatePaymentForOrder(Request $request, $orderNumber, FeedtanEcommercePaymentService $paymentService)
+    public function initiatePaymentForOrder(Request $request, $trackingIdentifier, FeedtanEcommercePaymentService $paymentService)
     {
-        $order = OnlineOrder::where('order_number', $orderNumber)->firstOrFail();
+        $order = OnlineOrder::where('tracking_token', $trackingIdentifier)->first();
+        if (!$order) {
+            $order = OnlineOrder::where('order_number', $trackingIdentifier)->firstOrFail();
+        }
         $settings = \App\Models\StoreSetting::firstOrCreate();
         $baseUrl = $settings->store_url ?? config('app.url');
+        $finalTrackingIdentifier = $order->tracking_token ?? $order->order_number;
 
         if (($order->payment_method ?? 'cash') !== 'online') {
             return response()->json([
@@ -61,8 +65,8 @@ class OnlineOrderController extends Controller
             return response()->json([
                 'success' => true,
                 'order_number' => $order->order_number,
-                'tracking_url' => $baseUrl . '/shop/tracking/' . $order->order_number,
-                'pdf_url' => $baseUrl . '/shop/tracking/' . $order->order_number . '/pdf',
+                'tracking_url' => $baseUrl . '/shop/tracking/' . $finalTrackingIdentifier,
+                'pdf_url' => $baseUrl . '/shop/tracking/' . $finalTrackingIdentifier . '/pdf',
                 'payment' => $paymentResponse
             ]);
         } catch (\Exception $e) {
@@ -218,8 +222,14 @@ class OnlineOrderController extends Controller
 
         $total = max(0, $subtotal + $deliveryFee - $discount);
 
+        // Generate unique tracking token
+        do {
+            $trackingToken = Str::random(32);
+        } while (OnlineOrder::where('tracking_token', $trackingToken)->exists());
+
         $order = OnlineOrder::create([
             'order_number' => 'ORD-' . strtoupper(uniqid()),
+            'tracking_token' => $trackingToken,
             'delivery_code' => str_pad(rand(0, 9999), 4, '0', STR_PAD_LEFT),
             'customer_id' => $request->customer_id,
             'customer_name' => $request->customer_name,
@@ -596,8 +606,14 @@ class OnlineOrderController extends Controller
         $deliveryFee = $request->delivery_fee ?? 0;
         $total = $subtotal + $deliveryFee;
 
+        // Generate unique tracking token
+        do {
+            $trackingToken = Str::random(32);
+        } while (OnlineOrder::where('tracking_token', $trackingToken)->exists());
+
         $order = OnlineOrder::create([
             'order_number' => 'ORD-' . strtoupper(uniqid()),
+            'tracking_token' => $trackingToken,
             'delivery_code' => str_pad(rand(0, 9999), 4, '0', STR_PAD_LEFT),
             'customer_name' => $request->customer_name,
             'customer_phone' => $request->customer_phone,
@@ -663,20 +679,24 @@ class OnlineOrderController extends Controller
         $settings = \App\Models\StoreSetting::firstOrCreate();
         $baseUrl = $settings->store_url ?? config('app.url');
 
+        $trackingIdentifier = $order->tracking_token ?? $order->order_number;
         return response()->json([
             'success' => true,
             'order_number' => $order->order_number,
-            'tracking_url' => $baseUrl . '/shop/tracking/' . $order->order_number,
-            'pdf_url' => $baseUrl . '/shop/tracking/' . $order->order_number . '/pdf',
+            'tracking_url' => $baseUrl . '/shop/tracking/' . $trackingIdentifier,
+            'pdf_url' => $baseUrl . '/shop/tracking/' . $trackingIdentifier . '/pdf',
             'payment_initiated' => $paymentInitiated,
             'payment_message' => $paymentMessage,
             'payment' => $paymentResponse,
         ]);
     }
 
-    public function checkPaymentStatus($orderNumber, FeedtanEcommercePaymentService $paymentService)
+    public function checkPaymentStatus($trackingIdentifier, FeedtanEcommercePaymentService $paymentService)
     {
-        $order = OnlineOrder::where('order_number', $orderNumber)->firstOrFail();
+        $order = OnlineOrder::where('tracking_token', $trackingIdentifier)->first();
+        if (!$order) {
+            $order = OnlineOrder::where('order_number', $trackingIdentifier)->firstOrFail();
+        }
 
         $orderReference = $this->ensureGatewayOrderReference($order);
 
@@ -886,18 +906,27 @@ class OnlineOrderController extends Controller
         }
     }
 
-    public function showTracking($orderNumber = null)
+    public function showTracking($trackingIdentifier = null)
     {
         $order = null;
         $route = null;
         $settings = \App\Models\StoreSetting::firstOrCreate();
 
-        if ($orderNumber) {
-            $order = OnlineOrder::where('order_number', $orderNumber)->with(['items', 'rider', 'statusHistory'])->first();
+        if ($trackingIdentifier) {
+            // Try to find by tracking token first
+            $order = OnlineOrder::where('tracking_token', $trackingIdentifier)->with(['items', 'rider', 'statusHistory'])->first();
+            // If not found, try order number for backwards compatibility
+            if (!$order) {
+                $order = OnlineOrder::where('order_number', $trackingIdentifier)->with(['items', 'rider', 'statusHistory'])->first();
+            }
         }
         // Also check request query parameter
         if (!$order && request('order')) {
-            $order = OnlineOrder::where('order_number', request('order'))->with(['items', 'rider', 'statusHistory'])->first();
+            $queryOrder = request('order');
+            $order = OnlineOrder::where('tracking_token', $queryOrder)->with(['items', 'rider', 'statusHistory'])->first();
+            if (!$order) {
+                $order = OnlineOrder::where('order_number', $queryOrder)->with(['items', 'rider', 'statusHistory'])->first();
+            }
         }
 
         if ($order && $settings->openrouteservice_api_key && $order->delivery_latitude && $order->delivery_longitude) {
@@ -926,9 +955,14 @@ class OnlineOrderController extends Controller
         return view('shop.tracking', compact('order', 'route', 'settings'));
     }
 
-    public function downloadTrackingPDF($orderNumber)
+    public function downloadTrackingPDF($trackingIdentifier)
     {
-        $order = OnlineOrder::where('order_number', $orderNumber)->with(['items.product', 'rider', 'user'])->firstOrFail();
+        $order = OnlineOrder::where('tracking_token', $trackingIdentifier)->first();
+        if (!$order) {
+            $order = OnlineOrder::where('order_number', $trackingIdentifier)->firstOrFail();
+        } else {
+            $order->load(['items.product', 'rider', 'user']);
+        }
         $pdf = new Dompdf();
         $pdf->loadHtml(view('online.orders-pdf', compact('order'))->render());
         $pdf->setPaper('A4', 'portrait');

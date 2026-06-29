@@ -24,9 +24,10 @@ class OnlineOrderPlaced extends Mailable
         $this->order = $order->load(['items.product', 'rider', 'user']);
         $settings = \App\Models\StoreSetting::firstOrCreate();
         $baseUrl = $settings->store_url ?? config('app.url');
-        $this->trackingUrl = $baseUrl . '/shop/tracking/' . $this->order->order_number;
+        $trackingIdentifier = $this->order->tracking_token ?? $this->order->order_number;
+        $this->trackingUrl = $baseUrl . '/shop/tracking/' . $trackingIdentifier;
         $this->payUrl = $this->trackingUrl . '?pay=1';
-        $this->pdfUrl = $baseUrl . '/shop/tracking/' . $this->order->order_number . '/pdf';
+        $this->pdfUrl = $baseUrl . '/shop/tracking/' . $trackingIdentifier . '/pdf';
     }
 
     public function envelope(): Envelope

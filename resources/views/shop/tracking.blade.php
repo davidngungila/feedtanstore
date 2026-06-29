@@ -365,7 +365,7 @@ footer{background:var(--green-900);color:#BFD6C8;padding:40px 0 0;margin-top:40p
         <p style="margin:0 0 16px 0;color:var(--ink-soft);font-size:14px;">Placed on {{ $order->created_at->format('M d, Y • h:i A') }}</p>
 
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin:0 0 16px 0;">
-          <a href="{{ route('shop.tracking.pdf', ['orderNumber' => $order->order_number]) }}" class="btn btn-ghost">Download PDF</a>
+          <a href="{{ route('shop.tracking.pdf', ['orderNumber' => $order->tracking_token ?? $order->order_number]) }}" class="btn btn-ghost">Download PDF</a>
           @if(($order->payment_method ?? 'cash') === 'online' && ($order->payment_status ?? 'pending') !== 'paid')
             <button type="button" class="btn btn-primary" id="payNowBtn" data-order="{{ $order->order_number }}" data-phone="{{ $order->customer_phone }}">Pay Now</button>
           @endif
@@ -582,12 +582,12 @@ function buildPaymentHtml(orderNumber, status, trackingUrl, pdfUrl, remainingSec
     '</div>';
 }
 
-async function initiatePayment(orderNumber, phoneNumber = '') {
+async function initiatePayment(trackingIdentifier, phoneNumber = '') {
   const bodyPayload = {};
   if (phoneNumber) {
     bodyPayload.phone_number = phoneNumber;
   }
-  const res = await fetch('/api/shop/orders/' + encodeURIComponent(orderNumber) + '/initiate-payment', {
+  const res = await fetch('/api/shop/orders/' + encodeURIComponent(trackingIdentifier) + '/initiate-payment', {
     method: 'POST',
     headers: {
       'Accept': 'application/json',
@@ -638,7 +638,7 @@ async function promptPaymentPhoneNumber(defaultPhone = '') {
   return fallback ? fallback.trim() : null;
 }
 
-function openPaymentProgressModal(orderNumber, trackingUrl, pdfUrl) {
+function openPaymentProgressModal(trackingIdentifier, trackingUrl, pdfUrl) {
   return new Promise((resolve) => {
     if (!window.Swal) {
       resolve({ result: 'no_swal' });
@@ -670,7 +670,7 @@ function openPaymentProgressModal(orderNumber, trackingUrl, pdfUrl) {
       Swal.update({
         icon: success ? 'success' : (failed ? 'error' : 'info'),
         title: success ? 'Payment successful' : (failed ? 'Payment failed' : 'Payment status'),
-        html: buildPaymentHtml(orderNumber, finalStatus, trackingUrl, pdfUrl),
+        html: buildPaymentHtml(trackingIdentifier, finalStatus, trackingUrl, pdfUrl),
         showConfirmButton: true,
         confirmButtonText: success ? 'Continue' : 'Close',
         showCancelButton: false
@@ -679,7 +679,7 @@ function openPaymentProgressModal(orderNumber, trackingUrl, pdfUrl) {
 
     Swal.fire({
       title: 'Processing mobile money payment',
-      html: buildPaymentHtml(orderNumber, 'PENDING', trackingUrl, pdfUrl, 60),
+      html: buildPaymentHtml(trackingIdentifier, 'PENDING', trackingUrl, pdfUrl, 60),
       allowOutsideClick: false,
       showCancelButton: true,
       cancelButtonText: 'Close',
@@ -693,7 +693,7 @@ function openPaymentProgressModal(orderNumber, trackingUrl, pdfUrl) {
           Swal.update({
             icon: 'info',
             title: 'Payment window ended',
-            html: buildPaymentHtml(orderNumber, 'PENDING', trackingUrl, pdfUrl, 0) + '<div style="margin-top:8px;color:#6b7280;">Payment status check stopped after 1 minute.</div>',
+            html: buildPaymentHtml(trackingIdentifier, 'PENDING', trackingUrl, pdfUrl, 0) + '<div style="margin-top:8px;color:#6b7280;">Payment status check stopped after 1 minute.</div>',
             showConfirmButton: true,
             confirmButtonText: 'OK',
             showCancelButton: false
@@ -702,7 +702,7 @@ function openPaymentProgressModal(orderNumber, trackingUrl, pdfUrl) {
 
         intervalId = setInterval(async () => {
           try {
-            const res = await fetch('/api/shop/orders/' + encodeURIComponent(orderNumber) + '/payment-status', {
+            const res = await fetch('/api/shop/orders/' + encodeURIComponent(trackingIdentifier) + '/payment-status', {
               method: 'GET',
               headers: { 'Accept': 'application/json' },
               credentials: 'same-origin'
@@ -713,12 +713,12 @@ function openPaymentProgressModal(orderNumber, trackingUrl, pdfUrl) {
             const remaining = Math.max(0, 60 - elapsed);
 
             if (!status) {
-              Swal.update({ html: buildPaymentHtml(orderNumber, 'PROCESSING', trackingUrl, pdfUrl, remaining) });
+              Swal.update({ html: buildPaymentHtml(trackingIdentifier, 'PROCESSING', trackingUrl, pdfUrl, remaining) });
               return;
             }
 
             const normalized = formatPaymentStatus(status);
-            Swal.update({ html: buildPaymentHtml(orderNumber, normalized, trackingUrl, pdfUrl, remaining) });
+            Swal.update({ html: buildPaymentHtml(trackingIdentifier, normalized, trackingUrl, pdfUrl, remaining) });
 
             if (normalized === 'SUCCESS' || normalized === 'SETTLED' || ['FAILED', 'DECLINED', 'CANCELLED'].includes(normalized)) {
               finish(normalized);
@@ -744,12 +744,13 @@ document.getElementById('trackForm').addEventListener('submit', function(e) {
 
 const payNowBtn = document.getElementById('payNowBtn');
 if (payNowBtn) {
-  payNowBtn.addEventListener('click', async () => {
-    const orderNumber = payNowBtn.getAttribute('data-order');
-    const defaultPhone = payNowBtn.getAttribute('data-phone') || '';
-    const baseUrl = @json($settings->store_url ?? config('app.url'));
-    const trackingUrl = `${baseUrl}/shop/tracking/${encodeURIComponent(orderNumber)}`;
-    const pdfUrl = `${baseUrl}/shop/tracking/${encodeURIComponent(orderNumber)}/pdf`;
+            payNowBtn.addEventListener('click', async () => {
+                const orderNumber = payNowBtn.getAttribute('data-order');
+                const defaultPhone = payNowBtn.getAttribute('data-phone') || '';
+                const baseUrl = @json($settings->store_url ?? config('app.url'));
+                const trackingIdentifier = @json($order->tracking_token ?? $order->order_number);
+                const trackingUrl = `${baseUrl}/shop/tracking/${encodeURIComponent(trackingIdentifier)}`;
+                const pdfUrl = `${baseUrl}/shop/tracking/${encodeURIComponent(trackingIdentifier)}/pdf`;
     try {
       const phoneNumber = await promptPaymentPhoneNumber(defaultPhone);
       if (!phoneNumber) {
@@ -758,9 +759,9 @@ if (payNowBtn) {
       if (window.Swal) {
         Swal.fire({ title: 'Starting payment', text: 'Sending USSD push to your phone...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
       }
-      await initiatePayment(orderNumber, phoneNumber);
+      await initiatePayment(trackingIdentifier, phoneNumber);
       if (window.Swal) Swal.close();
-      await openPaymentProgressModal(orderNumber, trackingUrl, pdfUrl);
+      await openPaymentProgressModal(trackingIdentifier, trackingUrl, pdfUrl);
     } catch (e) {
       if (window.Swal) Swal.fire({ icon: 'error', title: 'Payment not started', text: e.message || 'Failed to initiate payment.' });
     }
