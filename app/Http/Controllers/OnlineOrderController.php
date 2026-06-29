@@ -16,6 +16,7 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Crypt;
 use Dompdf\Dompdf;
 use App\Services\FeedtanEcommercePaymentService;
 use App\Services\MessagingService;
