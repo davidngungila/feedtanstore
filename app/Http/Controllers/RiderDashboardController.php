@@ -93,13 +93,14 @@ class RiderDashboardController extends Controller
             abort(403, 'You are not authorized as a delivery rider.');
         }
 
+        $title = "Today's Deliveries";
         $orders = OnlineOrder::with(['items'])
             ->where('delivery_rider_id', $rider->id)
             ->whereDate('created_at', Carbon::today())
             ->latest()
             ->paginate(20);
 
-        return view('rider.orders-list', compact('rider', 'orders', 'title' => "Today's Deliveries"));
+        return view('rider.orders-list', compact('rider', 'orders', 'title'));
     }
 
     public function assignedOrders()
@@ -111,13 +112,14 @@ class RiderDashboardController extends Controller
             abort(403, 'You are not authorized as a delivery rider.');
         }
 
+        $title = "Assigned Orders";
         $orders = OnlineOrder::with(['items'])
             ->where('delivery_rider_id', $rider->id)
             ->where('status', 'ready')
             ->latest()
             ->paginate(20);
 
-        return view('rider.orders-list', compact('rider', 'orders', 'title' => "Assigned Orders"));
+        return view('rider.orders-list', compact('rider', 'orders', 'title'));
     }
 
     public function transitOrders()
@@ -129,13 +131,14 @@ class RiderDashboardController extends Controller
             abort(403, 'You are not authorized as a delivery rider.');
         }
 
+        $title = "In Transit";
         $orders = OnlineOrder::with(['items'])
             ->where('delivery_rider_id', $rider->id)
             ->where('status', 'out_for_delivery')
             ->latest()
             ->paginate(20);
 
-        return view('rider.orders-list', compact('rider', 'orders', 'title' => "In Transit"));
+        return view('rider.orders-list', compact('rider', 'orders', 'title'));
     }
 
     public function deliveredOrders()
@@ -147,13 +150,14 @@ class RiderDashboardController extends Controller
             abort(403, 'You are not authorized as a delivery rider.');
         }
 
+        $title = "Delivered";
         $orders = OnlineOrder::with(['items'])
             ->where('delivery_rider_id', $rider->id)
             ->where('status', 'delivered')
             ->latest()
             ->paginate(20);
 
-        return view('rider.orders-list', compact('rider', 'orders', 'title' => "Delivered"));
+        return view('rider.orders-list', compact('rider', 'orders', 'title'));
     }
 
     public function failedOrders()
@@ -165,13 +169,14 @@ class RiderDashboardController extends Controller
             abort(403, 'You are not authorized as a delivery rider.');
         }
 
+        $title = "Failed Deliveries";
         $orders = OnlineOrder::with(['items'])
             ->where('delivery_rider_id', $rider->id)
             ->where('status', 'failed')
             ->latest()
             ->paginate(20);
 
-        return view('rider.orders-list', compact('rider', 'orders', 'title' => "Failed Deliveries"));
+        return view('rider.orders-list', compact('rider', 'orders', 'title'));
     }
 
     public function routePlanner()
