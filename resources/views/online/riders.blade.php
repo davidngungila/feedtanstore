@@ -63,6 +63,12 @@
                                 <a href="{{ route('online.riders.edit', $rider) }}" class="text-primary-600 hover:text-primary-800 transition-colors">
                                     <i class="fas fa-edit"></i>
                                 </a>
+                                <form action="{{ route('online.riders.generate-entry-link', $rider) }}" method="POST">
+                                    @csrf
+                                    <button type="submit" class="text-blue-600 hover:text-blue-800 transition-colors" title="Generate Login Link">
+                                        <i class="fas fa-link"></i>
+                                    </button>
+                                </form>
                                 <form action="{{ route('online.riders.toggle', $rider) }}" method="POST">
                                     @csrf
                                     <button type="submit" class="text-{{ $rider->is_active ? 'red' : 'green' }}-600 hover:text-{{ $rider->is_active ? 'red' : 'green' }}-800 transition-colors">

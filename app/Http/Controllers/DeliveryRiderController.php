@@ -6,6 +6,10 @@ use App\Models\DeliveryRider;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Str;
+use App\Models\AdminAccessToken;
+use App\Models\StoreSetting;
 
 class DeliveryRiderController extends Controller
 {
@@ -135,5 +139,25 @@ class DeliveryRiderController extends Controller
             \DB::rollBack();
             return back()->with('error', 'Failed to delete rider: ' . $e->getMessage());
         }
+    }
+
+    public function generateEntryLink(DeliveryRider $rider)
+    {
+        $minutes = 60 * 24; // 24 hours
+        $settings = StoreSetting::firstOrCreate();
+        $token = Str::random(40);
+        $encryptedToken = Crypt::encryptString($token);
+        $entryToken = rtrim(strtr(base64_encode($encryptedToken), '+/', '-_'), '=');
+
+        AdminAccessToken::create([
+            'token_hash' => hash('sha256', $token),
+            'encrypted_token' => $encryptedToken,
+            'expires_at' => now()->addMinutes($minutes),
+        ]);
+
+        $baseUrl = $settings->store_url ?? config('app.url');
+        $url = rtrim($baseUrl, '/') . '/' . $entryToken;
+
+        return back()->with('success', 'Entry link generated! Link: ' . $url);
     }
 }

@@ -370,6 +370,7 @@ Route::middleware('auth')->group(function () {
         Route::put('/riders/{rider}', [\App\Http\Controllers\DeliveryRiderController::class, 'update'])->name('riders.update');
         Route::delete('/riders/{rider}', [\App\Http\Controllers\DeliveryRiderController::class, 'destroy'])->name('riders.destroy');
         Route::post('/riders/{rider}/toggle', [\App\Http\Controllers\DeliveryRiderController::class, 'toggleActive'])->name('riders.toggle');
+        Route::post('/riders/{rider}/generate-entry-link', [\App\Http\Controllers\DeliveryRiderController::class, 'generateEntryLink'])->name('riders.generate-entry-link');
         
         Route::get('/payments', [\App\Http\Controllers\OnlinePaymentController::class, 'index'])->name('payments');
         
