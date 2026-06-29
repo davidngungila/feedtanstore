@@ -1,12 +1,12 @@
 @extends('layouts.app')
 
-@section('page-title', 'Order #' . $order->order_number)
+@section('page-title', 'Order ' . $order->short_customer_reference)
 
 @section('content')
 <div class="animate-[fadeIn_0.4s_ease]">
     <div class="card rounded-2xl p-6 mb-6">
         <div class="flex items-center justify-between mb-6">
-            <h2 class="text-xl font-bold text-primary-900">Order #{{ $order->order_number }}</h2>
+            <h2 class="text-xl font-bold text-primary-900">Order {{ $order->short_customer_reference }} <span class="text-sm text-gray-400 font-normal">({{ $order->order_number }})</span></h2>
             <div class="flex gap-3">
                 <a href="{{ route('online.orders.download', $order) }}" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors">
                     <i class="fas fa-download mr-2"></i>Download PDF

@@ -82,7 +82,10 @@
                 <tbody id="online-orders-table-body" class="divide-y">
                     @forelse($orders as $order)
                     <tr data-search="{{ strtolower($order->order_number . ' ' . $order->delivery_code . ' ' . ($order->customer_name ?? '') . ' ' . ($order->customer_phone ?? '') . ' ' . ($order->customer_email ?? '') . ' ' . ($order->delivery_address ?? '') . ' ' . ($order->status ?? '') . ' ' . ($order->payment_status ?? '') . ' ' . ($order->payment_method ?? '') . ' ' . ($order->rider->name ?? '') . ' ' . ($order->user->name ?? '') . ' ' . $order->total) }}">
-                        <td class="px-4 py-3 font-medium text-primary-600">{{ $order->order_number }}</td>
+                        <td class="px-4 py-3 font-medium text-primary-600">
+                            {{ $order->short_customer_reference }}
+                            <span class="text-xs text-gray-400 block">{{ $order->order_number }}</span>
+                        </td>
                         <td class="px-4 py-3">
                             <span class="px-2 py-1 bg-primary-100 text-primary-800 rounded text-xs font-mono font-bold">{{ $order->delivery_code }}</span>
                         </td>
@@ -200,7 +203,7 @@
                 fillOpacity: 0.8
             }).addTo(map).bindPopup(`
                 <div class="p-2 min-w-[250px]">
-                    <h4 class="font-bold text-base text-gray-900 mb-1">Order #{{ $order->order_number }}</h4>
+                    <h4 class="font-bold text-base text-gray-900 mb-1">Order {{ $order->short_customer_reference }}</h4>
                     <p class="text-sm text-gray-700 mb-1"><strong>Customer:</strong> {{ $order->customer_name }}</p>
                     <p class="text-sm text-gray-700 mb-1"><strong>Phone:</strong> <a href="tel:{{ $order->customer_phone }}">{{ $order->customer_phone }}</a></p>
                     <p class="text-sm text-gray-700 mb-2"><strong>Address:</strong> {{ $order->delivery_address }}</p>
