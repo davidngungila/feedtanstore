@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use App\Models\SentMessage;
 use App\Models\CommunicationProfile;
 
@@ -13,7 +14,7 @@ class MessagingService
     protected $senderId;
     protected $testMode;
 
-    public function __construct($apiKey = null, $senderId = null, $testMode = true)
+    public function __construct($apiKey = null, $senderId = null, $testMode = false)
     {
         $profile = CommunicationProfile::where('type', 'sms')->where('is_active', true)->first();
         $this->apiKey = $apiKey ?? ($profile->sms_api_key ?? '');
@@ -30,6 +31,15 @@ class MessagingService
             ? $this->baseUrl . '/api/sms/v2/test/text/single'
             : $this->baseUrl . '/api/sms/v2/text/single';
 
+        Log::info('Attempting to send SMS', [
+            'to' => $to,
+            'from' => $from,
+            'text' => $text,
+            'url' => $url,
+            'test_mode' => $testMode,
+            'api_key_present' => !empty($this->apiKey),
+        ]);
+
         $response = Http::withHeaders([
             'Authorization' => 'Bearer ' . $this->apiKey,
             'Content-Type' => 'application/json',
@@ -38,6 +48,12 @@ class MessagingService
             'from' => $from,
             'to' => $to,
             'text' => $text,
+        ]);
+
+        Log::info('SMS API Response', [
+            'status' => $response->status(),
+            'successful' => $response->successful(),
+            'body' => $response->body(),
         ]);
 
         // Store in database
