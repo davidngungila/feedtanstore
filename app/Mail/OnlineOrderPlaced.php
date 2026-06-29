@@ -24,7 +24,8 @@ class OnlineOrderPlaced extends Mailable
         $this->order = $order->load(['items.product', 'rider', 'user']);
         $settings = \App\Models\StoreSetting::firstOrCreate();
         $baseUrl = $settings->store_url ?? config('app.url');
-        $trackingIdentifier = $this->order->tracking_token ?? $this->order->order_number;
+        // Use short customer reference without the # for URL safety
+        $trackingIdentifier = substr($this->order->short_customer_reference, 1);
         $this->trackingUrl = $baseUrl . '/shop/tracking/' . $trackingIdentifier;
         $this->payUrl = $this->trackingUrl . '?pay=1';
         $this->pdfUrl = $baseUrl . '/shop/tracking/' . $trackingIdentifier . '/pdf';

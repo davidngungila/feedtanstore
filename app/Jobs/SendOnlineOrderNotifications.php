@@ -34,7 +34,8 @@ class SendOnlineOrderNotifications implements ShouldQueue
         // Get store settings to use store_url if available
         $settings = \App\Models\StoreSetting::firstOrCreate();
         $baseUrl = $settings->store_url ?? config('app.url');
-        $trackingIdentifier = $order->tracking_token ?? $order->order_number;
+        // Use short customer reference without the # for URL safety
+        $trackingIdentifier = substr($order->short_customer_reference, 1);
         $trackingUrl = $baseUrl . '/shop/tracking/' . $trackingIdentifier;
 
         // 1. Send SMS

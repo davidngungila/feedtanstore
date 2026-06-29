@@ -745,6 +745,7 @@ document.getElementById('trackForm').addEventListener('submit', function(e) {
   }
 });
 
+@if($order)
 const payNowBtn = document.getElementById('payNowBtn');
 if (payNowBtn) {
             payNowBtn.addEventListener('click', async () => {
@@ -775,6 +776,7 @@ if (payNowBtn) {
     setTimeout(() => payNowBtn.click(), 300);
   }
 }
+@endif
 
 @if($order && $order->delivery_latitude && $order->delivery_longitude)
 const trackingStoreLat = {{ $settings->store_latitude ?? -3.3869 }};
