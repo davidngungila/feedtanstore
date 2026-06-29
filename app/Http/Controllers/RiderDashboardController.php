@@ -195,7 +195,35 @@ class RiderDashboardController extends Controller
             ->latest()
             ->get();
 
-        return view('rider.route-planner', compact('rider', 'settings', 'assignedOrders'));
+        $storeLat = $settings->store_latitude ?? -3.3869;
+        $storeLng = $settings->store_longitude ?? 36.6883;
+
+        $routes = [];
+        if ($settings->openrouteservice_api_key) {
+            foreach ($assignedOrders as $order) {
+                if ($order->delivery_latitude && $order->delivery_longitude) {
+                    try {
+                        $response = Http::withHeaders([
+                            'Authorization' => $settings->openrouteservice_api_key,
+                            'Content-Type' => 'application/json'
+                        ])->post('https://api.openrouteservice.org/v2/directions/driving-car/geojson', [
+                            'coordinates' => [
+                                [$storeLng, $storeLat],
+                                [$order->delivery_longitude, $order->delivery_latitude]
+                            ]
+                        ]);
+                        
+                        if ($response->successful()) {
+                            $routes[$order->id] = $response->json();
+                        }
+                    } catch (\Exception $e) {
+                        // Ignore
+                    }
+                }
+            }
+        }
+
+        return view('rider.route-planner', compact('rider', 'settings', 'assignedOrders', 'storeLat', 'storeLng', 'routes'));
     }
 
     public function liveLocation()
@@ -207,7 +235,11 @@ class RiderDashboardController extends Controller
             abort(403, 'You are not authorized as a delivery rider.');
         }
 
-        return view('rider.live-location', compact('rider'));
+        $latestLocation = $rider->latest_location;
+        $currentLat = $latestLocation->latitude ?? null;
+        $currentLng = $latestLocation->longitude ?? null;
+
+        return view('rider.live-location', compact('rider', 'currentLat', 'currentLng'));
     }
 
     public function codPayments()

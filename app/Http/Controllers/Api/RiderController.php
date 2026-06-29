@@ -44,6 +44,10 @@ class RiderController extends Controller
 
         $rider = $request->user()->deliveryRider;
 
+        if (!$rider) {
+            return response()->json(['message' => 'Rider not found'], 404);
+        }
+
         RiderLocation::create([
             'delivery_rider_id' => $rider->id,
             'latitude' => $request->latitude,

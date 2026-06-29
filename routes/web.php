@@ -680,6 +680,7 @@ Route::middleware('auth')->prefix('rider')->name('rider.')->group(function () {
     Route::put('/orders/{order}/status', [\App\Http\Controllers\RiderDashboardController::class, 'updateOrderStatus'])->name('orders.update-status');
     Route::get('/navigation/route-planner', [\App\Http\Controllers\RiderDashboardController::class, 'routePlanner'])->name('navigation.route-planner');
     Route::get('/navigation/live-location', [\App\Http\Controllers\RiderDashboardController::class, 'liveLocation'])->name('navigation.live-location');
+    Route::post('/location', [\App\Http\Controllers\Api\RiderController::class, 'updateLocation'])->name('location.update');
     Route::get('/payments/cod', [\App\Http\Controllers\RiderDashboardController::class, 'codPayments'])->name('payments.cod');
     Route::get('/payments/history', [\App\Http\Controllers\RiderDashboardController::class, 'paymentHistory'])->name('payments.history');
     Route::get('/customers', [\App\Http\Controllers\RiderDashboardController::class, 'customers'])->name('customers');
