@@ -30,6 +30,18 @@ Route::post('/api/shop/orders/{orderNumber}/initiate-payment', [\App\Http\Contro
 
 // Protected Routes (must be authenticated)
 Route::middleware('auth')->group(function () {
+    // Redirect riders to their dashboard if they try to access non-rider routes
+    Route::middleware(function ($request, $next) {
+        if (Auth::check() && Auth::user()->role === 'rider') {
+            // Allow rider routes
+            if ($request->routeIs('rider.*')) {
+                return $next($request);
+            }
+            // Redirect riders to rider dashboard
+            return redirect()->route('rider.dashboard');
+        }
+        return $next($request);
+    })->group(function () {
     // Messaging Test
     Route::get('/messaging/test', [App\Http\Controllers\MessagingTestController::class, 'index'])->name('messaging.test');
     Route::post('/messaging/test/send', [App\Http\Controllers\MessagingTestController::class, 'sendTestMessage'])->name('messaging.test.send');
@@ -325,13 +337,6 @@ Route::middleware('auth')->group(function () {
         Route::get('/settings', [\App\Http\Controllers\FinanceController::class, 'settings'])->name('settings');
         
         Route::get('/reports', [\App\Http\Controllers\FinanceController::class, 'reports'])->name('reports');
-    });
-
-    // Rider Dashboard
-    Route::prefix('rider')->name('rider.')->middleware('auth')->group(function () {
-        Route::get('/dashboard', [\App\Http\Controllers\RiderDashboardController::class, 'index'])->name('dashboard');
-        Route::get('/orders/{order}', [\App\Http\Controllers\RiderDashboardController::class, 'showOrder'])->name('orders.show');
-        Route::put('/orders/{order}/status', [\App\Http\Controllers\RiderDashboardController::class, 'updateOrderStatus'])->name('orders.update-status');
     });
 
     // Online Sales
@@ -661,7 +666,6 @@ Route::middleware('auth')->group(function () {
         Route::get('/settings', [\App\Http\Controllers\SecurityController::class, 'settings'])->name('settings');
         Route::post('/devices/{id}/revoke', [\App\Http\Controllers\SecurityController::class, 'revokeDevice'])->name('devices.revoke');
     });
-    
     // VFD Customer Display Routes
     Route::prefix('vfd')->name('vfd.')->group(function () {
         Route::post('/welcome', [\App\Http\Controllers\VFDController::class, 'welcome'])->name('welcome');
@@ -669,6 +673,14 @@ Route::middleware('auth')->group(function () {
         Route::post('/payment', [\App\Http\Controllers\VFDController::class, 'payment'])->name('payment');
         Route::post('/thank-you', [\App\Http\Controllers\VFDController::class, 'thankYou'])->name('thank-you');
     });
+    }); // Close the rider redirect middleware group
+});
+
+// Rider Routes (separate, protected by auth)
+Route::middleware('auth')->prefix('rider')->name('rider.')->group(function () {
+    Route::get('/dashboard', [\App\Http\Controllers\RiderDashboardController::class, 'index'])->name('dashboard');
+    Route::get('/orders/{order}', [\App\Http\Controllers\RiderDashboardController::class, 'showOrder'])->name('orders.show');
+    Route::put('/orders/{order}/status', [\App\Http\Controllers\RiderDashboardController::class, 'updateOrderStatus'])->name('orders.update-status');
 });
 
 Route::get('/{entryToken}', [AuthController::class, 'showEntry'])
