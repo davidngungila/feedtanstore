@@ -670,6 +670,7 @@ Route::middleware('auth')->group(function () {
 // Rider Routes (separate, protected by auth)
 Route::middleware('auth')->prefix('rider')->name('rider.')->group(function () {
     Route::get('/dashboard', [\App\Http\Controllers\RiderDashboardController::class, 'index'])->name('dashboard');
+    Route::get('/orders', [\App\Http\Controllers\RiderDashboardController::class, 'myOrders'])->name('orders');
     Route::get('/orders/{order}', [\App\Http\Controllers\RiderDashboardController::class, 'showOrder'])->name('orders.show');
     Route::put('/orders/{order}/status', [\App\Http\Controllers\RiderDashboardController::class, 'updateOrderStatus'])->name('orders.update-status');
 });

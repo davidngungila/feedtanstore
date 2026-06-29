@@ -305,6 +305,10 @@
           <i class="fa-solid fa-gauge-high w-4 text-center flex-shrink-0"></i>
           <span x-show="!sidebarCollapsed" class="font-medium">Dashboard</span>
         </a>
+        <a href="{{ route('rider.orders') }}" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-150 group {{ request()->routeIs('rider.orders') ? 'bg-primary-600 text-white' : 'text-primary-200 hover:bg-white/10 hover:text-white' }}">
+          <i class="fas fa-box w-4 text-center flex-shrink-0"></i>
+          <span x-show="!sidebarCollapsed" class="font-medium">My Orders</span>
+        </a>
       </nav>
     </aside>
   </template>

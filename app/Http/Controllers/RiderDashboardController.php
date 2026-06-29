@@ -66,6 +66,23 @@ class RiderDashboardController extends Controller
         return view('rider.dashboard', compact('rider', 'assignedOrders', 'deliveredOrders', 'storeLat', 'storeLng', 'routes'));
     }
 
+    public function myOrders()
+    {
+        $user = Auth::user();
+        $rider = $user->deliveryRider;
+        
+        if (!$rider) {
+            abort(403, 'You are not authorized as a delivery rider.');
+        }
+
+        $orders = OnlineOrder::with(['items'])
+            ->where('delivery_rider_id', $rider->id)
+            ->latest()
+            ->paginate(20);
+
+        return view('rider.my-orders', compact('rider', 'orders'));
+    }
+
     public function showOrder(OnlineOrder $order)
     {
         $user = Auth::user();
