@@ -27,6 +27,8 @@ class OnlineOrderController extends Controller
     public function initiatePaymentForOrder(Request $request, $orderNumber, FeedtanEcommercePaymentService $paymentService)
     {
         $order = OnlineOrder::where('order_number', $orderNumber)->firstOrFail();
+        $settings = \App\Models\StoreSetting::firstOrCreate();
+        $baseUrl = $settings->store_url ?? config('app.url');
 
         if (($order->payment_method ?? 'cash') !== 'online') {
             return response()->json([
@@ -59,8 +61,8 @@ class OnlineOrderController extends Controller
             return response()->json([
                 'success' => true,
                 'order_number' => $order->order_number,
-                'tracking_url' => url('/shop/tracking/' . $order->order_number),
-                'pdf_url' => url('/shop/tracking/' . $order->order_number . '/pdf'),
+                'tracking_url' => $baseUrl . '/shop/tracking/' . $order->order_number,
+                'pdf_url' => $baseUrl . '/shop/tracking/' . $order->order_number . '/pdf',
                 'payment' => $paymentResponse
             ]);
         } catch (\Exception $e) {
@@ -645,23 +647,27 @@ class OnlineOrderController extends Controller
                     if (isset($paymentResponse['success']) && $paymentResponse['success']) {
                         $this->syncOrderPaymentState($order, $paymentResponse['data'] ?? [], 'Payment initiated via public checkout');
                         $paymentInitiated = true;
+                        $paymentMessage = "Thank you! Your payment has been initiated. Please check your phone to complete the payment.";
                     } else {
-                        $paymentMessage = $paymentResponse['message'] ?? 'Payment request was not accepted by the gateway.';
+                        $paymentMessage = $paymentResponse['message'] ?? 'Payment request was not accepted by the gateway. You can still track your order and pay later.';
                     }
                 } else {
                     $paymentMessage = 'Invalid phone number. Please use format: 255712345678.';
                 }
             } catch (\Exception $e) {
                 Log::error('FeedTan e-commerce payment initiation failed: ' . $e->getMessage());
-                $paymentMessage = 'Payment request could not be started right now. You can track the order and pay later.';
+                $paymentMessage = 'Payment request could not be started right now. You can still track your order and pay later using the "Pay Now" button on the tracking page.';
             }
         }
+
+        $settings = \App\Models\StoreSetting::firstOrCreate();
+        $baseUrl = $settings->store_url ?? config('app.url');
 
         return response()->json([
             'success' => true,
             'order_number' => $order->order_number,
-            'tracking_url' => url('/shop/tracking/' . $order->order_number),
-            'pdf_url' => url('/shop/tracking/' . $order->order_number . '/pdf'),
+            'tracking_url' => $baseUrl . '/shop/tracking/' . $order->order_number,
+            'pdf_url' => $baseUrl . '/shop/tracking/' . $order->order_number . '/pdf',
             'payment_initiated' => $paymentInitiated,
             'payment_message' => $paymentMessage,
             'payment' => $paymentResponse,

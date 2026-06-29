@@ -747,8 +747,9 @@ if (payNowBtn) {
   payNowBtn.addEventListener('click', async () => {
     const orderNumber = payNowBtn.getAttribute('data-order');
     const defaultPhone = payNowBtn.getAttribute('data-phone') || '';
-    const trackingUrl = `{{ url('/shop/tracking') }}/${encodeURIComponent(orderNumber)}`;
-    const pdfUrl = `{{ url('/shop/tracking') }}/${encodeURIComponent(orderNumber)}/pdf`;
+    const baseUrl = @json($settings->store_url ?? config('app.url'));
+    const trackingUrl = `${baseUrl}/shop/tracking/${encodeURIComponent(orderNumber)}`;
+    const pdfUrl = `${baseUrl}/shop/tracking/${encodeURIComponent(orderNumber)}/pdf`;
     try {
       const phoneNumber = await promptPaymentPhoneNumber(defaultPhone);
       if (!phoneNumber) {
