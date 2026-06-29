@@ -213,6 +213,11 @@
     document.addEventListener('DOMContentLoaded', function() {
         initMap();
         document.getElementById('toggleLocationBtn').addEventListener('click', toggleLocation);
+        
+        // Auto-enable location if there's existing location data
+        if (currentLat && currentLng) {
+            toggleLocation();
+        }
     });
 </script>
 @endsection

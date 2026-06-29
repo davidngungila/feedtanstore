@@ -8,6 +8,7 @@ use App\Models\StoreSetting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 
 class RiderDashboardController extends Controller
@@ -351,6 +352,38 @@ class RiderDashboardController extends Controller
             'user_id' => $user->id
         ]);
 
+        // Send thank you message when order is delivered
+        if ($request->status === 'delivered') {
+            try {
+                $messagingService = new \App\Services\MessagingService();
+                $customerPhone = $this->formatPhoneNumber($order->customer_phone);
+                $message = "Thank you for your order #{$order->short_customer_reference}! Your delivery has been completed successfully. We hope you enjoy your purchase. Order again at our store for more great products!";
+                
+                $messagingService->sendSms($customerPhone, $message);
+            } catch (\Exception $e) {
+                // Log error but don't fail the delivery update
+                Log::error('Failed to send thank you message: ' . $e->getMessage());
+            }
+        }
+
         return back()->with('success', 'Order status updated successfully!');
+    }
+
+    private function formatPhoneNumber($phone)
+    {
+        // Remove any non-numeric characters
+        $phone = preg_replace('/[^0-9]/', '', $phone);
+        
+        // If starts with 0, replace with 255
+        if (strpos($phone, '0') === 0) {
+            $phone = '255' . substr($phone, 1);
+        }
+        
+        // If doesn't start with 255, add it
+        if (strpos($phone, '255') !== 0) {
+            $phone = '255' . $phone;
+        }
+        
+        return $phone;
     }
 }

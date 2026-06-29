@@ -45,7 +45,6 @@
                     @if($order->delivery_latitude && $order->delivery_longitude)
                     <div><span class="font-medium text-gray-600">Location:</span> {{ number_format($order->delivery_latitude, 6) }}, {{ number_format($order->delivery_longitude, 6) }}</div>
                     @endif
-                    <div><span class="font-medium text-gray-600">Delivery Code:</span> <span class="px-2 py-1 bg-primary-100 text-primary-800 rounded text-xs font-mono font-bold">{{ $order->delivery_code }}</span></div>
                     <div><span class="font-medium text-gray-600">Status:</span>
                         <span class="px-2 py-1 rounded-full text-xs font-semibold 
                             @if($order->status === 'ready') bg-cyan-100 text-cyan-800
