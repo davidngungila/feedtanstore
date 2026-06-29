@@ -44,6 +44,10 @@
                 <span class="text-sm text-gray-600">Date:</span>
                 <span class="ml-2">{{ $order->created_at->format('d/m/Y H:i') }}</span>
             </div>
+            <div>
+                <span class="text-sm text-gray-600">Delivery Code:</span>
+                <span class="ml-2 px-3 py-1 bg-primary-100 text-primary-800 rounded-lg font-mono font-bold">{{ $order->delivery_code }}</span>
+            </div>
         </div>
 
         <!-- Customer Info -->
@@ -214,7 +218,7 @@
             <form action="{{ route('online.orders.status', $order) }}" method="POST" class="flex flex-wrap gap-2 items-center">
                 @csrf
                 @method('PUT')
-                <select name="status" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500">
+                <select name="status" id="order-status-select" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500">
                     <option value="pending" {{ $order->status === 'pending' ? 'selected' : '' }}>Pending</option>
                     <option value="confirmed" {{ $order->status === 'confirmed' ? 'selected' : '' }}>Confirmed</option>
                     <option value="preparing" {{ $order->status === 'preparing' ? 'selected' : '' }}>Preparing</option>
@@ -228,11 +232,28 @@
                     <option value="paid" {{ $order->payment_status === 'paid' ? 'selected' : '' }}>Payment: Paid</option>
                     <option value="failed" {{ $order->payment_status === 'failed' ? 'selected' : '' }}>Payment: Failed</option>
                 </select>
+                <input type="text" name="delivery_code_input" id="delivery-code-input" placeholder="Enter Delivery Code" maxlength="4" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500" style="display: {{ $order->status === 'delivered' ? 'none' : 'none' }};">
                 <input type="text" name="notes" placeholder="Notes (optional)" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500">
                 <button type="submit" class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors">
                     Update Status
                 </button>
             </form>
+            <script>
+                document.getElementById('order-status-select').addEventListener('change', function() {
+                    const deliveryCodeInput = document.getElementById('delivery-code-input');
+                    if (this.value === 'delivered') {
+                        deliveryCodeInput.style.display = 'block';
+                        deliveryCodeInput.required = true;
+                    } else {
+                        deliveryCodeInput.style.display = 'none';
+                        deliveryCodeInput.required = false;
+                    }
+                });
+                // Check initial state
+                if (document.getElementById('order-status-select').value === 'delivered') {
+                    document.getElementById('delivery-code-input').style.display = 'block';
+                }
+            </script>
 
             <!-- Assign Rider -->
             @if($order->status !== 'delivered' && $order->status !== 'cancelled')

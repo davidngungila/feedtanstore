@@ -69,6 +69,7 @@
                 <thead class="bg-gray-50">
                     <tr>
                         <th class="px-4 py-3 text-left text-gray-700">Order #</th>
+                        <th class="px-4 py-3 text-left text-gray-700">Delivery Code</th>
                         <th class="px-4 py-3 text-left text-gray-700">Customer</th>
                         <th class="px-4 py-3 text-left text-gray-700">Total</th>
                         <th class="px-4 py-3 text-left text-gray-700">Status</th>
@@ -80,8 +81,11 @@
                 </thead>
                 <tbody id="online-orders-table-body" class="divide-y">
                     @forelse($orders as $order)
-                    <tr data-search="{{ strtolower($order->order_number . ' ' . ($order->customer_name ?? '') . ' ' . ($order->customer_phone ?? '') . ' ' . ($order->customer_email ?? '') . ' ' . ($order->delivery_address ?? '') . ' ' . ($order->status ?? '') . ' ' . ($order->payment_status ?? '') . ' ' . ($order->payment_method ?? '') . ' ' . ($order->rider->name ?? '') . ' ' . ($order->user->name ?? '') . ' ' . $order->total) }}">
+                    <tr data-search="{{ strtolower($order->order_number . ' ' . $order->delivery_code . ' ' . ($order->customer_name ?? '') . ' ' . ($order->customer_phone ?? '') . ' ' . ($order->customer_email ?? '') . ' ' . ($order->delivery_address ?? '') . ' ' . ($order->status ?? '') . ' ' . ($order->payment_status ?? '') . ' ' . ($order->payment_method ?? '') . ' ' . ($order->rider->name ?? '') . ' ' . ($order->user->name ?? '') . ' ' . $order->total) }}">
                         <td class="px-4 py-3 font-medium text-primary-600">{{ $order->order_number }}</td>
+                        <td class="px-4 py-3">
+                            <span class="px-2 py-1 bg-primary-100 text-primary-800 rounded text-xs font-mono font-bold">{{ $order->delivery_code }}</span>
+                        </td>
                         <td class="px-4 py-3">
                             <div>{{ $order->customer_name }}</div>
                             <div class="text-xs text-gray-500">{{ $order->customer_phone }}</div>
@@ -127,7 +131,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="8" class="px-4 py-8 text-center text-gray-500">
+                        <td colspan="9" class="px-4 py-8 text-center text-gray-500">
                             No online orders found.
                         </td>
                     </tr>

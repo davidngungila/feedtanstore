@@ -34,7 +34,7 @@ class OnlineOrderController extends Controller
                 $phoneNumber = '255' . substr($phoneNumber, 1);
             }
             try {
-                $smsText = "Thanks {$order->customer_name}. Order {$order->order_number} received. Feedtan Store.";
+                $smsText = "Thanks {$order->customer_name}. Your order {$order->order_number} has been received. Delivery Code: {$order->delivery_code}. Please keep this code safe and provide it upon delivery. Track: {$trackingUrl}";
                 $messagingService = new MessagingService($smsProfile->sms_api_key, $smsProfile->messaging_sender_id, false);
                 $messagingService->sendSms($phoneNumber, $smsText);
             } catch (\Exception $e) {
@@ -263,6 +263,7 @@ class OnlineOrderController extends Controller
 
         $order = OnlineOrder::create([
             'order_number' => 'ORD-' . strtoupper(uniqid()),
+            'delivery_code' => str_pad(rand(0, 9999), 4, '0', STR_PAD_LEFT),
             'customer_id' => $request->customer_id,
             'customer_name' => $request->customer_name,
             'customer_phone' => $request->customer_phone,
@@ -476,8 +477,16 @@ class OnlineOrderController extends Controller
         $request->validate([
             'status' => 'required|in:pending,confirmed,preparing,ready,out_for_delivery,delivered,cancelled',
             'payment_status' => 'nullable|in:pending,paid,failed',
-            'notes' => 'nullable|string'
+            'notes' => 'nullable|string',
+            'delivery_code_input' => 'nullable|string'
         ]);
+
+        // Validate delivery code when marking as delivered
+        if ($request->status === 'delivered' && $order->status !== 'delivered') {
+            if (trim($request->delivery_code_input) !== $order->delivery_code) {
+                return back()->withErrors(['delivery_code_input' => 'Invalid delivery code. Please enter the correct 4-digit code.'])->withInput();
+            }
+        }
 
         $oldStatus = $order->status;
         $oldPaymentStatus = $order->payment_status;
@@ -632,6 +641,7 @@ class OnlineOrderController extends Controller
 
         $order = OnlineOrder::create([
             'order_number' => 'ORD-' . strtoupper(uniqid()),
+            'delivery_code' => str_pad(rand(0, 9999), 4, '0', STR_PAD_LEFT),
             'customer_name' => $request->customer_name,
             'customer_phone' => $request->customer_phone,
             'customer_email' => $request->customer_email,
