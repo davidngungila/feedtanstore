@@ -83,15 +83,25 @@ class AuthController extends Controller
     {
         if (Auth::check()) {
             $user = Auth::user();
-            return redirect()->intended($user->role === 'cashier' ? route('cashier.dashboard') : route('dashboard'));
+            if ($user->role === 'cashier') {
+                return redirect()->intended(route('cashier.dashboard'));
+            } elseif ($user->role === 'rider') {
+                return redirect()->intended(route('rider.dashboard'));
+            }
+            return redirect()->intended(route('dashboard'));
         }
 
-        return response('', 204);
+        // Always show login form
+        return view('auth.login', [
+            'entryGranted' => true,
+            'accessToken' => '',
+        ]);
     }
 
     public function login(Request $request)
     {
-        if (!$this->hasValidLoginAccess($request, (string) $request->input('access', ''))) {
+        // Allow login both with entry link and directly
+        if ($request->has('access') && !$this->hasValidLoginAccess($request, (string) $request->input('access', ''))) {
             abort(403, 'A valid signed entry link is required.');
         }
 

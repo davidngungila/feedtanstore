@@ -33,7 +33,7 @@ class DeliveryRiderController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
             'password' => 'required|string|min:8',
-            'phone' => 'required|string|max:255',
+            'phone' => 'required|string|max:255|unique:users,phone',
             'vehicle_type' => 'nullable|string|max:255',
             'vehicle_plate' => 'nullable|string|max:255',
             'is_active' => 'boolean'
@@ -81,7 +81,7 @@ class DeliveryRiderController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'nullable|email|unique:users,email,' . $rider->user_id,
             'password' => 'nullable|string|min:8',
-            'phone' => 'required|string|max:255',
+            'phone' => 'required|string|max:255|unique:users,phone,' . $rider->user_id,
             'vehicle_type' => 'nullable|string|max:255',
             'vehicle_plate' => 'nullable|string|max:255',
             'is_active' => 'boolean'
