@@ -134,4 +134,3 @@ class StoreSetting extends Model
         return max(0, round($fee, 2));
     }
 }
-}
