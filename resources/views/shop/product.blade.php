@@ -10,17 +10,23 @@
   );
   $productSeoTitle = $product->name . ' - Feedtan Store | Moshi Kilimanjaro Online Supermarket';
   $primaryImage = $product->images->firstWhere('is_primary', true);
-  $resolveImageUrl = function ($path) {
-      if (!$path) {
-          return null;
-      }
+          $baseUrl = $settings->store_url ?? config('app.url');
+          $resolveImageUrl = function ($path) use ($baseUrl) {
+            if (!$path) {
+              return null;
+            }
 
-      if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://') || str_starts_with($path, '/')) {
-          return $path;
-      }
+            if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://')) {
+              return $path;
+            }
 
-      return asset('storage/' . ltrim($path, '/'));
-  };
+            $cleanPath = ltrim($path, '/');
+            if (str_starts_with($cleanPath, 'storage/')) {
+              return rtrim($baseUrl, '/') . '/' . $cleanPath;
+            }
+
+            return rtrim($baseUrl, '/') . '/storage/' . $cleanPath;
+          };
   $imageToShow = $resolveImageUrl($primaryImage?->image_path) ?? $resolveImageUrl($product->image) ?? $logoUrl;
   $breadcrumbList = [
       '@context' => 'https://schema.org',

@@ -617,16 +617,22 @@ footer{background:var(--green-900);color:#BFD6C8;padding:54px 0 0;margin-top:30p
         @foreach($products as $product)
           @php
             $primaryImage = $product->images->firstWhere('is_primary', true);
-            $resolveImageUrl = function ($path) {
+            $baseUrl = $settings->store_url ?? config('app.url');
+            $resolveImageUrl = function ($path) use ($baseUrl) {
               if (!$path) {
                 return null;
               }
 
-              if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://') || str_starts_with($path, '/')) {
+              if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://')) {
                 return $path;
               }
 
-              return asset('storage/' . ltrim($path, '/'));
+              $cleanPath = ltrim($path, '/');
+              if (str_starts_with($cleanPath, 'storage/')) {
+                return rtrim($baseUrl, '/') . '/' . $cleanPath;
+              }
+
+              return rtrim($baseUrl, '/') . '/storage/' . $cleanPath;
             };
 
             $imageToShow = $resolveImageUrl($primaryImage?->image_path) ?? $resolveImageUrl($product->image) ?? 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=500&q=80';

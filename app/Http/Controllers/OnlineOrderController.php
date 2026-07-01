@@ -174,13 +174,16 @@ class OnlineOrderController extends Controller
 
         $categories = \App\Models\Category::where('is_active', true)->get();
 
-        return view('shop.index', compact('products', 'slides', 'categories', 'selectedCategory'));
+        $settings = \App\Models\StoreSetting::firstOrCreate();
+
+        return view('shop.index', compact('products', 'slides', 'categories', 'selectedCategory', 'settings'));
     }
 
     public function showProduct(Product $product)
     {
         $product->load(['category', 'brand', 'images']);
-        return view('shop.product', compact('product'));
+        $settings = \App\Models\StoreSetting::firstOrCreate();
+        return view('shop.product', compact('product', 'settings'));
     }
 
     public function create()
