@@ -3,6 +3,36 @@
 @section('page-title', 'Product Catalog')
 
 @section('content')
+@php
+    $settings = \App\Models\StoreSetting::firstOrCreate();
+    $baseUrl = $settings->store_url ?? config('app.url');
+    $resolveImageUrl = function ($path) use ($baseUrl) {
+        if (!$path) {
+            return null;
+        }
+
+        // If it's already a full URL, clean it to extract the path
+        if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://')) {
+            // Parse URL to get path
+            $parsed = parse_url($path);
+            if (isset($parsed['path'])) {
+                $path = ltrim($parsed['path'], '/');
+                // If path starts with storage/, use it directly
+                if (str_starts_with($path, 'storage/')) {
+                    return rtrim($baseUrl, '/') . '/' . $path;
+                }
+                return rtrim($baseUrl, '/') . '/storage/' . $path;
+            }
+        }
+
+        $cleanPath = ltrim($path, '/');
+        if (str_starts_with($cleanPath, 'storage/')) {
+            return rtrim($baseUrl, '/') . '/' . $cleanPath;
+        }
+
+        return rtrim($baseUrl, '/') . '/storage/' . $cleanPath;
+    };
+@endphp
 <div class="animate-[fadeIn_0.4s_ease]">
     <div class="card rounded-2xl p-6">
         <div class="flex items-center justify-between mb-6">
@@ -22,7 +52,7 @@
                     <div class="h-40 bg-gray-100 rounded-lg mb-3 flex items-center justify-center overflow-hidden">
                         @php
                             $primaryImage = $product->images->firstWhere('is_primary', true);
-                            $imageToShow = $primaryImage ? $primaryImage->image_path : $product->image;
+                            $imageToShow = $resolveImageUrl($primaryImage?->image_path) ?? $resolveImageUrl($product->image);
                         @endphp
                         @if($imageToShow)
                             <img src="{{ $imageToShow }}" alt="{{ $product->name }}" class="max-h-full max-w-full object-contain">

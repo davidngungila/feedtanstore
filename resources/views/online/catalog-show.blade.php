@@ -3,6 +3,36 @@
 @section('page-title', $product->name)
 
 @section('content')
+@php
+    $settings = \App\Models\StoreSetting::firstOrCreate();
+    $baseUrl = $settings->store_url ?? config('app.url');
+    $resolveImageUrl = function ($path) use ($baseUrl) {
+        if (!$path) {
+            return null;
+        }
+
+        // If it's already a full URL, clean it to extract the path
+        if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://')) {
+            // Parse URL to get path
+            $parsed = parse_url($path);
+            if (isset($parsed['path'])) {
+                $path = ltrim($parsed['path'], '/');
+                // If path starts with storage/, use it directly
+                if (str_starts_with($path, 'storage/')) {
+                    return rtrim($baseUrl, '/') . '/' . $path;
+                }
+                return rtrim($baseUrl, '/') . '/storage/' . $path;
+            }
+        }
+
+        $cleanPath = ltrim($path, '/');
+        if (str_starts_with($cleanPath, 'storage/')) {
+            return rtrim($baseUrl, '/') . '/' . $cleanPath;
+        }
+
+        return rtrim($baseUrl, '/') . '/storage/' . $cleanPath;
+    };
+@endphp
 <div class="animate-[fadeIn_0.4s_ease]">
     <div class="card rounded-2xl p-6">
         <div class="flex items-center justify-between mb-6">
@@ -28,7 +58,7 @@
             <div>
                 @php
                     $primaryImage = $product->images->firstWhere('is_primary', true);
-                    $imageToShow = $primaryImage ? $primaryImage->image_path : $product->image;
+                    $imageToShow = $resolveImageUrl($primaryImage?->image_path) ?? $resolveImageUrl($product->image);
                 @endphp
                 <div id="main-image-container" class="bg-gray-100 rounded-lg aspect-square flex items-center justify-center overflow-hidden mb-4">
                     @if($imageToShow)
@@ -42,8 +72,8 @@
                     <div class="grid grid-cols-4 gap-3">
                         @foreach($product->images as $image)
                             <div class="relative">
-                                <div onclick="document.getElementById('main-image').src='{{ $image->image_path }}'" class="bg-gray-100 rounded-lg aspect-square flex items-center justify-center overflow-hidden cursor-pointer hover:ring-2 hover:ring-primary-500 @if($image->is_primary) ring-2 ring-primary-500 @endif">
-                                    <img src="{{ $image->image_path }}" alt="{{ $product->name }}" class="max-h-full max-w-full object-contain">
+                                <div onclick="document.getElementById('main-image').src='{{ $resolveImageUrl($image->image_path) }}'" class="bg-gray-100 rounded-lg aspect-square flex items-center justify-center overflow-hidden cursor-pointer hover:ring-2 hover:ring-primary-500 @if($image->is_primary) ring-2 ring-primary-500 @endif">
+                                    <img src="{{ $resolveImageUrl($image->image_path) }}" alt="{{ $product->name }}" class="max-h-full max-w-full object-contain">
                                 </div>
                                 @if(!$image->is_primary)
                                     <form action="{{ route('online.catalog.images.primary', [$product, $image]) }}" method="POST" class="absolute -top-2 -right-2">
