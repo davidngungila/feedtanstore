@@ -1035,4 +1035,45 @@ class OnlineOrderController extends Controller
         $pdf->render();
         return $pdf->stream($order->order_number . '.pdf');
     }
+
+    public function sitemap()
+    {
+        $settings = \App\Models\StoreSetting::firstOrCreate();
+        $baseUrl = $settings->store_url ?? config('app.url');
+        
+        $products = \App\Models\Product::where('is_online', true)->get();
+        
+        $xml = '<?xml version="1.0" encoding="UTF-8"?>';
+        $xml .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">';
+        
+        // Add homepage
+        $xml .= '<url>';
+        $xml .= '<loc>' . $baseUrl . '/</loc>';
+        $xml .= '<lastmod>' . now()->toW3cString() . '</lastmod>';
+        $xml .= '<changefreq>daily</changefreq>';
+        $xml .= '<priority>1.0</priority>';
+        $xml .= '</url>';
+        
+        // Add shop index
+        $xml .= '<url>';
+        $xml .= '<loc>' . $baseUrl . '/shop</loc>';
+        $xml .= '<lastmod>' . now()->toW3cString() . '</lastmod>';
+        $xml .= '<changefreq>daily</changefreq>';
+        $xml .= '<priority>0.9</priority>';
+        $xml .= '</url>';
+        
+        // Add products
+        foreach ($products as $product) {
+            $xml .= '<url>';
+            $xml .= '<loc>' . $baseUrl . '/shop/product/' . $product->id . '</loc>';
+            $xml .= '<lastmod>' . $product->updated_at->toW3cString() . '</lastmod>';
+            $xml .= '<changefreq>weekly</changefreq>';
+            $xml .= '<priority>0.8</priority>';
+            $xml .= '</url>';
+        }
+        
+        $xml .= '</urlset>';
+        
+        return response($xml)->header('Content-Type', 'text/xml');
+    }
 }

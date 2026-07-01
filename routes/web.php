@@ -17,6 +17,7 @@ Route::get('/sales/receipts/{sale}/verify', [\App\Http\Controllers\ReceiptContro
 Route::get('/sales/receipts/{sale}/download', [\App\Http\Controllers\ReceiptController::class, 'download'])->name('sales.receipts.download');
 
 // Public Shop Routes
+Route::get('/sitemap.xml', [\App\Http\Controllers\OnlineOrderController::class, 'sitemap'])->name('shop.sitemap');
 Route::get('/shop', [\App\Http\Controllers\OnlineOrderController::class, 'shop'])->name('shop.index');
 Route::get('/shop/product/{product}', [\App\Http\Controllers\OnlineOrderController::class, 'showProduct'])->name('shop.product');
 Route::get('/shop/checkout', function () {
