@@ -215,8 +215,10 @@ header.site-header{
 .loc-status.pending{color:var(--ink-soft);}
 .loc-status.error{color:var(--red);}
 .loc-coords{font-family:var(--font-mono);font-size:12px;color:var(--ink-soft);margin-top:6px;}
-.mini-map{width:100%;height:280px;border-radius:var(--radius-s);margin-top:10px;overflow:hidden;border:1px solid var(--line);position:relative;z-index:1;}
+.mini-map{width:100%;height:280px;border-radius:var(--radius-s);margin-top:10px;overflow:hidden;border:1px solid var(--line);position:relative;z-index:10;}
 .mini-map .leaflet-control-container .leaflet-control{border-radius:10px;overflow:hidden;}
+.mini-map .leaflet-control-container{z-index:20;}
+.mini-map .leaflet-pane{z-index:15;}
 .mini-map .leaflet-control-layers,
 .mini-map .leaflet-bar{box-shadow:0 8px 22px rgba(15,42,31,0.12);}
 .search-result-item{padding:10px 12px;cursor:pointer;border-bottom:1px solid var(--line);transition:background .15s;}
