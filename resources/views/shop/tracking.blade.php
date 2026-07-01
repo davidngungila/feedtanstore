@@ -222,11 +222,18 @@ header.site-header{
 
 .map-container{
   width:100%;height:400px;border-radius:var(--radius-m);overflow:hidden;border:1px solid var(--line);
+  position:relative;z-index:10;
 }
 .map-container .leaflet-control-container .leaflet-control{border-radius:10px;overflow:hidden;}
 .map-container .leaflet-control-layers,
 .map-container .leaflet-bar{
   box-shadow:0 8px 22px rgba(15,42,31,0.12);
+}
+.map-container .leaflet-control-container{
+  z-index:20;
+}
+.map-container .leaflet-pane{
+  z-index:15;
 }
 
 footer{background:var(--green-900);color:#BFD6C8;padding:40px 0 0;margin-top:40px;}
