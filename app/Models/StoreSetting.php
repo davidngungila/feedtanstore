@@ -104,18 +104,13 @@ class StoreSetting extends Model
     /**
      * Calculate delivery fee based on distance and order subtotal
      */
-    public function calculateDeliveryFee(float $customerLat, float $customerLon, float $orderSubtotal): float
+    public function calculateDeliveryFee(float $customerLat, float $customerLon, float $orderSubtotal): array
     {
         // Set default values for delivery fee settings if not configured
         $baseFee = (float) ($this->delivery_base_fee ?? 2000);
         $perKmRate = (float) ($this->delivery_per_km_rate ?? 400);
         $freeThreshold = (float) ($this->delivery_free_threshold ?? 50000);
         
-        // If order meets free delivery threshold, return 0
-        if ($orderSubtotal >= $freeThreshold) {
-            return 0;
-        }
-
         $storeLat = (float) ($this->store_latitude ?? -3.3430); // Default to Moshi, Tanzania
         $storeLon = (float) ($this->store_longitude ?? 37.3507);
         
@@ -126,19 +121,37 @@ class StoreSetting extends Model
             $customerLon
         );
 
+        // If order meets free delivery threshold, return 0
+        if ($orderSubtotal >= $freeThreshold) {
+            return [
+                'fee' => 0,
+                'distance' => $distance
+            ];
+        }
+
         if ($this->delivery_use_zone_pricing && $this->delivery_zone_config) {
             foreach ($this->delivery_zone_config as $zone) {
                 if ($distance >= $zone['min_km'] && $distance <= $zone['max_km']) {
-                    return (float) $zone['fee'];
+                    return [
+                        'fee' => (float) $zone['fee'],
+                        'distance' => $distance
+                    ];
                 }
             }
             // If no zone matches, use last zone's fee
             $lastZone = end($this->delivery_zone_config);
-            return $lastZone ? (float) $lastZone['fee'] : $baseFee;
+            $fee = $lastZone ? (float) $lastZone['fee'] : $baseFee;
+            return [
+                'fee' => $fee,
+                'distance' => $distance
+            ];
         }
 
         // Distance-based pricing: Base + (Distance × Rate)
         $fee = $baseFee + ($distance * $perKmRate);
-        return max(0, round($fee, 2));
+        return [
+            'fee' => max(0, round($fee, 2)),
+            'distance' => $distance
+        ];
     }
 }

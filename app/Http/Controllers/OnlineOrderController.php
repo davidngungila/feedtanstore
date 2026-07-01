@@ -579,7 +579,7 @@ class OnlineOrderController extends Controller
         ]);
 
         $settings = \App\Models\StoreSetting::firstOrCreate();
-        $deliveryFee = $settings->calculateDeliveryFee(
+        $result = $settings->calculateDeliveryFee(
             (float) $request->delivery_latitude,
             (float) $request->delivery_longitude,
             (float) $request->subtotal
@@ -587,9 +587,11 @@ class OnlineOrderController extends Controller
 
         return response()->json([
             'success' => true,
-            'delivery_fee' => $deliveryFee,
-            'formatted_delivery_fee' => 'TZS ' . number_format($deliveryFee, 0),
-            'is_free' => $deliveryFee === 0
+            'delivery_fee' => $result['fee'],
+            'distance' => $result['distance'],
+            'formatted_delivery_fee' => 'TZS ' . number_format($result['fee'], 0),
+            'formatted_distance' => number_format($result['distance'], 2) . ' km',
+            'is_free' => $result['fee'] === 0
         ]);
     }
 
@@ -633,11 +635,12 @@ class OnlineOrderController extends Controller
         $deliveryFee = $request->delivery_fee ?? null;
         if ($deliveryFee === null && $request->delivery_latitude && $request->delivery_longitude) {
             $settings = \App\Models\StoreSetting::firstOrCreate();
-            $deliveryFee = $settings->calculateDeliveryFee(
+            $result = $settings->calculateDeliveryFee(
                 (float) $request->delivery_latitude,
                 (float) $request->delivery_longitude,
                 $subtotal
             );
+            $deliveryFee = $result['fee'];
         }
         $deliveryFee = $deliveryFee ?? 0;
         $total = $subtotal + $deliveryFee;

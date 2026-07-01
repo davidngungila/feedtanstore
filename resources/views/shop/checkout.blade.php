@@ -571,6 +571,7 @@ footer{background:var(--green-900);color:#BFD6C8;padding:40px 0 0;margin-top:40p
             <div id="checkoutItems" class="space-y-3 mb-4"></div>
             <div class="border-t border-gray-100 pt-4 space-y-2">
               <div class="sum-row"><span>Subtotal</span><span id="subtotal">TZS 0</span></div>
+              <div class="sum-row"><span>Delivery Distance</span><span id="deliveryDistanceDisplay">Select location to calculate</span></div>
               <div class="sum-row"><span>Delivery Fee</span><span id="deliveryFeeDisplay">Select location to calculate</span></div>
               <div class="sum-row total"><span>Current Total</span><span id="checkoutTotal">TZS 0</span></div>
             </div>
@@ -1032,6 +1033,7 @@ async function fetchDeliveryFee() {
         const data = await response.json();
         if (data.success) {
           currentDeliveryFee = data.delivery_fee;
+          document.getElementById('deliveryDistanceDisplay').textContent = data.formatted_distance;
           document.getElementById('deliveryFeeDisplay').textContent = data.is_free ? 'FREE' : data.formatted_delivery_fee;
           updateTotal();
         }
@@ -1040,11 +1042,13 @@ async function fetchDeliveryFee() {
       }
     } else {
       currentDeliveryFee = 0;
+      document.getElementById('deliveryDistanceDisplay').textContent = 'Select location to calculate';
       document.getElementById('deliveryFeeDisplay').textContent = 'Select location to calculate';
       updateTotal();
     }
   } else {
     currentDeliveryFee = 0;
+    document.getElementById('deliveryDistanceDisplay').textContent = 'Store Pickup';
     document.getElementById('deliveryFeeDisplay').textContent = 'FREE';
     updateTotal();
   }
