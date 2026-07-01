@@ -37,7 +37,7 @@
               ],
               'image' => [$logoUrl],
               'telephone' => '+255717358865',
-              'email' => 'feedtanstore@gmail.com',
+              'email' => 'info@feedtanstore.com',
               'address' => [
                   '@type' => 'PostalAddress',
                   'streetAddress' => 'Kiboriloni',
@@ -715,7 +715,7 @@ footer{background:var(--green-900);color:#BFD6C8;padding:54px 0 0;margin-top:30p
           <li>Kiboriloni, Moshi, Kilimanjaro, Tanzania</li>
           <li>Open daily · 8:00 AM – 9:00 PM</li>
           <li>+255 717 358 865</li>
-          <li>feedtanstore@gmail.com</li>
+          <li>info@feedtanstore.com</li>
         </ul>
       </div>
     </div>
