@@ -1041,7 +1041,7 @@ class OnlineOrderController extends Controller
         $settings = \App\Models\StoreSetting::firstOrCreate();
         $baseUrl = $settings->store_url ?? config('app.url');
         
-        $products = \App\Models\Product::where('is_online', true)->get();
+        $products = \App\Models\Product::all();
         
         $xml = '<?xml version="1.0" encoding="UTF-8"?>';
         $xml .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">';
