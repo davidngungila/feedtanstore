@@ -5,10 +5,10 @@
   $logoUrl = asset('logo-image-feedtan-store.png');
   $productCanonicalUrl = route('shop.product', $product);
   $seoDescription = \Illuminate\Support\Str::limit(
-      trim(strip_tags($product->description ?: 'Discover quality products at unbeatable prices, delivered right to your door.')),
+      trim(strip_tags($product->description ?: 'Shop ' . $product->name . ' at Feedtan Store, the best online supermarket in Moshi, Kilimanjaro. Fast delivery available.')),
       160
   );
-  $productSeoTitle = $product->name . ' - Feedtan Store';
+  $productSeoTitle = $product->name . ' - Feedtan Store | Moshi Kilimanjaro Online Supermarket';
   $primaryImage = $product->images->firstWhere('is_primary', true);
   $resolveImageUrl = function ($path) {
       if (!$path) {
@@ -78,7 +78,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>{{ $productSeoTitle }}</title>
 <meta name="description" content="{{ $seoDescription }}">
-<meta name="keywords" content="{{ $product->name }}, {{ $product->category->name ?? 'Feedtan Store' }}, Feedtan Store, online shopping Tanzania">
+<meta name="keywords" content="{{ $product->name }}, {{ $product->category->name ?? 'Feedtan Store' }}, Feedtan Store, online shopping Tanzania, Moshi, Kilimanjaro, online supermarket Moshi, grocery delivery Moshi">
 <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
 <meta name="author" content="Feedtan Store">
 <meta name="theme-color" content="#1B4332">

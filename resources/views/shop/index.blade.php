@@ -7,22 +7,22 @@
       ? $categories->firstWhere('id', (int) request('category'))
       : null;
   $searchTerm = trim((string) request('search', ''));
-  $seoTitle = 'Feedtan Store - Shop Online in Tanzania';
-  $seoDescription = 'Shop groceries, household essentials, fashion, and electronics online from Feedtan Store with fast delivery and easy order tracking.';
+  $seoTitle = 'Moshi Online Supermarket | Grocery Delivery in Kilimanjaro Tanzania | Feedtan Store';
+  $seoDescription = 'Shop groceries online in Moshi, Kilimanjaro. Order fresh food, household items, and get fast home delivery across Moshi town with Feedtan Store.';
 
   if ($selectedCategory) {
-      $seoTitle = $selectedCategory->name . ' - Feedtan Store Online Shop';
-      $seoDescription = 'Browse ' . $selectedCategory->name . ' at Feedtan Store with trusted prices, secure checkout, and delivery options across Tanzania.';
+    $seoTitle = $selectedCategory->name . ' - Feedtan Store Online Shop Moshi Kilimanjaro';
+    $seoDescription = 'Browse ' . $selectedCategory->name . ' at Feedtan Store with trusted prices, secure checkout, and delivery options across Moshi, Kilimanjaro, Tanzania.';
   }
 
   if ($searchTerm !== '') {
-      $seoTitle = 'Search results for "' . $searchTerm . '" - Feedtan Store';
-      $seoDescription = 'Find products matching "' . $searchTerm . '" at Feedtan Store and order online with quick checkout and delivery tracking.';
+    $seoTitle = 'Search results for "' . $searchTerm . '" - Feedtan Store Moshi';
+    $seoDescription = 'Find products matching "' . $searchTerm . '" at Feedtan Store and order online with quick checkout and delivery tracking in Moshi, Kilimanjaro.';
   }
 
   $canonicalUrl = request()->fullUrl();
   $pageType = $selectedCategory || $searchTerm !== '' ? 'website' : 'store';
-  $seoKeywords = 'Feedtan Store, online shop Tanzania, grocery delivery, electronics shop, household products, order tracking';
+  $seoKeywords = 'online supermarket Moshi, Moshi online grocery store, supermarket delivery Moshi Kilimanjaro, buy groceries online Moshi, online shopping Moshi Tanzania, grocery delivery Moshi, food delivery supermarket Moshi, Kilimanjaro online supermarket, Moshi grocery delivery service, online supermarket in Moshi, grocery store near me Moshi, food delivery near Moshi town, supermarket in Kilimanjaro Tanzania, Moshi town online shopping, delivery supermarket Kilimanjaro region, Moshi fresh food delivery, Moshi household shopping online, buy rice online Moshi, Moshi maize flour delivery, online vegetables supermarket Moshi, fresh fruits delivery Moshi Tanzania, cooking oil delivery Moshi, dairy products online Moshi, beverages delivery Moshi supermarket, same day delivery Moshi supermarket, home delivery grocery Moshi, fast delivery Kilimanjaro supermarket, affordable grocery delivery Moshi, online order and home delivery Moshi, Feedtan supermarket Moshi, Feedtan grocery delivery Tanzania, Feedtan online shopping platform, Feedtan Kilimanjaro delivery service, best online supermarket for home delivery in Moshi Tanzania, how to buy groceries online in Moshi Kilimanjaro, cheap grocery delivery service in Moshi town, trusted online supermarket in Kilimanjaro region Tanzania';
   $structuredData = [
       '@context' => 'https://schema.org',
       '@graph' => [
