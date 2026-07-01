@@ -15,19 +15,22 @@
         </div>
 
         @php
-        $totalCollected = $orders->where('status', 'delivered')->sum('total');
+            $totalCollected = $orders->where('status', 'delivered')->sum('total');
+            $pendingOrdersCount = $orders->count();
+            $pendingCount = $orders->where('status', '!=', 'delivered')->count();
         @endphp
+
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
             <div class="p-4 border rounded-lg bg-green-50">
                 <div class="text-2xl font-bold text-green-700">TZS {{ number_format($totalCollected, 2) }}</div>
                 <div class="text-sm text-green-600">Total Collected</div>
             </div>
             <div class="p-4 border rounded-lg bg-blue-50">
-                <div class="text-2xl font-bold text-blue-700">{{ $orders->count() }}</div>
+                <div class="text-2xl font-bold text-blue-700">{{ $pendingOrdersCount }}</div>
                 <div class="text-sm text-blue-600">Total COD Orders</div>
             </div>
             <div class="p-4 border rounded-lg bg-yellow-50">
-                <div class="text-2xl font-bold text-yellow-700">{{ $orders->where('status', '!=', 'delivered')->count() }}</div>
+                <div class="text-2xl font-bold text-yellow-700">{{ $pendingCount }}</div>
                 <div class="text-sm text-yellow-600">Pending Collection</div>
             </div>
         </div>
@@ -65,7 +68,7 @@
                         </td>
                         <td class="px-4 py-3">{{ $order->created_at->format('d/m/Y H:i') }}</td>
                         <td class="px-4 py-3 flex gap-2">
-                            <a href="{{ route('rider.orders.show', $order) }}" class="text-primary-600 hover:text-primary-800 transition-colors" title="View Details">
+                            <a href="{{ route('rider.orders.show', $order) }}" class="text-primary-600 hover:text-primary-800 transition-colors">
                                 <i class="fas fa-eye"></i>
                             </a>
                         </td>

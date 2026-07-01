@@ -52,7 +52,7 @@
                         </td>
                         <td class="px-4 py-3">{{ $order->created_at->format('d/m/Y H:i') }}</td>
                         <td class="px-4 py-3 flex gap-2">
-                            <a href="{{ route('rider.orders.show', $order) }}" class="text-primary-600 hover:text-primary-800 transition-colors" title="View Details">
+                            <a href="{{ route('rider.orders.show', $order) }}" class="text-primary-600 hover:text-primary-800">
                                 <i class="fas fa-eye"></i>
                             </a>
                         </td>
