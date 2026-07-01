@@ -155,8 +155,8 @@ class OnlineOrderController extends Controller
                 );
                 $orderDistances[$order->id] = number_format($distance, 2) . ' km';
                 
-                // Calculate delivery fee
-                $feeResult = $settings->calculateDeliveryFee($distance, $order->subtotal);
+                // Calculate delivery fee (pass customer lat, lon, subtotal)
+                $feeResult = $settings->calculateDeliveryFee($order->delivery_latitude, $order->delivery_longitude, $order->subtotal);
                 if ($feeResult['is_free']) {
                     $orderDeliveryFees[$order->id] = 'FREE';
                 } else {
@@ -318,8 +318,8 @@ class OnlineOrderController extends Controller
             );
             $formattedDistance = number_format($distance, 2) . ' km';
             
-            // Calculate delivery fee
-            $feeResult = $settings->calculateDeliveryFee($distance, $order->subtotal);
+            // Calculate delivery fee (pass customer lat, lon, subtotal)
+            $feeResult = $settings->calculateDeliveryFee($order->delivery_latitude, $order->delivery_longitude, $order->subtotal);
             if ($feeResult['is_free']) {
                 $formattedDeliveryFee = 'FREE';
             } else {
