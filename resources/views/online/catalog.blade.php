@@ -21,26 +21,8 @@
                 <a href="{{ route('online.catalog.show', $product) }}" class="block">
                     <div class="h-40 bg-gray-100 rounded-lg mb-3 flex items-center justify-center overflow-hidden">
                         @php
-                            $settings = \App\Models\StoreSetting::firstOrCreate();
-                            $baseUrl = $settings->store_url ?? config('app.url');
-                            $resolveImageUrl = function ($path) use ($baseUrl) {
-                              if (!$path) {
-                                return null;
-                              }
-
-                              if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://')) {
-                                return $path;
-                              }
-
-                              $cleanPath = ltrim($path, '/');
-                              if (str_starts_with($cleanPath, 'storage/')) {
-                                return rtrim($baseUrl, '/') . '/' . $cleanPath;
-                              }
-
-                              return rtrim($baseUrl, '/') . '/storage/' . $cleanPath;
-                            };
                             $primaryImage = $product->images->firstWhere('is_primary', true);
-                            $imageToShow = $resolveImageUrl($primaryImage?->image_path) ?? $resolveImageUrl($product->image);
+                            $imageToShow = $primaryImage ? $primaryImage->image_path : $product->image;
                         @endphp
                         @if($imageToShow)
                             <img src="{{ $imageToShow }}" alt="{{ $product->name }}" class="max-h-full max-w-full object-contain">

@@ -27,26 +27,8 @@
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <div>
                 @php
-                    $settings = \App\Models\StoreSetting::firstOrCreate();
-                    $baseUrl = $settings->store_url ?? config('app.url');
-                    $resolveImageUrl = function ($path) use ($baseUrl) {
-                      if (!$path) {
-                        return null;
-                      }
-
-                      if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://')) {
-                        return $path;
-                      }
-
-                      $cleanPath = ltrim($path, '/');
-                      if (str_starts_with($cleanPath, 'storage/')) {
-                        return rtrim($baseUrl, '/') . '/' . $cleanPath;
-                      }
-
-                      return rtrim($baseUrl, '/') . '/storage/' . $cleanPath;
-                    };
                     $primaryImage = $product->images->firstWhere('is_primary', true);
-                    $imageToShow = $resolveImageUrl($primaryImage?->image_path) ?? $resolveImageUrl($product->image);
+                    $imageToShow = $primaryImage ? $primaryImage->image_path : $product->image;
                 @endphp
                 <div id="main-image-container" class="bg-gray-100 rounded-lg aspect-square flex items-center justify-center overflow-hidden mb-4">
                     @if($imageToShow)
@@ -59,10 +41,9 @@
                 @if($product->images->count() > 0)
                     <div class="grid grid-cols-4 gap-3">
                         @foreach($product->images as $image)
-                            @php $imgUrl = $resolveImageUrl($image->image_path); @endphp
                             <div class="relative">
-                                <div onclick="document.getElementById('main-image').src='{{ $imgUrl }}'" class="bg-gray-100 rounded-lg aspect-square flex items-center justify-center overflow-hidden cursor-pointer hover:ring-2 hover:ring-primary-500 @if($image->is_primary) ring-2 ring-primary-500 @endif">
-                                    <img src="{{ $imgUrl }}" alt="{{ $product->name }}" class="max-h-full max-w-full object-contain">
+                                <div onclick="document.getElementById('main-image').src='{{ $image->image_path }}'" class="bg-gray-100 rounded-lg aspect-square flex items-center justify-center overflow-hidden cursor-pointer hover:ring-2 hover:ring-primary-500 @if($image->is_primary) ring-2 ring-primary-500 @endif">
+                                    <img src="{{ $image->image_path }}" alt="{{ $product->name }}" class="max-h-full max-w-full object-contain">
                                 </div>
                                 @if(!$image->is_primary)
                                     <form action="{{ route('online.catalog.images.primary', [$product, $image]) }}" method="POST" class="absolute -top-2 -right-2">
