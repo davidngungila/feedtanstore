@@ -157,10 +157,10 @@ class OnlineOrderController extends Controller
                 
                 // Calculate delivery fee (pass customer lat, lon, subtotal)
                 $feeResult = $settings->calculateDeliveryFee($order->delivery_latitude, $order->delivery_longitude, $order->subtotal);
-                if ($feeResult['is_free']) {
+                if ($feeResult['fee'] == 0) {
                     $orderDeliveryFees[$order->id] = 'FREE';
                 } else {
-                    $orderDeliveryFees[$order->id] = 'TZS ' . number_format($feeResult['delivery_fee'], 0);
+                    $orderDeliveryFees[$order->id] = 'TZS ' . number_format($feeResult['fee'], 0);
                 }
             } else {
                 $orderDistances[$order->id] = null;
@@ -320,10 +320,10 @@ class OnlineOrderController extends Controller
             
             // Calculate delivery fee (pass customer lat, lon, subtotal)
             $feeResult = $settings->calculateDeliveryFee($order->delivery_latitude, $order->delivery_longitude, $order->subtotal);
-            if ($feeResult['is_free']) {
+            if ($feeResult['fee'] == 0) {
                 $formattedDeliveryFee = 'FREE';
             } else {
-                $formattedDeliveryFee = 'TZS ' . number_format($feeResult['delivery_fee'], 0);
+                $formattedDeliveryFee = 'TZS ' . number_format($feeResult['fee'], 0);
             }
         }
         
