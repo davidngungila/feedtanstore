@@ -33,7 +33,7 @@
                                 {{ $product->is_available_online ? 'Online' : 'Offline' }}
                             </button>
                         </form>
-                        <a href="{{ route('products.edit', $product) }}" class="px-5 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-full font-medium transition-all duration-200 shadow-md shadow-primary-200 hover:shadow-lg">
+                        <a href="{{ route('inventory.products.edit', $product) }}" class="px-5 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-full font-medium transition-all duration-200 shadow-md shadow-primary-200 hover:shadow-lg">
                             <i class="fas fa-edit mr-2"></i>
                             Edit Product
                         </a>
