@@ -272,7 +272,7 @@
                         <i class="fas fa-external-link-alt"></i>
                         View on Public Shop
                     </a>
-                    <a href="{{ route('products.edit', $product) }}" class="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white rounded-xl font-semibold transition-all duration-200 shadow-md shadow-blue-200">
+                    <a href="{{ route('inventory.products.edit', $product) }}" class="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white rounded-xl font-semibold transition-all duration-200 shadow-md shadow-blue-200">
                         <i class="fas fa-edit"></i>
                         Edit Product Details
                     </a>
