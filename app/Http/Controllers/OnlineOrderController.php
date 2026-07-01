@@ -585,7 +585,7 @@ class OnlineOrderController extends Controller
         return response()->json([
             'success' => true,
             'delivery_fee' => $deliveryFee,
-            'formatted_delivery_fee' => 'TZS ' . number_format($deliveryFee, 2),
+            'formatted_delivery_fee' => 'TZS ' . number_format($deliveryFee, 0),
             'is_free' => $deliveryFee === 0
         ]);
     }
