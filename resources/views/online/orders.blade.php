@@ -71,6 +71,7 @@
                         <th class="px-4 py-3 text-left text-gray-700">Order #</th>
                         <th class="px-4 py-3 text-left text-gray-700">Delivery Code</th>
                         <th class="px-4 py-3 text-left text-gray-700">Customer</th>
+                        <th class="px-4 py-3 text-left text-gray-700">Distance</th>
                         <th class="px-4 py-3 text-left text-gray-700">Total</th>
                         <th class="px-4 py-3 text-left text-gray-700">Status</th>
                         <th class="px-4 py-3 text-left text-gray-700">Payment</th>
@@ -93,6 +94,7 @@
                             <div>{{ $order->customer_name }}</div>
                             <div class="text-xs text-gray-500">{{ $order->customer_phone }}</div>
                         </td>
+                        <td class="px-4 py-3">{{ $orderDistances[$order->id] ?? 'N/A' }}</td>
                         <td class="px-4 py-3 font-semibold">TZS {{ number_format($order->total, 2) }}</td>
                         <td class="px-4 py-3">
                             <span class="px-2 py-1 rounded-full text-xs font-semibold 
@@ -134,7 +136,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="9" class="px-4 py-8 text-center text-gray-500">
+                        <td colspan="10" class="px-4 py-8 text-center text-gray-500">
                             No online orders found.
                         </td>
                     </tr>

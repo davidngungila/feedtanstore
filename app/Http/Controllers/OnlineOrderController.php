@@ -117,6 +117,7 @@ class OnlineOrderController extends Controller
         $storeLng = $settings->store_longitude ?? 36.6883;
         
         $routes = [];
+        $orderDistances = [];
         
         if ($settings->openrouteservice_api_key) {
             foreach ($orders as $order) {
@@ -141,9 +142,24 @@ class OnlineOrderController extends Controller
                 }
             }
         }
+        
+        // Calculate distances for all orders
+        foreach ($orders as $order) {
+            if ($order->delivery_latitude && $order->delivery_longitude) {
+                $distance = $settings->calculateDistance(
+                    $storeLat,
+                    $storeLng,
+                    $order->delivery_latitude,
+                    $order->delivery_longitude
+                );
+                $orderDistances[$order->id] = number_format($distance, 2) . ' km';
+            } else {
+                $orderDistances[$order->id] = null;
+            }
+        }
 
         $allStatuses = ['pending', 'confirmed', 'preparing', 'ready', 'out_for_delivery', 'delivered', 'cancelled'];
-        return view('online.orders', compact('orders', 'storeLat', 'storeLng', 'routes', 'statusFilter', 'allStatuses', 'search'));
+        return view('online.orders', compact('orders', 'storeLat', 'storeLng', 'routes', 'statusFilter', 'allStatuses', 'search', 'orderDistances'));
     }
 
     public function shop()
@@ -280,6 +296,18 @@ class OnlineOrderController extends Controller
         $order->load(['items.product', 'rider', 'user']);
         $settings = \App\Models\StoreSetting::firstOrCreate();
         
+        $distance = null;
+        $formattedDistance = null;
+        if ($order->delivery_latitude && $order->delivery_longitude) {
+            $distance = $settings->calculateDistance(
+                $settings->store_latitude ?? -3.3430,
+                $settings->store_longitude ?? 37.3507,
+                $order->delivery_latitude,
+                $order->delivery_longitude
+            );
+            $formattedDistance = number_format($distance, 2) . ' km';
+        }
+        
         $route = null;
         if ($settings->openrouteservice_api_key && $order->delivery_latitude && $order->delivery_longitude) {
             try {
@@ -304,7 +332,7 @@ class OnlineOrderController extends Controller
             }
         }
         
-        return view('online.orders-show', compact('order', 'route', 'settings'));
+        return view('online.orders-show', compact('order', 'route', 'settings', 'distance', 'formattedDistance'));
     }
 
     public function edit(OnlineOrder $order)

@@ -69,6 +69,9 @@
                         {{ number_format($order->delivery_latitude, 6) }}, {{ number_format($order->delivery_longitude, 6) }}
                     </p>
                 @endif
+                @if($formattedDistance)
+                    <p class="mb-1"><strong>Distance:</strong> {{ $formattedDistance }}</p>
+                @endif
                 @if($order->rider)
                     <p class="mb-1"><strong>Rider:</strong> {{ $order->rider->name }} ({{ $order->rider->phone }})</p>
                 @endif
