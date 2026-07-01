@@ -571,7 +571,7 @@ footer{background:var(--green-900);color:#BFD6C8;padding:40px 0 0;margin-top:40p
             <div id="checkoutItems" class="space-y-3 mb-4"></div>
             <div class="border-t border-gray-100 pt-4 space-y-2">
               <div class="sum-row"><span>Subtotal</span><span id="subtotal">TZS 0</span></div>
-              <div class="sum-row"><span>Delivery Fee</span><span id="deliveryFeeDisplay">Assigned by admin</span></div>
+              <div class="sum-row"><span>Delivery Fee</span><span id="deliveryFeeDisplay">Select location to calculate</span></div>
               <div class="sum-row total"><span>Current Total</span><span id="checkoutTotal">TZS 0</span></div>
             </div>
           </div>
