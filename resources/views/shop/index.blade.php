@@ -623,8 +623,18 @@ footer{background:var(--green-900);color:#BFD6C8;padding:54px 0 0;margin-top:30p
                 return null;
               }
 
+              // If it's already a full URL, clean it to extract the path
               if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://')) {
-                return $path;
+                // Parse URL to get path
+                $parsed = parse_url($path);
+                if (isset($parsed['path'])) {
+                  $path = ltrim($parsed['path'], '/');
+                  // If path starts with storage/, use it directly
+                  if (str_starts_with($path, 'storage/')) {
+                    return rtrim($baseUrl, '/') . '/' . $path;
+                  }
+                  return rtrim($baseUrl, '/') . '/storage/' . $path;
+                }
               }
 
               $cleanPath = ltrim($path, '/');

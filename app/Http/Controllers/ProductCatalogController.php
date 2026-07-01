@@ -35,12 +35,11 @@ class ProductCatalogController extends Controller
         ]);
 
         $path = $request->file('image')->store('products', 'public');
-        $imageUrl = asset('storage/' . $path);
 
         $isPrimary = $product->images()->count() === 0;
 
         $product->images()->create([
-            'image_path' => $imageUrl,
+            'image_path' => $path,
             'is_primary' => $isPrimary,
             'order' => $product->images()->count()
         ]);
