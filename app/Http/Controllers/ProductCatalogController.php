@@ -19,8 +19,7 @@ class ProductCatalogController extends Controller
     public function show(Product $product)
     {
         $product->load(['category', 'brand', 'unit', 'images', 'onlineOrderItems.order']);
-        $settings = \App\Models\StoreSetting::firstOrCreate();
-        return view('online.catalog-show', compact('product', 'settings'));
+        return view('online.catalog-show', compact('product'));
     }
 
     public function toggleOnlineStatus(Request $request, Product $product)
