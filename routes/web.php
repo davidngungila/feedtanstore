@@ -27,6 +27,7 @@ Route::get('/shop/tracking/{orderNumber}', [\App\Http\Controllers\OnlineOrderCon
 Route::get('/shop/tracking/{orderNumber}/pdf', [\App\Http\Controllers\OnlineOrderController::class, 'downloadTrackingPDF'])->name('shop.tracking.pdf');
 Route::post('/api/shop/orders', [\App\Http\Controllers\OnlineOrderController::class, 'placeOrder']);
 Route::get('/api/shop/orders/{orderNumber}/payment-status', [\App\Http\Controllers\OnlineOrderController::class, 'checkPaymentStatus'])->name('shop.payment-status');
+Route::post('/api/shop/calculate-delivery-fee', [\App\Http\Controllers\OnlineOrderController::class, 'calculateDeliveryFee']);
 Route::post('/api/shop/orders/{orderNumber}/initiate-payment', [\App\Http\Controllers\OnlineOrderController::class, 'initiatePaymentForOrder'])->name('shop.payment-initiate');
 
 // Protected Routes (must be authenticated)

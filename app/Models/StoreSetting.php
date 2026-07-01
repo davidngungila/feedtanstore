@@ -36,6 +36,12 @@ class StoreSetting extends Model
         'store_longitude',
         'store_url',
         'share_price',
+        // Delivery Fee Settings
+        'delivery_base_fee',
+        'delivery_per_km_rate',
+        'delivery_free_threshold',
+        'delivery_use_zone_pricing',
+        'delivery_zone_config',
         // Communication Settings
         'smtp_host',
         'smtp_port',
@@ -71,6 +77,61 @@ class StoreSetting extends Model
         'kiosk_lock_keyboard_shortcuts' => 'boolean',
         'kiosk_auto_focus_cashier' => 'boolean',
         'barcode_show_text' => 'boolean',
-        'vfd_enabled' => 'boolean'
+        'vfd_enabled' => 'boolean',
+        'delivery_use_zone_pricing' => 'boolean',
+        'delivery_zone_config' => 'array',
     ];
+
+    /**
+     * Calculate distance between two points using Haversine formula (in kilometers)
+     */
+    public function calculateDistance(float $lat1, float $lon1, float $lat2, float $lon2): float
+    {
+        $earthRadius = 6371; // km
+
+        $dLat = deg2rad($lat2 - $lat1);
+        $dLon = deg2rad($lon2 - $lon1);
+
+        $a = sin($dLat / 2) * sin($dLat / 2) +
+            cos(deg2rad($lat1)) * cos(deg2rad($lat2)) *
+            sin($dLon / 2) * sin($dLon / 2);
+
+        $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
+
+        return $earthRadius * $c;
+    }
+
+    /**
+     * Calculate delivery fee based on distance and order subtotal
+     */
+    public function calculateDeliveryFee(float $customerLat, float $customerLon, float $orderSubtotal): float
+    {
+        // If order meets free delivery threshold, return 0
+        if ($orderSubtotal >= $this->delivery_free_threshold) {
+            return 0;
+        }
+
+        $distance = $this->calculateDistance(
+            $this->store_latitude ?? 0,
+            $this->store_longitude ?? 0,
+            $customerLat,
+            $customerLon
+        );
+
+        if ($this->delivery_use_zone_pricing && $this->delivery_zone_config) {
+            foreach ($this->delivery_zone_config as $zone) {
+                if ($distance >= $zone['min_km'] && $distance <= $zone['max_km']) {
+                    return (float) $zone['fee'];
+                }
+            }
+            // If no zone matches, use last zone's fee
+            $lastZone = end($this->delivery_zone_config);
+            return $lastZone ? (float) $lastZone['fee'] : $this->delivery_base_fee;
+        }
+
+        // Distance-based pricing: Base + (Distance × Rate)
+        $fee = $this->delivery_base_fee + ($distance * $this->delivery_per_km_rate);
+        return max(0, round($fee, 2));
+    }
+}
 }

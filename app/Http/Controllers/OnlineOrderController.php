@@ -567,6 +567,29 @@ class OnlineOrderController extends Controller
         return $pdf->stream($order->order_number . '.pdf');
     }
 
+    public function calculateDeliveryFee(Request $request)
+    {
+        $request->validate([
+            'delivery_latitude' => 'required|numeric',
+            'delivery_longitude' => 'required|numeric',
+            'subtotal' => 'required|numeric|min:0'
+        ]);
+
+        $settings = \App\Models\StoreSetting::firstOrCreate();
+        $deliveryFee = $settings->calculateDeliveryFee(
+            (float) $request->delivery_latitude,
+            (float) $request->delivery_longitude,
+            (float) $request->subtotal
+        );
+
+        return response()->json([
+            'success' => true,
+            'delivery_fee' => $deliveryFee,
+            'formatted_delivery_fee' => 'TZS ' . number_format($deliveryFee, 2),
+            'is_free' => $deliveryFee === 0
+        ]);
+    }
+
     public function placeOrder(Request $request, FeedtanEcommercePaymentService $paymentService)
     {
         $request->validate([
@@ -604,7 +627,16 @@ class OnlineOrderController extends Controller
             ];
         }
 
-        $deliveryFee = $request->delivery_fee ?? 0;
+        $deliveryFee = $request->delivery_fee ?? null;
+        if ($deliveryFee === null && $request->delivery_latitude && $request->delivery_longitude) {
+            $settings = \App\Models\StoreSetting::firstOrCreate();
+            $deliveryFee = $settings->calculateDeliveryFee(
+                (float) $request->delivery_latitude,
+                (float) $request->delivery_longitude,
+                $subtotal
+            );
+        }
+        $deliveryFee = $deliveryFee ?? 0;
         $total = $subtotal + $deliveryFee;
 
         // First create the order without tracking token to get an ID

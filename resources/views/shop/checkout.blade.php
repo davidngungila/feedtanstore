@@ -638,6 +638,8 @@ let checkoutMarker = null;
 let checkoutMapOther = null;
 let checkoutMarkerOther = null;
 let selectedLocation = { lat: null, lng: null };
+let currentDeliveryFee = 0;
+let needDelivery = 'yes';
 
 function initializeCheckoutMap() {
   if (checkoutMap || typeof L === 'undefined') return;
@@ -730,6 +732,7 @@ function initializeCheckoutMapOther() {
     document.getElementById('mapLocStatus').querySelector('span').textContent = 'Location selected!';
     document.getElementById('mapLocStatus').classList.remove('pending', 'error');
     setFieldError('mapLocation', '');
+    fetchDeliveryFee();
   });
 
   // Add initial marker if location exists
@@ -773,6 +776,8 @@ function toggleLocationType() {
   setFieldError('deliveryAddress', '');
   setFieldError('manualAddress', '');
   setFieldError('mapLocation', '');
+  
+  fetchDeliveryFee();
 }
 
 // Search address using Nominatim API
@@ -844,6 +849,7 @@ function selectSearchResult(lat, lng, displayName) {
   // Clear errors
   setFieldError('manualAddress', '');
   setFieldError('mapLocation', '');
+  fetchDeliveryFee();
 }
 
 function showEmptyCartState() {
@@ -956,6 +962,7 @@ function initCart() {
       } else {
         renderCheckoutItems();
         updateTotal();
+        fetchDeliveryFee();
       }
     } catch(e) {
       cart = [];
@@ -990,18 +997,69 @@ function calculateTotal() {
   return cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
 }
 
+async function fetchDeliveryFee() {
+  const locationType = document.querySelector('input[name="location_type"]:checked')?.value;
+  let lat = null, lng = null;
+
+  if (needDelivery === 'yes') {
+    if (locationType === 'current') {
+      lat = userLocation.lat;
+      lng = userLocation.lng;
+    } else {
+      lat = selectedLocation.lat;
+      lng = selectedLocation.lng;
+    }
+
+    if (lat && lng) {
+      const subtotal = calculateTotal();
+      try {
+        const response = await fetch('/api/shop/calculate-delivery-fee', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': getCsrfToken()
+          },
+          body: JSON.stringify({
+            delivery_latitude: lat,
+            delivery_longitude: lng,
+            subtotal: subtotal
+          })
+        });
+        const data = await response.json();
+        if (data.success) {
+          currentDeliveryFee = data.delivery_fee;
+          document.getElementById('deliveryFeeDisplay').textContent = data.is_free ? 'FREE' : data.formatted_delivery_fee;
+          updateTotal();
+        }
+      } catch (e) {
+        console.error('Failed to calculate delivery fee', e);
+      }
+    } else {
+      currentDeliveryFee = 0;
+      document.getElementById('deliveryFeeDisplay').textContent = 'Select location to calculate';
+      updateTotal();
+    }
+  } else {
+    currentDeliveryFee = 0;
+    document.getElementById('deliveryFeeDisplay').textContent = 'FREE';
+    updateTotal();
+  }
+}
+
 function updateTotal() {
   const subtotal = calculateTotal();
-  const total = subtotal;
+  const total = subtotal + currentDeliveryFee;
   
   document.getElementById('subtotal').textContent = 'TZS ' + subtotal.toLocaleString();
-  document.getElementById('deliveryFeeDisplay').textContent = 'Assigned by admin';
+  if (needDelivery === 'no') {
+    document.getElementById('deliveryFeeDisplay').textContent = 'FREE';
+  }
   document.getElementById('checkoutTotal').textContent = 'TZS ' + total.toLocaleString();
 }
 
 // Toggle delivery options
 function toggleDeliveryOptions() {
-  const needDelivery = document.querySelector('input[name="need_delivery"]:checked').value;
+  needDelivery = document.querySelector('input[name="need_delivery"]:checked').value;
   const deliveryAddressSection = document.getElementById('deliveryAddressSection');
   const optDelivery = document.getElementById('opt-delivery');
   const optPickup = document.getElementById('opt-pickup');
@@ -1016,6 +1074,7 @@ function toggleDeliveryOptions() {
     optPickup.classList.add('selected');
     optDelivery.classList.remove('selected');
   }
+  fetchDeliveryFee();
 }
 
 // Select payment method
@@ -1051,6 +1110,7 @@ function detectLocation() {
         document.getElementById('deliveryAddress').value = `Auto-detected location: ${userLocation.lat.toFixed(6)}, ${userLocation.lng.toFixed(6)}`;
         setFieldError('deliveryAddress', '');
         updateCheckoutMap(userLocation.lat, userLocation.lng);
+        fetchDeliveryFee();
       },
       (error) => {
         let errorMsg = 'Unable to get location.';
@@ -1361,6 +1421,7 @@ document.getElementById('checkoutForm').addEventListener('submit', async functio
     delivery_latitude: finalLocation.lat,
     delivery_longitude: finalLocation.lng,
     payment_method: paymentMethod,
+    delivery_fee: needDelivery === 'yes' ? currentDeliveryFee : 0,
     items: items
   };
   
