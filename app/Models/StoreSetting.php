@@ -116,8 +116,8 @@ class StoreSetting extends Model
             return 0;
         }
 
-        $storeLat = (float) ($this->store_latitude ?? -3.3869); // Default to Moshi, Tanzania
-        $storeLon = (float) ($this->store_longitude ?? 36.6883);
+        $storeLat = (float) ($this->store_latitude ?? -3.3430); // Default to Moshi, Tanzania
+        $storeLon = (float) ($this->store_longitude ?? 37.3507);
         
         $distance = $this->calculateDistance(
             $storeLat,
