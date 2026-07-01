@@ -748,13 +748,13 @@ document.getElementById('trackForm').addEventListener('submit', function(e) {
 @if($order)
 const payNowBtn = document.getElementById('payNowBtn');
 if (payNowBtn) {
-            payNowBtn.addEventListener('click', async () => {
-                const orderNumber = payNowBtn.getAttribute('data-order');
-                const defaultPhone = payNowBtn.getAttribute('data-phone') || '';
-                const baseUrl = @json($settings->store_url ?? config('app.url'));
-                const trackingIdentifier = @json($order->tracking_token ?? $order->order_number);
-                const trackingUrl = `${baseUrl}/shop/tracking/${encodeURIComponent(trackingIdentifier)}`;
-                const pdfUrl = `${baseUrl}/shop/tracking/${encodeURIComponent(trackingIdentifier)}/pdf`;
+  payNowBtn.addEventListener('click', async () => {
+    const orderNumber = payNowBtn.getAttribute('data-order');
+    const defaultPhone = payNowBtn.getAttribute('data-phone') || '';
+    const baseUrl = @json($settings->store_url ?? config('app.url'));
+    const trackingIdentifier = @json($order->tracking_token ?? $order->order_number);
+    const trackingUrl = `${baseUrl}/shop/tracking/${encodeURIComponent(trackingIdentifier)}`;
+    const pdfUrl = `${baseUrl}/shop/tracking/${encodeURIComponent(trackingIdentifier)}/pdf`;
     try {
       const phoneNumber = await promptPaymentPhoneNumber(defaultPhone);
       if (!phoneNumber) {
