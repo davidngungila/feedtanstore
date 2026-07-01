@@ -1003,20 +1003,25 @@ function calculateTotal() {
 }
 
 async function fetchDeliveryFee() {
+  console.log('fetchDeliveryFee called');
   const locationType = document.querySelector('input[name="location_type"]:checked')?.value;
+  console.log('locationType:', locationType);
   let lat = null, lng = null;
 
   if (needDelivery === 'yes') {
     if (locationType === 'current') {
       lat = userLocation.lat;
       lng = userLocation.lng;
+      console.log('Using current location:', { lat, lng });
     } else {
       lat = selectedLocation.lat;
       lng = selectedLocation.lng;
+      console.log('Using selected location:', { lat, lng });
     }
 
     if (lat && lng) {
       const subtotal = calculateTotal();
+      console.log('Subtotal:', subtotal);
       try {
         const response = await fetch('/api/shop/calculate-delivery-fee', {
           method: 'POST',
@@ -1030,7 +1035,9 @@ async function fetchDeliveryFee() {
             subtotal: subtotal
           })
         });
+        console.log('API Response status:', response.status);
         const data = await response.json();
+        console.log('API Response data:', data);
         if (data.success) {
           currentDeliveryFee = data.delivery_fee;
           document.getElementById('deliveryDistanceDisplay').textContent = data.formatted_distance;
