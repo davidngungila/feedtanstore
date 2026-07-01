@@ -106,14 +106,22 @@ class StoreSetting extends Model
      */
     public function calculateDeliveryFee(float $customerLat, float $customerLon, float $orderSubtotal): float
     {
+        // Set default values for delivery fee settings if not configured
+        $baseFee = (float) ($this->delivery_base_fee ?? 2000);
+        $perKmRate = (float) ($this->delivery_per_km_rate ?? 400);
+        $freeThreshold = (float) ($this->delivery_free_threshold ?? 50000);
+        
         // If order meets free delivery threshold, return 0
-        if ($orderSubtotal >= $this->delivery_free_threshold) {
+        if ($orderSubtotal >= $freeThreshold) {
             return 0;
         }
 
+        $storeLat = (float) ($this->store_latitude ?? -3.3869); // Default to Moshi, Tanzania
+        $storeLon = (float) ($this->store_longitude ?? 36.6883);
+        
         $distance = $this->calculateDistance(
-            $this->store_latitude ?? 0,
-            $this->store_longitude ?? 0,
+            $storeLat,
+            $storeLon,
             $customerLat,
             $customerLon
         );
@@ -126,11 +134,11 @@ class StoreSetting extends Model
             }
             // If no zone matches, use last zone's fee
             $lastZone = end($this->delivery_zone_config);
-            return $lastZone ? (float) $lastZone['fee'] : $this->delivery_base_fee;
+            return $lastZone ? (float) $lastZone['fee'] : $baseFee;
         }
 
         // Distance-based pricing: Base + (Distance × Rate)
-        $fee = $this->delivery_base_fee + ($distance * $this->delivery_per_km_rate);
+        $fee = $baseFee + ($distance * $perKmRate);
         return max(0, round($fee, 2));
     }
 }
