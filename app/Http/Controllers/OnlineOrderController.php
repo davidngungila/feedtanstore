@@ -118,6 +118,7 @@ class OnlineOrderController extends Controller
         
         $routes = [];
         $orderDistances = [];
+        $orderDeliveryFees = [];
         
         if ($settings->openrouteservice_api_key) {
             foreach ($orders as $order) {
@@ -143,7 +144,7 @@ class OnlineOrderController extends Controller
             }
         }
         
-        // Calculate distances for all orders
+        // Calculate distances and delivery fees for all orders
         foreach ($orders as $order) {
             if ($order->delivery_latitude && $order->delivery_longitude) {
                 $distance = $settings->calculateDistance(
@@ -153,13 +154,22 @@ class OnlineOrderController extends Controller
                     $order->delivery_longitude
                 );
                 $orderDistances[$order->id] = number_format($distance, 2) . ' km';
+                
+                // Calculate delivery fee
+                $feeResult = $settings->calculateDeliveryFee($distance, $order->subtotal);
+                if ($feeResult['is_free']) {
+                    $orderDeliveryFees[$order->id] = 'FREE';
+                } else {
+                    $orderDeliveryFees[$order->id] = 'TZS ' . number_format($feeResult['delivery_fee'], 0);
+                }
             } else {
                 $orderDistances[$order->id] = null;
+                $orderDeliveryFees[$order->id] = null;
             }
         }
 
         $allStatuses = ['pending', 'confirmed', 'preparing', 'ready', 'out_for_delivery', 'delivered', 'cancelled'];
-        return view('online.orders', compact('orders', 'storeLat', 'storeLng', 'routes', 'statusFilter', 'allStatuses', 'search', 'orderDistances'));
+        return view('online.orders', compact('orders', 'storeLat', 'storeLng', 'routes', 'statusFilter', 'allStatuses', 'search', 'orderDistances', 'orderDeliveryFees'));
     }
 
     public function shop()
@@ -298,6 +308,7 @@ class OnlineOrderController extends Controller
         
         $distance = null;
         $formattedDistance = null;
+        $formattedDeliveryFee = null;
         if ($order->delivery_latitude && $order->delivery_longitude) {
             $distance = $settings->calculateDistance(
                 $settings->store_latitude ?? -3.3430,
@@ -306,6 +317,14 @@ class OnlineOrderController extends Controller
                 $order->delivery_longitude
             );
             $formattedDistance = number_format($distance, 2) . ' km';
+            
+            // Calculate delivery fee
+            $feeResult = $settings->calculateDeliveryFee($distance, $order->subtotal);
+            if ($feeResult['is_free']) {
+                $formattedDeliveryFee = 'FREE';
+            } else {
+                $formattedDeliveryFee = 'TZS ' . number_format($feeResult['delivery_fee'], 0);
+            }
         }
         
         $route = null;
@@ -332,7 +351,7 @@ class OnlineOrderController extends Controller
             }
         }
         
-        return view('online.orders-show', compact('order', 'route', 'settings', 'distance', 'formattedDistance'));
+        return view('online.orders-show', compact('order', 'route', 'settings', 'distance', 'formattedDistance', 'formattedDeliveryFee'));
     }
 
     public function edit(OnlineOrder $order)

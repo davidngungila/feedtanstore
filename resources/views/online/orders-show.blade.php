@@ -72,6 +72,9 @@
                 @if($formattedDistance)
                     <p class="mb-1"><strong>Distance:</strong> {{ $formattedDistance }}</p>
                 @endif
+                @if($formattedDeliveryFee)
+                    <p class="mb-1"><strong>Delivery Fee:</strong> {{ $formattedDeliveryFee }}</p>
+                @endif
                 @if($order->rider)
                     <p class="mb-1"><strong>Rider:</strong> {{ $order->rider->name }} ({{ $order->rider->phone }})</p>
                 @endif
