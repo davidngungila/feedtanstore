@@ -22,27 +22,55 @@
       return asset('storage/' . ltrim($path, '/'));
   };
   $imageToShow = $resolveImageUrl($primaryImage?->image_path) ?? $resolveImageUrl($product->image) ?? $logoUrl;
+  $breadcrumbList = [
+      '@context' => 'https://schema.org',
+      '@type' => 'BreadcrumbList',
+      'itemListElement' => [
+          [
+              '@type' => 'ListItem',
+              'position' => 1,
+              'name' => 'Home',
+              'item' => route('shop.index'),
+          ],
+          [
+              '@type' => 'ListItem',
+              'position' => 2,
+              'name' => $product->category->name ?? 'Products',
+              'item' => $product->category ? route('shop.index', ['category' => $product->category->id]) : route('shop.index'),
+          ],
+          [
+              '@type' => 'ListItem',
+              'position' => 3,
+              'name' => $product->name,
+          ],
+      ],
+  ];
   $productSchema = [
       '@context' => 'https://schema.org',
-      '@type' => 'Product',
-      'name' => $product->name,
-      'description' => $seoDescription,
-      'image' => [$imageToShow],
-      'sku' => $product->sku ?: (string) $product->id,
-      'category' => $product->category->name ?? 'Uncategorized',
-      'brand' => [
-          '@type' => 'Brand',
-          'name' => $product->brand->name ?? 'Feedtan Store',
-      ],
-      'offers' => [
-          '@type' => 'Offer',
-          'url' => $productCanonicalUrl,
-          'priceCurrency' => 'TZS',
-          'price' => number_format((float) $product->selling_price, 0, '.', ''),
-          'availability' => $product->quantity > 0
-              ? 'https://schema.org/InStock'
-              : 'https://schema.org/OutOfStock',
-          'itemCondition' => 'https://schema.org/NewCondition',
+      '@graph' => [
+          $breadcrumbList,
+          [
+              '@type' => 'Product',
+              'name' => $product->name,
+              'description' => $seoDescription,
+              'image' => [$imageToShow],
+              'sku' => $product->sku ?: (string) $product->id,
+              'category' => $product->category->name ?? 'Uncategorized',
+              'brand' => [
+                  '@type' => 'Brand',
+                  'name' => $product->brand->name ?? 'Feedtan Store',
+              ],
+              'offers' => [
+                  '@type' => 'Offer',
+                  'url' => $productCanonicalUrl,
+                  'priceCurrency' => 'TZS',
+                  'price' => number_format((float) $product->selling_price, 0, '.', ''),
+                  'availability' => $product->quantity > 0
+                      ? 'https://schema.org/InStock'
+                      : 'https://schema.org/OutOfStock',
+                  'itemCondition' => 'https://schema.org/NewCondition',
+              ],
+          ],
       ],
   ];
 @endphp
