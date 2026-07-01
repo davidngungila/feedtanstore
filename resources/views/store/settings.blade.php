@@ -101,6 +101,46 @@
                 </div>
             </div>
             
+            <!-- Delivery Fee Settings Section -->
+            <div class="mb-8">
+                <h3 class="text-lg font-semibold text-primary-900 mb-4 border-b border-gray-200 pb-2">
+                    <i class="fas fa-truck mr-2"></i>
+                    Delivery Fee Settings
+                </h3>
+                <div class="p-4 bg-gray-50 rounded-xl border border-gray-200 space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Base Delivery Fee</label>
+                            <input type="number" step="0.01" name="delivery_base_fee" value="{{ $settings->delivery_base_fee }}" class="form-input w-full" placeholder="e.g. 2000">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Per-Kilometer Rate</label>
+                            <input type="number" step="0.01" name="delivery_per_km_rate" value="{{ $settings->delivery_per_km_rate }}" class="form-input w-full" placeholder="e.g. 400">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Free Delivery Threshold</label>
+                            <input type="number" step="0.01" name="delivery_free_threshold" value="{{ $settings->delivery_free_threshold }}" class="form-input w-full" placeholder="e.g. 50000">
+                        </div>
+                    </div>
+                    
+                    <div class="pt-2">
+                        <label class="flex items-center gap-3">
+                            <input type="checkbox" name="delivery_use_zone_pricing" value="1" {{ $settings->delivery_use_zone_pricing ? 'checked' : '' }} class="w-5 h-5 rounded border-gray-300 text-primary-600 focus:ring-primary-500">
+                            <div>
+                                <span class="text-base font-semibold text-gray-700">Use Zone Pricing</span>
+                                <p class="text-xs text-gray-500 mt-1">Enable to use zone-based delivery fees instead of distance-based</p>
+                            </div>
+                        </label>
+                    </div>
+                    
+                    <div class="mt-4" id="zonePricingSection" style="{{ $settings->delivery_use_zone_pricing ? '' : 'display:none;' }}">
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Delivery Zones (JSON)</label>
+                        <textarea name="delivery_zone_config" rows="6" class="form-input w-full font-mono text-xs" placeholder='[{"name": "Zone 1", "min_km": 0, "max_km": 3, "fee": 2500}, {"name": "Zone 2", "min_km": 3, "max_km": 6, "fee": 3500}]'>{{ $settings->delivery_zone_config ? json_encode($settings->delivery_zone_config, JSON_PRETTY_PRINT) : '' }}</textarea>
+                        <p class="text-xs text-gray-500 mt-2">Define zones with minimum km, maximum km, and delivery fee for each zone</p>
+                    </div>
+                </div>
+            </div>
+            
             <!-- Kiosk Mode Section -->
             <div class="mb-8">
                 <h3 class="text-lg font-semibold text-primary-900 mb-4 border-b border-gray-200 pb-2">
@@ -186,6 +226,16 @@ document.addEventListener('DOMContentLoaded', function() {
         
         kioskModeCheckbox.addEventListener('change', function() {
             kioskOptions.style.display = this.checked ? 'block' : 'none';
+        });
+    }
+    
+    // Zone pricing toggle
+    const zonePricingCheckbox = document.querySelector('input[name="delivery_use_zone_pricing"]');
+    const zonePricingSection = document.getElementById('zonePricingSection');
+    
+    if (zonePricingCheckbox && zonePricingSection) {
+        zonePricingCheckbox.addEventListener('change', function() {
+            zonePricingSection.style.display = this.checked ? 'block' : 'none';
         });
     }
     

@@ -511,12 +511,7 @@ footer{background:var(--green-900);color:#BFD6C8;padding:40px 0 0;margin-top:40p
             <div class="field-error" id="err-mapLocation" style="margin-top:8px;"></div>
           </div>
 
-          <div class="loc-box" style="margin-top:0;">
-            <div class="loc-status pending" style="align-items:flex-start;">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="12" cy="12" r="10"/><path d="M12 8h.01M11 12h2v4h-2z"/></svg>
-              <span>Delivery fee is assigned by admin based on your location, distance, and rider.</span>
-            </div>
-          </div>
+
         </div>
         <div class="card" style="padding:16px;display:none;justify-content:space-between;" id="stepAddressActions">
           <button type="button" class="btn btn-ghost" id="btnBackAddress">Back</button>

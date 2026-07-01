@@ -51,6 +51,12 @@ class StoreSettingController extends Controller
             'store_longitude' => 'nullable|numeric',
             'store_url' => 'nullable|url|max:255',
             'share_price' => 'nullable|numeric|min:0',
+            // Delivery fee fields
+            'delivery_base_fee' => 'nullable|numeric|min:0',
+            'delivery_per_km_rate' => 'nullable|numeric|min:0',
+            'delivery_free_threshold' => 'nullable|numeric|min:0',
+            'delivery_use_zone_pricing' => 'boolean',
+            'delivery_zone_config' => 'nullable|array',
             // Communication fields
             'smtp_host' => 'nullable|string|max:255',
             'smtp_port' => 'nullable|integer|min:1|max:65535',
@@ -89,6 +95,7 @@ class StoreSettingController extends Controller
             'kiosk_lock_keyboard_shortcuts',
             'kiosk_auto_focus_cashier',
             'barcode_show_text',
+            'delivery_use_zone_pricing',
             'vfd_enabled'
         ];
         
