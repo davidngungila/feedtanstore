@@ -3,6 +3,8 @@
 namespace App\Providers;
 
 use App\Models\Product;
+use App\Models\Category;
+use App\Observers\SitemapObserver;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
@@ -21,6 +23,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Register observers for sitemap regeneration
+        Product::observe(SitemapObserver::class);
+        Category::observe(SitemapObserver::class);
+
         // Share notification counts with all views
         View::composer('*', function ($view) {
             $outOfStockCount = Product::where('quantity', 0)->count();

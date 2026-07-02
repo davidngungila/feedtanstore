@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\File;
+use App\Services\SEO\SitemapService;
 
 class StoreSettingController extends Controller
 {
@@ -293,6 +294,16 @@ class StoreSettingController extends Controller
                 'message' => $e->getMessage(),
                 'logs' => $logs
             ]);
+        }
+    }
+
+    public function regenerateSitemap()
+    {
+        try {
+            SitemapService::generateAndSave();
+            return back()->with('success', 'Sitemap regenerated successfully!');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Error regenerating sitemap: ' . $e->getMessage());
         }
     }
 }

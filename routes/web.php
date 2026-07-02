@@ -17,7 +17,10 @@ Route::get('/sales/receipts/{sale}/verify', [\App\Http\Controllers\ReceiptContro
 Route::get('/sales/receipts/{sale}/download', [\App\Http\Controllers\ReceiptController::class, 'download'])->name('sales.receipts.download');
 
 // Public Shop Routes
-Route::get('/sitemap.xml', [\App\Http\Controllers\OnlineOrderController::class, 'sitemap'])->name('shop.sitemap');
+Route::get('/sitemap.xml', function () {
+    $urls = \App\Services\SEO\SitemapService::generate();
+    return response()->view('sitemap', compact('urls'))->header('Content-Type', 'text/xml');
+})->name('shop.sitemap');
 Route::get('/shop', [\App\Http\Controllers\OnlineOrderController::class, 'shop'])->name('shop.index');
 Route::get('/shop/product/{product}', [\App\Http\Controllers\OnlineOrderController::class, 'showProduct'])->name('shop.product');
 Route::get('/shop/checkout', function () {
@@ -402,6 +405,7 @@ Route::middleware('auth')->group(function () {
         
         Route::get('/settings', [\App\Http\Controllers\StoreSettingController::class, 'settingsPage'])->name('settings');
         Route::put('/settings', [\App\Http\Controllers\StoreSettingController::class, 'update'])->name('settings.update');
+        Route::post('/settings/regenerate-sitemap', [\App\Http\Controllers\StoreSettingController::class, 'regenerateSitemap'])->name('settings.regenerate-sitemap');
     });
 
     // HR

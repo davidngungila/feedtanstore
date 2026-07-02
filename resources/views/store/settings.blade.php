@@ -101,6 +101,29 @@
                 </div>
             </div>
             
+            <!-- SEO & Sitemap Section -->
+            <div class="mb-8">
+                <h3 class="text-lg font-semibold text-primary-900 mb-4 border-b border-gray-200 pb-2">
+                    <i class="fas fa-search mr-2"></i>
+                    SEO & Sitemap
+                </h3>
+                <div class="p-4 bg-gray-50 rounded-xl border border-gray-200">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-700">Sitemap.xml</p>
+                            <p class="text-xs text-gray-500 mt-1">Regenerate the SEO sitemap file for search engines</p>
+                        </div>
+                        <form method="POST" action="{{ route('store.settings.regenerate-sitemap') }}">
+                            @csrf
+                            <button type="submit" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2">
+                                <i class="fas fa-sync"></i>
+                                Regenerate Sitemap
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
             <!-- Delivery Fee Settings Section -->
             <div class="mb-8">
                 <h3 class="text-lg font-semibold text-primary-900 mb-4 border-b border-gray-200 pb-2">

@@ -5,11 +5,13 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Str;
 
 class Product extends Model
 {
     protected $fillable = [
         'name',
+        'slug',
         'sku',
         'barcode',
         'category_id',
@@ -27,6 +29,51 @@ class Product extends Model
         'is_active',
         'is_available_online',
     ];
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($product) {
+            if (empty($product->slug)) {
+                $product->slug = static::generateUniqueSlug($product);
+            }
+        });
+
+        static::updating(function ($product) {
+            if ($product->isDirty('name') && empty($product->slug)) {
+                $product->slug = static::generateUniqueSlug($product);
+            }
+        });
+    }
+
+    protected static function generateUniqueSlug($product)
+    {
+        $baseSlug = Str::slug($product->name . ' moshi');
+        $slug = $baseSlug;
+        $count = 1;
+
+        $query = static::where('slug', $slug);
+        if ($product->exists) {
+            $query->where('id', '!=', $product->id);
+        }
+
+        while ($query->exists()) {
+            $slug = $baseSlug . '-' . $count;
+            $count++;
+            $query = static::where('slug', $slug);
+            if ($product->exists) {
+                $query->where('id', '!=', $product->id);
+            }
+        }
+
+        return $slug;
+    }
+
+    public function getRouteKeyName()
+    {
+        return 'slug';
+    }
 
     protected $casts = [
         'expiry_date' => 'datetime',

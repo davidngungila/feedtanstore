@@ -13,11 +13,7 @@
 @php
   $logoUrl = asset('logo-image-feedtan-store.png');
   $productCanonicalUrl = route('shop.product', $product);
-  $seoDescription = \Illuminate\Support\Str::limit(
-      trim(strip_tags($product->description ?: 'Shop ' . $product->name . ' at Feedtan Store, the best online supermarket in Moshi, Kilimanjaro. Fast delivery available.')),
-      160
-  );
-  $productSeoTitle = $product->name . ' - Feedtan Store | Moshi Kilimanjaro Online Supermarket';
+  $seo = seo_product($product);
   $primaryImage = $product->images->firstWhere('is_primary', true);
           $baseUrl = $settings->store_url ?? config('app.url');
           $resolveImageUrl = function ($path) use ($baseUrl) {
@@ -61,7 +57,7 @@
               '@type' => 'ListItem',
               'position' => 2,
               'name' => $product->category->name ?? 'Products',
-              'item' => $product->category ? route('shop.index', ['category' => $product->category->id]) : route('shop.index'),
+              'item' => $product->category ? route('shop.index', ['category' => $product->category->slug]) : route('shop.index'),
           ],
           [
               '@type' => 'ListItem',
@@ -77,8 +73,8 @@
           [
               '@type' => 'Product',
               'name' => $product->name,
-              'description' => $seoDescription,
-              'image' => [$imageToShow],
+              'description' => $seo['description'],
+              'image' => [$seo['image']],
               'sku' => $product->sku ?: (string) $product->id,
               'category' => $product->category->name ?? 'Uncategorized',
               'brand' => [
@@ -101,9 +97,9 @@
 @endphp
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>{{ $productSeoTitle }}</title>
-<meta name="description" content="{{ $seoDescription }}">
-<meta name="keywords" content="{{ $product->name }}, {{ $product->category->name ?? 'Feedtan Store' }}, Feedtan Store, online shopping Tanzania, Moshi, Kilimanjaro, online supermarket Moshi, grocery delivery Moshi">
+<title>{{ $seo['title'] }}</title>
+<meta name="description" content="{{ $seo['description'] }}">
+<meta name="keywords" content="{{ $seo['keywords'] }}">
 <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
 <meta name="author" content="Feedtan Store">
 <meta name="theme-color" content="#1B4332">
@@ -113,18 +109,18 @@
 <meta property="og:locale" content="en_US">
 <meta property="og:site_name" content="Feedtan Store">
 <meta property="og:type" content="product">
-<meta property="og:title" content="{{ $productSeoTitle }}">
-<meta property="og:description" content="{{ $seoDescription }}">
+<meta property="og:title" content="{{ $seo['title'] }}">
+<meta property="og:description" content="{{ $seo['description'] }}">
 <meta property="og:url" content="{{ $productCanonicalUrl }}">
-<meta property="og:image" content="{{ $imageToShow }}">
-<meta property="og:image:secure_url" content="{{ $imageToShow }}">
+<meta property="og:image" content="{{ $seo['image'] }}">
+<meta property="og:image:secure_url" content="{{ $seo['image'] }}">
 <meta property="og:image:alt" content="{{ $product->name }}">
 <meta property="product:price:amount" content="{{ number_format((float) $product->selling_price, 0, '.', '') }}">
 <meta property="product:price:currency" content="TZS">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="{{ $productSeoTitle }}">
-<meta name="twitter:description" content="{{ $seoDescription }}">
-<meta name="twitter:image" content="{{ $imageToShow }}">
+<meta name="twitter:title" content="{{ $seo['title'] }}">
+<meta name="twitter:description" content="{{ $seo['description'] }}">
+<meta name="twitter:image" content="{{ $seo['image'] }}">
 <meta name="twitter:image:alt" content="{{ $product->name }}">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

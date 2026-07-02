@@ -13,25 +13,15 @@
 @php
   $logoUrl = asset('logo-image-feedtan-store.png');
   $selectedCategory = request('category')
-      ? $categories->firstWhere('id', (int) request('category'))
+      ? $categories->firstWhere(function($cat) {
+          return $cat->id == request('category') || $cat->slug == request('category');
+        })
       : null;
   $searchTerm = trim((string) request('search', ''));
-  $seoTitle = 'Moshi Online Supermarket | Grocery Delivery in Kilimanjaro Tanzania | Feedtan Store';
-  $seoDescription = 'Shop groceries online in Moshi, Kilimanjaro. Order fresh food, household items, and get fast home delivery across Moshi town with Feedtan Store.';
-
-  if ($selectedCategory) {
-    $seoTitle = $selectedCategory->name . ' - Feedtan Store Online Shop Moshi Kilimanjaro';
-    $seoDescription = 'Browse ' . $selectedCategory->name . ' at Feedtan Store with trusted prices, secure checkout, and delivery options across Moshi, Kilimanjaro, Tanzania.';
-  }
-
-  if ($searchTerm !== '') {
-    $seoTitle = 'Search results for "' . $searchTerm . '" - Feedtan Store Moshi';
-    $seoDescription = 'Find products matching "' . $searchTerm . '" at Feedtan Store and order online with quick checkout and delivery tracking in Moshi, Kilimanjaro.';
-  }
+  $seo = seo_shop_index($selectedCategory, $searchTerm);
 
   $canonicalUrl = request()->fullUrl();
   $pageType = $selectedCategory || $searchTerm !== '' ? 'website' : 'store';
-  $seoKeywords = 'online supermarket Moshi, Moshi online grocery store, supermarket delivery Moshi Kilimanjaro, buy groceries online Moshi, online shopping Moshi Tanzania, grocery delivery Moshi, food delivery supermarket Moshi, Kilimanjaro online supermarket, Moshi grocery delivery service, online supermarket in Moshi, grocery store near me Moshi, food delivery near Moshi town, supermarket in Kilimanjaro Tanzania, Moshi town online shopping, delivery supermarket Kilimanjaro region, Moshi fresh food delivery, Moshi household shopping online, buy rice online Moshi, Moshi maize flour delivery, online vegetables supermarket Moshi, fresh fruits delivery Moshi Tanzania, cooking oil delivery Moshi, dairy products online Moshi, beverages delivery Moshi supermarket, same day delivery Moshi supermarket, home delivery grocery Moshi, fast delivery Kilimanjaro supermarket, affordable grocery delivery Moshi, online order and home delivery Moshi, Feedtan supermarket Moshi, Feedtan grocery delivery Tanzania, Feedtan online shopping platform, Feedtan Kilimanjaro delivery service, best online supermarket for home delivery in Moshi Tanzania, how to buy groceries online in Moshi Kilimanjaro, cheap grocery delivery service in Moshi town, trusted online supermarket in Kilimanjaro region Tanzania';
   $structuredData = [
       '@context' => 'https://schema.org',
       '@graph' => [
@@ -73,8 +63,8 @@
               '@type' => 'CollectionPage',
               '@id' => $canonicalUrl . '#webpage',
               'url' => $canonicalUrl,
-              'name' => $seoTitle,
-              'description' => $seoDescription,
+              'name' => $seo['title'],
+              'description' => $seo['description'],
               'isPartOf' => [
                   '@id' => url('/#website'),
               ],
@@ -91,9 +81,9 @@
 @endphp
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>{{ $seoTitle }}</title>
-<meta name="description" content="{{ $seoDescription }}">
-<meta name="keywords" content="{{ $seoKeywords }}">
+<title>{{ $seo['title'] }}</title>
+<meta name="description" content="{{ $seo['description'] }}">
+<meta name="keywords" content="{{ $seo['keywords'] }}">
 <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
 <meta name="author" content="Feedtan Store">
 <meta name="theme-color" content="#1B4332">
@@ -103,17 +93,17 @@
 <meta property="og:locale" content="en_US">
 <meta property="og:site_name" content="Feedtan Store">
 <meta property="og:type" content="{{ $pageType }}">
-<meta property="og:title" content="{{ $seoTitle }}">
-<meta property="og:description" content="{{ $seoDescription }}">
+<meta property="og:title" content="{{ $seo['title'] }}">
+<meta property="og:description" content="{{ $seo['description'] }}">
 <meta property="og:url" content="{{ $canonicalUrl }}">
-<meta property="og:image" content="{{ $logoUrl }}">
-<meta property="og:image:secure_url" content="{{ $logoUrl }}">
+<meta property="og:image" content="{{ $seo['image'] }}">
+<meta property="og:image:secure_url" content="{{ $seo['image'] }}">
 <meta property="og:image:type" content="image/png">
 <meta property="og:image:alt" content="Feedtan Store logo">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="{{ $seoTitle }}">
-<meta name="twitter:description" content="{{ $seoDescription }}">
-<meta name="twitter:image" content="{{ $logoUrl }}">
+<meta name="twitter:title" content="{{ $seo['title'] }}">
+<meta name="twitter:description" content="{{ $seo['description'] }}">
+<meta name="twitter:image" content="{{ $seo['image'] }}">
 <meta name="twitter:image:alt" content="Feedtan Store logo">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -583,7 +573,7 @@ footer{background:var(--green-900);color:#BFD6C8;padding:54px 0 0;margin-top:30p
       <a href="{{ route('shop.index') }}" class="active">Home</a>
       <a href="#shop">Shop All</a>
       @foreach($categories as $cat)
-        <a href="{{ route('shop.index', ['category' => $cat->id]) }}">{{ $cat->name }}</a>
+        <a href="{{ route('shop.index', ['category' => $cat->slug]) }}">{{ $cat->name }}</a>
       @endforeach
       <a href="{{ route('shop.tracking') }}">Track Order</a>
     </div>
@@ -609,7 +599,7 @@ footer{background:var(--green-900);color:#BFD6C8;padding:54px 0 0;margin-top:30p
           <span class="ic">🛒</span> All
         </a>
         @foreach($categories as $cat)
-          <a href="{{ route('shop.index', ['category' => $cat->id]) }}" class="cat-chip {{ request('category') == $cat->id ? 'active' : '' }}">
+          <a href="{{ route('shop.index', ['category' => $cat->slug]) }}" class="cat-chip {{ request('category') == $cat->id || request('category') == $cat->slug ? 'active' : '' }}">
             <span class="ic">📦</span> {{ $cat->name }}
           </a>
         @endforeach
@@ -721,7 +711,7 @@ footer{background:var(--green-900);color:#BFD6C8;padding:54px 0 0;margin-top:30p
         <h4>Shop</h4>
         <ul>
           @foreach($categories as $cat)
-            <li><a href="{{ route('shop.index', ['category' => $cat->id]) }}">{{ $cat->name }}</a></li>
+            <li><a href="{{ route('shop.index', ['category' => $cat->slug]) }}">{{ $cat->name }}</a></li>
           @endforeach
         </ul>
       </div>

@@ -181,7 +181,9 @@ class OnlineOrderController extends Controller
 
         $selectedCategory = null;
         if (request('category')) {
-            $selectedCategory = \App\Models\Category::find(request('category'));
+            $selectedCategory = \App\Models\Category::where('id', request('category'))
+                ->orWhere('slug', request('category'))
+                ->first();
             if ($selectedCategory) {
                 $query->where('category_id', $selectedCategory->id);
             }
@@ -1094,7 +1096,8 @@ class OnlineOrderController extends Controller
         $settings = \App\Models\StoreSetting::firstOrCreate();
         $baseUrl = $settings->store_url ?? config('app.url');
         
-        $products = \App\Models\Product::all();
+        $products = \App\Models\Product::where('is_active', true)->where('is_available_online', true)->get();
+        $categories = \App\Models\Category::where('is_active', true)->get();
         
         $xml = '<?xml version="1.0" encoding="UTF-8"?>';
         $xml .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">';
@@ -1115,10 +1118,20 @@ class OnlineOrderController extends Controller
         $xml .= '<priority>0.9</priority>';
         $xml .= '</url>';
         
+        // Add categories
+        foreach ($categories as $category) {
+            $xml .= '<url>';
+            $xml .= '<loc>' . $baseUrl . '/shop/category/' . $category->slug . '</loc>';
+            $xml .= '<lastmod>' . $category->updated_at->toW3cString() . '</lastmod>';
+            $xml .= '<changefreq>weekly</changefreq>';
+            $xml .= '<priority>0.8</priority>';
+            $xml .= '</url>';
+        }
+        
         // Add products
         foreach ($products as $product) {
             $xml .= '<url>';
-            $xml .= '<loc>' . $baseUrl . '/shop/product/' . $product->id . '</loc>';
+            $xml .= '<loc>' . $baseUrl . '/shop/product/' . $product->slug . '</loc>';
             $xml .= '<lastmod>' . $product->updated_at->toW3cString() . '</lastmod>';
             $xml .= '<changefreq>weekly</changefreq>';
             $xml .= '<priority>0.8</priority>';
