@@ -273,65 +273,72 @@ class SaleController extends Controller {
     }
 
     protected function createAccountingEntries(Sale $sale) {
-        $cashAccount = \App\Models\Account::where('name', 'Cash')->first();
-        $salesAccount = \App\Models\Account::where('name', 'Sales')->first();
-        $inventoryAccount = \App\Models\Account::where('name', 'Inventory')->first();
-        $cogsAccount = \App\Models\Account::where('name', 'Cost of Goods Sold')->first();
+        // Skip if we don't have accounting models yet
+        try {
+            $cashAccount = \App\Models\Account::where('name', 'Cash')->first();
+            $salesAccount = \App\Models\Account::where('name', 'Sales')->first();
+            $inventoryAccount = \App\Models\Account::where('name', 'Inventory')->first();
+            $cogsAccount = \App\Models\Account::where('name', 'Cost of Goods Sold')->first();
 
-        $journalNumber = 'JE-SALE-' . date('Ymd') . '-' . str_pad(\App\Models\JournalEntry::count() + 1, 4, '0', STR_PAD_LEFT);
+            $journalNumber = 'JE-SALE-' . date('Ymd') . '-' . str_pad(\App\Models\JournalEntry::count() + 1, 4, '0', STR_PAD_LEFT);
 
-        $journalEntry = \App\Models\JournalEntry::create([
-            'journal_number' => $journalNumber,
-            'entry_number' => $journalNumber,
-            'entry_date' => now(),
-            'description' => 'Sale: ' . $sale->invoice_number,
-            'reference_type' => Sale::class,
-            'reference_id' => $sale->id,
-            'is_manual' => false,
-        ]);
+            $journalEntry = \App\Models\JournalEntry::create([
+                'journal_number' => $journalNumber,
+                'entry_number' => $journalNumber,
+                'entry_date' => now(),
+                'description' => 'Sale: ' . $sale->invoice_number,
+                'reference_type' => Sale::class,
+                'reference_id' => $sale->id,
+                'is_manual' => false,
+            ]);
 
-        AccountingEntry::create([
-            'journal_entry_id' => $journalEntry->id,
-            'reference_number' => $sale->invoice_number,
-            'reference_type' => Sale::class,
-            'account' => 'Cash',
-            'account_id' => $cashAccount?->id,
-            'type' => 'debit',
-            'amount' => $sale->paid,
-            'description' => 'Sale payment received'
-        ]);
+            AccountingEntry::create([
+                'journal_entry_id' => $journalEntry->id,
+                'reference_number' => $sale->invoice_number,
+                'reference_type' => Sale::class,
+                'account' => 'Cash',
+                'account_id' => $cashAccount?->id,
+                'type' => 'debit',
+                'amount' => $sale->paid,
+                'description' => 'Sale payment received'
+            ]);
 
-        AccountingEntry::create([
-            'journal_entry_id' => $journalEntry->id,
-            'reference_number' => $sale->invoice_number,
-            'reference_type' => Sale::class,
-            'account' => 'Sales',
-            'account_id' => $salesAccount?->id,
-            'type' => 'credit',
-            'amount' => $sale->total,
-            'description' => 'Sale completed'
-        ]);
+            AccountingEntry::create([
+                'journal_entry_id' => $journalEntry->id,
+                'reference_number' => $sale->invoice_number,
+                'reference_type' => Sale::class,
+                'account' => 'Sales',
+                'account_id' => $salesAccount?->id,
+                'type' => 'credit',
+                'amount' => $sale->total,
+                'description' => 'Sale completed'
+            ]);
 
-        AccountingEntry::create([
-            'journal_entry_id' => $journalEntry->id,
-            'reference_number' => $sale->invoice_number,
-            'reference_type' => Sale::class,
-            'account' => 'Inventory',
-            'account_id' => $inventoryAccount?->id,
-            'type' => 'credit',
-            'amount' => $sale->subtotal,
-            'description' => 'Inventory sold'
-        ]);
+            AccountingEntry::create([
+                'journal_entry_id' => $journalEntry->id,
+                'reference_number' => $sale->invoice_number,
+                'reference_type' => Sale::class,
+                'account' => 'Inventory',
+                'account_id' => $inventoryAccount?->id,
+                'type' => 'credit',
+                'amount' => $sale->subtotal,
+                'description' => 'Inventory sold'
+            ]);
 
-        AccountingEntry::create([
-            'journal_entry_id' => $journalEntry->id,
-            'reference_number' => $sale->invoice_number,
-            'reference_type' => Sale::class,
-            'account' => 'Cost of Goods Sold',
-            'account_id' => $cogsAccount?->id,
-            'type' => 'debit',
-            'amount' => $sale->subtotal,
-            'description' => 'COGS for sale'
-        ]);
+            AccountingEntry::create([
+                'journal_entry_id' => $journalEntry->id,
+                'reference_number' => $sale->invoice_number,
+                'reference_type' => Sale::class,
+                'account' => 'Cost of Goods Sold',
+                'account_id' => $cogsAccount?->id,
+                'type' => 'debit',
+                'amount' => $sale->subtotal,
+                'description' => 'COGS for sale'
+            ]);
+        } catch (\Exception $e) {
+            // Ignore accounting entry creation fails, don't break the sale
+            // Just log it and continue
+            \Log::error('Failed to create accounting entries: ' . $e->getMessage());
+        }
     }
 }

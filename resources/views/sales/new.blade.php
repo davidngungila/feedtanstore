@@ -618,38 +618,17 @@ document.addEventListener('keydown', function(e) {
     }
 });
 
-// VFD Functions
+// VFD Functions (disabled for now)
 async function sendToVFD(endpoint, data = {}) {
-    try {
-        const response = await fetch(`/vfd/${endpoint}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-            },
-            body: JSON.stringify(data)
-        });
-        return await response.json();
-    } catch (error) {
-        console.error('VFD error:', error);
-    }
+    // Just ignore VFD calls for now
+    console.log('VFD call skipped:', endpoint, data);
+    return { success: true };
 }
 
 // Override addToCart to send product to VFD
 const originalAddToCart = addToCart;
 window.addToCart = function(productId, productName, price) {
     originalAddToCart(productId, productName, price);
-    
-    // Find the item in cart to get quantity and total
-    const item = cart.find(i => i.product_id === productId);
-    if (item) {
-        sendToVFD('product', {
-            name: productName,
-            quantity: item.quantity,
-            price: price,
-            total: item.unit_price * item.quantity
-        });
-    }
 };
 
 function printReceipt() {
@@ -735,10 +714,7 @@ document.getElementById('saleForm').addEventListener('submit', async function(e)
     }
 });
 
-// Send welcome message when page loads
-document.addEventListener('DOMContentLoaded', function() {
-    sendToVFD('welcome');
-});
+// Send welcome message when page loads (disabled)
 
 window.addEventListener('beforeunload', function() {
     stopScanner();
