@@ -699,6 +699,13 @@ document.getElementById('saleForm').addEventListener('submit', async function(e)
                 document.getElementById('modalChange').textContent = 'TZS ' + parseFloat(data.change).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
                 document.getElementById('loadingOverlay').classList.add('hidden');
                 document.getElementById('successModal').classList.remove('hidden');
+                
+                // Auto-print receipt
+                setTimeout(() => {
+                    if (currentSaleId) {
+                        printReceipt();
+                    }
+                }, 500);
             }
         } else {
             throw new Error('Failed to complete sale');
