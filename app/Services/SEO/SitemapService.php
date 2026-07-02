@@ -58,8 +58,12 @@ class SitemapService
 
     public static function generateAndSave()
     {
+        $settings = StoreSetting::firstOrCreate();
         $sitemapContent = view('sitemap', ['urls' => self::generate()])->render();
         file_put_contents(public_path('sitemap.xml'), $sitemapContent);
+        
+        // Update last generated time
+        $settings->update(['sitemap_last_generated_at' => now()]);
         
         // Automatically ping search engines
         self::pingSearchEngines();
@@ -77,14 +81,28 @@ class SitemapService
             'Yandex' => 'https://webmaster.yandex.com/ping?sitemap='
         ];
 
+        $statuses = [];
+
         foreach ($searchEngines as $name => $pingUrl) {
             try {
-                Http::get($pingUrl . urlencode($sitemapUrl));
-                // We don't need to do anything with the response, just ping the service
+                $response = Http::get($pingUrl . urlencode($sitemapUrl));
+                $statuses[$name] = [
+                    'success' => $response->successful(),
+                    'status_code' => $response->status(),
+                    'timestamp' => now()->toW3cString(),
+                    'message' => $response->successful() ? 'Successfully pinged' : 'Ping failed'
+                ];
             } catch (\Exception $e) {
-                // Log the error but don't fail the entire process
                 \Log::error("Failed to ping {$name}: " . $e->getMessage());
+                $statuses[$name] = [
+                    'success' => false,
+                    'status_code' => null,
+                    'timestamp' => now()->toW3cString(),
+                    'message' => $e->getMessage()
+                ];
             }
         }
+
+        $settings->update(['sitemap_search_engine_status' => $statuses]);
     }
 }

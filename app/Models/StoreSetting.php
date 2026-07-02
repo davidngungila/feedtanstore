@@ -63,6 +63,9 @@ class StoreSetting extends Model
         'vfd_stop_bits',
         'vfd_parity',
         'vfd_protocol',
+        // Sitemap Settings
+        'sitemap_last_generated_at',
+        'sitemap_search_engine_status',
     ];
     
     protected $casts = [
@@ -80,6 +83,8 @@ class StoreSetting extends Model
         'vfd_enabled' => 'boolean',
         'delivery_use_zone_pricing' => 'boolean',
         'delivery_zone_config' => 'array',
+        'sitemap_search_engine_status' => 'array',
+        'sitemap_last_generated_at' => 'datetime',
     ];
 
     /**

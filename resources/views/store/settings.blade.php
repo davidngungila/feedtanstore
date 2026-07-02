@@ -107,20 +107,55 @@
                     <i class="fas fa-search mr-2"></i>
                     SEO & Sitemap
                 </h3>
-                <div class="p-4 bg-gray-50 rounded-xl border border-gray-200">
+                <div class="p-4 bg-gray-50 rounded-xl border border-gray-200 space-y-4">
+                    <!-- Sitemap Info -->
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="text-sm font-medium text-gray-700">Sitemap.xml</p>
                             <p class="text-xs text-gray-500 mt-1">Regenerate the SEO sitemap file for search engines</p>
+                            @if($settings->sitemap_last_generated_at)
+                                <p class="text-xs text-gray-400 mt-1">
+                                    Last generated: {{ $settings->sitemap_last_generated_at->format('Y-m-d H:i:s') }}
+                                </p>
+                            @endif
                         </div>
-                        <form method="POST" action="{{ route('store.settings.regenerate-sitemap') }}">
-                            @csrf
-                            <button type="submit" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2">
-                                <i class="fas fa-sync"></i>
-                                Regenerate Sitemap
-                            </button>
-                        </form>
+                        <div class="flex items-center gap-3">
+                            <a href="{{ route('shop.sitemap') }}" target="_blank" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2">
+                                <i class="fas fa-eye"></i>
+                                View Sitemap
+                            </a>
+                            <form method="POST" action="{{ route('store.settings.regenerate-sitemap') }}">
+                                @csrf
+                                <button type="submit" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2">
+                                    <i class="fas fa-sync"></i>
+                                    Regenerate Sitemap
+                                </button>
+                            </form>
+                        </div>
                     </div>
+
+                    <!-- Search Engine Submission Status -->
+                    @if($settings->sitemap_search_engine_status)
+                        <div class="mt-4 pt-4 border-t border-gray-200">
+                            <p class="text-sm font-medium text-gray-700 mb-3">Search Engine Submission Status</p>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                @foreach($settings->sitemap_search_engine_status as $engine => $status)
+                                    <div class="p-3 bg-white rounded-lg border border-gray-200">
+                                        <div class="flex items-center gap-2 mb-1">
+                                            <i class="fas {{ $status['success'] ? 'fa-check-circle text-green-500' : 'fa-times-circle text-red-500' }}"></i>
+                                            <span class="text-sm font-medium text-gray-700">{{ $engine }}</span>
+                                        </div>
+                                        <p class="text-xs text-gray-500">{{ $status['message'] }}</p>
+                                        @if($status['timestamp'])
+                                            <p class="text-xs text-gray-400 mt-1">
+                                                {{ \Carbon\Carbon::parse($status['timestamp'])->format('Y-m-d H:i:s') }}
+                                            </p>
+                                        @endif
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endif
                 </div>
             </div>
 
