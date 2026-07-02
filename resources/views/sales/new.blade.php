@@ -633,7 +633,27 @@ window.addToCart = function(productId, productName, price) {
 
 function printReceipt() {
     if (currentSaleId) {
-        window.open(`/sales/receipts/${currentSaleId}/print`, '_blank');
+        // Create an iframe to load and print the receipt without leaving the page
+        const iframe = document.createElement('iframe');
+        iframe.style.position = 'fixed';
+        iframe.style.right = '0';
+        iframe.style.bottom = '0';
+        iframe.style.width = '0';
+        iframe.style.height = '0';
+        iframe.style.border = '0';
+        iframe.src = `/sales/receipts/${currentSaleId}/print`;
+        document.body.appendChild(iframe);
+        
+        // Wait for iframe to load, then print
+        iframe.onload = function() {
+            setTimeout(() => {
+                iframe.contentWindow.print();
+                // Remove iframe after printing
+                setTimeout(() => {
+                    document.body.removeChild(iframe);
+                }, 1000);
+            }, 500);
+        };
     }
 }
 
