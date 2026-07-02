@@ -60,7 +60,9 @@ class SitemapService
     {
         $settings = StoreSetting::firstOrCreate();
         $sitemapContent = view('sitemap', ['urls' => self::generate()])->render();
-        file_put_contents(public_path('sitemap.xml'), $sitemapContent);
+        
+        // Explicitly overwrite the existing file with exclusive lock to prevent race conditions
+        file_put_contents(public_path('sitemap.xml'), $sitemapContent, LOCK_EX);
         
         // Update last generated time
         $settings->update(['sitemap_last_generated_at' => now()]);
