@@ -88,7 +88,7 @@ class SeoService
         }
         
         return self::meta(
-            'Feedtan Store - Online Shopping in Moshi Kilimanjaro Tanzania',
+            'Moshi Online Store | Grocery Delivery in Kilimanjaro Tanzania',
             'Shop online in Moshi, Kilimanjaro, Tanzania. Order fresh food, household items, electronics, clothing, and get fast home delivery with Feedtan Store.',
             $baseUrl . '/logo-image-feedtan-store.png',
             [
