@@ -12,14 +12,14 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('assets', function (Blueprint $table) {
-            $table->date('depreciation_start_date')->nullable()->after('purchase_date');
-            $table->decimal('accumulated_depreciation', 15, 2)->default(0)->after('salvage_value');
-            $table->date('last_depreciation_date')->nullable()->after('accumulated_depreciation');
-            $table->string('manufacturer')->nullable()->after('serial_number');
-            $table->string('model')->nullable()->after('manufacturer');
-            $table->date('warranty_expiry')->nullable()->after('model');
-            $table->string('assigned_to')->nullable()->after('warranty_expiry');
-            $table->text('maintenance_notes')->nullable()->after('assigned_to');
+            $table->date('depreciation_start_date')->nullable();
+            $table->decimal('accumulated_depreciation', 15, 2)->default(0);
+            $table->date('last_depreciation_date')->nullable();
+            $table->string('manufacturer')->nullable();
+            $table->string('model')->nullable();
+            $table->date('warranty_expiry')->nullable();
+            $table->string('assigned_to')->nullable();
+            $table->text('maintenance_notes')->nullable();
         });
     }
 
