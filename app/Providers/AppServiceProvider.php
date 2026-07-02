@@ -23,9 +23,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // Register observers for sitemap regeneration
-        Product::observe(SitemapObserver::class);
-        Category::observe(SitemapObserver::class);
+        // Temporarily disabled sitemap observers to prevent sale errors
+        // Product::observe(SitemapObserver::class);
+        // Category::observe(SitemapObserver::class);
 
         // Share notification counts with all views
         View::composer('*', function ($view) {
