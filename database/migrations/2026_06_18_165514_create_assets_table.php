@@ -13,6 +13,18 @@ return new class extends Migration
     {
         Schema::create('assets', function (Blueprint $table) {
             $table->id();
+            $table->string('name');
+            $table->string('type');
+            $table->text('description')->nullable();
+            $table->date('purchase_date');
+            $table->decimal('purchase_cost', 15, 2);
+            $table->decimal('salvage_value', 15, 2)->default(0);
+            $table->integer('useful_life_years');
+            $table->string('depreciation_method')->default('straight_line');
+            $table->string('location')->nullable();
+            $table->string('status')->default('active');
+            $table->string('serial_number')->nullable();
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->timestamps();
         });
     }

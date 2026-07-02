@@ -1,151 +1,150 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
-        <loc>https://www.feedtanstore.com/</loc>
-        <lastmod>2026-07-02T06:49:31+03:00</lastmod>
+        <loc>http://localhost/</loc>
+        <lastmod>2026-07-02T12:22:24+03:00</lastmod>
         <changefreq>daily</changefreq>
         <priority>1.0</priority>
     </url>
     <url>
-        <loc>https://www.feedtanstore.com/shop</loc>
-        <lastmod>2026-07-02T06:49:31+03:00</lastmod>
+        <loc>http://localhost/shop</loc>
+        <lastmod>2026-07-02T12:22:24+03:00</lastmod>
         <changefreq>daily</changefreq>
         <priority>0.9</priority>
     </url>
     <url>
-        <loc>https://www.feedtanstore.com/shop?category=electronics</loc>
+        <loc>http://localhost/shop?category=electronics</loc>
         <lastmod>2026-07-02T06:28:27+03:00</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
     </url>
     <url>
-        <loc>https://www.feedtanstore.com/shop?category=food-beverages</loc>
+        <loc>http://localhost/shop?category=food-beverages</loc>
         <lastmod>2026-07-02T06:28:28+03:00</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
     </url>
     <url>
-        <loc>https://www.feedtanstore.com/shop?category=clothing</loc>
+        <loc>http://localhost/shop?category=clothing</loc>
         <lastmod>2026-07-02T06:28:28+03:00</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
     </url>
     <url>
-        <loc>https://www.feedtanstore.com/shop?category=home-kitchen</loc>
+        <loc>http://localhost/shop?category=home-kitchen</loc>
         <lastmod>2026-07-02T06:28:28+03:00</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
     </url>
     <url>
-        <loc>https://www.feedtanstore.com/shop?category=beauty-personal-care</loc>
+        <loc>http://localhost/shop?category=beauty-personal-care</loc>
         <lastmod>2026-07-02T06:28:28+03:00</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
     </url>
     <url>
-        <loc>https://www.feedtanstore.com/shop?category=health-wellness</loc>
+        <loc>http://localhost/shop?category=health-wellness</loc>
         <lastmod>2026-07-02T06:28:28+03:00</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
     </url>
     <url>
-        <loc>https://www.feedtanstore.com/shop?category=agriculture-products</loc>
+        <loc>http://localhost/shop?category=agriculture-products</loc>
         <lastmod>2026-07-02T06:28:28+03:00</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
     </url>
     <url>
-        <loc>https://www.feedtanstore.com/shop?category=stationery-office</loc>
+        <loc>http://localhost/shop?category=stationery-office</loc>
         <lastmod>2026-07-02T06:28:28+03:00</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
     </url>
     <url>
-        <loc>https://www.feedtanstore.com/shop?category=sports-outdoors</loc>
+        <loc>http://localhost/shop?category=sports-outdoors</loc>
         <lastmod>2026-07-02T06:28:28+03:00</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
     </url>
     <url>
-        <loc>https://www.feedtanstore.com/shop?category=electronics-accessories</loc>
+        <loc>http://localhost/shop?category=electronics-accessories</loc>
         <lastmod>2026-07-02T06:28:28+03:00</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
     </url>
     <url>
-        <loc>https://www.feedtanstore.com/shop?category=baby-kids</loc>
+        <loc>http://localhost/shop?category=baby-kids</loc>
         <lastmod>2026-07-02T06:28:28+03:00</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
     </url>
     <url>
-        <loc>https://www.feedtanstore.com/shop?category=automotive</loc>
+        <loc>http://localhost/shop?category=automotive</loc>
         <lastmod>2026-07-02T06:28:28+03:00</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
     </url>
     <url>
-        <loc>https://www.feedtanstore.com/shop?category=other-categories</loc>
+        <loc>http://localhost/shop?category=other-categories</loc>
         <lastmod>2026-07-02T06:28:28+03:00</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
     </url>
     <url>
-        <loc>https://www.feedtanstore.com/shop/product/iphone-15</loc>
+        <loc>http://localhost/shop/product/iphone-15</loc>
+        <lastmod>2026-07-02T12:18:01+03:00</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.8</priority>
+    </url>
+    <url>
+        <loc>http://localhost/shop/product/samsung-galaxy-s24</loc>
         <lastmod>2026-07-02T06:28:28+03:00</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
     </url>
     <url>
-        <loc>https://www.feedtanstore.com/shop/product/samsung-galaxy-s24</loc>
+        <loc>http://localhost/shop/product/nike-air-max-270</loc>
         <lastmod>2026-07-02T06:28:28+03:00</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
     </url>
     <url>
-        <loc>https://www.feedtanstore.com/shop/product/nike-air-max-270</loc>
+        <loc>http://localhost/shop/product/maize-flour-2kg</loc>
+        <lastmod>2026-07-02T12:21:00+03:00</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.8</priority>
+    </url>
+    <url>
+        <loc>http://localhost/shop/product/cooking-oil-1l</loc>
         <lastmod>2026-07-02T06:28:28+03:00</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
     </url>
     <url>
-        <loc>https://www.feedtanstore.com/shop/product/maize-flour-2kg</loc>
+        <loc>http://localhost/shop/product/rice-5kg</loc>
         <lastmod>2026-07-02T06:28:28+03:00</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
     </url>
     <url>
-        <loc>https://www.feedtanstore.com/shop/product/cooking-oil-1l</loc>
+        <loc>http://localhost/shop/product/sugar-1kg</loc>
         <lastmod>2026-07-02T06:28:28+03:00</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
     </url>
     <url>
-        <loc>https://www.feedtanstore.com/shop/product/rice-5kg</loc>
+        <loc>http://localhost/shop/product/milk-1l</loc>
+        <lastmod>2026-07-02T12:22:24+03:00</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.8</priority>
+    </url>
+    <url>
+        <loc>http://localhost/shop/product/apple-macbook-air</loc>
         <lastmod>2026-07-02T06:28:28+03:00</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
     </url>
     <url>
-        <loc>https://www.feedtanstore.com/shop/product/sugar-1kg</loc>
-        <lastmod>2026-07-02T06:28:28+03:00</lastmod>
-        <changefreq>weekly</changefreq>
-        <priority>0.8</priority>
-    </url>
-    <url>
-        <loc>https://www.feedtanstore.com/shop/product/milk-1l</loc>
-        <lastmod>2026-07-02T06:28:28+03:00</lastmod>
-        <changefreq>weekly</changefreq>
-        <priority>0.8</priority>
-    </url>
-    <url>
-        <loc>https://www.feedtanstore.com/shop/product/apple-macbook-air</loc>
-        <lastmod>2026-07-02T06:28:28+03:00</lastmod>
-        <changefreq>weekly</changefreq>
-        <priority>0.8</priority>
-    </url>
-    <url>
-        <loc>https://www.feedtanstore.com/shop/product/adidas-t-shirt</loc>
+        <loc>http://localhost/shop/product/adidas-t-shirt</loc>
         <lastmod>2026-07-02T06:28:28+03:00</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>

@@ -336,7 +336,15 @@ Route::middleware('auth')->group(function () {
         Route::put('/budgets/{budget}', [\App\Http\Controllers\BudgetController::class, 'update'])->name('budgets.update');
         Route::delete('/budgets/{budget}', [\App\Http\Controllers\BudgetController::class, 'destroy'])->name('budgets.destroy');
         
-        Route::get('/assets', [\App\Http\Controllers\FinanceController::class, 'assets'])->name('assets');
+        // Assets
+        Route::get('/assets', [\App\Http\Controllers\AssetController::class, 'index'])->name('assets');
+        Route::get('/assets/create', [\App\Http\Controllers\AssetController::class, 'create'])->name('assets.create');
+        Route::post('/assets', [\App\Http\Controllers\AssetController::class, 'store'])->name('assets.store');
+        Route::get('/assets/{asset}', [\App\Http\Controllers\AssetController::class, 'show'])->name('assets.show');
+        Route::get('/assets/{asset}/edit', [\App\Http\Controllers\AssetController::class, 'edit'])->name('assets.edit');
+        Route::put('/assets/{asset}', [\App\Http\Controllers\AssetController::class, 'update'])->name('assets.update');
+        Route::delete('/assets/{asset}', [\App\Http\Controllers\AssetController::class, 'destroy'])->name('assets.destroy');
+        Route::post('/assets/run-depreciation', [\App\Http\Controllers\AssetController::class, 'runDepreciation'])->name('assets.run-depreciation');
         Route::get('/settings', [\App\Http\Controllers\FinanceController::class, 'settings'])->name('settings');
         
         Route::get('/reports', [\App\Http\Controllers\FinanceController::class, 'reports'])->name('reports');
