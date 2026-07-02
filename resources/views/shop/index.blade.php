@@ -18,7 +18,15 @@
         })
       : null;
   $searchTerm = trim((string) request('search', ''));
-  $seo = seo_shop_index($selectedCategory, $searchTerm);
+  $shopName = 'Feedtan Store';
+  $seoTitle = $selectedCategory ? $selectedCategory->name . ' - ' . $shopName : ($searchTerm ? 'Search Results for "' . $searchTerm . '" - ' . $shopName : $shopName);
+  $seoDescription = $selectedCategory ? 'Shop ' . $selectedCategory->name . ' at ' . $shopName : ($searchTerm ? 'Find products matching "' . $searchTerm . '" at ' . $shopName : 'Welcome to ' . $shopName . ' - Your trusted store in Moshi, Kilimanjaro');
+  $seo = [
+      'title' => $seoTitle,
+      'description' => $seoDescription,
+      'keywords' => 'feedtan store, shop, products, online store, moshi, kilimanjaro, tanzania',
+      'image' => asset('logo-image-feedtan-store.png')
+  ];
 
   $canonicalUrl = request()->fullUrl();
   $pageType = $selectedCategory || $searchTerm !== '' ? 'website' : 'store';
