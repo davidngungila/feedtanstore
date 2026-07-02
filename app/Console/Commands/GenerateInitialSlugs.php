@@ -18,22 +18,20 @@ class GenerateInitialSlugs extends Command
     public function handle()
     {
         // Generate slugs for categories
-        $categories = Category::whereNull('slug')->get();
+        $categories = Category::whereNull('slug')->orWhere('slug', '')->get();
         $this->info("Found {$categories->count()} categories without slugs.");
         
         foreach ($categories as $category) {
-            $category->slug = Category::generateUniqueSlug($category->name);
-            $category->save();
+            $category->save(); // The model's saving event will generate the slug
             $this->line("Generated slug for category: {$category->name} -> {$category->slug}");
         }
         
         // Generate slugs for products
-        $products = Product::whereNull('slug')->get();
+        $products = Product::whereNull('slug')->orWhere('slug', '')->get();
         $this->info("\nFound {$products->count()} products without slugs.");
         
         foreach ($products as $product) {
-            $product->slug = Product::generateUniqueSlug($product->name);
-            $product->save();
+            $product->save(); // The model's saving event will generate the slug
             $this->line("Generated slug for product: {$product->name} -> {$product->slug}");
         }
         

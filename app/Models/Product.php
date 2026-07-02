@@ -41,7 +41,17 @@ class Product extends Model
         });
 
         static::updating(function ($product) {
-            if ($product->isDirty('name') && empty($product->slug)) {
+            if (empty($product->slug)) {
+                $product->slug = static::generateUniqueSlug($product);
+            }
+            // If name changed and we had a slug, update it
+            if ($product->isDirty('name') && $product->slug) {
+                $product->slug = static::generateUniqueSlug($product);
+            }
+        });
+
+        static::saving(function ($product) {
+            if (empty($product->slug)) {
                 $product->slug = static::generateUniqueSlug($product);
             }
         });
@@ -72,7 +82,14 @@ class Product extends Model
 
     public function getRouteKeyName()
     {
-        return 'slug';
+        // Fall back to id if slug is empty
+        return $this->slug ? 'slug' : 'id';
+    }
+
+    // Override getRouteKey to handle null slug
+    public function getRouteKey()
+    {
+        return $this->slug ?: $this->getKey();
     }
 
     protected $casts = [

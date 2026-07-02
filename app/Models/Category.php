@@ -21,10 +21,29 @@ class Category extends Model
         });
 
         static::updating(function ($category) {
-            if ($category->isDirty('name') && empty($category->slug)) {
+            if (empty($category->slug)) {
+                $category->slug = static::generateUniqueSlug($category);
+            }
+            if ($category->isDirty('name') && $category->slug) {
                 $category->slug = static::generateUniqueSlug($category);
             }
         });
+
+        static::saving(function ($category) {
+            if (empty($category->slug)) {
+                $category->slug = static::generateUniqueSlug($category);
+            }
+        });
+    }
+
+    public function getRouteKeyName()
+    {
+        return $this->slug ? 'slug' : 'id';
+    }
+
+    public function getRouteKey()
+    {
+        return $this->slug ?: $this->getKey();
     }
 
     protected static function generateUniqueSlug($category)
