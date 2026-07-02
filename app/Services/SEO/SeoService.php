@@ -40,16 +40,16 @@ class SeoService
         $categoryName = $product->category?->name ?? 'Products';
         
         return self::meta(
-            "Buy {$product->name} in Moshi | FeedTan Store",
-            "Order {$product->name} online at FeedTan Store. Fast delivery in Moshi, Kilimanjaro, Tanzania.",
+            "Buy {$product->name} in Moshi | Feedtan Store",
+            "Order {$product->name} online at Feedtan Store. Fast delivery in Moshi, Kilimanjaro, Tanzania.",
             $imageUrl,
             [
                 $product->name,
                 $categoryName,
-                'Moshi supermarket',
+                'Moshi store',
                 'Kilimanjaro grocery delivery',
                 'online shopping Moshi',
-                'FeedTan Store'
+                'Feedtan Store'
             ]
         );
     }
@@ -61,74 +61,74 @@ class SeoService
         
         if ($selectedCategory) {
             return self::meta(
-                "{$selectedCategory->name} - FeedTan Store Online Shop Moshi Kilimanjaro",
-                "Browse {$selectedCategory->name} at FeedTan Store with trusted prices, secure checkout, and delivery options across Moshi, Kilimanjaro, Tanzania.",
+                "{$selectedCategory->name} - Feedtan Store Online Shop Moshi Kilimanjaro",
+                "Browse {$selectedCategory->name} at Feedtan Store with trusted prices, secure checkout, and delivery options across Moshi, Kilimanjaro, Tanzania.",
                 $baseUrl . '/logo-image-feedtan-store.png',
                 [
                     $selectedCategory->name,
-                    'Moshi supermarket',
+                    'Moshi store',
                     'Kilimanjaro grocery delivery',
-                    'FeedTan Store'
+                    'Feedtan Store'
                 ]
             );
         }
         
         if ($searchTerm) {
             return self::meta(
-                "Search results for \"{$searchTerm}\" - FeedTan Store Moshi",
-                "Find products matching \"{$searchTerm}\" at FeedTan Store and order online with quick checkout and delivery tracking in Moshi, Kilimanjaro.",
+                "Search results for \"{$searchTerm}\" - Feedtan Store Moshi",
+                "Find products matching \"{$searchTerm}\" at Feedtan Store and order online with quick checkout and delivery tracking in Moshi, Kilimanjaro.",
                 $baseUrl . '/logo-image-feedtan-store.png',
                 [
                     $searchTerm,
-                    'Moshi supermarket',
+                    'Moshi store',
                     'Kilimanjaro grocery delivery',
-                    'FeedTan Store'
+                    'Feedtan Store'
                 ]
             );
         }
         
         return self::meta(
-            'Moshi Online Supermarket | Grocery Delivery in Kilimanjaro Tanzania | FeedTan Store',
-            'Shop groceries online in Moshi, Kilimanjaro. Order fresh food, household items, and get fast home delivery across Moshi town with FeedTan Store.',
+            'Feedtan Store - Online Shopping in Moshi Kilimanjaro Tanzania',
+            'Shop online in Moshi, Kilimanjaro, Tanzania. Order fresh food, household items, electronics, clothing, and get fast home delivery with Feedtan Store.',
             $baseUrl . '/logo-image-feedtan-store.png',
             [
-                'online supermarket Moshi',
+                'online store Moshi',
                 'Moshi online grocery store',
-                'supermarket delivery Moshi Kilimanjaro',
+                'store delivery Moshi Kilimanjaro',
                 'buy groceries online Moshi',
                 'online shopping Moshi Tanzania',
                 'grocery delivery Moshi',
-                'food delivery supermarket Moshi',
-                'Kilimanjaro online supermarket',
+                'food delivery Moshi',
+                'Kilimanjaro online store',
                 'Moshi grocery delivery service',
-                'online supermarket in Moshi',
+                'online store in Moshi',
                 'grocery store near me Moshi',
                 'food delivery near Moshi town',
-                'supermarket in Kilimanjaro Tanzania',
+                'store in Kilimanjaro Tanzania',
                 'Moshi town online shopping',
-                'delivery supermarket Kilimanjaro region',
+                'delivery store Kilimanjaro region',
                 'Moshi fresh food delivery',
                 'Moshi household shopping online',
                 'buy rice online Moshi',
                 'Moshi maize flour delivery',
-                'online vegetables supermarket Moshi',
+                'online vegetables Moshi',
                 'fresh fruits delivery Moshi Tanzania',
                 'cooking oil delivery Moshi',
                 'dairy products online Moshi',
-                'beverages delivery Moshi supermarket',
-                'same day delivery Moshi supermarket',
+                'beverages delivery Moshi',
+                'same day delivery Moshi',
                 'home delivery grocery Moshi',
-                'fast delivery Kilimanjaro supermarket',
+                'fast delivery Kilimanjaro',
                 'affordable grocery delivery Moshi',
                 'online order and home delivery Moshi',
-                'FeedTan supermarket Moshi',
-                'FeedTan grocery delivery Tanzania',
-                'FeedTan online shopping platform',
-                'FeedTan Kilimanjaro delivery service',
-                'best online supermarket for home delivery in Moshi Tanzania',
+                'Feedtan store Moshi',
+                'Feedtan grocery delivery Tanzania',
+                'Feedtan online shopping platform',
+                'Feedtan Kilimanjaro delivery service',
+                'best online store for home delivery in Moshi Tanzania',
                 'how to buy groceries online in Moshi Kilimanjaro',
                 'cheap grocery delivery service in Moshi town',
-                'trusted online supermarket in Kilimanjaro region Tanzania'
+                'trusted online store in Kilimanjaro region Tanzania'
             ]
         );
     }
