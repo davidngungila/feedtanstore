@@ -34,6 +34,8 @@ class Product extends Model
     {
         parent::boot();
 
+        static::observe(\App\Observers\SitemapObserver::class);
+
         static::creating(function ($product) {
             if (empty($product->slug)) {
                 $product->slug = static::generateUniqueSlug($product);
