@@ -51,6 +51,11 @@ class SitemapObserver
      */
     protected function regenerateSitemap(): void
     {
-        SitemapService::generateAndSave();
+        try {
+            SitemapService::generateAndSave();
+        } catch (\Exception $e) {
+            // Ignore sitemap regeneration errors, don't break sales
+            \Log::error('Failed to regenerate sitemap: ' . $e->getMessage());
+        }
     }
 }

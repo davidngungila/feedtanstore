@@ -14,11 +14,11 @@ class SitemapService
         $settings = StoreSetting::firstOrCreate();
         
         // Priority 1: Use store_url from settings
-        // Priority 2: Use current request's scheme and host (if available)
+        // Priority 2: Use current request's scheme and host (if available and valid)
         // Priority 3: Fall back to config('app.url')
         if ($settings->store_url) {
             $baseUrl = $settings->store_url;
-        } elseif ($request || request()) {
+        } elseif ($request || (request() && method_exists(request(), 'scheme'))) {
             $req = $request ?? request();
             $baseUrl = $req->scheme() . '://' . $req->getHost();
         } else {
@@ -90,7 +90,7 @@ class SitemapService
         // Use same base URL logic as generate()
         if ($settings->store_url) {
             $baseUrl = $settings->store_url;
-        } elseif (request()) {
+        } elseif (request() && method_exists(request(), 'scheme')) {
             $req = request();
             $baseUrl = $req->scheme() . '://' . $req->getHost();
         } else {
