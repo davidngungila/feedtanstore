@@ -14,8 +14,6 @@ class Category extends Model
     {
         parent::boot();
 
-        static::observe(\App\Observers\SitemapObserver::class);
-
         static::creating(function ($category) {
             if (empty($category->slug)) {
                 $category->slug = static::generateUniqueSlug($category);
