@@ -67,6 +67,21 @@
                 </div>
             </div>
 
+            <!-- General Store Settings Section -->
+            <div class="mb-8">
+                <h3 class="text-lg font-semibold text-primary-900 mb-4 border-b border-gray-200 pb-2">
+                    <i class="fas fa-store mr-2"></i>
+                    General Store Settings
+                </h3>
+                <div class="p-4 bg-gray-50 rounded-xl border border-gray-200 space-y-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Store URL</label>
+                        <input type="url" name="store_url" value="{{ $settings->store_url }}" class="form-input w-full" placeholder="e.g. https://www.feedtanstore.com">
+                        <p class="text-xs text-gray-500 mt-2">This URL is used for sitemap generation and SEO purposes</p>
+                    </div>
+                </div>
+            </div>
+
             <!-- Map / OpenRouteService Section -->
             <div class="mb-8">
                 <h3 class="text-lg font-semibold text-primary-900 mb-4 border-b border-gray-200 pb-2">
