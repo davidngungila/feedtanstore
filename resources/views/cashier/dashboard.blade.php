@@ -4,8 +4,15 @@
 
 @section('content')
 <div class="animate-[fadeIn_0.4s_ease] min-h-screen p-3 sm:p-4">
+    <!-- Toggle for dashboard stats on small screens -->
+    <div class="flex justify-end mb-3 lg:hidden">
+        <button type="button" onclick="toggleDashboardStats()" class="px-3 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg text-sm font-medium">
+            <i class="fas fa-chart-bar mr-1"></i>Stats
+        </button>
+    </div>
+    
     <!-- Dashboard Stats -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+    <div id="dashboardStats" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4 hidden lg:grid">
         <div class="card rounded-2xl p-4">
             <h4 class="text-sm font-medium text-gray-600 mb-1">Today's Sales</h4>
             <p class="text-xl font-bold text-primary-900" id="todaySales">TZS 0.00</p>
@@ -132,8 +139,15 @@
 
         <!-- Payment & Quick Actions -->
         <div class="space-y-4">
+            <!-- Toggle for quick actions on small screens -->
+            <div class="lg:hidden">
+                <button type="button" onclick="toggleQuickActions()" class="w-full px-3 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg text-sm font-medium">
+                    <i class="fas fa-bolt mr-1"></i>Quick Actions
+                </button>
+            </div>
+            
             <!-- Quick Actions -->
-            <div class="card rounded-2xl p-4">
+            <div id="quickActions" class="card rounded-2xl p-4 hidden lg:block">
                 <h2 class="text-lg font-bold text-primary-900 mb-3">Quick Actions</h2>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     <button type="button" onclick="toggleFullscreen()" class="py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-700 text-sm font-medium" id="fullscreenBtn">
@@ -349,6 +363,17 @@ let dashboardData = {
     shiftBreakdown: {cash: 0, card: 0, mobile: 0},
     transactions: []
 };
+
+function toggleDashboardStats() {
+    const statsEl = document.getElementById('dashboardStats');
+    statsEl.classList.toggle('hidden');
+    statsEl.classList.toggle('grid');
+}
+
+function toggleQuickActions() {
+    const quickActionsEl = document.getElementById('quickActions');
+    quickActionsEl.classList.toggle('hidden');
+}
 
 document.addEventListener('DOMContentLoaded', function() {
     updateTime();
