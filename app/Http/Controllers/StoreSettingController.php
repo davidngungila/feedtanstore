@@ -297,10 +297,10 @@ class StoreSettingController extends Controller
         }
     }
 
-    public function regenerateSitemap()
+    public function regenerateSitemap(\Illuminate\Http\Request $request)
     {
         try {
-            SitemapService::generateAndSave();
+            SitemapService::generateAndSave($request);
             return back()->with('success', 'Sitemap regenerated successfully!');
         } catch (\Exception $e) {
             return back()->with('error', 'Error regenerating sitemap: ' . $e->getMessage());

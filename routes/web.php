@@ -17,8 +17,15 @@ Route::get('/sales/receipts/{sale}/verify', [\App\Http\Controllers\ReceiptContro
 Route::get('/sales/receipts/{sale}/download', [\App\Http\Controllers\ReceiptController::class, 'download'])->name('sales.receipts.download');
 
 // Public Shop Routes
-Route::get('/sitemap.xml', function () {
-    $urls = \App\Services\SEO\SitemapService::generate();
+Route::get('/sitemap.xml', function (\Illuminate\Http\Request $request) {
+    // Check if static sitemap exists, if so serve it
+    $sitemapPath = public_path('sitemap.xml');
+    if (file_exists($sitemapPath)) {
+        return response()->file($sitemapPath, ['Content-Type' => 'text/xml']);
+    }
+    
+    // Fallback: generate on the fly with request context
+    $urls = \App\Services\SEO\SitemapService::generate($request);
     return response()->view('sitemap', compact('urls'))->header('Content-Type', 'text/xml');
 })->name('shop.sitemap');
 Route::get('/shop', [\App\Http\Controllers\OnlineOrderController::class, 'shop'])->name('shop.index');

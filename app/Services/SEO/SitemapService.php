@@ -9,10 +9,22 @@ use Illuminate\Support\Facades\Http;
 
 class SitemapService
 {
-    public static function generate()
+    public static function generate($request = null)
     {
         $settings = StoreSetting::firstOrCreate();
-        $baseUrl = $settings->store_url ?? config('app.url');
+        
+        // Priority 1: Use store_url from settings
+        // Priority 2: Use current request's scheme and host (if available)
+        // Priority 3: Fall back to config('app.url')
+        if ($settings->store_url) {
+            $baseUrl = $settings->store_url;
+        } elseif ($request || request()) {
+            $req = $request ?? request();
+            $baseUrl = $req->scheme() . '://' . $req->getHost();
+        } else {
+            $baseUrl = config('app.url');
+        }
+        
         $baseUrl = rtrim($baseUrl, '/'); // Ensure no trailing slash
 
         $urls = [];
@@ -56,10 +68,10 @@ class SitemapService
         return $urls;
     }
 
-    public static function generateAndSave()
+    public static function generateAndSave($request = null)
     {
         $settings = StoreSetting::firstOrCreate();
-        $sitemapContent = view('sitemap', ['urls' => self::generate()])->render();
+        $sitemapContent = view('sitemap', ['urls' => self::generate($request)])->render();
         
         // Explicitly overwrite the existing file with exclusive lock to prevent race conditions
         file_put_contents(public_path('sitemap.xml'), $sitemapContent, LOCK_EX);
@@ -74,7 +86,17 @@ class SitemapService
     protected static function pingSearchEngines()
     {
         $settings = StoreSetting::firstOrCreate();
-        $baseUrl = $settings->store_url ?? config('app.url');
+        
+        // Use same base URL logic as generate()
+        if ($settings->store_url) {
+            $baseUrl = $settings->store_url;
+        } elseif (request()) {
+            $req = request();
+            $baseUrl = $req->scheme() . '://' . $req->getHost();
+        } else {
+            $baseUrl = config('app.url');
+        }
+        
         $sitemapUrl = rtrim($baseUrl, '/') . '/sitemap.xml';
 
         $searchEngines = [
