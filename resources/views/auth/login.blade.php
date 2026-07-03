@@ -101,35 +101,35 @@
                     </div>
                     <div class="leading-tight">
                         <p class="text-[15px] font-bold tracking-wide">FEEDTAN STORE</p>
-                        <p class="text-[11px] uppercase tracking-[0.18em] text-emerald-300/80">Farm &amp; Feed Supply</p>
+                        <p class="text-[11px] uppercase tracking-[0.18em] text-emerald-300/80">Supermarket &amp; Online Shop</p>
                     </div>
                 </div>
             </div>
 
             <!-- headline block -->
             <div class="relative z-10 max-w-md">
-                <p class="rise-in text-[11px] font-semibold uppercase tracking-[0.22em] text-emerald-300/90" style="animation-delay:.15s">Since 2011 &middot; Trusted by farms nationwide</p>
+                <p class="rise-in text-[11px] font-semibold uppercase tracking-[0.22em] text-emerald-300/90" style="animation-delay:.15s">Since 2011 &middot; Trusted supermarket &amp; online shop</p>
                 <h1 class="rise-in font-display mt-4 text-[2.6rem] leading-[1.1] font-medium text-white" style="animation-delay:.25s">
-                    Feed the work<br> that feeds everyone.
+                    Shop everything<br> you need.
                 </h1>
                 <p class="rise-in mt-5 text-[15px] leading-relaxed text-mist-100/80" style="animation-delay:.4s">
-                    Sign in to manage orders, track dispatch, and reorder livestock
-                    and crop nutrition — all from one account built for growers.
+                    Sign in to manage in-store sales, online orders, bookings,
+                    and payments — all from one unified platform.
                 </p>
 
                 <!-- feature rows -->
                 <div class="rise-in mt-9 space-y-4" style="animation-delay:.55s">
                     <div class="flex items-center gap-3">
                         <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-emerald-500/15 text-emerald-300">
-                            <i class="fa-solid fa-truck-fast text-sm"></i>
+                            <i class="fa-solid fa-shopping-cart text-sm"></i>
                         </div>
-                        <p class="text-sm text-mist-100/90">Same-day dispatch on in-stock feed</p>
+                        <p class="text-sm text-mist-100/90">In-store sales &amp; online orders in one place</p>
                     </div>
                     <div class="flex items-center gap-3">
                         <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-emerald-500/15 text-emerald-300">
-                            <i class="fa-solid fa-seedling text-sm"></i>
+                            <i class="fa-solid fa-credit-card text-sm"></i>
                         </div>
-                        <p class="text-sm text-mist-100/90">Nutrition specialists on every order</p>
+                        <p class="text-sm text-mist-100/90">Multiple payment options &amp; easy tracking</p>
                     </div>
                     <div class="flex items-center gap-3">
                         <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-emerald-500/15 text-emerald-300">
@@ -143,13 +143,13 @@
             <!-- footer stat -->
             <div class="relative z-10 rise-in flex items-center gap-6 border-t border-white/10 pt-6" style="animation-delay:.7s">
                 <div>
-                    <p class="font-display text-2xl font-medium text-white">12,400<span class="text-wheat-300">+</span></p>
-                    <p class="text-[11px] uppercase tracking-wide text-mist-100/60">Orders this season</p>
+                    <p class="font-display text-2xl font-medium text-white">15,800<span class="text-wheat-300">+</span></p>
+                    <p class="text-[11px] uppercase tracking-wide text-mist-100/60">Orders this month</p>
                 </div>
                 <div class="h-8 w-px bg-white/10"></div>
                 <div>
-                    <p class="font-display text-2xl font-medium text-white">2,000<span class="text-wheat-300">+</span></p>
-                    <p class="text-[11px] uppercase tracking-wide text-mist-100/60">Farms served</p>
+                    <p class="font-display text-2xl font-medium text-white">5,000<span class="text-wheat-300">+</span></p>
+                    <p class="text-[11px] uppercase tracking-wide text-mist-100/60">Happy customers</p>
                 </div>
             </div>
         </aside>
@@ -169,7 +169,7 @@
                     </div>
                     <div class="leading-tight">
                         <p class="text-sm font-bold text-forest-900">FEEDTAN STORE</p>
-                        <p class="text-[10px] uppercase tracking-[0.18em] text-ink-400">Farm &amp; Feed Supply</p>
+                        <p class="text-[10px] uppercase tracking-[0.18em] text-ink-400">Supermarket &amp; Online Shop</p>
                     </div>
                 </div>
 
