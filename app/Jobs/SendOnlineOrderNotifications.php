@@ -36,8 +36,8 @@ class SendOnlineOrderNotifications
             // Get store settings to use store_url if available
             $settings = \App\Models\StoreSetting::firstOrCreate();
             $baseUrl = $settings->store_url ?? config('app.url');
-            // Use tracking token if available, otherwise use order number
-            $trackingIdentifier = $order->tracking_token ?? $order->order_number;
+            // Use short customer reference without the # for tracking URL
+            $trackingIdentifier = ltrim($order->short_customer_reference, '#');
             $trackingUrl = $baseUrl . '/shop/tracking/' . $trackingIdentifier;
             
             // Generate other URLs
