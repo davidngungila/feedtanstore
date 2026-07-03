@@ -74,7 +74,7 @@
                     </div>
                     <div>
                         <h2 class="text-lg font-bold text-primary-900 mb-3">Customer</h2>
-                        <div class="relative">
+                        <div class="relative mb-3">
                             <i class="fas fa-user absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
                             <input type="text" id="customerSearchInput" placeholder="Search or select customer..." class="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm">
                             <input type="hidden" id="customerSelect" value="">
@@ -89,9 +89,20 @@
                                 @endforeach
                             </div>
                         </div>
-                        <div class="mt-2">
+                        <div class="mt-2 flex flex-col sm:flex-row gap-2">
                             <button onclick="showCreateCustomerModal()" class="text-sm text-primary-600 hover:text-primary-800 font-medium">
                                 <i class="fas fa-plus mr-1"></i>Add New Customer
+                            </button>
+                        </div>
+                        
+                        <div class="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                            <h3 class="text-sm font-semibold text-blue-900 mb-2"><i class="fas fa-mobile-alt mr-2"></i>Online Payment</h3>
+                            <div class="mb-2">
+                                <label class="block text-xs font-medium text-gray-700 mb-1">Customer Phone Number (for M-Pesa/Tigo/Airtel)</label>
+                                <input type="text" id="onlinePaymentPhone" placeholder="255712345678" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+                            </div>
+                            <button type="button" id="initiateOnlinePaymentBtn" onclick="initiateOnlinePayment()" class="w-full px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold" disabled>
+                                <i class="fas fa-credit-card mr-1"></i>Initiate Online Payment
                             </button>
                         </div>
                     </div>
@@ -385,6 +396,12 @@ document.addEventListener('DOMContentLoaded', function() {
     setInterval(loadDashboardData, 10000); // Refresh every 10 seconds
     setupCreateCustomerForm();
     setupCustomerSearch();
+    
+    // Add event listeners for initiate payment button
+    document.getElementById('onlinePaymentPhone').addEventListener('input', updateInitiatePaymentButton);
+    document.getElementById('discountInput').addEventListener('input', updateInitiatePaymentButton);
+    document.getElementById('discountType').addEventListener('change', updateInitiatePaymentButton);
+    updateInitiatePaymentButton(); // Initial check
 
     // Kiosk Mode
     const kioskModeEnabled = {{ $storeSetting->kiosk_mode_enabled ? 'true' : 'false' }};
@@ -957,6 +974,7 @@ function renderCart() {
         `).join('');
     }
     updateTotals();
+    updateInitiatePaymentButton();
 }
 
 function updateQuantity(index, delta) {
@@ -1028,6 +1046,97 @@ function calculateChange() {
     const paid = parseFloat(document.getElementById('paidAmount').value) || 0;
     const change = paid - total;
     document.getElementById('changeAmount').textContent = 'TZS ' + formatNumber(change);
+}
+
+function updateInitiatePaymentButton() {
+    const btn = document.getElementById('initiateOnlinePaymentBtn');
+    const phoneInput = document.getElementById('onlinePaymentPhone');
+    const hasItems = cart.length > 0;
+    const hasPhone = phoneInput.value.trim().length > 0;
+    
+    btn.disabled = !(hasItems && hasPhone);
+}
+
+// We'll add the update call to the original DOMContentLoaded, no need for duplicate!
+
+function initiateOnlinePayment() {
+    if (isProcessing) return;
+    
+    if (cart.length === 0) {
+        showNotification('Cart is empty!', 'error');
+        return;
+    }
+    
+    const phoneNumber = document.getElementById('onlinePaymentPhone').value.trim();
+    if (!phoneNumber) {
+        showNotification('Please enter customer phone number!', 'error');
+        return;
+    }
+    
+    const subtotal = cart.reduce((sum, item) => sum + (parseFloat(item.price) * item.quantity), 0);
+    const discountType = document.getElementById('discountType').value;
+    const discountValue = parseFloat(document.getElementById('discountInput').value) || 0;
+    let discount = 0;
+    
+    if (discountType === 'percent') {
+        discount = (discountValue / 100) * subtotal;
+    } else {
+        discount = discountValue;
+    }
+    
+    isProcessing = true;
+    document.getElementById('loadingOverlay').classList.remove('hidden');
+    
+    const formattedCart = cart.map(item => ({
+        id: item.id,
+        name: item.name,
+        price: parseFloat(item.price),
+        quantity: item.quantity
+    }));
+    
+    const customerId = document.getElementById('customerSelect').value;
+    
+    fetch('{{ route('cashier.initiate-online-payment') }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+        },
+        body: JSON.stringify({
+            items: formattedCart,
+            discount,
+            customer_id: customerId ? parseInt(customerId) : null,
+            phone_number: phoneNumber
+        })
+    })
+    .then(r => {
+        if (!r.ok) {
+            return r.json().then(err => Promise.reject(err));
+        }
+        return r.json();
+    })
+    .then(data => {
+        isProcessing = false;
+        document.getElementById('loadingOverlay').classList.add('hidden');
+        
+        if (data.success) {
+            showNotification(data.message, 'success');
+            // Clear cart after successful payment initiation
+            cart = [];
+            renderCart();
+            // Show success modal or redirect
+            if (confirm('Payment initiated! Would you like to view the order?')) {
+                window.location.href = '{{ route('online.orders') }}';
+            }
+        } else {
+            showNotification(data.message, 'error');
+        }
+    })
+    .catch(e => {
+        isProcessing = false;
+        document.getElementById('loadingOverlay').classList.add('hidden');
+        showNotification(e.error || e.message || 'Error initiating payment', 'error');
+    });
 }
 
 function completeSale() {

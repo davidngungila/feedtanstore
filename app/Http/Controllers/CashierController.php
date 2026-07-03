@@ -9,7 +9,12 @@ use App\Models\SaleItem;
 use App\Models\Shift;
 use App\Models\AccountingEntry;
 use App\Models\StoreSetting;
+use App\Models\OnlineOrder;
+use App\Models\OnlineOrderItem;
+use App\Models\Customer;
+use App\Services\FeedtanEcommercePaymentService;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 
 class CashierController extends Controller
 {
@@ -253,5 +258,187 @@ class CashierController extends Controller
             // Ignore accounting entry creation errors so sales don't fail
             \Log::error('Failed to create accounting entries in cashier: ' . $e->getMessage());
         }
+    }
+
+    public function initiateOnlinePayment(Request $request, FeedtanEcommercePaymentService $paymentService)
+    {
+        $data = $request->validate([
+            'items' => 'required|array|min:1',
+            'items.*.id' => 'required|exists:products,id',
+            'items.*.quantity' => 'required|integer|min:1',
+            'items.*.price' => 'required|numeric|min:0',
+            'discount' => 'nullable|numeric',
+            'customer_id' => 'nullable|exists:customers,id',
+            'phone_number' => 'required|string',
+        ]);
+
+        // Normalize phone number
+        $phoneNumber = $this->normalizePhoneNumber($data['phone_number']);
+        if (!$phoneNumber) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid phone number. Please use format: 255712345678.'
+            ], 400);
+        }
+
+        // Check stock availability
+        foreach ($data['items'] as $item) {
+            $product = Product::find($item['id']);
+            if (!$product) {
+                return response()->json(['error' => 'Product not found'], 400);
+            }
+            if ($product->quantity < $item['quantity']) {
+                return response()->json(['error' => "Insufficient stock for {$product->name}. Available: {$product->quantity}"], 400);
+            }
+        }
+
+        // Get customer details
+        $customer = null;
+        $customerName = 'Walk-in Customer';
+        $customerEmail = null;
+        $customerAddress = null;
+        if ($data['customer_id']) {
+            $customer = Customer::find($data['customer_id']);
+            $customerName = $customer->name;
+            $customerEmail = $customer->email;
+            $customerAddress = $customer->address;
+        }
+
+        // Calculate totals
+        $orderNumber = 'ORD-' . date('YmdHis') . '-' . Str::random(4);
+        $trackingToken = Str::uuid();
+        $deliveryCode = str_pad(rand(0, 9999), 4, '0', STR_PAD_LEFT);
+        $subtotal = collect($data['items'])->sum(fn($item) => $item['price'] * $item['quantity']);
+        $discount = $data['discount'] ?? 0;
+        $total = $subtotal - $discount;
+
+        // Create online order
+        $onlineOrder = OnlineOrder::create([
+            'order_number' => $orderNumber,
+            'tracking_token' => $trackingToken,
+            'delivery_code' => $deliveryCode,
+            'customer_id' => $data['customer_id'],
+            'customer_name' => $customerName,
+            'customer_phone' => $phoneNumber,
+            'customer_email' => $customerEmail,
+            'delivery_address' => $customerAddress,
+            'status' => 'pending',
+            'payment_status' => 'pending',
+            'payment_method' => 'online',
+            'subtotal' => $subtotal,
+            'discount' => $discount,
+            'delivery_fee' => 0,
+            'total' => $total,
+            'user_id' => Auth::id(),
+        ]);
+
+        // Create order items
+        foreach ($data['items'] as $itemData) {
+            $itemTotal = $itemData['quantity'] * $itemData['price'];
+            $onlineOrder->items()->create([
+                'product_id' => $itemData['id'],
+                'quantity' => $itemData['quantity'],
+                'price' => $itemData['price'],
+                'total' => $itemTotal,
+            ]);
+        }
+
+        // Initiate payment
+        try {
+            $paymentPayload = $this->buildPaymentPayload($onlineOrder, $phoneNumber);
+            $paymentResponse = $paymentService->initiatePayment($paymentPayload);
+
+            if (isset($paymentResponse['success']) && $paymentResponse['success']) {
+                $this->syncOrderPaymentState($onlineOrder, $paymentResponse['data'] ?? [], 'Payment initiated via cashier dashboard');
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Payment initiated successfully! Please check your phone to complete the payment.',
+                    'order' => $onlineOrder,
+                ]);
+            } else {
+                return response()->json([
+                    'success' => false,
+                    'message' => $paymentResponse['message'] ?? 'Failed to initiate payment. Please try again.',
+                ], 400);
+            }
+        } catch (\Exception $e) {
+            \Log::error('Failed to initiate online payment via cashier: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to initiate payment. Please try again.',
+            ], 500);
+        }
+    }
+
+    protected function normalizePhoneNumber($phoneNumber)
+    {
+        // Remove all non-numeric characters
+        $cleaned = preg_replace('/[^0-9]/', '', $phoneNumber);
+        
+        // If it starts with 0, replace with 255
+        if (strlen($cleaned) === 10 && substr($cleaned, 0, 1) === '0') {
+            return '255' . substr($cleaned, 1);
+        }
+        
+        // If it starts with 255 and is 12 digits, return it
+        if (strlen($cleaned) === 12 && substr($cleaned, 0, 3) === '255') {
+            return $cleaned;
+        }
+        
+        // If it starts with 7 and is 9 digits, add 255
+        if (strlen($cleaned) === 9 && substr($cleaned, 0, 1) === '7') {
+            return '255' . $cleaned;
+        }
+        
+        return null;
+    }
+
+    protected function buildPaymentPayload(OnlineOrder $order, $phoneNumber)
+    {
+        return [
+            'order_reference' => $order->order_number,
+            'amount' => $order->total,
+            'currency' => 'TZS',
+            'customer_name' => $order->customer_name,
+            'customer_phone' => $phoneNumber,
+            'customer_email' => $order->customer_email,
+            'items' => $order->items->map(function ($item) {
+                return [
+                    'name' => $item->product->name ?? 'Product',
+                    'quantity' => $item->quantity,
+                    'price' => $item->price,
+                ];
+            })->toArray(),
+            'callback_url' => route('api.shop.payments.feedtan.callback'),
+        ];
+    }
+
+    protected function syncOrderPaymentState(OnlineOrder $order, $paymentData, $notes = '')
+    {
+        if (isset($paymentData['transaction_id'])) {
+            $order->payment_transaction_id = $paymentData['transaction_id'];
+        }
+        if (isset($paymentData['order_reference'])) {
+            $order->payment_order_reference = $paymentData['order_reference'];
+        }
+        if (isset($paymentData['status'])) {
+            $order->clickpesa_status = $paymentData['status'];
+            if (in_array(strtolower($paymentData['status']), ['completed', 'paid', 'success'])) {
+                $order->payment_status = 'paid';
+            } elseif (in_array(strtolower($paymentData['status']), ['failed', 'cancelled'])) {
+                $order->payment_status = 'failed';
+            } else {
+                $order->payment_status = 'pending';
+            }
+        }
+        $order->save();
+
+        // Create status history
+        $order->statusHistory()->create([
+            'status' => $order->status,
+            'payment_status' => $order->payment_status,
+            'notes' => $notes,
+            'user_id' => Auth::id(),
+        ]);
     }
 }
