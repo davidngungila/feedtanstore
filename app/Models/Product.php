@@ -94,6 +94,8 @@ class Product extends Model
 
     protected $casts = [
         'expiry_date' => 'datetime',
+        'is_active' => 'boolean',
+        'is_available_online' => 'boolean',
     ];
 
     public function category(): BelongsTo
