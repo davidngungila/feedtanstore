@@ -736,7 +736,7 @@ class OnlineOrderController extends Controller
             'notes' => 'Order placed from public shop'
         ]);
 
-        \App\Jobs\SendOnlineOrderNotifications::dispatch($order);
+        (new \App\Jobs\SendOnlineOrderNotifications($order))->handle();
 
         $paymentResponse = null;
         $paymentInitiated = false;
