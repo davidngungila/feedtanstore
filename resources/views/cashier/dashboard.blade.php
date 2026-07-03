@@ -93,15 +93,7 @@
                             <button onclick="showCreateCustomerModal()" class="text-sm text-primary-600 hover:text-primary-800 font-medium">
                                 <i class="fas fa-plus mr-1"></i>Add New Customer
                             </button>
-                        </div>
-                        
-                        <div class="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                            <h3 class="text-sm font-semibold text-blue-900 mb-2"><i class="fas fa-mobile-alt mr-2"></i>Online Payment</h3>
-                            <div class="mb-2">
-                                <label class="block text-xs font-medium text-gray-700 mb-1">Customer Phone Number (for M-Pesa/Tigo/Airtel)</label>
-                                <input type="text" id="onlinePaymentPhone" placeholder="255712345678" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
-                            </div>
-                            <button type="button" id="initiateOnlinePaymentBtn" onclick="initiateOnlinePayment()" class="w-full px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold" disabled>
+                            <button type="button" onclick="showOnlinePaymentOptionsModal()" class="text-sm text-blue-600 hover:text-blue-800 font-medium">
                                 <i class="fas fa-credit-card mr-1"></i>Initiate Online Payment
                             </button>
                         </div>
@@ -274,14 +266,40 @@
     </div>
 </div>
 
-<!-- Online Payment Modal -->
+<!-- Online Payment Options Modal (Enter Phone) -->
+<div id="onlinePaymentOptionsModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+    <div class="bg-white rounded-2xl p-5 sm:p-8 max-w-md w-full mx-4">
+        <div>
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-2xl font-bold text-primary-900">Initiate Online Payment</h2>
+                <button type="button" onclick="hideOnlinePaymentOptionsModal()" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            <div class="mb-6">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Customer Phone Number (M-Pesa/Tigo/Airtel</label>
+                <input type="text" id="modalOnlinePaymentPhone" placeholder="255712345678" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div class="flex flex-col sm:flex-row gap-3">
+                <button onclick="hideOnlinePaymentOptionsModal()" class="flex-1 py-3 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-xl font-semibold text-lg">
+                    <i class="fas fa-times mr-2"></i>Cancel
+                </button>
+                <button onclick="proceedToConfirmPayment()" class="flex-1 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold text-lg">
+                    <i class="fas fa-arrow-right mr-2"></i>Continue
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Online Payment Confirmation Modal -->
 <div id="onlinePaymentModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
     <div class="bg-white rounded-2xl p-5 sm:p-8 max-w-md w-full mx-4">
         <div class="text-center">
             <div class="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <i class="fas fa-mobile-alt text-blue-600 text-4xl"></i>
             </div>
-            <h2 class="text-2xl font-bold text-primary-900 mb-4">Initiate Online Payment</h2>
+            <h2 class="text-2xl font-bold text-primary-900 mb-4">Confirm Payment</h2>
             <div class="space-y-2 text-left mb-6">
                 <div class="flex justify-between">
                     <span class="text-gray-600">Items:</span>
@@ -438,12 +456,6 @@ document.addEventListener('DOMContentLoaded', function() {
     setInterval(loadDashboardData, 10000); // Refresh every 10 seconds
     setupCreateCustomerForm();
     setupCustomerSearch();
-    
-    // Add event listeners for initiate payment button
-    document.getElementById('onlinePaymentPhone').addEventListener('input', updateInitiatePaymentButton);
-    document.getElementById('discountInput').addEventListener('input', updateInitiatePaymentButton);
-    document.getElementById('discountType').addEventListener('change', updateInitiatePaymentButton);
-    updateInitiatePaymentButton(); // Initial check
 
     // Kiosk Mode
     const kioskModeEnabled = {{ $storeSetting->kiosk_mode_enabled ? 'true' : 'false' }};
@@ -1090,32 +1102,41 @@ function calculateChange() {
     document.getElementById('changeAmount').textContent = 'TZS ' + formatNumber(change);
 }
 
-function updateInitiatePaymentButton() {
-    const btn = document.getElementById('initiateOnlinePaymentBtn');
-    const phoneInput = document.getElementById('onlinePaymentPhone');
-    const hasItems = cart.length > 0;
-    const hasPhone = phoneInput.value.trim().length > 0;
-    
-    btn.disabled = !(hasItems && hasPhone);
-}
-
-// We'll add the update call to the original DOMContentLoaded, no need for duplicate!
-
-function initiateOnlinePayment() {
+function showOnlinePaymentOptionsModal() {
     if (isProcessing) return;
     
     if (cart.length === 0) {
         showNotification('Cart is empty!', 'error');
         return;
     }
-    
-    const phoneNumber = document.getElementById('onlinePaymentPhone').value.trim();
+    // Pre-fill phone if we have a customer selected
+    const customerId = document.getElementById('customerSelect').value;
+    const customers = @json($customers ?? []);
+    if (customerId) {
+        const selectedCustomer = customers.find(c => c.id == customerId);
+        if (selectedCustomer && selectedCustomer.phone) {
+            document.getElementById('modalOnlinePaymentPhone').value = selectedCustomer.phone;
+        }
+    }
+    document.getElementById('onlinePaymentOptionsModal').classList.remove('hidden');
+}
+
+function hideOnlinePaymentOptionsModal() {
+    document.getElementById('onlinePaymentOptionsModal').classList.add('hidden');
+}
+
+function proceedToConfirmPayment() {
+    const phoneNumber = document.getElementById('modalOnlinePaymentPhone').value.trim();
     if (!phoneNumber) {
         showNotification('Please enter customer phone number!', 'error');
         return;
     }
-    
+    hideOnlinePaymentOptionsModal();
     showOnlinePaymentModal(phoneNumber);
+}
+
+function initiateOnlinePayment() {
+    showOnlinePaymentOptionsModal();
 }
 
 function showOnlinePaymentModal(phoneNumber) {
@@ -1147,7 +1168,7 @@ function hideOnlinePaymentModal() {
 function confirmOnlinePayment() {
     if (isProcessing) return;
     
-    const phoneNumber = document.getElementById('onlinePaymentPhone').value.trim();
+    const phoneNumber = document.getElementById('modalOnlinePaymentPhone').value.trim();
     if (!phoneNumber) {
         showNotification('Please enter customer phone number!', 'error');
         return;
