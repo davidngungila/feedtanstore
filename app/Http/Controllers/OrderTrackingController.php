@@ -20,9 +20,26 @@ class OrderTrackingController extends Controller
         return view('online.tracking', compact('orders'));
     }
 
-    public function show($orderNumber)
+    public function show($identifier)
     {
-        $order = OnlineOrder::where('order_number', $orderNumber)->with(['items', 'rider'])->firstOrFail();
+        // Try to find by order_number first
+        $order = OnlineOrder::where('order_number', $identifier)->orWhere('tracking_token', $identifier)->with(['items', 'rider'])->first();
+        
+        if (!$order) {
+            // Try to find by short customer reference (look for orders where short_customer_reference is #$identifier)
+            $orders = OnlineOrder::with(['items', 'rider'])->get();
+            foreach ($orders as $o) {
+                if (ltrim($o->short_customer_reference, '#') === $identifier) {
+                    $order = $o;
+                    break;
+                }
+            }
+        }
+        
+        if (!$order) {
+            abort(404, 'Order not found');
+        }
+        
         $settings = StoreSetting::firstOrCreate();
         return view('online.tracking-show', compact('order', 'settings'));
     }
