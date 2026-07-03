@@ -221,14 +221,45 @@
     </div>
 </div>
 
-<!-- Loading Overlay -->
+<!-- Loading Overlay with Steps -->
 <div id="loadingOverlay" class="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm flex items-center justify-center hidden z-[100]">
-    <div class="bg-white rounded-2xl p-8 text-center">
-        <div class="w-20 h-20 mx-auto mb-4">
+    <div class="bg-white rounded-2xl p-6 sm:p-8 text-center max-w-md w-full mx-4">
+        <div class="w-20 h-20 mx-auto mb-6 flex items-center justify-center">
             <i class="fas fa-spinner fa-spin text-primary-600 text-6xl"></i>
         </div>
-        <h3 class="text-xl font-bold text-primary-900 mb-2">Processing Sale</h3>
-        <p class="text-gray-600">Please wait...</p>
+        <h3 class="text-xl font-bold text-primary-900 mb-6">Processing Sale</h3>
+        <div id="progressSteps" class="space-y-4">
+            <div id="step-1" class="flex items-center gap-3 text-left">
+                <div class="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center text-primary-600 font-semibold">
+                    <i class="fas fa-check"></i>
+                </div>
+                <span class="text-gray-600">Validating Items...</span>
+            </div>
+            <div id="step-2" class="flex items-center gap-3 text-left">
+                <div class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 font-semibold">
+                    2
+                </div>
+                <span class="text-gray-500">Checking Stock...</span>
+            </div>
+            <div id="step-3" class="flex items-center gap-3 text-left">
+                <div class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 font-semibold">
+                    3
+                </div>
+                <span class="text-gray-500">Saving Sale...</span>
+            </div>
+            <div id="step-4" class="flex items-center gap-3 text-left">
+                <div class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 font-semibold">
+                    4
+                </div>
+                <span class="text-gray-500">Updating Inventory...</span>
+            </div>
+            <div id="step-5" class="flex items-center gap-3 text-left">
+                <div class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 font-semibold">
+                    5
+                </div>
+                <span class="text-gray-500">Finalizing...</span>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -1005,6 +1036,18 @@ function addProductToCart(id, name, price) {
     document.getElementById('barcodeInput').focus();
 }
 
+function updateInitiatePaymentButton() {
+    const btn = document.querySelector('button[onclick="showOnlinePaymentOptionsModal()"]');
+    if (!btn) return;
+    if (cart.length === 0) {
+        btn.classList.add('opacity-50', 'cursor-not-allowed');
+        btn.disabled = true;
+    } else {
+        btn.classList.remove('opacity-50', 'cursor-not-allowed');
+        btn.disabled = false;
+    }
+}
+
 function renderCart() {
     const container = document.getElementById('cartItems');
     if (cart.length === 0) {
@@ -1029,6 +1072,57 @@ function renderCart() {
     }
     updateTotals();
     updateInitiatePaymentButton();
+}
+
+function resetProgressSteps() {
+    for (let i = 1; i <= 5; i++) {
+        const stepEl = document.getElementById('step-' + i);
+        if (!stepEl) continue;
+        const iconDiv = stepEl.querySelector('div');
+        const textSpan = stepEl.querySelector('span');
+        
+        iconDiv.classList.remove('bg-primary-100', 'text-primary-600', 'bg-green-100', 'text-green-600', 'bg-gray-100', 'text-gray-500');
+        iconDiv.classList.add('bg-gray-100', 'text-gray-500');
+        iconDiv.innerHTML = i;
+        
+        textSpan.classList.remove('text-gray-600', 'text-green-600', 'text-primary-600');
+        textSpan.classList.add('text-gray-500');
+    }
+}
+
+function setStepActive(stepNum) {
+    for (let i = 1; i <= 5; i++) {
+        const stepEl = document.getElementById('step-' + i);
+        if (!stepEl) continue;
+        const iconDiv = stepEl.querySelector('div');
+        const textSpan = stepEl.querySelector('span');
+        
+        if (i < stepNum) {
+            // Completed step
+            iconDiv.classList.remove('bg-primary-100', 'text-primary-600', 'bg-gray-100', 'text-gray-500');
+            iconDiv.classList.add('bg-green-100', 'text-green-600');
+            iconDiv.innerHTML = '<i class="fas fa-check"></i>';
+            
+            textSpan.classList.remove('text-gray-500', 'text-primary-600');
+            textSpan.classList.add('text-green-600');
+        } else if (i === stepNum) {
+            // Active step
+            iconDiv.classList.remove('bg-green-100', 'text-green-600', 'bg-gray-100', 'text-gray-500');
+            iconDiv.classList.add('bg-primary-100', 'text-primary-600');
+            iconDiv.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            
+            textSpan.classList.remove('text-gray-500', 'text-green-600');
+            textSpan.classList.add('text-primary-600', 'font-semibold');
+        } else {
+            // Pending step
+            iconDiv.classList.remove('bg-primary-100', 'text-primary-600', 'bg-green-100', 'text-green-600');
+            iconDiv.classList.add('bg-gray-100', 'text-gray-500');
+            iconDiv.innerHTML = i;
+            
+            textSpan.classList.remove('text-green-600', 'text-primary-600', 'font-semibold');
+            textSpan.classList.add('text-gray-500');
+        }
+    }
 }
 
 function updateQuantity(index, delta) {
@@ -1266,62 +1360,97 @@ function completeSale() {
     }
 
     isProcessing = true;
+    resetProgressSteps();
     document.getElementById('loadingOverlay').classList.remove('hidden');
-
+    
     const formattedCart = cart.map(item => ({
         id: item.id,
         name: item.name,
         price: parseFloat(item.price),
         quantity: item.quantity
     }));
-
     const customerId = document.getElementById('customerSelect').value;
 
-    fetch('/cashier/sale', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': '{{ csrf_token() }}'
-        },
-        body: JSON.stringify({
-            items: formattedCart,
-            total,
-            discount,
-            discount_type: discountType,
-            discount_value: discountValue,
-            paid,
-            payment_method: selectedPaymentMethod,
-            customer_id: customerId ? parseInt(customerId) : null
-        })
-    })
-    .then(r => {
-        if (!r.ok) {
-            return r.json().then(err => Promise.reject(err));
-        }
-        return r.json();
-    })
-    .then(data => {
-        currentSaleId = data.sale_id;
-        document.getElementById('modalTotal').textContent = 'TZS ' + formatNumber(total);
-        document.getElementById('modalPaid').textContent = 'TZS ' + formatNumber(paid);
-        document.getElementById('modalChange').textContent = 'TZS ' + formatNumber(paid - total);
-        document.getElementById('successModal').classList.remove('hidden');
-        loadDashboardData();
-        
+    // Step 1: Validating Items
+    setStepActive(1);
+    setTimeout(() => {
+        // Step 2: Checking Stock
+        setStepActive(2);
         setTimeout(() => {
-            if (currentSaleId) {
-                printReceipt();
-            }
-        }, 500);
-    })
-    .catch(e => {
-        console.error(e);
-        showNotification(e.error || 'Error completing sale', 'error');
-    })
-    .finally(() => {
-        isProcessing = false;
-        document.getElementById('loadingOverlay').classList.add('hidden');
-    });
+            // Step 3: Saving Sale
+            setStepActive(3);
+            setTimeout(() => {
+                // Step 4: Updating Inventory
+                setStepActive(4);
+                setTimeout(() => {
+                    // Step 5: Finalizing
+                    setStepActive(5);
+                    setTimeout(() => {
+                        fetch('/cashier/sale', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                            },
+                            body: JSON.stringify({
+                                items: formattedCart,
+                                total,
+                                discount,
+                                discount_type: discountType,
+                                discount_value: discountValue,
+                                paid,
+                                payment_method: selectedPaymentMethod,
+                                customer_id: customerId ? parseInt(customerId) : null
+                            })
+                        })
+                        .then(r => {
+                            if (!r.ok) {
+                                return r.json().then(err => Promise.reject(err));
+                            }
+                            return r.json();
+                        })
+                        .then(data => {
+                            // All steps complete!
+                            for (let i = 1; i <= 5; i++) {
+                                const stepEl = document.getElementById('step-' + i);
+                                if (!stepEl) continue;
+                                const iconDiv = stepEl.querySelector('div');
+                                const textSpan = stepEl.querySelector('span');
+                                iconDiv.classList.remove('bg-primary-100', 'text-primary-600', 'bg-gray-100', 'text-gray-500');
+                                iconDiv.classList.add('bg-green-100', 'text-green-600');
+                                iconDiv.innerHTML = '<i class="fas fa-check"></i>';
+                                textSpan.classList.remove('text-gray-500', 'text-primary-600', 'font-semibold');
+                                textSpan.classList.add('text-green-600');
+                            }
+                            setTimeout(() => {
+                                document.getElementById('loadingOverlay').classList.add('hidden');
+                                currentSaleId = data.sale_id;
+                                document.getElementById('modalTotal').textContent = 'TZS ' + formatNumber(total);
+                                document.getElementById('modalPaid').textContent = 'TZS ' + formatNumber(paid);
+                                document.getElementById('modalChange').textContent = 'TZS ' + formatNumber(paid - total);
+                                document.getElementById('successModal').classList.remove('hidden');
+                                loadDashboardData();
+                                
+                                setTimeout(() => {
+                                    if (currentSaleId) {
+                                        printReceipt();
+                                    }
+                                }, 500);
+                            }, 500);
+                        })
+                        .catch(e => {
+                            console.error(e);
+                            document.getElementById('loadingOverlay').classList.add('hidden');
+                            showNotification(e.error || 'Error completing sale', 'error');
+                        })
+                        .finally(() => {
+                            isProcessing = false;
+                        });
+                    }, 200);
+                }, 200);
+            }, 200);
+        }, 200);
+    }, 200);
 }
 
 function printReceipt() {
