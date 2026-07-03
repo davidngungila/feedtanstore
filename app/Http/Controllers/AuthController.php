@@ -194,7 +194,7 @@ class AuthController extends Controller
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-        return redirect()->route('home');
+        return redirect()->route('entry');
     }
 
     private function hasValidEntryGrant(Request $request): bool
