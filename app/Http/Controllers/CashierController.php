@@ -144,12 +144,13 @@ class CashierController extends Controller
         $change = max(0, $paid - $total);
 
         $currentShift = Shift::where('user_id', Auth::id())->whereNull('closed_at')->first();
+        $shiftId = $currentShift ? $currentShift->id : null;
 
         $sale = Sale::create([
             'invoice_number' => $invoiceNumber,
             'customer_id' => $data['customer_id'] ?? null,
             'user_id' => Auth::id(),
-            'shift_id' => $currentShift->id ?? null,
+            'shift_id' => $shiftId,
             'discount_id' => null,
             'subtotal' => $subtotal,
             'tax' => $tax,
