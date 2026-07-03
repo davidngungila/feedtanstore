@@ -41,7 +41,7 @@
         <table class="container" width="100%" cellpadding="0" cellspacing="0">
             <tr>
                 <td class="logo">
-                    <img src="https://store.feedtancmg.org/feedtanstorelogo.png" alt="Feedtan Store" width="170">
+                    <img src="{{ config('app.url') }}/feedtanstorelogo.png" alt="Feedtan Store" width="170">
                 </td>
             </tr>
             <tr>
