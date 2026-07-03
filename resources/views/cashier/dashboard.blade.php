@@ -274,6 +274,48 @@
     </div>
 </div>
 
+<!-- Online Payment Modal -->
+<div id="onlinePaymentModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+    <div class="bg-white rounded-2xl p-5 sm:p-8 max-w-md w-full mx-4">
+        <div class="text-center">
+            <div class="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-mobile-alt text-blue-600 text-4xl"></i>
+            </div>
+            <h2 class="text-2xl font-bold text-primary-900 mb-4">Initiate Online Payment</h2>
+            <div class="space-y-2 text-left mb-6">
+                <div class="flex justify-between">
+                    <span class="text-gray-600">Items:</span>
+                    <span class="font-semibold" id="onlineModalItemCount">0</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600">Subtotal:</span>
+                    <span class="font-semibold" id="onlineModalSubtotal">TZS 0.00</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600">Discount:</span>
+                    <span class="font-semibold" id="onlineModalDiscount">TZS 0.00</span>
+                </div>
+                <div class="flex justify-between text-blue-600 font-bold text-lg pt-2 border-t">
+                    <span>Total:</span>
+                    <span id="onlineModalTotal">TZS 0.00</span>
+                </div>
+                <div class="pt-2">
+                    <span class="text-sm text-gray-600">Payment will be sent to:</span>
+                    <span class="text-sm font-semibold ml-2" id="onlineModalPhone"></span>
+                </div>
+            </div>
+            <div class="flex flex-col sm:flex-row gap-3">
+                <button onclick="hideOnlinePaymentModal()" class="flex-1 py-3 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-xl font-semibold text-lg">
+                    <i class="fas fa-times mr-2"></i>Cancel
+                </button>
+                <button onclick="confirmOnlinePayment()" class="flex-1 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold text-lg">
+                    <i class="fas fa-check mr-2"></i>Confirm Payment
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- All Details Modal -->
 <div id="detailsModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
     <div class="bg-white rounded-2xl p-4 sm:p-6 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
@@ -1073,6 +1115,44 @@ function initiateOnlinePayment() {
         return;
     }
     
+    showOnlinePaymentModal(phoneNumber);
+}
+
+function showOnlinePaymentModal(phoneNumber) {
+    const subtotal = cart.reduce((sum, item) => sum + (parseFloat(item.price) * item.quantity), 0);
+    const discountType = document.getElementById('discountType').value;
+    const discountValue = parseFloat(document.getElementById('discountInput').value) || 0;
+    let discount = 0;
+    
+    if (discountType === 'percent') {
+        discount = (discountValue / 100) * subtotal;
+    } else {
+        discount = discountValue;
+    }
+    const total = subtotal - discount;
+    
+    document.getElementById('onlineModalItemCount').textContent = cart.length;
+    document.getElementById('onlineModalSubtotal').textContent = 'TZS ' + formatNumber(subtotal);
+    document.getElementById('onlineModalDiscount').textContent = 'TZS ' + formatNumber(discount);
+    document.getElementById('onlineModalTotal').textContent = 'TZS ' + formatNumber(total);
+    document.getElementById('onlineModalPhone').textContent = phoneNumber;
+    
+    document.getElementById('onlinePaymentModal').classList.remove('hidden');
+}
+
+function hideOnlinePaymentModal() {
+    document.getElementById('onlinePaymentModal').classList.add('hidden');
+}
+
+function confirmOnlinePayment() {
+    if (isProcessing) return;
+    
+    const phoneNumber = document.getElementById('onlinePaymentPhone').value.trim();
+    if (!phoneNumber) {
+        showNotification('Please enter customer phone number!', 'error');
+        return;
+    }
+    
     const subtotal = cart.reduce((sum, item) => sum + (parseFloat(item.price) * item.quantity), 0);
     const discountType = document.getElementById('discountType').value;
     const discountValue = parseFloat(document.getElementById('discountInput').value) || 0;
@@ -1086,6 +1166,7 @@ function initiateOnlinePayment() {
     
     isProcessing = true;
     document.getElementById('loadingOverlay').classList.remove('hidden');
+    hideOnlinePaymentModal();
     
     const formattedCart = cart.map(item => ({
         id: item.id,
