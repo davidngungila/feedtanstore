@@ -1336,25 +1336,36 @@ function confirmOnlinePayment() {
 }
 
 function completeSale() {
-    if (isProcessing) return;
+    console.log('=== Starting completeSale function ===');
+    
+    if (isProcessing) {
+        console.log('Already processing, skipping');
+        return;
+    }
     
     if (cart.length === 0) {
+        console.log('Cart is empty');
         showNotification('Cart is empty!', 'error');
         return;
     }
+    
     const paid = parseFloat(document.getElementById('paidAmount').value) || 0;
     const subtotal = cart.reduce((sum, item) => sum + (parseFloat(item.price) * item.quantity), 0);
     const discountType = document.getElementById('discountType').value;
     const discountValue = parseFloat(document.getElementById('discountInput').value) || 0;
     let discount = 0;
+    
     if (discountType === 'percent') {
         discount = (discountValue / 100) * subtotal;
     } else {
         discount = discountValue;
     }
+    
     const total = Math.max(0, subtotal - discount);
+    console.log('Calculations:', { paid, subtotal, discount, total });
 
     if (paid < total) {
+        console.log('Insufficient payment');
         showNotification('Insufficient payment!', 'error');
         return;
     }
@@ -1362,6 +1373,7 @@ function completeSale() {
     isProcessing = true;
     resetProgressSteps();
     document.getElementById('loadingOverlay').classList.remove('hidden');
+    console.log('Loading overlay shown');
     
     const formattedCart = cart.map(item => ({
         id: item.id,
@@ -1370,22 +1382,25 @@ function completeSale() {
         quantity: item.quantity
     }));
     const customerId = document.getElementById('customerSelect').value;
+    console.log('Formatted data:', { formattedCart, selectedPaymentMethod, customerId });
 
     // Step 1: Validating Items
+    console.log('Step 1: Validating Items');
     setStepActive(1);
     setTimeout(() => {
-        // Step 2: Checking Stock
+        console.log('Step 2: Checking Stock');
         setStepActive(2);
         setTimeout(() => {
-            // Step 3: Saving Sale
+            console.log('Step 3: Saving Sale');
             setStepActive(3);
             setTimeout(() => {
-                // Step 4: Updating Inventory
+                console.log('Step 4: Updating Inventory');
                 setStepActive(4);
                 setTimeout(() => {
-                    // Step 5: Finalizing
+                    console.log('Step 5: Finalizing');
                     setStepActive(5);
                     setTimeout(() => {
+                        console.log('Sending request to /cashier/sale');
                         fetch('/cashier/sale', {
                             method: 'POST',
                             headers: {
@@ -1404,12 +1419,17 @@ function completeSale() {
                             })
                         })
                         .then(r => {
+                            console.log('Response status:', r.status);
                             if (!r.ok) {
-                                return r.json().then(err => Promise.reject(err));
+                                return r.json().then(err => {
+                                    console.error('Server error response:', err);
+                                    Promise.reject(err);
+                                });
                             }
                             return r.json();
                         })
                         .then(data => {
+                            console.log('Success response:', data);
                             // All steps complete!
                             for (let i = 1; i <= 5; i++) {
                                 const stepEl = document.getElementById('step-' + i);
@@ -1422,6 +1442,7 @@ function completeSale() {
                                 textSpan.classList.remove('text-gray-500', 'text-primary-600', 'font-semibold');
                                 textSpan.classList.add('text-green-600');
                             }
+                            console.log('All steps marked as complete');
                             setTimeout(() => {
                                 document.getElementById('loadingOverlay').classList.add('hidden');
                                 currentSaleId = data.sale_id;
@@ -1433,16 +1454,16 @@ function completeSale() {
                                 
                                 setTimeout(() => {
                                     if (currentSaleId) {
+                                        console.log('Triggering print receipt');
                                         printReceipt();
                                     }
                                 }, 500);
                             }, 500);
                         })
                         .catch(e => {
-                            console.error(e);
+                            console.error('=== Error in completeSale ===', e);
                             document.getElementById('loadingOverlay').classList.add('hidden');
                             isProcessing = false;
-                            // Show which step failed (optional)
                             showNotification(e.error || e.message || 'Error completing sale', 'error');
                         });
                     }, 200);
@@ -1541,15 +1562,19 @@ function printSpecificReceipt(saleId) {
 }
 
 function newSale() {
+    console.log('=== Starting new sale ===');
     cart = [];
     currentSaleId = null;
+    isProcessing = false;
     document.getElementById('successModal').classList.add('hidden');
+    document.getElementById('loadingOverlay').classList.add('hidden');
     document.getElementById('paidAmount').value = '';
     document.getElementById('discountInput').value = '';
     document.getElementById('discountType').value = 'amount';
     selectCustomer(null, '');
     selectPaymentMethod('cash');
     renderCart();
+    console.log('New sale initialized');
 }
 
 function showAllDetails() {
