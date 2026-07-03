@@ -139,42 +139,6 @@
 
         <!-- Payment & Quick Actions -->
         <div class="space-y-4">
-            <!-- Toggle for quick actions on small screens -->
-            <div class="lg:hidden">
-                <button type="button" onclick="toggleQuickActions()" class="w-full px-3 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg text-sm font-medium">
-                    <i class="fas fa-bolt mr-1"></i>Quick Actions
-                </button>
-            </div>
-            
-            <!-- Quick Actions -->
-            <div id="quickActions" class="card rounded-2xl p-4 hidden lg:block">
-                <h2 class="text-lg font-bold text-primary-900 mb-3">Quick Actions</h2>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    <button type="button" onclick="toggleFullscreen()" class="py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-700 text-sm font-medium" id="fullscreenBtn">
-                        <i class="fas fa-expand mr-1"></i>Fullscreen
-                    </button>
-                    <button type="button" onclick="holdSale()" class="py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-700 text-sm font-medium">
-                        <i class="fas fa-pause mr-1"></i>Hold Sale
-                    </button>
-                    <button type="button" onclick="showHeldSalesModal()" class="py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-700 text-sm font-medium">
-                        <i class="fas fa-folder-open mr-1"></i>Retrieve Sale
-                    </button>
-                    <button type="button" onclick="clearCart()" class="py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-700 text-sm font-medium">
-                        <i class="fas fa-trash mr-1"></i>Clear Cart
-                    </button>
-                    <button type="button" onclick="cancelSale()" class="py-2 border border-red-300 rounded-lg hover:bg-red-50 text-red-700 text-sm font-medium sm:col-span-2">
-                        <i class="fas fa-times mr-1"></i>Cancel Sale
-                    </button>
-                </div>
-            </div>
-
-            <!-- Recent Transactions Button -->
-            <div class="card rounded-2xl p-4">
-                <button type="button" onclick="showTransactionsModal()" class="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold text-base">
-                    <i class="fas fa-history mr-1"></i>Recent Transactions
-                </button>
-            </div>
-
             <!-- Payment Panel -->
             <div class="card rounded-2xl p-4">
                 <h2 class="text-xl font-bold text-primary-900 mb-3">Payment</h2>
@@ -212,6 +176,42 @@
                 <button type="button" id="completeSaleBtn" onclick="completeSale()" class="w-full py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold text-lg mt-2">
                     <span id="btnLoading" class="hidden"><i class="fas fa-spinner fa-spin mr-1"></i>Processing...</span>
                     <span id="btnText"><i class="fas fa-check mr-1"></i>Complete Sale</span>
+                </button>
+            </div>
+
+            <!-- Toggle for quick actions on small screens -->
+            <div class="lg:hidden">
+                <button type="button" onclick="toggleQuickActions()" class="w-full px-3 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg text-sm font-medium">
+                    <i class="fas fa-bolt mr-1"></i>Quick Actions
+                </button>
+            </div>
+            
+            <!-- Quick Actions -->
+            <div id="quickActions" class="card rounded-2xl p-4 hidden lg:block">
+                <h2 class="text-lg font-bold text-primary-900 mb-3">Quick Actions</h2>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <button type="button" onclick="toggleFullscreen()" class="py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-700 text-sm font-medium" id="fullscreenBtn">
+                        <i class="fas fa-expand mr-1"></i>Fullscreen
+                    </button>
+                    <button type="button" onclick="holdSale()" class="py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-700 text-sm font-medium">
+                        <i class="fas fa-pause mr-1"></i>Hold Sale
+                    </button>
+                    <button type="button" onclick="showHeldSalesModal()" class="py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-700 text-sm font-medium">
+                        <i class="fas fa-folder-open mr-1"></i>Retrieve Sale
+                    </button>
+                    <button type="button" onclick="clearCart()" class="py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-700 text-sm font-medium">
+                        <i class="fas fa-trash mr-1"></i>Clear Cart
+                    </button>
+                    <button type="button" onclick="cancelSale()" class="py-2 border border-red-300 rounded-lg hover:bg-red-50 text-red-700 text-sm font-medium sm:col-span-2">
+                        <i class="fas fa-times mr-1"></i>Cancel Sale
+                    </button>
+                </div>
+            </div>
+
+            <!-- Recent Transactions Button -->
+            <div class="card rounded-2xl p-4">
+                <button type="button" onclick="showTransactionsModal()" class="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold text-base">
+                    <i class="fas fa-history mr-1"></i>Recent Transactions
                 </button>
             </div>
         </div>
