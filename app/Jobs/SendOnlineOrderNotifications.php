@@ -5,14 +5,11 @@ namespace App\Jobs;
 use App\Models\OnlineOrder;
 use App\Models\CommunicationProfile;
 use App\Mail\OnlineOrderPlaced;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Mail;
 use App\Services\MessagingService;
 
-class SendOnlineOrderNotifications implements ShouldQueue
+class SendOnlineOrderNotifications
 {
-    use Queueable;
 
     protected $order;
 
@@ -34,8 +31,8 @@ class SendOnlineOrderNotifications implements ShouldQueue
         // Get store settings to use store_url if available
         $settings = \App\Models\StoreSetting::firstOrCreate();
         $baseUrl = $settings->store_url ?? config('app.url');
-        // Use short customer reference without the # for URL safety
-        $trackingIdentifier = substr($order->short_customer_reference, 1);
+        // Use tracking token if available, otherwise use order number
+        $trackingIdentifier = $order->tracking_token ?? $order->order_number;
         $trackingUrl = $baseUrl . '/shop/tracking/' . $trackingIdentifier;
 
         // 1. Send SMS
@@ -46,7 +43,7 @@ class SendOnlineOrderNotifications implements ShouldQueue
                 $phoneNumber = '255' . substr($phoneNumber, 1);
             }
             try {
-                $smsText = "Thanks $order->customer_name. Your order $order->short_customer_reference has been received. Delivery Code: $order->delivery_code. Please keep this code safe and provide it upon delivery. Track: $trackingUrl";
+                $smsText = "Thanks $order->customer_name. Your order $order->order_number has been received. Delivery Code: $order->delivery_code. Please keep this code safe and provide it upon delivery. Track: $trackingUrl";
                 $messagingService = new MessagingService($smsProfile->sms_api_key, $smsProfile->messaging_sender_id, false);
                 $messagingService->sendSms($phoneNumber, $smsText);
             } catch (\Exception $e) {
