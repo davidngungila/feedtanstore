@@ -1441,10 +1441,9 @@ function completeSale() {
                         .catch(e => {
                             console.error(e);
                             document.getElementById('loadingOverlay').classList.add('hidden');
-                            showNotification(e.error || 'Error completing sale', 'error');
-                        })
-                        .finally(() => {
                             isProcessing = false;
+                            // Show which step failed (optional)
+                            showNotification(e.error || e.message || 'Error completing sale', 'error');
                         });
                     }, 200);
                 }, 200);
