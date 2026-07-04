@@ -1298,6 +1298,7 @@ async function confirmOnlinePayment() {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'Accept': 'application/json',
                 'X-CSRF-TOKEN': '{{ csrf_token() }}'
             },
             body: JSON.stringify({
@@ -1307,8 +1308,17 @@ async function confirmOnlinePayment() {
                 phone_number: phoneNumber
             })
         });
-        
-        const data = await response.json();
+
+        let data;
+        try {
+            data = await response.json();
+        } catch (parseError) {
+            // If response isn't JSON, treat as error
+            document.getElementById('loadingOverlay').classList.add('hidden');
+            showNotification('Server error occurred. Please try again.', 'error');
+            isProcessing = false;
+            return;
+        }
         
         if (!response.ok) {
             throw data;
