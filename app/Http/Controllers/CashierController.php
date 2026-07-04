@@ -374,10 +374,15 @@ class CashierController extends Controller
 
             if (isset($paymentResponse['success']) && $paymentResponse['success']) {
                 $this->syncOrderPaymentState($onlineOrder, $paymentResponse['data'] ?? [], 'Payment initiated via cashier dashboard');
+                $trackingUrl = route('shop.tracking.show', $onlineOrder->order_number);
+                $pdfUrl = route('shop.tracking.pdf', $onlineOrder->order_number);
                 return response()->json([
                     'success' => true,
                     'message' => 'Payment initiated successfully! Please check your phone to complete the payment.',
                     'order' => $onlineOrder,
+                    'tracking_url' => $trackingUrl,
+                    'pdf_url' => $pdfUrl,
+                    'order_number' => $onlineOrder->order_number,
                 ]);
             } else {
                 return response()->json([

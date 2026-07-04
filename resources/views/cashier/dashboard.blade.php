@@ -445,6 +445,7 @@
 </div>
 
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 let cart = [];
 let selectedPaymentMethod = 'cash';
@@ -1259,7 +1260,7 @@ function hideOnlinePaymentModal() {
     document.getElementById('onlinePaymentModal').classList.add('hidden');
 }
 
-function confirmOnlinePayment() {
+async function confirmOnlinePayment() {
     if (isProcessing) return;
     
     const phoneNumber = document.getElementById('modalOnlinePaymentPhone').value.trim();
@@ -1292,46 +1293,191 @@ function confirmOnlinePayment() {
     
     const customerId = document.getElementById('customerSelect').value;
     
-    fetch('{{ route('cashier.initiate-online-payment') }}', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': '{{ csrf_token() }}'
-        },
-        body: JSON.stringify({
-            items: formattedCart,
-            discount,
-            customer_id: customerId ? parseInt(customerId) : null,
-            phone_number: phoneNumber
-        })
-    })
-    .then(r => {
-        if (!r.ok) {
-            return r.json().then(err => Promise.reject(err));
+    try {
+        const response = await fetch('{{ route('cashier.initiate-online-payment') }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            body: JSON.stringify({
+                items: formattedCart,
+                discount,
+                customer_id: customerId ? parseInt(customerId) : null,
+                phone_number: phoneNumber
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+            throw data;
         }
-        return r.json();
-    })
-    .then(data => {
-        isProcessing = false;
+        
         document.getElementById('loadingOverlay').classList.add('hidden');
         
         if (data.success) {
-            showNotification(data.message, 'success');
-            // Clear cart after successful payment initiation
+            // Clear cart
             cart = [];
             renderCart();
-            // Show success modal or redirect
-            if (confirm('Payment initiated! Would you like to view the order?')) {
-                window.location.href = '{{ route('online.orders') }}';
+            
+            // Open payment progress modal
+            if (window.Swal) {
+                const result = await openPaymentProgressModal(data.order_number, data.tracking_url, data.pdf_url);
+                if (result.result && result.result.isConfirmed && result.status && ['SUCCESS', 'SETTLED'].includes(result.status.toUpperCase())) {
+                    // Optionally redirect or do something
+                    showNotification('Payment completed successfully!', 'success');
+                }
+            } else {
+                showNotification(data.message, 'success');
+                if (confirm('Payment initiated! Would you like to view the order?')) {
+                    window.location.href = '{{ route('online.orders') }}';
+                }
             }
         } else {
             showNotification(data.message, 'error');
         }
-    })
-    .catch(e => {
-        isProcessing = false;
+    } catch (e) {
         document.getElementById('loadingOverlay').classList.add('hidden');
         showNotification(e.error || e.message || 'Error initiating payment', 'error');
+    } finally {
+        isProcessing = false;
+    }
+}
+
+function extractPaymentStatus(payload) {
+    if (!payload) return null;
+    if (payload.data && payload.data.status) return payload.data.status;
+    if (payload.status) return payload.status;
+    if (payload.data && payload.data.clickpesa_status) return payload.data.clickpesa_status;
+    return null;
+}
+
+function formatPaymentStatus(status) {
+    if (!status) return 'UNKNOWN';
+    return String(status).toUpperCase();
+}
+
+function buildPaymentHtml(orderNumber, status, trackingUrl, pdfUrl) {
+    const s = formatPaymentStatus(status);
+    const note = (s === 'PENDING' || s === 'PROCESSING')
+        ? 'Check your phone to confirm the USSD push.'
+        : (s === 'SUCCESS' || s === 'SETTLED')
+        ? 'Payment completed successfully.'
+        : (s === 'FAILED' || s === 'DECLINED' || s === 'CANCELLED')
+        ? 'Payment did not complete. You can try again or pay cash.'
+        : 'Processing payment...';
+    return 'Order number: <b>' + orderNumber + '</b><br>' +
+        'Payment status: <b>' + s + '</b><br><span style="color:#6b7280;">' + note + '</span>' +
+        '<div style="margin-top:10px;">' +
+        '<a href="' + trackingUrl + '">Track your order</a> · <a href="' + pdfUrl + '">Download order PDF</a>' +
+        '</div>';
+}
+
+function openPaymentProgressModal(orderNumber, trackingUrl, pdfUrl) {
+    return new Promise((resolve) => {
+        if (!window.Swal) {
+            resolve({ result: 'no_swal' });
+            return;
+        }
+
+        let intervalId = null;
+        let timeoutId = null;
+        let finalStatus = null;
+
+        const stop = () => {
+            if (intervalId) {
+                clearInterval(intervalId);
+                intervalId = null;
+            }
+            if (timeoutId) {
+                clearTimeout(timeoutId);
+                timeoutId = null;
+            }
+        };
+
+        const finish = (status) => {
+            finalStatus = formatPaymentStatus(status);
+            stop();
+            const success = finalStatus === 'SUCCESS' || finalStatus === 'SETTLED';
+            const failed = ['FAILED', 'DECLINED', 'CANCELLED'].includes(finalStatus);
+
+            Swal.hideLoading();
+            Swal.update({
+                icon: success ? 'success' : (failed ? 'error' : 'info'),
+                title: success ? 'Payment successful' : (failed ? 'Payment failed' : 'Payment status'),
+                html: buildPaymentHtml(orderNumber, finalStatus, trackingUrl, pdfUrl),
+                showConfirmButton: true,
+                confirmButtonText: success ? 'Continue' : 'Close',
+                showCancelButton: false
+            });
+        };
+
+        Swal.fire({
+            title: 'Processing mobile money payment',
+            html: buildPaymentHtml(orderNumber, 'PENDING', trackingUrl, pdfUrl),
+            allowOutsideClick: false,
+            showCancelButton: true,
+            cancelButtonText: 'Pay later',
+            showConfirmButton: false,
+            didOpen: () => {
+                Swal.showLoading();
+                const startMs = Date.now();
+                timeoutId = setTimeout(() => {
+                    stop();
+                    Swal.hideLoading();
+                    Swal.update({
+                        icon: 'info',
+                        title: 'Payment window ended',
+                        html: buildPaymentHtml(orderNumber, 'PENDING', trackingUrl, pdfUrl) + '<div style="margin-top:8px;color:#6b7280;">Payment status check stopped after 1 minute.</div>',
+                        showConfirmButton: true,
+                        confirmButtonText: 'Track Order',
+                        showCancelButton: true,
+                        cancelButtonText: 'Close'
+                    });
+                }, 60000);
+
+                intervalId = setInterval(async () => {
+                    try {
+                        const res = await fetch('/api/shop/orders/' + encodeURIComponent(orderNumber) + '/payment-status', {
+                            method: 'GET',
+                            headers: { 'Accept': 'application/json' },
+                            credentials: 'same-origin'
+                        });
+                        const payload = await res.json().catch(() => ({}));
+                        const status = extractPaymentStatus(payload);
+
+                        if (!status) {
+                            const extra = payload && payload.message ? ('<div style="margin-top:8px;color:#6b7280;">' + payload.message + '</div>') : '';
+                            const elapsed = Math.floor((Date.now() - startMs) / 1000);
+                            const remaining = Math.max(0, 60 - elapsed);
+                            const timer = '<div style="margin-top:8px;color:#6b7280;">Time remaining: ' + remaining + 's</div>';
+                            Swal.update({ html: buildPaymentHtml(orderNumber, 'PROCESSING', trackingUrl, pdfUrl) + timer + extra });
+                            return;
+                        }
+
+                        const normalized = formatPaymentStatus(status);
+                        const elapsed = Math.floor((Date.now() - startMs) / 1000);
+                        const remaining = Math.max(0, 60 - elapsed);
+                        const timer = '<div style="margin-top:8px;color:#6b7280;">Time remaining: ' + remaining + 's</div>';
+                        Swal.update({ html: buildPaymentHtml(orderNumber, normalized, trackingUrl, pdfUrl) + timer });
+
+                        if (normalized === 'SUCCESS' || normalized === 'SETTLED' || ['FAILED', 'DECLINED', 'CANCELLED'].includes(normalized)) {
+                            finish(normalized);
+                        }
+                    } catch (e) {
+                        const elapsed = Math.floor((Date.now() - startMs) / 1000);
+                        const remaining = Math.max(0, 60 - elapsed);
+                        const timer = '<div style="margin-top:8px;color:#6b7280;">Time remaining: ' + remaining + 's</div>';
+                        Swal.update({ html: buildPaymentHtml(orderNumber, 'PROCESSING', trackingUrl, pdfUrl) + timer });
+                    }
+                }, 3000);
+            },
+            willClose: () => stop()
+        }).then((modalResult) => {
+            stop();
+            resolve({ result: modalResult, status: finalStatus });
+        });
     });
 }
 
@@ -1776,6 +1922,142 @@ function cancelSale() {
         renderCart();
         showNotification('Sale cancelled', 'success');
     }
+}
+
+function extractPaymentStatus(payload) {
+    if (!payload) return null;
+    if (payload.data && payload.data.status) return payload.data.status;
+    if (payload.status) return payload.status;
+    if (payload.data && payload.data.clickpesa_status) return payload.data.clickpesa_status;
+    return null;
+}
+
+function formatPaymentStatus(status) {
+    if (!status) return 'UNKNOWN';
+    return String(status).toUpperCase();
+}
+
+function buildPaymentHtml(orderNumber, status, trackingUrl, pdfUrl) {
+    const s = formatPaymentStatus(status);
+    const note = (s === 'PENDING' || s === 'PROCESSING')
+        ? 'Check your phone to confirm the USSD push.'
+        : (s === 'SUCCESS' || s === 'SETTLED')
+        ? 'Payment completed successfully.'
+        : (s === 'FAILED' || s === 'DECLINED' || s === 'CANCELLED')
+        ? 'Payment did not complete. You can try again or pay cash.'
+        : 'Processing payment...';
+    return 'Order number: <b>' + orderNumber + '</b><br>' +
+        'Payment status: <b>' + s + '</b><br><span style="color:#6b7280;">' + note + '</span>' +
+        '<div style="margin-top:10px;">' +
+        '<a href="' + trackingUrl + '">Track your order</a> · <a href="' + pdfUrl + '">Download order PDF</a>' +
+        '</div>';
+}
+
+function openPaymentProgressModal(orderNumber, trackingUrl, pdfUrl) {
+    return new Promise((resolve) => {
+        if (!window.Swal) {
+            resolve({ result: 'no_swal' });
+            return;
+        }
+
+        let intervalId = null;
+        let timeoutId = null;
+        let finalStatus = null;
+
+        const stop = () => {
+            if (intervalId) {
+                clearInterval(intervalId);
+                intervalId = null;
+            }
+            if (timeoutId) {
+                clearTimeout(timeoutId);
+                timeoutId = null;
+            }
+        };
+
+        const finish = (status) => {
+            finalStatus = formatPaymentStatus(status);
+            stop();
+            const success = finalStatus === 'SUCCESS' || finalStatus === 'SETTLED';
+            const failed = ['FAILED', 'DECLINED', 'CANCELLED'].includes(finalStatus);
+
+            Swal.hideLoading();
+            Swal.update({
+                icon: success ? 'success' : (failed ? 'error' : 'info'),
+                title: success ? 'Payment successful' : (failed ? 'Payment failed' : 'Payment status'),
+                html: buildPaymentHtml(orderNumber, finalStatus, trackingUrl, pdfUrl),
+                showConfirmButton: true,
+                confirmButtonText: success ? 'Continue' : 'Close',
+                showCancelButton: false
+            });
+        };
+
+        Swal.fire({
+            title: 'Processing mobile money payment',
+            html: buildPaymentHtml(orderNumber, 'PENDING', trackingUrl, pdfUrl),
+            allowOutsideClick: false,
+            showCancelButton: true,
+            cancelButtonText: 'Pay later',
+            showConfirmButton: false,
+            didOpen: () => {
+                Swal.showLoading();
+                const startMs = Date.now();
+                timeoutId = setTimeout(() => {
+                    stop();
+                    Swal.hideLoading();
+                    Swal.update({
+                        icon: 'info',
+                        title: 'Payment window ended',
+                        html: buildPaymentHtml(orderNumber, 'PENDING', trackingUrl, pdfUrl) + '<div style="margin-top:8px;color:#6b7280;">Payment status check stopped after 1 minute.</div>',
+                        showConfirmButton: true,
+                        confirmButtonText: 'Track Order',
+                        showCancelButton: true,
+                        cancelButtonText: 'Close'
+                    });
+                }, 60000);
+
+                intervalId = setInterval(async () => {
+                    try {
+                        const res = await fetch('/api/shop/orders/' + encodeURIComponent(orderNumber) + '/payment-status', {
+                            method: 'GET',
+                            headers: { 'Accept': 'application/json' },
+                            credentials: 'same-origin'
+                        });
+                        const payload = await res.json().catch(() => ({}));
+                        const status = extractPaymentStatus(payload);
+
+                        if (!status) {
+                            const extra = payload && payload.message ? ('<div style="margin-top:8px;color:#6b7280;">' + payload.message + '</div>') : '';
+                            const elapsed = Math.floor((Date.now() - startMs) / 1000);
+                            const remaining = Math.max(0, 60 - elapsed);
+                            const timer = '<div style="margin-top:8px;color:#6b7280;">Time remaining: ' + remaining + 's</div>';
+                            Swal.update({ html: buildPaymentHtml(orderNumber, 'PROCESSING', trackingUrl, pdfUrl) + timer + extra });
+                            return;
+                        }
+
+                        const normalized = formatPaymentStatus(status);
+                        const elapsed = Math.floor((Date.now() - startMs) / 1000);
+                        const remaining = Math.max(0, 60 - elapsed);
+                        const timer = '<div style="margin-top:8px;color:#6b7280;">Time remaining: ' + remaining + 's</div>';
+                        Swal.update({ html: buildPaymentHtml(orderNumber, normalized, trackingUrl, pdfUrl) + timer });
+
+                        if (normalized === 'SUCCESS' || normalized === 'SETTLED' || ['FAILED', 'DECLINED', 'CANCELLED'].includes(normalized)) {
+                            finish(normalized);
+                        }
+                    } catch (e) {
+                        const elapsed = Math.floor((Date.now() - startMs) / 1000);
+                        const remaining = Math.max(0, 60 - elapsed);
+                        const timer = '<div style="margin-top:8px;color:#6b7280;">Time remaining: ' + remaining + 's</div>';
+                        Swal.update({ html: buildPaymentHtml(orderNumber, 'PROCESSING', trackingUrl, pdfUrl) + timer });
+                    }
+                }, 3000);
+            },
+            willClose: () => stop()
+        }).then((modalResult) => {
+            stop();
+            resolve({ result: modalResult, status: finalStatus });
+        });
+    });
 }
 </script>
 @endsection
