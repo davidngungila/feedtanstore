@@ -7,9 +7,16 @@ use App\Models\CommunicationProfile;
 use App\Mail\OnlineOrderPlaced;
 use Illuminate\Support\Facades\Mail;
 use App\Services\MessagingService;
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Foundation\Bus\Dispatchable;
+use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Queue\SerializesModels;
 
-class SendOnlineOrderNotifications
+class SendOnlineOrderNotifications implements ShouldQueue
 {
+    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+
     protected $order;
 
     /**
@@ -36,13 +43,10 @@ class SendOnlineOrderNotifications
             // Get store settings to use store_url if available
             $settings = \App\Models\StoreSetting::firstOrCreate();
             $baseUrl = $settings->store_url ?? config('app.url');
-            // Use short customer reference without the # for tracking URL
-            $trackingIdentifier = ltrim($order->short_customer_reference, '#');
+            // Use tracking token for URLs
+            $trackingIdentifier = $order->tracking_token ?? $order->order_number;
             $trackingUrl = $baseUrl . '/shop/tracking/' . $trackingIdentifier;
-            
-            // Generate other URLs
-            $payUrl = $baseUrl . '/shop/payment/' . $order->payment_token;
-            $pdfUrl = $baseUrl . '/shop/receipt/' . $order->receipt_token;
+            $pdfUrl = $baseUrl . '/shop/tracking/' . $trackingIdentifier . '/pdf';
             $trackingPageUrl = $trackingUrl;
 
             // 1. Send SMS

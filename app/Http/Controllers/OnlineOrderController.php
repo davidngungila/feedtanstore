@@ -736,31 +736,21 @@ class OnlineOrderController extends Controller
             'notes' => 'Order placed from public shop'
         ]);
 
-        (new \App\Jobs\SendOnlineOrderNotifications($order))->handle();
+        // Dispatch notification job to queue
+        \App\Jobs\SendOnlineOrderNotifications::dispatch($order);
 
-        $paymentResponse = null;
         $paymentInitiated = false;
         $paymentMessage = null;
 
         if ($request->payment_method === 'online') {
-            // Try to initiate payment but do not fail order creation if the gateway is temporarily unavailable.
-            try {
-                if ($this->normalizePhoneNumber($request->customer_phone)) {
-                    $paymentResponse = $paymentService->initiatePayment($this->buildPaymentPayload($order));
-
-                    if (isset($paymentResponse['success']) && $paymentResponse['success']) {
-                        $this->syncOrderPaymentState($order, $paymentResponse['data'] ?? [], 'Payment initiated via public checkout');
-                        $paymentInitiated = true;
-                        $paymentMessage = "Thank you! Your payment has been initiated. Please check your phone to complete the payment.";
-                    } else {
-                        $paymentMessage = $paymentResponse['message'] ?? 'Payment request was not accepted by the gateway. You can still track your order and pay later.';
-                    }
-                } else {
-                    $paymentMessage = 'Invalid phone number. Please use format: 255712345678.';
-                }
-            } catch (\Exception $e) {
-                Log::error('FeedTan e-commerce payment initiation failed: ' . $e->getMessage());
-                $paymentMessage = 'Payment request could not be started right now. You can still track your order and pay later using the "Pay Now" button on the tracking page.';
+            $normalizedPhone = $this->normalizePhoneNumber($request->customer_phone);
+            if ($normalizedPhone) {
+                // Dispatch payment initiation job to queue
+                \App\Jobs\InitiateOnlineOrderPayment::dispatch($order, $normalizedPhone);
+                $paymentInitiated = true;
+                $paymentMessage = "Thank you! Your payment is being processed. Please check your phone to complete the payment.";
+            } else {
+                $paymentMessage = 'Invalid phone number. Please use format: 255712345678.';
             }
         }
 
