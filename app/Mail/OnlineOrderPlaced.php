@@ -53,14 +53,7 @@ class OnlineOrderPlaced extends Mailable
 
     public function attachments(): array
     {
-        $pdf = new \Dompdf\Dompdf();
-        $pdf->loadHtml(view('online.orders-pdf', ['order' => $this->order])->render());
-        $pdf->setPaper('A4', 'portrait');
-        $pdf->render();
-
-        return [
-            Attachment::fromData(fn () => $pdf->output(), $this->order->order_number . '.pdf')
-                ->withMime('application/pdf')
-        ];
+        // Removed PDF attachment per user request
+        return [];
     }
 }

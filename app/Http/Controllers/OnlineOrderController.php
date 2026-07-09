@@ -194,7 +194,7 @@ class OnlineOrderController extends Controller
             $query->where('name', 'like', "%$searchTerm%");
         }
 
-        $products = $query->latest()->get();
+        $products = $query->latest()->paginate(20);
 
         $slides = \App\Models\CarouselSlide::where('is_active', true)
             ->orderBy('order')

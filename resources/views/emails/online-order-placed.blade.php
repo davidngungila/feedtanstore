@@ -32,7 +32,11 @@
         .btn { display: inline-block; padding: 12px 18px; border-radius: 999px; text-decoration: none; font-weight: bold; font-size: 14px; margin: 0 8px 8px 0; }
         .btn-primary { background: #e8893a; color: #ffffff !important; }
         .btn-secondary { background: #eef2f7; color: #0f2a1f !important; }
-        .note { margin-top: 18px; padding: 14px 16px; background: #f9fafb; border-radius: 12px; color: #4b5563; font-size: 13px; }
+        .info-box { margin-top: 18px; padding: 14px 16px; background: #f9fafb; border-radius: 12px; color: #4b5563; font-size: 13px; }
+        .info-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #e5e7eb; }
+        .info-row:last-child { border-bottom: none; }
+        .info-label { font-weight: 500; color: #374151; }
+        .info-value { color: #111827; }
         .footer { padding: 20px 30px 28px 30px; background: #f9fafb; color: #6b7280; font-size: 13px; text-align: center; }
     </style>
 </head>
@@ -68,6 +72,77 @@
                         </tr>
                     </table>
 
+                    <!-- Customer Information -->
+                    <div class="section-title">Customer Information</div>
+                    <div class="info-box">
+                        <div class="info-row">
+                            <span class="info-label">Name:</span>
+                            <span class="info-value">{{ $order->customer_name }}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Phone:</span>
+                            <span class="info-value">{{ $order->customer_phone }}</span>
+                        </div>
+                        @if($order->customer_email)
+                        <div class="info-row">
+                            <span class="info-label">Email:</span>
+                            <span class="info-value">{{ $order->customer_email }}</span>
+                        </div>
+                        @endif
+                    </div>
+
+                    <!-- Delivery Information -->
+                    <div class="section-title">Delivery Information</div>
+                    <div class="info-box">
+                        <div class="info-row">
+                            <span class="info-label">Delivery Address:</span>
+                            <span class="info-value">{{ $order->delivery_address }}</span>
+                        </div>
+                        @if($order->delivery_latitude && $order->delivery_longitude)
+                        <div class="info-row">
+                            <span class="info-label">Coordinates:</span>
+                            <span class="info-value">{{ number_format($order->delivery_latitude, 6) }}, {{ number_format($order->delivery_longitude, 6) }}</span>
+                        </div>
+                        @endif
+                        <div class="info-row">
+                            <span class="info-label">Delivery Fee:</span>
+                            <span class="info-value">TZS {{ number_format($order->delivery_fee, 0) }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Payment Information -->
+                    <div class="section-title">Payment Information</div>
+                    <div class="info-box">
+                        <div class="info-row">
+                            <span class="info-label">Payment Method:</span>
+                            <span class="info-value">{{ ucfirst($order->payment_method ?? 'cash') }}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Payment Status:</span>
+                            <span class="info-value">{{ ucfirst($order->payment_status ?? 'pending') }}</span>
+                        </div>
+                        @if($order->payment_transaction_id)
+                        <div class="info-row">
+                            <span class="info-label">Transaction ID:</span>
+                            <span class="info-value">{{ $order->payment_transaction_id }}</span>
+                        </div>
+                        @endif
+                    </div>
+
+                    <!-- Order Status -->
+                    <div class="section-title">Order Status</div>
+                    <div class="info-box">
+                        <div class="info-row">
+                            <span class="info-label">Current Status:</span>
+                            <span class="info-value">{{ ucfirst($order->status ?? 'pending') }}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Order Date:</span>
+                            <span class="info-value">{{ $order->created_at->format('M d, Y h:i A') }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Order Items -->
                     <div class="section-title">Order Items</div>
                     <table class="items" width="100%" cellpadding="0" cellspacing="0">
                         <thead>
@@ -90,6 +165,7 @@
                         </tbody>
                     </table>
 
+                    <!-- Totals -->
                     <table class="totals" cellpadding="0" cellspacing="0">
                         <tr>
                             <td>Subtotal</td>
@@ -105,6 +181,7 @@
                         </tr>
                     </table>
 
+                    <!-- Next Steps -->
                     <div class="section-title">Next Steps</div>
                     <p>Use the buttons below to track your order, pay for it if you selected online payment, or download the order document.</p>
 
@@ -114,11 +191,6 @@
                         <a href="{{ $payUrl }}" class="btn btn-secondary">Pay Now</a>
                         @endif
                         <a href="{{ $pdfUrl }}" class="btn btn-secondary">Download PDF</a>
-                    </div>
-
-                    <div class="note">
-                        Delivery address: {{ $order->delivery_address }}<br>
-                        Payment method: {{ ucfirst($order->payment_method ?? 'cash') }}
                     </div>
                 </td>
             </tr>

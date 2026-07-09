@@ -521,18 +521,18 @@ footer{background:var(--green-900);color:#BFD6C8;padding:54px 0 0;margin-top:30p
 
 <div id="pageLoader" class="page-loader" aria-live="polite" aria-label="Page loading">
   <div class="page-loader-card">
-    <div class="page-loader-ring">
-      <img src="{{ asset('logo-image-feedtan-store.png') }}" alt="Feedtan Store" class="page-loader-logo">
+      <div class="page-loader-ring">
+        <img src="{{ asset('logo-image-feedtan-store.png') }}" alt="Feedtan Store" class="page-loader-logo">
+      </div>
+      <div style="font-weight:700;color:var(--green-700);font-size:18px;">Inapakia...</div>
     </div>
-    <div style="font-weight:700;color:var(--green-700);font-size:18px;">Loading...</div>
-  </div>
 </div>
 
 <div class="topbar">
   <div class="wrap">
     <div class="topbar-msg">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
-      <span>Free delivery on orders over TZS 50,000</span>
+      <span>Utumishi wa mfululizo bure kwa maagizo ya TZS 50,000 au zaidi</span>
     </div>
     <div class="topbar-msg" id="topbarPhone">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.362 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.338 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
@@ -548,9 +548,9 @@ footer{background:var(--green-900);color:#BFD6C8;padding:54px 0 0;margin-top:30p
       <span>Feedtan<span class="logo-sub">Online Store</span></span>
     </a>
     <form class="search-bar" id="searchForm" role="search">
-      <label for="searchInput" class="visually-hidden">Search products</label>
-      <input type="search" id="searchInput" name="search" placeholder="Search for rice, oil, fruits, electronics…" autocomplete="off" value="{{ request('search', '') }}">
-      <button type="submit" aria-label="Search">
+      <label for="searchInput" class="visually-hidden">Tafuta bidhaa</label>
+      <input type="search" id="searchInput" name="search" placeholder="Tafuta mchele, mafuta, matunda, vifaa vya kielektroniki…" autocomplete="off" value="{{ request('search', '') }}">
+      <button type="submit" aria-label="Tafuta">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
       </button>
     </form>
@@ -572,18 +572,18 @@ footer{background:var(--green-900);color:#BFD6C8;padding:54px 0 0;margin-top:30p
   </div>
   <div class="mobile-search" id="mobileSearchBox" style="display:none;">
     <form class="search-bar">
-      <input type="search" id="searchInputMobile" name="search" placeholder="Search products…" autocomplete="off" value="{{ request('search', '') }}">
-      <button type="submit" aria-label="Search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></button>
+      <input type="search" id="searchInputMobile" name="search" placeholder="Tafuta bidhaa…" autocomplete="off" value="{{ request('search', '') }}">
+      <button type="submit" aria-label="Tafuta"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></button>
     </form>
   </div>
   <nav class="nav-strip" aria-label="Primary">
     <div class="wrap">
-      <a href="{{ route('shop.index') }}" class="active">Home</a>
-      <a href="#shop">Shop All</a>
+      <a href="{{ route('shop.index') }}" class="active">Nyumbani</a>
+      <a href="#shop">Nunua Yote</a>
       @foreach($categories as $cat)
         <a href="{{ route('shop.index', ['category' => $cat->slug]) }}">{{ $cat->name }}</a>
       @endforeach
-      <a href="{{ route('shop.tracking') }}">Track Order</a>
+      <a href="{{ route('shop.tracking') }}">Fuatilia Agizo</a>
     </div>
   </nav>
 </header>
@@ -599,12 +599,12 @@ footer{background:var(--green-900);color:#BFD6C8;padding:54px 0 0;margin-top:30p
       <div class="section-head section-head-centered">
         <div>
           
-          <h2>Shop by category</h2>
+          <h2>Nunua kulingana na kategoria</h2>
         </div>
       </div>
       <div class="cat-row" id="catRow">
         <a href="{{ route('shop.index') }}" class="cat-chip {{ !request('category') ? 'active' : '' }}">
-          <span class="ic">🛒</span> All
+          <span class="ic">🛒</span> Yote
         </a>
         @foreach($categories as $cat)
           <a href="{{ route('shop.index', ['category' => $cat->slug]) }}" class="cat-chip {{ request('category') == $cat->id || request('category') == $cat->slug ? 'active' : '' }}">
@@ -679,25 +679,27 @@ footer{background:var(--green-900);color:#BFD6C8;padding:54px 0 0;margin-top:30p
                   <span class="p-price-old">TZS {{ number_format($oldPrice, 0) }}</span>
                 @endif
               </div>
-              <span class="p-unit">per item</span>
-              @if($product->quantity <= 5)
-                <span class="stock-low">Only {{ $product->quantity }} left in stock</span>
-              @endif
+              <span class="p-unit">kwa kila bidhaa</span>
+              <span class="stock-low">Inapatikana</span>
               <div class="p-actions" id="actions-{{ $product->id }}">
-                <button class="btn btn-dark btn-sm" style="flex:1;" onclick="addToCart('{{ $product->id }}', '{{ addslashes($product->name) }}', {{ $product->selling_price }})">Add to cart</button>
-                <a href="{{ route('shop.product', $product) }}" class="btn btn-outline btn-sm">Details</a>
+                <button class="btn btn-dark btn-sm" style="flex:1;" onclick="openAddToCartModal('{{ $product->id }}', '{{ addslashes($product->name) }}', {{ $product->selling_price }}, {{ $product->quantity }})">Ongeza kwenye mkokoteni</button>
+                <a href="{{ route('shop.product', $product) }}" class="btn btn-outline btn-sm">Maelezo</a>
               </div>
             </div>
           </div>
         @endforeach
       </div>
 
+      <div class="wrap" style="margin-top: 30px; display: flex; justify-content: center;">
+        {{ $products->links('pagination::tailwind') }}
+      </div>
+
       <div class="promo-strip" style="margin-top:40px;">
         <div>
-          <h3>Get TZS 5,000 off your first order</h3>
-          <p>Use code <strong>FEEDTAN5K</strong> at checkout — valid on orders above TZS 30,000.</p>
+          <h3>Pata TZS 5,000 kuondoka kwenye agizo lako la kwanza</h3>
+          <p>Tumia kanuni <strong>FEEDTAN5K</strong> wakati wa malipo — sahihi kwenye maagizo zaidi ya TZS 30,000.</p>
         </div>
-        <button class="btn btn-dark" onclick="openCart()">Start shopping</button>
+        <button class="btn btn-dark" onclick="openCart()">Anza kununua</button>
       </div>
     </div>
   </section>
@@ -708,7 +710,7 @@ footer{background:var(--green-900);color:#BFD6C8;padding:54px 0 0;margin-top:30p
     <div class="footer-grid">
       <div>
         <div class="footer-logo"><span class="logo-mark" style="background:var(--orange);color:var(--green-900);">F</span> Feedtan Store</div>
-        <p style="font-size:13.5px;line-height:1.7;max-width:280px;">Quality products at unbeatable prices, delivered right to your door — or ready when you walk in.</p>
+        <p style="font-size:13.5px;line-height:1.7;max-width:280px;">Bidhaa bora bei ya kushinda, utumishi wa mfululizo hadi mlango wako — au tayari wakati unapoingia.</p>
         <div style="display:flex;gap:10px;margin-top:16px;">
           <a href="#" class="icon-btn" style="background:rgba(255,255,255,0.08);color:#fff;" aria-label="Facebook"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M22 12a10 10 0 1 0-11.6 9.9v-7H7.9V12h2.5V9.8c0-2.5 1.5-3.9 3.8-3.9 1 0 2 .1 2.3.2v2.7h-1.6c-1.2 0-1.5.6-1.5 1.4V12h2.9l-.4 2.9h-2.5v7A10 10 0 0 0 22 12z"/></svg></a>
           <a href="#" class="icon-btn" style="background:rgba(255,255,255,0.08);color:#fff;" aria-label="Instagram"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1"/></svg></a>
@@ -716,7 +718,7 @@ footer{background:var(--green-900);color:#BFD6C8;padding:54px 0 0;margin-top:30p
         </div>
       </div>
       <div>
-        <h4>Shop</h4>
+        <h4>Nunua</h4>
         <ul>
           @foreach($categories as $cat)
             <li><a href="{{ route('shop.index', ['category' => $cat->slug]) }}">{{ $cat->name }}</a></li>
@@ -724,50 +726,72 @@ footer{background:var(--green-900);color:#BFD6C8;padding:54px 0 0;margin-top:30p
         </ul>
       </div>
       <div>
-        <h4>Support</h4>
+        <h4>Msaada</h4>
         <ul>
-          <li><a href="{{ route('shop.tracking') }}">Track my order</a></li>
-          <li><a href="#" onclick="showToast('Reach us on +255 717 358 865','phone')">Contact us</a></li>
-          <li><a href="#" onclick="showToast('Returns accepted within 48 hours of delivery','info')">Returns policy</a></li>
-          <li><a href="#" onclick="showToast('Delivery available across Dar es Salaam and nearby regions','info')">Delivery info</a></li>
+          <li><a href="{{ route('shop.tracking') }}">Fuatilia agizo langu</a></li>
+          <li><a href="#" onclick="showToast('Wasiliana na +255 717 358 865','phone')">Wasiliana nasi</a></li>
+          <li><a href="#" onclick="showToast('Marudisha yanakubaliwa ndani ya masaa 48 ya utumishi','info')">Sera ya marudisha</a></li>
+          <li><a href="#" onclick="showToast('Utumishi wa mfululizo upo Dar es Salaam na mikoa ya karibu','info')">Maelezo ya utumishi</a></li>
         </ul>
       </div>
       <div>
-        <h4>Visit our store</h4>
+        <h4>Tembelea duka letu</h4>
         <ul>
           <li>Kiboriloni, Moshi, Kilimanjaro, Tanzania</li>
-          <li>Open daily · 8:00 AM – 9:00 PM</li>
+          <li>Wazi kila siku · 8:00 AM – 9:00 PM</li>
           <li>+255 717 358 865</li>
           <li>info@feedtanstore.com</li>
         </ul>
       </div>
     </div>
     <div class="footer-bottom">
-      <span>© {{ date('Y') }} Feedtan Store. All rights reserved.</span>
-      <span>Built with care for everyday shoppers.</span>
+      <span>© {{ date('Y') }} Feedtan Store. Haki zote zimehifadhiwa.</span>
+      <span>Imeundwa kwa usikivu kwa wanunuzi wa kila siku.</span>
     </div>
   </div>
 </footer>
 
-<aside class="cart-drawer" id="cartDrawer" aria-label="Shopping cart">
+<aside class="cart-drawer" id="cartDrawer" aria-label="Mkokoteni wa kununua">
   <div class="drawer-head">
-    <h3>Your Cart</h3>
-    <button class="close-x" onclick="closeCart()" aria-label="Close cart">
+    <h3>Mkokoteni Wako</h3>
+    <button class="close-x" onclick="closeCart()" aria-label="Funga mkokoteni">
       <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M18 6 6 18M6 6l12 12"/></svg>
     </button>
   </div>
   <div class="cart-list" id="cartList"></div>
   <div class="drawer-foot" id="cartFoot" style="display:none;">
-    <div class="sum-row"><span>Subtotal</span><span id="cartSubtotal">TZS 0</span></div>
-    <div class="sum-row"><span>Estimated delivery</span><span id="cartDeliveryEst">Calculated at checkout</span></div>
-    <div class="sum-row total"><span>Total</span><span id="cartTotal">TZS 0</span></div>
-    <a href="{{ route('shop.checkout') }}" class="btn btn-primary btn-block" style="margin-top:14px;">Proceed to Checkout</a>
-    <button class="btn btn-ghost btn-block" style="margin-top:10px;" onclick="closeCart()">Continue Shopping</button>
+    <div class="sum-row"><span>Jumla ndogo</span><span id="cartSubtotal">TZS 0</span></div>
+    <div class="sum-row"><span>Utumishi wa kutatimika</span><span id="cartDeliveryEst">Hesabu katika malipo</span></div>
+    <div class="sum-row total"><span>Jumla</span><span id="cartTotal">TZS 0</span></div>
+    <a href="{{ route('shop.checkout') }}" class="btn btn-primary btn-block" style="margin-top:14px;">Endelea kwa Malipo</a>
+    <button class="btn btn-ghost btn-block" style="margin-top:10px;" onclick="closeCart()">Endelea Kununua</button>
   </div>
 </aside>
 
 <div id="scrim" class="scrim" onclick="closeAllOverlays()"></div>
 <div id="toast" class="toast"></div>
+
+<!-- Add to Cart Modal -->
+<div id="addToCartModal" class="modal" aria-label="Ongeza kwenye mkokoteni">
+  <div class="drawer-head" style="border-bottom: 1px solid var(--line);">
+    <h3>Ongeza kwenye Mkokoteni</h3>
+    <button class="close-x" onclick="closeAddToCartModal()" aria-label="Funga modal">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M18 6 6 18M6 6l12 12"/></svg>
+    </button>
+  </div>
+  <div class="modal-body">
+    <div id="modalProductName" style="font-family: var(--font-display); font-size: 1.5rem; margin-bottom: 1rem;"></div>
+    <div class="qty-stepper" style="margin: 1rem 0; width: fit-content;">
+      <button onclick="changeModalQty(-1)" aria-label="Punguza idadi">−</button>
+      <span id="modalQty">1</span>
+      <button onclick="changeModalQty(1)" aria-label="Ongeza idadi">+</button>
+    </div>
+  </div>
+  <div class="modal-foot">
+    <button class="btn btn-ghost" onclick="closeAddToCartModal()">Ghairi</button>
+    <button class="btn btn-primary" onclick="confirmAddToCart()">Ongeza kwenye Mkokoteni</button>
+  </div>
+</div>
 
 <script>
 let cart = [];
@@ -856,9 +880,9 @@ function renderCartList() {
   if (cart.length === 0) {
     list.innerHTML = '<div class="cart-empty">' +
       '<svg width="54" height="54" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>' +
-      '<b>Your cart is empty</b>' +
-      '<span>Browse the catalog and add something tasty.</span>' +
-      '<button class="btn btn-primary btn-sm" onclick="closeCart()">Start shopping</button>' +
+      '<b>Mkokoteni wako umeweka</b>' +
+      '<span>Chunguza orodha na ongeza kitu kizuri.</span>' +
+      '<button class="btn btn-primary btn-sm" onclick="closeCart()">Anza kununua</button>' +
       '</div>';
     foot.style.display = 'none';
     return;
@@ -874,23 +898,23 @@ function renderCartList() {
       '<img src="'+img+'" alt="'+item.name+'">' +
       '<div class="cart-row-info">' +
         '<b>'+item.name+'</b>' +
-        '<span class="cr-meta">per item · TZS '+item.price.toLocaleString()+' each</span>' +
+        '<span class="cr-meta">kwa kila bidhaa · TZS '+item.price.toLocaleString()+' kila moja</span>' +
         '<div class="cart-row-bottom">' +
           '<div class="qty-stepper">' +
-            '<button onclick="changeQty(\''+item.id+'\', -1, \''+item.name+'\', '+item.price+')" aria-label="Decrease quantity">−</button>' +
+            '<button onclick="changeQty(\''+item.id+'\', -1, \''+item.name+'\', '+item.price+')" aria-label="Punguza idadi">−</button>' +
             '<span>'+item.quantity+'</span>' +
-            '<button onclick="changeQty(\''+item.id+'\', 1, \''+item.name+'\', '+item.price+')" aria-label="Increase quantity">+</button>' +
+            '<button onclick="changeQty(\''+item.id+'\', 1, \''+item.name+'\', '+item.price+')" aria-label="Ongeza idadi">+</button>' +
           '</div>' +
           '<span class="cr-price">TZS '+(item.price*item.quantity).toLocaleString()+'</span>' +
         '</div>' +
-        '<button class="cr-remove" onclick="removeFromCart(\''+item.id+'\')">Remove</button>' +
+        '<button class="cr-remove" onclick="removeFromCart(\''+item.id+'\')">Ondoa</button>' +
       '</div>' +
     '</div>';
   }).join('');
   const subtotal = cartSubtotal();
   document.getElementById('cartSubtotal').textContent = 'TZS ' + subtotal.toLocaleString();
   document.getElementById('cartTotal').textContent = 'TZS ' + subtotal.toLocaleString();
-  document.getElementById('cartDeliveryEst').textContent = subtotal >= FREE_DELIVERY_THRESHOLD ? 'Free (order qualifies)' : 'TZS ' + DELIVERY_FEE.toLocaleString() + ' if delivered';
+  document.getElementById('cartDeliveryEst').textContent = subtotal >= FREE_DELIVERY_THRESHOLD ? 'Bure (agizo linastahili)' : 'TZS ' + DELIVERY_FEE.toLocaleString() + ' ikiwa utumishwa';
 }
 
 function openCart() {
@@ -903,13 +927,65 @@ function closeCart() {
   document.getElementById('scrim').classList.remove('open');
 }
 
+// Modal variables for add to cart modal
+let modalProductId = null;
+let modalProductName = '';
+let modalProductPrice = 0;
+let modalProductMaxQty = 0;
+let modalCurrentQty = 1;
+
+function openAddToCartModal(id, name, price, maxQty) {
+  modalProductId = id;
+  modalProductName = name;
+  modalProductPrice = Number(price) || 0;
+  modalProductMaxQty = Number(maxQty) || 1;
+  modalCurrentQty = 1;
+  
+  document.getElementById('modalProductName').textContent = name;
+  document.getElementById('modalQty').textContent = '1';
+  
+  document.getElementById('addToCartModal').classList.add('open');
+  document.getElementById('scrim').classList.add('open');
+}
+
+function closeAddToCartModal() {
+  document.getElementById('addToCartModal').classList.remove('open');
+  document.getElementById('scrim').classList.remove('open');
+}
+
+function changeModalQty(delta) {
+  modalCurrentQty += delta;
+  modalCurrentQty = Math.max(1, modalCurrentQty);
+  modalCurrentQty = Math.min(modalCurrentQty, modalProductMaxQty);
+  document.getElementById('modalQty').textContent = modalCurrentQty;
+}
+
+function confirmAddToCart() {
+  const existing = cart.find(i => String(i.id) === String(modalProductId));
+  if (existing) {
+    existing.quantity += modalCurrentQty;
+    existing.name = modalProductName;
+    existing.price = modalProductPrice;
+    // Ensure we don't exceed max stock
+    existing.quantity = Math.min(existing.quantity, modalProductMaxQty);
+  } else {
+    cart.push({ id: String(modalProductId), name: modalProductName, price: modalProductPrice, quantity: modalCurrentQty });
+  }
+  saveCart();
+  updateCartUI();
+  showToast(modalCurrentQty + 'x ' + modalProductName + ' iliongeza kwenye mkokoteni', 'cart');
+  closeAddToCartModal();
+}
+
+// Update closeAllOverlays to also close the add to cart modal
 function closeAllOverlays() {
   closeCart();
+  closeAddToCartModal();
 }
 
 function toggleFav(btn) {
   btn.classList.toggle('active');
-  showToast(btn.classList.contains('active') ? 'Added to wishlist' : 'Removed from wishlist', 'heart');
+  showToast(btn.classList.contains('active') ? 'Imeongezwa kwenye orodha ya mawazo' : 'Imeondolewa kwenye orodha ya mawazo', 'heart');
 }
 
 function showToast(msg, icon) {
