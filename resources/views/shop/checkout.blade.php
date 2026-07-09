@@ -13,8 +13,8 @@
 @php
   $logoUrl = asset('logo-image-feedtan-store.png');
   $checkoutCanonicalUrl = route('shop.checkout');
-  $checkoutTitle = 'Checkout - Feedtan Store';
-  $checkoutDescription = 'Complete your Feedtan Store order with secure checkout, delivery location capture, and flexible payment options.';
+  $checkoutTitle = 'Kubadilisha - Feedtan Store';
+  $checkoutDescription = 'Kamilisha agizo lako la Feedtan Store na usajili salama, usajili wa mahali pa utoaji, na chaguzi za malazi nyepesi.';
 @endphp
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -304,7 +304,7 @@ footer{background:var(--green-900);color:#BFD6C8;padding:40px 0 0;margin-top:40p
   <div class="wrap">
     <div class="topbar-msg">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
-      <span>Free delivery on orders over TZS 50,000</span>
+      <span>Utoaji wa bure kwenye agizo la juu ya TZS 50,000</span>
     </div>
     <div class="topbar-msg" id="topbarPhone">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.362 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.338 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
@@ -320,8 +320,8 @@ footer{background:var(--green-900);color:#BFD6C8;padding:40px 0 0;margin-top:40p
       <span>Feedtan<span class="logo-sub">Online Store</span></span>
     </a>
     <form class="search-bar" id="searchForm" role="search" action="{{ route('shop.index') }}">
-      <label for="searchInput" class="visually-hidden">Search products</label>
-      <input type="search" id="searchInput" name="search" placeholder="Search for rice, oil, fruits, electronics…" autocomplete="off" value="{{ request('search', '') }}">
+      <label for="searchInput" class="visually-hidden">Tafuta bidhaa</label>
+      <input type="search" id="searchInput" name="search" placeholder="Tafuta mpunga, mafuta, matunda, vifaa vya kielektroniki…" autocomplete="off" value="{{ request('search', '') }}">
       <button type="submit" aria-label="Search">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
       </button>
@@ -330,28 +330,28 @@ footer{background:var(--green-900);color:#BFD6C8;padding:40px 0 0;margin-top:40p
       <button class="icon-btn" id="mobileSearchToggle" aria-label="Toggle search" onclick="toggleMobileSearch()">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
       </button>
-      <button class="icon-btn" aria-label="Wishlist" onclick="showToast('Saved items live in your wishlist','heart')">
+      <button class="icon-btn" aria-label="Wishlist" onclick="showToast('Bidhaa zilizohifadhi katika orodha yako ya wishlist','heart')">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.8 1-1a5.5 5.5 0 0 0 0-7.8z"/></svg>
       </button>
       <a href="{{ route('shop.tracking') }}" class="icon-btn" aria-label="Track my order" title="Track order">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="1.5"/><circle cx="18.5" cy="18.5" r="1.5"/></svg>
       </a>
-      <button class="icon-btn" aria-label="Open cart" onclick="showToast('Cart is on previous page','info')">
+      <button class="icon-btn" aria-label="Open cart" onclick="showToast('Kikombe kwenye ukurasa wa kwanza','info')">
         <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
       </button>
     </div>
   </div>
   <div class="mobile-search" id="mobileSearchBox" style="display:none;">
     <form class="search-bar" action="{{ route('shop.index') }}">
-      <input type="search" id="searchInputMobile" name="search" placeholder="Search products…" autocomplete="off" value="{{ request('search', '') }}">
+      <input type="search" id="searchInputMobile" name="search" placeholder="Tafuta bidhaa…" autocomplete="off" value="{{ request('search', '') }}">
       <button type="submit" aria-label="Search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></button>
     </form>
   </div>
   <nav class="nav-strip" aria-label="Primary">
     <div class="wrap">
-      <a href="{{ route('shop.index') }}">Home</a>
-      <a href="{{ route('shop.index') }}#shop">Shop All</a>
-      <a href="{{ route('shop.tracking') }}">Track Order</a>
+      <a href="{{ route('shop.index') }}">Nyumbani</a>
+      <a href="{{ route('shop.index') }}#shop">Bidhaa Zote</a>
+      <a href="{{ route('shop.tracking') }}">Fuata Agizo</a>
     </div>
   </nav>
 </header>
@@ -360,30 +360,30 @@ footer{background:var(--green-900);color:#BFD6C8;padding:40px 0 0;margin-top:40p
   <section class="section">
     <div class="wrap">
       <a href="{{ route('shop.index') }}" class="back-link">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m15 18-6-6 6-6"/></svg> Back to store
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m15 18-6-6 6-6"/></svg> Rudi kwenye duka
       </a>
     </div>
     <div class="wrap" style="margin-top:24px;">
       <div class="section-head">
         <div>
-          <span class="eyebrow">Checkout</span>
-          <h1>Complete your order</h1>
+          <span class="eyebrow">Kubadilisha</span>
+          <h1>Kamilisha agizo lako</h1>
         </div>
       </div>
 
       <div id="emptyCartState" class="card" style="display:none;">
-        <h2 style="font-size:20px;margin-bottom:8px;">Your cart is empty</h2>
-        <p style="margin:0 0 16px;color:var(--ink-soft);">Add at least one item to continue to checkout.</p>
+        <h2 style="font-size:20px;margin-bottom:8px;">Kikombe chako ni tupu</h2>
+        <p style="margin:0 0 16px;color:var(--ink-soft);">Ongeza angalau bidhaa moja ili kuendelea.</p>
         <div style="display:flex;gap:10px;flex-wrap:wrap;">
-          <a href="{{ route('shop.index') }}" class="btn btn-primary">Go to shop</a>
-          <a href="{{ route('shop.tracking') }}" class="btn btn-ghost">Track an order</a>
+          <a href="{{ route('shop.index') }}" class="btn btn-primary">Nenda kwenye duka</a>
+          <a href="{{ route('shop.tracking') }}" class="btn btn-ghost">Fuata agizo</a>
         </div>
       </div>
 
       <form id="checkoutForm" class="space-y-6">
         <!-- Delivery Options -->
         <div class="card" id="stepDelivery">
-          <h2 class="text-lg font-bold mb-4">Delivery Option</h2>
+          <h2 class="text-lg font-bold mb-4">Chaguo la Utoaji</h2>
           <div class="option-grid-two">
             <label class="option-card selected" id="opt-delivery">
               <input type="radio" name="need_delivery" value="yes" checked onchange="toggleDeliveryOptions()">
@@ -391,8 +391,8 @@ footer{background:var(--green-900);color:#BFD6C8;padding:40px 0 0;margin-top:40p
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="1.5"/><circle cx="18.5" cy="18.5" r="1.5"/></svg>
               </div>
               <div>
-                <b>Home Delivery</b>
-                <span>Get your order delivered to your doorstep</span>
+                <b>Utoaji kwa Nyumbani</b>
+                <span>Agizo lako hutolewa kwenye mlango wako</span>
               </div>
             </label>
             <label class="option-card" id="opt-pickup">
@@ -401,8 +401,8 @@ footer{background:var(--green-900);color:#BFD6C8;padding:40px 0 0;margin-top:40p
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9.5 12 3l9 6.5"/><path d="M5 10v9h14v-9"/><path d="M9 19v-6h6v6"/></svg>
               </div>
               <div>
-                <b>Pickup</b>
-                <span>Pick up your order from our store</span>
+                <b>Kuchukua</b>
+                <span>Chukua agizo lako kwenye duka letu</span>
               </div>
             </label>
           </div>
@@ -413,33 +413,33 @@ footer{background:var(--green-900);color:#BFD6C8;padding:40px 0 0;margin-top:40p
 
         <!-- Customer Info -->
         <div class="card" id="stepCustomer">
-          <h2 class="text-lg font-bold mb-4">Customer Information</h2>
+          <h2 class="text-lg font-bold mb-4">Taarifa za Mteja</h2>
           <div class="form-grid">
             <div class="field">
-              <label for="customerName">Full Name *</label>
+              <label for="customerName">Jina Kamili *</label>
               <input type="text" id="customerName" required>
               <div class="field-error" id="err-customerName"></div>
             </div>
             <div class="field">
-              <label for="customerPhone">Phone Number *</label>
+              <label for="customerPhone">Nambari ya Simu *</label>
               <input type="tel" id="customerPhone" required>
               <div class="field-error" id="err-customerPhone"></div>
             </div>
             <div class="field" style="grid-column:1/-1;">
-              <label for="customerEmail">Email (optional)</label>
+              <label for="customerEmail">Barua pepe (inaweza kosa)</label>
               <input type="email" id="customerEmail">
               <div class="field-error" id="err-customerEmail"></div>
             </div>
           </div>
         </div>
         <div class="card" style="padding:16px;display:none;justify-content:space-between;" id="stepCustomerActions">
-          <button type="button" class="btn btn-ghost" id="btnBackCustomer">Back</button>
+          <button type="button" class="btn btn-ghost" id="btnBackCustomer">Nyuma</button>
           <button type="button" class="btn btn-dark" id="btnNextCustomer">Next</button>
         </div>
 
         <!-- Delivery Address & Location -->
         <div class="card" id="deliveryAddressSection">
-          <h2 class="text-lg font-bold mb-4">Delivery Location</h2>
+          <h2 class="text-lg font-bold mb-4">Mahali pa Utoaji</h2>
           
           <!-- Location Type Selection -->
           <div class="option-grid-two mb-4">
@@ -449,8 +449,8 @@ footer{background:var(--green-900);color:#BFD6C8;padding:40px 0 0;margin-top:40p
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg>
               </div>
               <div>
-                <b>Current Location</b>
-                <span>Use your current GPS location</span>
+                <b>Mahali Pa Sasa</b>
+                <span>Tumia mahali pa sasa pa GPS</span>
               </div>
             </label>
             <label class="option-card" id="opt-other-location">
@@ -459,8 +459,8 @@ footer{background:var(--green-900);color:#BFD6C8;padding:40px 0 0;margin-top:40p
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
               </div>
               <div>
-                <b>Other Location</b>
-                <span>Select location on map or enter address</span>
+                <b>Mahali Mwingine</b>
+                <span>Chagua mahali kwenye ramani au andika anwani</span>
               </div>
             </label>
           </div>
@@ -468,14 +468,14 @@ footer{background:var(--green-900);color:#BFD6C8;padding:40px 0 0;margin-top:40p
           <!-- Current Location Section -->
           <div class="loc-box" id="currentLocationBox">
             <div class="field mb-4">
-              <label for="deliveryAddress">Delivery Address *</label>
-              <input type="text" id="deliveryAddress" placeholder="Auto-detecting your location...">
+              <label for="deliveryAddress">Anwani ya Utoaji *</label>
+              <input type="text" id="deliveryAddress" placeholder="Kutafuta mahali wako otomatiki...">
               <div class="field-error" id="err-deliveryAddress" style="margin-top:8px;"></div>
             </div>
             <div class="loc-box-head">
               <div class="loc-status pending" id="locStatus">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-                <span>Detecting your location…</span>
+                <span>Nachambua mahali wako…</span>
               </div>
               <button type="button" class="btn btn-outline btn-sm" onclick="detectLocation()">Refresh</button>
             </div>
@@ -491,10 +491,10 @@ footer{background:var(--green-900);color:#BFD6C8;padding:40px 0 0;margin-top:40p
           <div class="loc-box" id="otherLocationBox" style="display:none;">
             <!-- Address Search (prominent) -->
             <div class="field mb-4">
-              <label for="addressSearch">Search Location</label>
+              <label for="addressSearch">Tafuta Mahali</label>
               <div style="display:flex;gap:8px;">
-                <input type="text" id="addressSearch" placeholder="Search for a place (e.g., Kariakoo market)" style="flex:1;" onkeypress="if(event.key === 'Enter') searchAddress()">
-                <button type="button" class="btn btn-primary btn-sm" onclick="searchAddress()">Search</button>
+                <input type="text" id="addressSearch" placeholder="Tafuta mahali (kwa mfano, soko la Kariakoo)" style="flex:1;" onkeypress="if(event.key === 'Enter') searchAddress()">
+                <button type="button" class="btn btn-primary btn-sm" onclick="searchAddress()">Tafuta</button>
               </div>
               <div class="field-error" id="err-addressSearch"></div>
             </div>
@@ -503,15 +503,15 @@ footer{background:var(--green-900);color:#BFD6C8;padding:40px 0 0;margin-top:40p
             <div id="searchResults" style="display:none;margin-bottom:12px;max-height:200px;overflow-y:auto;border:1px solid var(--line);border-radius:8px;"></div>
             
             <div class="field mb-4">
-              <label for="manualAddress">Delivery Address *</label>
-              <input type="text" id="manualAddress" placeholder="Enter your delivery address (e.g., Kiboriloni, Moshi)">
+              <label for="manualAddress">Anwani ya Utoaji *</label>
+              <input type="text" id="manualAddress" placeholder="Ingiza anwani ya utoaji (kwa mfano, Kiboriloni, Moshi)">
               <div class="field-error" id="err-manualAddress"></div>
             </div>
             
             <div class="loc-box-head">
               <div class="loc-status pending" id="mapLocStatus">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="12" cy="12" r="10"/><path d="M12 8h.01M11 12h2v4h-2z"/></svg>
-                <span>Click on the map to select delivery location</span>
+                <span>Bonyeza kwenye ramani kuchagua mahali pa utoaji</span>
               </div>
             </div>
             <div class="loc-coords" id="mapLocCoords"></div>
@@ -526,14 +526,14 @@ footer{background:var(--green-900);color:#BFD6C8;padding:40px 0 0;margin-top:40p
 
         </div>
         <div class="card" style="padding:16px;display:none;justify-content:space-between;" id="stepAddressActions">
-          <button type="button" class="btn btn-ghost" id="btnBackAddress">Back</button>
+          <button type="button" class="btn btn-ghost" id="btnBackAddress">Nyuma</button>
           <button type="button" class="btn btn-dark" id="btnNextAddress">Next</button>
         </div>
 
         <div class="checkout-bottom-grid">
           <!-- Payment Method -->
           <div class="card" id="stepPayment">
-            <h2 class="text-lg font-bold mb-4">Payment Method</h2>
+            <h2 class="text-lg font-bold mb-4">Njia ya Malipo</h2>
             <div class="option-grid-three">
               <label class="option-card selected" id="pay-online">
                 <input type="radio" name="payment_method" value="online" checked onchange="selectPaymentMethod('online')">
@@ -541,8 +541,8 @@ footer{background:var(--green-900);color:#BFD6C8;padding:40px 0 0;margin-top:40p
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
                 </div>
                 <div>
-                  <b>Online Payment</b>
-                  <span>Pay via mobile money</span>
+                  <b>Malipo Online</b>
+                  <span>Lipa kupitia mobile money</span>
                 </div>
               </label>
             </div>
@@ -550,25 +550,25 @@ footer{background:var(--green-900);color:#BFD6C8;padding:40px 0 0;margin-top:40p
 
           <!-- Order Summary -->
           <div class="card" id="stepSummary">
-            <h2 class="text-lg font-bold mb-4">Order Summary</h2>
+            <h2 class="text-lg font-bold mb-4">Muhtasari wa Agizo</h2>
             <div id="checkoutItems" class="space-y-3 mb-4"></div>
             <div class="border-t border-gray-100 pt-4 space-y-2">
-              <div class="sum-row"><span>Subtotal</span><span id="subtotal">TZS 0</span></div>
-              <div class="sum-row"><span>Delivery Distance</span><span id="deliveryDistanceDisplay">Select location to calculate</span></div>
-              <div class="sum-row"><span>Delivery Fee</span><span id="deliveryFeeDisplay">Select location to calculate</span></div>
-              <div class="sum-row total"><span>Current Total</span><span id="checkoutTotal">TZS 0</span></div>
+              <div class="sum-row"><span>Jumla ya Kwanza</span><span id="subtotal">TZS 0</span></div>
+              <div class="sum-row"><span>Umbali wa Utoaji</span><span id="deliveryDistanceDisplay">Chagua mahali ili kuhesabu</span></div>
+              <div class="sum-row"><span>Gharama ya Utoaji</span><span id="deliveryFeeDisplay">Chagua mahali ili kuhesabu</span></div>
+              <div class="sum-row total"><span>Jumla ya Sasa</span><span id="checkoutTotal">TZS 0</span></div>
             </div>
           </div>
         </div>
         <div class="card" style="padding:16px;display:none;justify-content:space-between;" id="stepPaymentActions">
-          <button type="button" class="btn btn-ghost" id="btnBackPayment">Back</button>
+          <button type="button" class="btn btn-ghost" id="btnBackPayment">Nyuma</button>
           <button type="button" class="btn btn-dark" id="btnNextPayment">Next</button>
         </div>
 
         <!-- Place Order -->
         <button type="submit" id="placeOrderBtn" class="btn btn-primary">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>
-          Place Order
+          Weka Agizo
         </button>
       </form>
     </div>
@@ -576,42 +576,42 @@ footer{background:var(--green-900);color:#BFD6C8;padding:40px 0 0;margin-top:40p
 </main>
 
 <footer>
-  <div class="wrap">
-    <div class="footer-grid">
-      <div>
-        <div class="footer-logo"><span class="logo-mark" style="background:var(--orange);color:var(--green-900);">F</span> Feedtan Store</div>
-        <p style="font-size:13.5px;line-height:1.7;max-width:280px;">Quality products at unbeatable prices, delivered right to your door — or ready when you walk in.</p>
+    <div class="wrap">
+      <div class="footer-grid">
+        <div>
+          <div class="footer-logo"><span class="logo-mark" style="background:var(--orange);color:var(--green-900);">F</span> Feedtan Store</div>
+          <p style="font-size:13.5px;line-height:1.7;max-width:280px;">Bidhaa za bora bei nafuu, hutolewa moja kwa moja kwenye mlango wako — au tayari unapoweka hatua.</p>
+        </div>
+        <div>
+          <h4>Duka</h4>
+          <ul>
+            <li><a href="{{ route('shop.index') }}">Bidhaa Zote</a></li>
+            <li><a href="{{ route('shop.tracking') }}">Fuata Agizo</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4>Msaada</h4>
+          <ul>
+            <li><a href="#" onclick="showToast('Wasiliana nasi kwenye +255 717 358 865','phone')">Wasiliana Nasi</a></li>
+            <li><a href="#" onclick="showToast('Marudisho yanakubaliwa ndani ya masaa 48 ya utoaji','info')">Sera ya Marudisho</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4>Tembelea Duka Letu</h4>
+          <ul>
+            <li>Kiboriloni, Moshi, Kilimanjaro, Tanzania</li>
+            <li>Wazi kila siku · 8:00 AM – 9:00 PM</li>
+            <li>+255 717 358 865</li>
+            <li>info@feedtanstore.com</li>
+          </ul>
+        </div>
       </div>
-      <div>
-        <h4>Shop</h4>
-        <ul>
-          <li><a href="{{ route('shop.index') }}">All Products</a></li>
-          <li><a href="{{ route('shop.tracking') }}">Track Order</a></li>
-        </ul>
-      </div>
-      <div>
-        <h4>Support</h4>
-        <ul>
-          <li><a href="#" onclick="showToast('Reach us on +255 717 358 865','phone')">Contact us</a></li>
-          <li><a href="#" onclick="showToast('Returns accepted within 48 hours of delivery','info')">Returns policy</a></li>
-        </ul>
-      </div>
-      <div>
-        <h4>Visit our store</h4>
-        <ul>
-          <li>Kiboriloni, Moshi, Kilimanjaro, Tanzania</li>
-          <li>Open daily · 8:00 AM – 9:00 PM</li>
-          <li>+255 717 358 865</li>
-          <li>info@feedtanstore.com</li>
-        </ul>
+      <div class="footer-bottom">
+        <span>© {{ date('Y') }} Feedtan Store. Haki zote zimehifadhiwa.</span>
+        <span>Imeundwa kwa umakini kwa wataalamu wa kila siku.</span>
       </div>
     </div>
-    <div class="footer-bottom">
-      <span>© {{ date('Y') }} Feedtan Store. All rights reserved.</span>
-      <span>Built with care for everyday shoppers.</span>
-    </div>
-  </div>
-</footer>
+  </footer>
 
 <div id="toast" class="toast" style="position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--green-900);color:#fff;padding:13px 22px;border-radius:999px;font-size:13.5px;font-weight:600;z-index:400;box-shadow:var(--shadow-pop);display:flex;align-items:center;gap:10px;opacity:0;visibility:hidden;transition:all .25s ease;"></div>
 

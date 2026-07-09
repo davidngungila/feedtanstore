@@ -108,7 +108,7 @@ class OnlineOrderController extends Controller
                 });
             })
             ->latest()
-            ->get();
+            ->paginate(20);
             
         $settings = \App\Models\StoreSetting::firstOrCreate();
         

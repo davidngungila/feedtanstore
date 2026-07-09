@@ -146,6 +146,11 @@
                 </tbody>
             </table>
         </div>
+        
+        <!-- Pagination -->
+        <div class="mt-6">
+            {{ $orders->links() }}
+        </div>
     </div>
 </div>
 
