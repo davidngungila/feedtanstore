@@ -3,21 +3,13 @@
 @section('page-title', 'Delivery Riders')
 
 @section('content')
-<div class="animate-[fadeIn_0.4s_ease] space-y-6">
+<div class="animate-[fadeIn_0.4s_ease]">
     <div class="card rounded-2xl p-6">
         <div class="flex items-center justify-between mb-6">
             <h2 class="text-xl font-bold text-primary-900">Delivery Riders</h2>
-            <div class="flex items-center gap-2">
-                <a href="{{ route('online.riders.livemap') }}" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">
-                    <i class="fas fa-location-arrow mr-2"></i>Riders Live Map
-                </a>
-                <a href="{{ route('online.delivery.map') }}" class="px-4 py-2 bg-secondary-600 hover:bg-secondary-700 text-white rounded-lg transition-colors">
-                    <i class="fas fa-map mr-2"></i>Delivery Map
-                </a>
-                <a href="{{ route('online.riders.create') }}" class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors">
-                    <i class="fas fa-plus mr-2"></i>Add Rider
-                </a>
-            </div>
+            <a href="{{ route('online.riders.create') }}" class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors">
+                <i class="fas fa-plus mr-2"></i>Add Rider
+            </a>
         </div>
 
         @if(session('success'))
@@ -25,10 +17,6 @@
                 {{ session('success') }}
             </div>
         @endif
-
-        <div class="card rounded-2xl overflow-hidden mb-6">
-            <div id="map" class="w-full h-[400px]"></div>
-        </div>
 
         <div class="overflow-x-auto">
             <table class="w-full text-sm">
@@ -63,12 +51,6 @@
                                 <a href="{{ route('online.riders.edit', $rider) }}" class="text-primary-600 hover:text-primary-800 transition-colors">
                                     <i class="fas fa-edit"></i>
                                 </a>
-                                <form action="{{ route('online.riders.generate-entry-link', $rider) }}" method="POST">
-                                    @csrf
-                                    <button type="submit" class="text-blue-600 hover:text-blue-800 transition-colors" title="Generate Login Link">
-                                        <i class="fas fa-link"></i>
-                                    </button>
-                                </form>
                                 <form action="{{ route('online.riders.toggle', $rider) }}" method="POST">
                                     @csrf
                                     <button type="submit" class="text-{{ $rider->is_active ? 'red' : 'green' }}-600 hover:text-{{ $rider->is_active ? 'red' : 'green' }}-800 transition-colors">
@@ -97,91 +79,4 @@
         </div>
     </div>
 </div>
-
-<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
-<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-<script>
-    const storeLat = {{ $storeLat }};
-    const storeLng = {{ $storeLng }};
-    
-    const map = L.map('map').setView([storeLat, storeLng], 10);
-    
-    // OpenStreetMap base layer
-    const osmLayer = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-    });
-    
-    // World Imagery base layer (Esri)
-    const worldImageryLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-        attribution: 'Tiles &copy; Esri &mdash; Source: Esri, DigitalGlobe, GeoEye, i-cubed, USDA, USGS, AEX, Getmapping, Aerogrid, IGN, IGP, swisstopo, and the GIS User Community'
-    });
-    
-    // Add OSM as default
-    osmLayer.addTo(map);
-    
-    // Layer control
-    const baseLayers = {
-        'OpenStreetMap': osmLayer,
-        'World Imagery': worldImageryLayer
-    };
-    
-    L.control.layers(baseLayers).addTo(map);
-    
-    // Add store marker
-    L.marker([storeLat, storeLng])
-        .addTo(map)
-        .bindPopup("<b>Store</b>");
-    
-    // Object to track markers
-    const riderMarkers = {};
-    
-    // Initial rider markers
-    @foreach($riders as $rider)
-        @if($rider->latestLocation && $rider->latestLocation->latitude && $rider->latestLocation->longitude)
-            riderMarkers[{{ $rider->id }}] = L.marker([{{ $rider->latestLocation->latitude }}, {{ $rider->latestLocation->longitude }}])
-                .addTo(map)
-                .bindPopup(`
-                    <div class="p-2 min-w-[200px]">
-                        <h4 class="font-bold text-base text-gray-900 mb-1">Rider: {{ $rider->name }}</h4>
-                        <p class="text-sm text-gray-700 mb-1"><strong>Phone:</strong> <a href="tel:{{ $rider->phone }}">{{ $rider->phone }}</a></p>
-                        <p class="text-sm text-gray-700 mb-1"><strong>Vehicle:</strong> {{ $rider->vehicle_type ?? 'N/A' }}</p>
-                        <p class="text-sm text-gray-700 mb-2"><strong>Plate:</strong> {{ $rider->vehicle_plate ?? 'N/A' }}</p>
-                        <a href="{{ route('online.riders.edit', $rider) }}" class="text-primary-600 hover:underline text-sm">Edit Rider</a>
-                    </div>
-                `);
-        @endif
-    @endforeach
-    
-    // Function to refresh rider locations
-    async function refreshRiders() {
-        try {
-            const response = await fetch('/api/realtime/riders');
-            const riders = await response.json();
-            
-            riders.forEach(rider => {
-                if (rider.latest_location && rider.latest_location.latitude && rider.latest_location.longitude) {
-                    if (riderMarkers[rider.id]) {
-                        riderMarkers[rider.id].setLatLng([rider.latest_location.latitude, rider.latest_location.longitude]);
-                    } else {
-                        riderMarkers[rider.id] = L.marker([rider.latest_location.latitude, rider.latest_location.longitude])
-                            .addTo(map)
-                            .bindPopup(`
-                                <div class="p-2 min-w-[200px]">
-                                    <h4 class="font-bold text-base text-gray-900 mb-1">Rider: ${rider.name}</h4>
-                                    <p class="text-sm text-gray-700 mb-1"><strong>Phone:</strong> <a href="tel:${rider.phone}">${rider.phone}</a></p>
-                                    <p class="text-sm text-gray-700 mb-1"><strong>Vehicle:</strong> ${rider.vehicle_type ?? 'N/A'}</p>
-                                    <p class="text-sm text-gray-700 mb-2"><strong>Plate:</strong> ${rider.vehicle_plate ?? 'N/A'}</p>
-                                </div>
-                            `);
-                    }
-                }
-            });
-        } catch (err) {
-            console.error('Error refreshing riders:', err);
-        }
-    }
-    
-    // Refresh every 3 seconds
-    setInterval(refreshRiders, 3000);
-</script>
 @endsection

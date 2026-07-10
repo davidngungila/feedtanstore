@@ -6,20 +6,13 @@ use App\Models\DeliveryRider;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Crypt;
-use Illuminate\Support\Str;
-use App\Models\AdminAccessToken;
-use App\Models\StoreSetting;
 
 class DeliveryRiderController extends Controller
 {
     public function index()
     {
         $riders = DeliveryRider::with(['user', 'latestLocation'])->get();
-        $storeSettings = \App\Models\StoreSetting::firstOrCreate();
-        $storeLat = $storeSettings->store_latitude ?? -3.3869;
-        $storeLng = $storeSettings->store_longitude ?? 36.6883;
-        return view('online.riders', compact('riders', 'storeLat', 'storeLng'));
+        return view('online.riders', compact('riders'));
     }
 
     public function create()
@@ -33,26 +26,9 @@ class DeliveryRiderController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
             'password' => 'required|string|min:8',
-            'phone' => 'required|string|max:255|unique:users,phone',
+            'phone' => 'required|string|max:255',
             'vehicle_type' => 'nullable|string|max:255',
             'vehicle_plate' => 'nullable|string|max:255',
-            'vehicle_model' => 'nullable|string|max:255',
-            'vehicle_color' => 'nullable|string|max:255',
-            'vehicle_year' => 'nullable|string|max:255',
-            'date_of_birth' => 'nullable|date',
-            'gender' => 'nullable|string|max:255',
-            'address' => 'nullable|string',
-            'nid_number' => 'nullable|string|max:255',
-            'driving_license_number' => 'nullable|string|max:255',
-            'license_expiry_date' => 'nullable|date',
-            'insurance_number' => 'nullable|string|max:255',
-            'insurance_expiry_date' => 'nullable|date',
-            'bank_name' => 'nullable|string|max:255',
-            'bank_account_number' => 'nullable|string|max:255',
-            'bank_account_name' => 'nullable|string|max:255',
-            'bank_branch' => 'nullable|string|max:255',
-            'mobile_money_number' => 'nullable|string|max:255',
-            'mobile_money_provider' => 'nullable|string|max:255',
             'is_active' => 'boolean'
         ]);
 
@@ -71,23 +47,6 @@ class DeliveryRiderController extends Controller
                 'phone' => $request->phone,
                 'vehicle_type' => $request->vehicle_type,
                 'vehicle_plate' => $request->vehicle_plate,
-                'vehicle_model' => $request->vehicle_model,
-                'vehicle_color' => $request->vehicle_color,
-                'vehicle_year' => $request->vehicle_year,
-                'date_of_birth' => $request->date_of_birth,
-                'gender' => $request->gender,
-                'address' => $request->address,
-                'nid_number' => $request->nid_number,
-                'driving_license_number' => $request->driving_license_number,
-                'license_expiry_date' => $request->license_expiry_date,
-                'insurance_number' => $request->insurance_number,
-                'insurance_expiry_date' => $request->insurance_expiry_date,
-                'bank_name' => $request->bank_name,
-                'bank_account_number' => $request->bank_account_number,
-                'bank_account_name' => $request->bank_account_name,
-                'bank_branch' => $request->bank_branch,
-                'mobile_money_number' => $request->mobile_money_number,
-                'mobile_money_provider' => $request->mobile_money_provider,
                 'is_active' => $request->has('is_active'),
                 'user_id' => $user->id,
             ]);
@@ -115,26 +74,9 @@ class DeliveryRiderController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'nullable|email|unique:users,email,' . $rider->user_id,
             'password' => 'nullable|string|min:8',
-            'phone' => 'required|string|max:255|unique:users,phone,' . $rider->user_id,
+            'phone' => 'required|string|max:255',
             'vehicle_type' => 'nullable|string|max:255',
             'vehicle_plate' => 'nullable|string|max:255',
-            'vehicle_model' => 'nullable|string|max:255',
-            'vehicle_color' => 'nullable|string|max:255',
-            'vehicle_year' => 'nullable|string|max:255',
-            'date_of_birth' => 'nullable|date',
-            'gender' => 'nullable|string|max:255',
-            'address' => 'nullable|string',
-            'nid_number' => 'nullable|string|max:255',
-            'driving_license_number' => 'nullable|string|max:255',
-            'license_expiry_date' => 'nullable|date',
-            'insurance_number' => 'nullable|string|max:255',
-            'insurance_expiry_date' => 'nullable|date',
-            'bank_name' => 'nullable|string|max:255',
-            'bank_account_number' => 'nullable|string|max:255',
-            'bank_account_name' => 'nullable|string|max:255',
-            'bank_branch' => 'nullable|string|max:255',
-            'mobile_money_number' => 'nullable|string|max:255',
-            'mobile_money_provider' => 'nullable|string|max:255',
             'is_active' => 'boolean'
         ]);
 
@@ -159,23 +101,6 @@ class DeliveryRiderController extends Controller
                 'phone' => $request->phone,
                 'vehicle_type' => $request->vehicle_type,
                 'vehicle_plate' => $request->vehicle_plate,
-                'vehicle_model' => $request->vehicle_model,
-                'vehicle_color' => $request->vehicle_color,
-                'vehicle_year' => $request->vehicle_year,
-                'date_of_birth' => $request->date_of_birth,
-                'gender' => $request->gender,
-                'address' => $request->address,
-                'nid_number' => $request->nid_number,
-                'driving_license_number' => $request->driving_license_number,
-                'license_expiry_date' => $request->license_expiry_date,
-                'insurance_number' => $request->insurance_number,
-                'insurance_expiry_date' => $request->insurance_expiry_date,
-                'bank_name' => $request->bank_name,
-                'bank_account_number' => $request->bank_account_number,
-                'bank_account_name' => $request->bank_account_name,
-                'bank_branch' => $request->bank_branch,
-                'mobile_money_number' => $request->mobile_money_number,
-                'mobile_money_provider' => $request->mobile_money_provider,
                 'is_active' => $request->has('is_active'),
             ]);
 
@@ -207,25 +132,5 @@ class DeliveryRiderController extends Controller
             \DB::rollBack();
             return back()->with('error', 'Failed to delete rider: ' . $e->getMessage());
         }
-    }
-
-    public function generateEntryLink(DeliveryRider $rider)
-    {
-        $minutes = 60 * 24; // 24 hours
-        $settings = StoreSetting::firstOrCreate();
-        $token = Str::random(40);
-        $encryptedToken = Crypt::encryptString($token);
-        $entryToken = rtrim(strtr(base64_encode($encryptedToken), '+/', '-_'), '=');
-
-        AdminAccessToken::create([
-            'token_hash' => hash('sha256', $token),
-            'encrypted_token' => $encryptedToken,
-            'expires_at' => now()->addMinutes($minutes),
-        ]);
-
-        $baseUrl = $settings->store_url ?? config('app.url');
-        $url = rtrim($baseUrl, '/') . '/' . $entryToken;
-
-        return back()->with('success', 'Entry link generated! Link: ' . $url);
     }
 }

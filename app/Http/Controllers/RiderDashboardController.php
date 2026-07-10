@@ -22,10 +22,10 @@ class RiderDashboardController extends Controller
             abort(403, 'You are not authorized as a delivery rider.');
         }
 
-        // Get rider's orders
+        // Get rider's orders - include pending acceptance orders
         $assignedOrders = OnlineOrder::with(['items'])
             ->where('delivery_rider_id', $rider->id)
-            ->whereIn('status', ['out_for_delivery', 'ready'])
+            ->whereIn('status', ['confirmed', 'ready', 'out_for_delivery'])
             ->latest()
             ->get();
 
@@ -116,7 +116,7 @@ class RiderDashboardController extends Controller
         $title = "Assigned Orders";
         $orders = OnlineOrder::with(['items'])
             ->where('delivery_rider_id', $rider->id)
-            ->where('status', 'ready')
+            ->whereIn('status', ['confirmed', 'ready', 'out_for_delivery'])
             ->latest()
             ->paginate(20);
 
@@ -392,6 +392,60 @@ class RiderDashboardController extends Controller
         return back()->with('success', $successMessage);
     }
 
+    public function acceptOrder(OnlineOrder $order)
+    {
+        $user = Auth::user();
+        $rider = $user->deliveryRider;
+        
+        if (!$rider || $order->delivery_rider_id !== $rider->id) {
+            abort(403, 'You are not authorized to accept this order.');
+        }
+        
+        $order->update([
+            'rider_acceptance_status' => 'accepted',
+            'rider_accepted_at' => now(),
+            'status' => 'out_for_delivery'
+        ]);
+        
+        // Log status change
+        \App\Models\OnlineOrderStatusHistory::create([
+            'online_order_id' => $order->id,
+            'status' => $order->status,
+            'payment_status' => $order->payment_status,
+            'notes' => 'Order accepted by rider: ' . $rider->name,
+            'user_id' => $user->id
+        ]);
+        
+        return back()->with('success', 'Order accepted successfully!');
+    }
+    
+    public function rejectOrder(OnlineOrder $order)
+    {
+        $user = Auth::user();
+        $rider = $user->deliveryRider;
+        
+        if (!$rider || $order->delivery_rider_id !== $rider->id) {
+            abort(403, 'You are not authorized to reject this order.');
+        }
+        
+        $order->update([
+            'rider_acceptance_status' => 'rejected',
+            'delivery_rider_id' => null,
+            'status' => 'confirmed'
+        ]);
+        
+        // Log status change
+        \App\Models\OnlineOrderStatusHistory::create([
+            'online_order_id' => $order->id,
+            'status' => $order->status,
+            'payment_status' => $order->payment_status,
+            'notes' => 'Order rejected by rider: ' . $rider->name . ', unassigned',
+            'user_id' => $user->id
+        ]);
+        
+        return back()->with('success', 'Order rejected successfully!');
+    }
+    
     private function formatPhoneNumber($phone)
     {
         // Remove any non-numeric characters

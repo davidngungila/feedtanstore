@@ -44,20 +44,46 @@
                         </td>
                         <td class="px-4 py-3 font-semibold">TZS {{ number_format($order->total, 2) }}</td>
                         <td class="px-4 py-3">
-                            <span class="px-2 py-1 rounded-full text-xs font-semibold 
-                                @if($order->status === 'ready') bg-cyan-100 text-cyan-800
-                                @elseif($order->status === 'out_for_delivery') bg-orange-100 text-orange-800
-                                @elseif($order->status === 'delivered') bg-green-100 text-green-800
-                                @else bg-gray-100 text-gray-800
-                                @endif">
-                                {{ ucwords(str_replace('_', ' ', $order->status)) }}
-                            </span>
+                            <div class="flex flex-wrap gap-2">
+                                <span class="px-2 py-1 rounded-full text-xs font-semibold 
+                                    @if($order->status === 'confirmed') bg-blue-100 text-blue-800
+                                    @elseif($order->status === 'ready') bg-cyan-100 text-cyan-800
+                                    @elseif($order->status === 'out_for_delivery') bg-orange-100 text-orange-800
+                                    @elseif($order->status === 'delivered') bg-green-100 text-green-800
+                                    @else bg-gray-100 text-gray-800
+                                    @endif">
+                                    {{ ucwords(str_replace('_', ' ', $order->status)) }}
+                                </span>
+                                @if($order->rider_acceptance_status === 'pending')
+                                    <span class="px-2 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-800">
+                                        Pending Acceptance
+                                    </span>
+                                @elseif($order->rider_acceptance_status === 'accepted')
+                                    <span class="px-2 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">
+                                        Accepted
+                                    </span>
+                                @endif
+                            </div>
                         </td>
                         <td class="px-4 py-3">{{ $order->created_at->format('d/m/Y H:i') }}</td>
                         <td class="px-4 py-3 flex gap-2">
                             <a href="{{ route('rider.orders.show', $order) }}" class="text-primary-600 hover:text-primary-800">
                                 <i class="fas fa-eye"></i>
                             </a>
+                            @if($order->rider_acceptance_status === 'pending')
+                                <form action="{{ route('rider.orders.accept', $order) }}" method="POST" class="inline">
+                                    @csrf
+                                    <button type="submit" class="text-green-600 hover:text-green-800" title="Accept Order">
+                                        <i class="fas fa-check"></i>
+                                    </button>
+                                </form>
+                                <form action="{{ route('rider.orders.reject', $order) }}" method="POST" class="inline">
+                                    @csrf
+                                    <button type="submit" class="text-red-600 hover:text-red-800" title="Reject Order">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </form>
+                            @endif
                         </td>
                     </tr>
                     @empty

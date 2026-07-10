@@ -3,6 +3,6 @@
 if (!function_exists('formatTzs')) {
     function formatTzs($amount)
     {
-        return number_format($amount, 2, '.', ',');
+        return 'TZS ' . number_format($amount, 0, '.', ',');
     }
 }

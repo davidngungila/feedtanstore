@@ -458,7 +458,7 @@ All fields are optional.
 
 **Authentication**: Bearer Token required
 
-**Description**: Retrieve all orders assigned to the authenticated rider.
+**Description**: Retrieve all orders assigned to the authenticated rider, including pending acceptance, accepted, and in transit orders.
 
 **Success Response (200 OK)**:
 ```json
@@ -475,7 +475,7 @@ All fields are optional.
     "delivery_address": "123 Main St, Moshi",
     "delivery_latitude": -3.3600,
     "delivery_longitude": 36.7000,
-    "status": "out_for_delivery",
+    "status": "confirmed",
     "payment_status": "pending",
     "payment_method": "cash",
     "payment_transaction_id": null,
@@ -489,6 +489,8 @@ All fields are optional.
     "user_id": null,
     "notes": "Leave at front door",
     "is_processed": false,
+    "rider_acceptance_status": "pending",
+    "rider_accepted_at": null,
     "created_at": "2026-01-01T00:00:00.000000Z",
     "updated_at": "2026-01-01T00:00:00.000000Z",
     "items": [
@@ -556,6 +558,8 @@ All fields are optional.
     "user_id": null,
     "notes": null,
     "is_processed": false,
+    "rider_acceptance_status": null,
+    "rider_accepted_at": null,
     "created_at": "2026-01-02T00:00:00.000000Z",
     "updated_at": "2026-01-02T00:00:00.000000Z",
     "items": [
@@ -611,7 +615,7 @@ All fields are optional.
   "delivery_address": "123 Main St, Moshi",
   "delivery_latitude": -3.3600,
   "delivery_longitude": 36.7000,
-  "status": "out_for_delivery",
+  "status": "confirmed",
   "payment_status": "pending",
   "payment_method": "cash",
   "payment_transaction_id": null,
@@ -625,6 +629,8 @@ All fields are optional.
   "user_id": null,
   "notes": "Leave at front door",
   "is_processed": false,
+  "rider_acceptance_status": "pending",
+  "rider_accepted_at": null,
   "created_at": "2026-01-01T00:00:00.000000Z",
   "updated_at": "2026-01-01T00:00:00.000000Z",
   "items": [
@@ -664,7 +670,7 @@ All fields are optional.
       "online_order_id": 1,
       "old_status": "pending",
       "new_status": "confirmed",
-      "notes": null,
+      "notes": "Rider assigned and acceptance pending",
       "changed_by": 2,
       "created_at": "2026-01-01T00:00:00.000000Z"
     }
@@ -679,7 +685,7 @@ All fields are optional.
 
 **Authentication**: Bearer Token required
 
-**Description**: Assign an available order to the authenticated rider and set its status to "out_for_delivery".
+**Description**: Accept an assigned order, set `rider_acceptance_status` to "accepted", and update order status to "out_for_delivery". Can also be used to accept an available unassigned order.
 
 **Path Parameters**:
 - `id`: The ID of the order (integer)
@@ -692,7 +698,9 @@ All fields are optional.
     "id": 2,
     "order_number": "ORD-DEF456",
     "status": "out_for_delivery",
-    "delivery_rider_id": 1
+    "delivery_rider_id": 1,
+    "rider_acceptance_status": "accepted",
+    "rider_accepted_at": "2026-07-10T10:30:00.000000Z"
   }
 }
 ```
@@ -700,13 +708,58 @@ All fields are optional.
 **Error Response (400 Bad Request)**:
 ```json
 {
-  "message": "Order already assigned"
+  "message": "Order already assigned to another rider"
+}
+```
+OR
+```json
+{
+  "message": "Order already accepted"
 }
 ```
 
 ---
 
-### 4.5 Update Order Status
+### 4.5 Reject an Order
+**Endpoint**: `POST /rider/orders/{id}/reject`
+
+**Authentication**: Bearer Token required
+
+**Description**: Reject an assigned order, set `rider_acceptance_status` to "rejected", unassign the rider, and set order status back to "confirmed".
+
+**Path Parameters**:
+- `id`: The ID of the order (integer)
+
+**Success Response (200 OK)**:
+```json
+{
+  "message": "Order rejected",
+  "order": {
+    "id": 1,
+    "order_number": "ORD-ABC123",
+    "status": "confirmed",
+    "delivery_rider_id": null,
+    "rider_acceptance_status": "rejected"
+  }
+}
+```
+
+**Error Response (400 Bad Request)**:
+```json
+{
+  "message": "Order not assigned to you"
+}
+```
+OR
+```json
+{
+  "message": "Cannot reject accepted order"
+}
+```
+
+---
+
+### 4.6 Update Order Status
 **Endpoint**: `PUT /rider/orders/{id}/status`
 
 **Authentication**: Bearer Token required
@@ -944,7 +997,7 @@ All fields are optional.
   "delivery_address": "string",
   "delivery_latitude": "float|null",
   "delivery_longitude": "float|null",
-  "status": "string (pending|confirmed|processing|out_for_delivery|delivered|cancelled)",
+  "status": "string (pending|confirmed|processing|ready|out_for_delivery|delivered|cancelled)",
   "payment_status": "string (pending|paid|failed)",
   "payment_method": "string (cash|online|bank)|null",
   "payment_transaction_id": "string|null",
@@ -958,6 +1011,8 @@ All fields are optional.
   "user_id": "integer|null",
   "notes": "string|null",
   "is_processed": "boolean",
+  "rider_acceptance_status": "string (pending|accepted|rejected)|null",
+  "rider_accepted_at": "datetime|null",
   "created_at": "datetime",
   "updated_at": "datetime",
   "items": "array of OnlineOrderItem",
@@ -1079,6 +1134,12 @@ class ApiService {
   // Accept Order
   Future<Map<String, dynamic>> acceptOrder(int orderId) async {
     final response = await _dio.post('/rider/orders/$orderId/accept');
+    return response.data;
+  }
+
+  // Reject Order
+  Future<Map<String, dynamic>> rejectOrder(int orderId) async {
+    final response = await _dio.post('/rider/orders/$orderId/reject');
     return response.data;
   }
 

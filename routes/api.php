@@ -69,4 +69,5 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/rider/orders/{id}', [OrderController::class, 'show']);
     Route::put('/rider/orders/{id}/status', [OrderController::class, 'updateStatus']);
     Route::post('/rider/orders/{id}/accept', [OrderController::class, 'accept']);
+    Route::post('/rider/orders/{id}/reject', [OrderController::class, 'reject']);
 });

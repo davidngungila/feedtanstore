@@ -700,6 +700,8 @@ Route::middleware('auth')->prefix('rider')->name('rider.')->group(function () {
     Route::get('/orders/failed', [\App\Http\Controllers\RiderDashboardController::class, 'failedOrders'])->name('orders.failed');
     Route::get('/orders/{order}', [\App\Http\Controllers\RiderDashboardController::class, 'showOrder'])->name('orders.show');
     Route::put('/orders/{order}/status', [\App\Http\Controllers\RiderDashboardController::class, 'updateOrderStatus'])->name('orders.update-status');
+    Route::post('/orders/{order}/accept', [\App\Http\Controllers\RiderDashboardController::class, 'acceptOrder'])->name('orders.accept');
+    Route::post('/orders/{order}/reject', [\App\Http\Controllers\RiderDashboardController::class, 'rejectOrder'])->name('orders.reject');
     Route::get('/navigation/route-planner', [\App\Http\Controllers\RiderDashboardController::class, 'routePlanner'])->name('navigation.route-planner');
     Route::get('/navigation/live-location', [\App\Http\Controllers\RiderDashboardController::class, 'liveLocation'])->name('navigation.live-location');
     Route::post('/location', [\App\Http\Controllers\Api\RiderController::class, 'updateLocation'])->name('location.update');

@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 
 class OnlineOrder extends Model {
-    protected $fillable = ['order_number', 'tracking_token', 'delivery_code', 'customer_id', 'customer_name', 'customer_phone', 'customer_email', 'delivery_address', 'delivery_latitude', 'delivery_longitude', 'status', 'payment_status', 'payment_method', 'payment_transaction_id', 'payment_order_reference', 'clickpesa_status', 'subtotal', 'discount', 'delivery_fee', 'total', 'delivery_rider_id', 'user_id', 'notes', 'is_processed'];
+    protected $fillable = ['order_number', 'tracking_token', 'delivery_code', 'customer_id', 'customer_name', 'customer_phone', 'customer_email', 'delivery_address', 'delivery_latitude', 'delivery_longitude', 'status', 'payment_status', 'payment_method', 'payment_transaction_id', 'payment_order_reference', 'clickpesa_status', 'subtotal', 'discount', 'delivery_fee', 'total', 'delivery_rider_id', 'user_id', 'notes', 'is_processed', 'rider_acceptance_status', 'rider_accepted_at'];
     
     public function getShortCustomerReferenceAttribute() {
         $parts = explode('-', $this->order_number);

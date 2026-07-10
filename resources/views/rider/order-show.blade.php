@@ -46,13 +46,25 @@
                     <div><span class="font-medium text-gray-600">Location:</span> {{ number_format($order->delivery_latitude, 6) }}, {{ number_format($order->delivery_longitude, 6) }}</div>
                     @endif
                     <div><span class="font-medium text-gray-600">Status:</span>
-                        <span class="px-2 py-1 rounded-full text-xs font-semibold 
-                            @if($order->status === 'ready') bg-cyan-100 text-cyan-800
-                            @elseif($order->status === 'out_for_delivery') bg-orange-100 text-orange-800
-                            @elseif($order->status === 'delivered') bg-green-100 text-green-800
-                            @endif">
-                            {{ ucwords(str_replace('_', ' ', $order->status)) }}
-                        </span>
+                        <div class="flex flex-wrap gap-2 mt-1">
+                            <span class="px-2 py-1 rounded-full text-xs font-semibold 
+                                @if($order->status === 'confirmed') bg-blue-100 text-blue-800
+                                @elseif($order->status === 'ready') bg-cyan-100 text-cyan-800
+                                @elseif($order->status === 'out_for_delivery') bg-orange-100 text-orange-800
+                                @elseif($order->status === 'delivered') bg-green-100 text-green-800
+                                @endif">
+                                {{ ucwords(str_replace('_', ' ', $order->status)) }}
+                            </span>
+                            @if($order->rider_acceptance_status === 'pending')
+                                <span class="px-2 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-800">
+                                    Pending Acceptance
+                                </span>
+                            @elseif($order->rider_acceptance_status === 'accepted')
+                                <span class="px-2 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">
+                                    Accepted
+                                </span>
+                            @endif
+                        </div>
                     </div>
                 </div>
             </div>
@@ -89,8 +101,29 @@
             </div>
         </div>
 
+        <!-- Accept/Reject Order -->
+        @if($order->rider_acceptance_status === 'pending')
+        <div class="border-t pt-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-3">Accept or Reject Order</h3>
+            <div class="flex flex-wrap gap-4">
+                <form action="{{ route('rider.orders.accept', $order) }}" method="POST">
+                    @csrf
+                    <button type="submit" class="px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors font-semibold">
+                        <i class="fas fa-check mr-2"></i> Accept Order
+                    </button>
+                </form>
+                <form action="{{ route('rider.orders.reject', $order) }}" method="POST">
+                    @csrf
+                    <button type="submit" class="px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors font-semibold">
+                        <i class="fas fa-times mr-2"></i> Reject Order
+                    </button>
+                </form>
+            </div>
+        </div>
+        @endif
+
         <!-- Status Update -->
-        @if($order->status !== 'delivered')
+        @if($order->status !== 'delivered' && $order->rider_acceptance_status === 'accepted')
         <div class="border-t pt-6">
             <h3 class="text-lg font-semibold text-gray-900 mb-3">Update Status</h3>
             <form action="{{ route('rider.orders.update-status', $order) }}" method="POST">
@@ -98,11 +131,13 @@
                 @method('PUT')
                 
                 <div class="flex flex-wrap gap-4 items-end">
-                    @if($order->status === 'ready')
-                    <input type="hidden" name="status" value="out_for_delivery">
-                    <button type="submit" class="px-6 py-3 bg-orange-600 hover:bg-orange-700 text-white rounded-lg transition-colors font-semibold">
-                        <i class="fas fa-shipping-fast mr-2"></i> Start Delivery
-                    </button>
+                    @if(in_array($order->status, ['confirmed', 'ready', 'out_for_delivery']))
+                        @if(!in_array($order->status, ['out_for_delivery']))
+                        <input type="hidden" name="status" value="out_for_delivery">
+                        <button type="submit" class="px-6 py-3 bg-orange-600 hover:bg-orange-700 text-white rounded-lg transition-colors font-semibold">
+                            <i class="fas fa-shipping-fast mr-2"></i> Start Delivery
+                        </button>
+                        @endif
                     @endif
 
                     @if($order->status === 'out_for_delivery')

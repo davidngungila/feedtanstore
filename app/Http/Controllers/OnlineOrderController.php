@@ -595,18 +595,22 @@ class OnlineOrderController extends Controller
         ]);
 
         $oldStatus = $order->status;
-        $order->update(['delivery_rider_id' => $request->delivery_rider_id, 'status' => 'out_for_delivery']);
+        $order->update([
+            'delivery_rider_id' => $request->delivery_rider_id, 
+            'status' => 'confirmed',
+            'rider_acceptance_status' => 'pending'
+        ]);
 
         // Log status change
         OnlineOrderStatusHistory::create([
             'online_order_id' => $order->id,
             'status' => $order->status,
             'payment_status' => $order->payment_status,
-            'notes' => $request->notes ?? "Rider assigned and status changed from {$oldStatus} to {$order->status}",
+            'notes' => $request->notes ?? "Rider assigned and acceptance pending",
             'user_id' => Auth::id()
         ]);
 
-        return back()->with('success', 'Rider assigned successfully!');
+        return back()->with('success', 'Rider assigned successfully! Waiting for rider acceptance.');
     }
 
     public function downloadPDF(OnlineOrder $order)
