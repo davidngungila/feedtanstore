@@ -66,6 +66,11 @@ class StoreSetting extends Model
         // Sitemap Settings
         'sitemap_last_generated_at',
         'sitemap_search_engine_status',
+        // Terms and Policies
+        'terms_of_service',
+        'privacy_policy',
+        'rider_terms',
+        'rider_privacy_policy',
     ];
     
     protected $casts = [
