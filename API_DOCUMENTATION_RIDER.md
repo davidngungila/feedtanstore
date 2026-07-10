@@ -454,7 +454,7 @@ All fields are optional.
 ## 4. Order Endpoints
 
 ### 4.1 Get Rider's Assigned Orders
-**Endpoint**: `GET /orders`
+**Endpoint**: `GET /rider/orders`
 
 **Authentication**: Bearer Token required
 
@@ -521,7 +521,7 @@ All fields are optional.
 ---
 
 ### 4.2 Get Available Orders
-**Endpoint**: `GET /orders/available`
+**Endpoint**: `GET /rider/orders/available`
 
 **Authentication**: Bearer Token required
 
@@ -588,7 +588,7 @@ All fields are optional.
 ---
 
 ### 4.3 Get Order Details
-**Endpoint**: `GET /orders/{id}`
+**Endpoint**: `GET /rider/orders/{id}`
 
 **Authentication**: Bearer Token required
 
@@ -675,7 +675,7 @@ All fields are optional.
 ---
 
 ### 4.4 Accept an Order
-**Endpoint**: `POST /orders/{id}/accept`
+**Endpoint**: `POST /rider/orders/{id}/accept`
 
 **Authentication**: Bearer Token required
 
@@ -707,7 +707,7 @@ All fields are optional.
 ---
 
 ### 4.5 Update Order Status
-**Endpoint**: `PUT /orders/{id}/status`
+**Endpoint**: `PUT /rider/orders/{id}/status`
 
 **Authentication**: Bearer Token required
 
@@ -1072,22 +1072,34 @@ class ApiService {
 
   // Get Available Orders
   Future<List<dynamic>> getAvailableOrders() async {
-    final response = await _dio.get('/orders/available');
+    final response = await _dio.get('/rider/orders/available');
     return response.data;
   }
 
   // Accept Order
   Future<Map<String, dynamic>> acceptOrder(int orderId) async {
-    final response = await _dio.post('/orders/$orderId/accept');
+    final response = await _dio.post('/rider/orders/$orderId/accept');
     return response.data;
   }
 
   // Update Order Status
   Future<Map<String, dynamic>> updateOrderStatus(int orderId, String status, [String? notes]) async {
     final response = await _dio.put(
-      '/orders/$orderId/status',
+      '/rider/orders/$orderId/status',
       data: {'status': status, if (notes != null) 'notes': notes},
     );
+    return response.data;
+  }
+
+  // Get Rider's Orders
+  Future<List<dynamic>> getRiderOrders() async {
+    final response = await _dio.get('/rider/orders');
+    return response.data;
+  }
+
+  // Get Order Details
+  Future<Map<String, dynamic>> getOrderDetails(int orderId) async {
+    final response = await _dio.get('/rider/orders/$orderId');
     return response.data;
   }
 }

@@ -63,10 +63,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/rider/location', [RiderController::class, 'updateLocation']);
     Route::get('/rider/location/{riderId}', [RiderController::class, 'getLocation']);
     
-    // Order routes
-    Route::get('/orders', [OrderController::class, 'index']);
-    Route::get('/orders/available', [OrderController::class, 'available']);
-    Route::get('/orders/{id}', [OrderController::class, 'show']);
-    Route::put('/orders/{id}/status', [OrderController::class, 'updateStatus']);
-    Route::post('/orders/{id}/accept', [OrderController::class, 'accept']);
+    // Rider Order routes
+    Route::get('/rider/orders', [OrderController::class, 'index']);
+    Route::get('/rider/orders/available', [OrderController::class, 'available']);
+    Route::get('/rider/orders/{id}', [OrderController::class, 'show']);
+    Route::put('/rider/orders/{id}/status', [OrderController::class, 'updateStatus']);
+    Route::post('/rider/orders/{id}/accept', [OrderController::class, 'accept']);
 });
