@@ -5,7 +5,7 @@ All endpoints are prefixed with:
 ```
 {{base_url}}/api
 ```
-Replace `{{base_url}}` with your actual server address (e.g., `https://api.feedtanstore.com` or `http://localhost:8000`)
+Replace `{{base_url}}` with your actual server address (e.g., `https://feedtanstore.com` or `http://localhost:8000`)
 
 ---
 
@@ -679,7 +679,7 @@ import 'package:dio/dio.dart';
 
 class ApiService {
   final Dio _dio = Dio();
-  final String baseUrl = 'https://api.feedtanstore.com/api';
+  final String baseUrl = 'https://feedtanstore.com/api';
   String? _token;
 
   ApiService() {
