@@ -179,7 +179,7 @@
             <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <i class="fas fa-check text-green-600 text-4xl"></i>
             </div>
-            <h2 class="text-2xl font-bold text-primary-900 mb-4">Payment Successful!</h2>
+            <h2 class="text-2xl font-bold text-primary-900 mb-4">Sale Successful!</h2>
             <div class="space-y-2 text-lg mb-6">
                 <div class="flex justify-between">
                     <span class="text-gray-600">Total:</span>
