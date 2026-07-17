@@ -71,7 +71,7 @@ class SaleController extends Controller {
             'items.*.quantity' => 'required|integer|min:1',
             'items.*.unit_price' => 'required|numeric|min:0',
             'payment_method' => 'required|string',
-            'type' => 'required|in:cash,credit',
+            'type' => 'nullable|in:cash,credit',
             'paid' => 'required|numeric|min:0',
             'paid_note' => 'nullable|string'
         ]);
@@ -169,7 +169,7 @@ class SaleController extends Controller {
             'paid' => $paid,
             'change' => $change,
             'payment_method' => $request->payment_method,
-            'type' => $request->type,
+            'type' => $request->type ?? 'cash',
             'status' => 'completed',
             'notes' => $notes
         ]);
