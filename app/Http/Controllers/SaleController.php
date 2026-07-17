@@ -143,7 +143,7 @@ class SaleController extends Controller {
         
         $total = $subtotal + $tax - $discount;
         $paid = $request->paid;
-        $change = max(0, $paid - $total);
+        $change = $paid - $total;
 
         $currentShift = Shift::where('user_id', Auth::id())->whereNull('closed_at')->first();
 
