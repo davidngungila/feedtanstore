@@ -146,7 +146,7 @@
 
                     <div class="flex justify-between mb-4 text-lg font-bold">
                         <span>Change:</span>
-                        <span id="change">TZS 0.00</span>
+                        <span id="change" class="text-green-600">TZS 0.00</span>
                     </div>
 
                     <div class="flex gap-2">
@@ -565,12 +565,22 @@ function updateTotals() {
     }
     
     const paid = parseFloat(document.getElementById('paidAmount').value) || 0;
-    const change = Math.max(0, paid - lastCalculatedTotal);
+    const change = paid - lastCalculatedTotal;
     
     document.getElementById('subtotal').textContent = 'TZS ' + subtotal.toFixed(2);
     document.getElementById('discountAmount').textContent = '-TZS ' + discount.toFixed(2);
     document.getElementById('total').textContent = 'TZS ' + lastCalculatedTotal.toFixed(2);
     document.getElementById('change').textContent = 'TZS ' + change.toFixed(2);
+    
+    // Change color based on positive/negative
+    const changeElement = document.getElementById('change');
+    if (change >= 0) {
+        changeElement.classList.remove('text-red-600');
+        changeElement.classList.add('text-green-600');
+    } else {
+        changeElement.classList.remove('text-green-600');
+        changeElement.classList.add('text-red-600');
+    }
 }
 
 
