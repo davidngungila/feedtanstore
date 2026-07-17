@@ -1561,7 +1561,7 @@
         // Add event listeners for form submissions
         document.body.addEventListener('submit', function(e) {
           const target = e.target.closest('form');
-          if (target) {
+          if (target && !target.hasAttribute('data-no-global-loading')) {
             alpineComponent.loading = true;
           }
         });

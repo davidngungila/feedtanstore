@@ -81,7 +81,7 @@
             <div class="card rounded-2xl p-6 sticky top-6">
                 <h2 class="text-xl font-bold text-primary-900 mb-4">Cart</h2>
                 
-                <form id="saleForm" action="{{ route('sales.store') }}" method="POST">
+                <form id="saleForm" action="{{ route('sales.store') }}" method="POST" data-no-global-loading>
                     @csrf
                     
                     <div class="mb-4">
