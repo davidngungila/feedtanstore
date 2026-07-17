@@ -287,7 +287,7 @@
     <aside :class="[sidebarOpen?'translate-x-0':'lg:translate-x-0 -translate-x-full','sidebar sidebar-bg fixed lg:relative h-screen z-50 flex flex-col transition-all duration-300',sidebarCollapsed&&window.innerWidth>=1024?'w-16':'w-[260px]']"
            class="sidebar-bg">
       <!-- Sidebar Header -->
-      <div class="flex items-center justify-between p-4 border-b border-white/20 flex-shrink-0 bg-white">
+      <div class="flex items-center justify-between p-4 border-b border-white/20 border-t-2 border-primary-600 flex-shrink-0 bg-white">
         <div class="flex items-center gap-3" x-show="!sidebarCollapsed || window.innerWidth<1024">
           <img src="https://feedtanstore.com/feedtanstorelogo.png" alt="FEEDTAN STORE" class="w-full h-12 rounded-lg flex-shrink-0 object-contain" style="max-width: 180px;">
         </div>
@@ -403,7 +403,7 @@
            class="sidebar-bg">
 
     <!-- Sidebar Header -->
-    <div class="flex items-center justify-between p-4 border-b border-white/20 flex-shrink-0 bg-white">
+    <div class="flex items-center justify-between p-4 border-b border-white/20 border-t-2 border-primary-600 flex-shrink-0 bg-white">
       <div class="flex items-center gap-3" x-show="!sidebarCollapsed || window.innerWidth<1024">
         <img src="https://feedtanstore.com/feedtanstorelogo.png" alt="FEEDTAN STORE" class="w-full h-12 rounded-lg flex-shrink-0 object-contain" style="max-width: 180px;">
       </div>
@@ -1509,7 +1509,7 @@
       <template x-if="isCashier">
         <!-- Cashier Navbar -->
         <div class="w-full flex items-center justify-between sidebar-bg text-white px-4 py-3">
-          <div class="flex items-center gap-4 bg-white px-3 py-2 rounded-lg">
+          <div class="flex items-center gap-4 bg-white px-3 py-2 rounded-lg border-t-2 border-primary-600">
             <img src="https://feedtanstore.com/feedtanstorelogo.png" alt="FEEDTAN STORE" class="h-10 object-contain">
           </div>
           <div class="flex items-center gap-2 sm:gap-4">
