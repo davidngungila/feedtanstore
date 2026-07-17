@@ -1285,7 +1285,7 @@ document.addEventListener('DOMContentLoaded', function() {
         delivery_latitude: needDelivery === 'yes' ? (document.querySelector('input[name="location_type"]:checked').value === 'current' ? userLocation.lat : selectedLocation.lat) : null,
         delivery_longitude: needDelivery === 'yes' ? (document.querySelector('input[name="location_type"]:checked').value === 'current' ? userLocation.lng : selectedLocation.lng) : null,
         delivery_fee: currentDeliveryFee,
-        payment_method: document.querySelector('input[name="payment_method"]:checked').value,
+        payment_method: 'online',
         items: cart.map(item => ({
           product_id: item.id,
           quantity: item.quantity
