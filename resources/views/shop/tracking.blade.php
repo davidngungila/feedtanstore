@@ -122,6 +122,19 @@ h1,h2,h3,h4{font-family:var(--font-display);margin:0;letter-spacing:-0.01em;}
 .btn-sm{padding:9px 16px;font-size:13.5px;}
 .btn:disabled{opacity:.45;cursor:not-allowed;transform:none;box-shadow:none;}
 
+@media(max-width:880px){
+  .search-bar{display:none;}
+  .mobile-search{display:block;}
+  .logo-sub{display:none;}
+}
+@media(max-width:480px){
+  .header-inner{padding:12px 16px;gap:10px;}
+  .logo{font-size:19px;}
+  .logo-mark{width:32px;height:32px;font-size:16px;}
+  .wrap{padding:0 16px;}
+  .section{padding:38px 0;}
+}
+
 .visually-hidden{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);}
 
 .topbar{background:var(--green-900);color:#CFE3D7;font-size:13px;}
