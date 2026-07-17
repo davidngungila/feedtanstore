@@ -161,17 +161,6 @@
     </div>
 </div>
 
-<!-- Loading Overlay -->
-<div id="loadingOverlay" class="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm flex items-center justify-center hidden z-[10000]">
-    <div class="bg-white rounded-2xl p-8 text-center">
-        <div class="w-20 h-20 mx-auto mb-4">
-            <i class="fas fa-spinner fa-spin text-primary-600 text-6xl"></i>
-        </div>
-        <h3 class="text-xl font-bold text-primary-900 mb-2">Processing Sale</h3>
-        <p class="text-gray-600">Please wait...</p>
-    </div>
-</div>
-
 <!-- Success Modal -->
 <div id="successModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-[150]">
     <div class="bg-white rounded-2xl p-8 max-w-md w-full mx-4">
@@ -678,11 +667,9 @@ document.getElementById('saleForm').addEventListener('submit', async function(e)
     
     const total = lastCalculatedTotal;
     const paid = parseFloat(document.getElementById('paidAmount').value);
-    const change = Math.max(0, paid - total);
+    const change = paid - total;
     const paymentMethod = document.getElementById('paymentMethod').value;
     
-    // Show loading overlay
-    document.getElementById('loadingOverlay').classList.remove('hidden');
     document.getElementById('completeSaleBtn').disabled = true;
     document.getElementById('btnText').classList.add('hidden');
     document.getElementById('btnLoading').classList.remove('hidden');
@@ -717,7 +704,6 @@ document.getElementById('saleForm').addEventListener('submit', async function(e)
                 document.getElementById('modalTotal').textContent = 'TZS ' + parseFloat(data.total).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
                 document.getElementById('modalPaid').textContent = 'TZS ' + parseFloat(data.paid).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
                 document.getElementById('modalChange').textContent = 'TZS ' + parseFloat(data.change).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-                document.getElementById('loadingOverlay').classList.add('hidden');
                 document.getElementById('successModal').classList.remove('hidden');
                 
                 // Auto-print receipt
@@ -727,17 +713,14 @@ document.getElementById('saleForm').addEventListener('submit', async function(e)
                     }
                 }, 500);
             } else {
-                document.getElementById('loadingOverlay').classList.add('hidden');
                 throw new Error(data.message || 'Failed to complete sale');
             }
         } else {
-            document.getElementById('loadingOverlay').classList.add('hidden');
             throw new Error('Failed to complete sale');
         }
     } catch (error) {
         console.error('Error completing sale:', error);
         showNotification('Failed to complete sale. Please try again.', 'error');
-        document.getElementById('loadingOverlay').classList.add('hidden');
     } finally {
         document.getElementById('completeSaleBtn').disabled = false;
         document.getElementById('btnText').classList.remove('hidden');
