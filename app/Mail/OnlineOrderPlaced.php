@@ -16,19 +16,17 @@ class OnlineOrderPlaced extends Mailable
 
     public $order;
     public $trackingUrl;
-    public $payUrl;
     public $pdfUrl;
 
-    public function __construct(OnlineOrder $order, $trackingUrl = null, $payUrl = null, $pdfUrl = null)
+    public function __construct(OnlineOrder $order, $trackingUrl = null, $pdfUrl = null)
     {
         $this->order = $order->load(['items.product', 'rider', 'user']);
         $settings = \App\Models\StoreSetting::firstOrCreate();
         $baseUrl = $settings->store_url ?? config('app.url');
-        // Use short customer reference without the # for tracking URL
-        $trackingIdentifier = ltrim($this->order->short_customer_reference, '#');
+        // Use order number for tracking URL
+        $trackingIdentifier = $this->order->order_number;
         $this->trackingUrl = $trackingUrl ?? ($baseUrl . '/shop/tracking/' . $trackingIdentifier);
-        $this->payUrl = $payUrl ?? ($baseUrl . '/shop/payment/' . $order->payment_token);
-        $this->pdfUrl = $pdfUrl ?? ($baseUrl . '/shop/receipt/' . $order->receipt_token);
+        $this->pdfUrl = $pdfUrl ?? ($baseUrl . '/shop/tracking/' . $trackingIdentifier . '/pdf');
     }
 
     public function envelope(): Envelope
@@ -45,7 +43,6 @@ class OnlineOrderPlaced extends Mailable
             with: [
                 'order' => $this->order,
                 'trackingUrl' => $this->trackingUrl,
-                'payUrl' => $this->payUrl,
                 'pdfUrl' => $this->pdfUrl,
             ],
         );

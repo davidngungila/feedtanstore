@@ -43,8 +43,8 @@ class SendOnlineOrderNotifications implements ShouldQueue
             // Get store settings to use store_url if available
             $settings = \App\Models\StoreSetting::firstOrCreate();
             $baseUrl = $settings->store_url ?? config('app.url');
-            // Use tracking token for URLs
-            $trackingIdentifier = $order->tracking_token ?? $order->order_number;
+            // Use order number for URLs
+            $trackingIdentifier = $order->order_number;
             $trackingUrl = $baseUrl . '/shop/tracking/' . $trackingIdentifier;
             $pdfUrl = $baseUrl . '/shop/tracking/' . $trackingIdentifier . '/pdf';
             $trackingPageUrl = $trackingUrl;
@@ -90,7 +90,7 @@ class SendOnlineOrderNotifications implements ShouldQueue
                             $mailer = 'smtp';
                         }
                     }
-                    Mail::mailer($mailer)->to($order->customer_email)->send(new OnlineOrderPlaced($order, $trackingPageUrl, $payUrl, $pdfUrl));
+                    Mail::mailer($mailer)->to($order->customer_email)->send(new OnlineOrderPlaced($order, $trackingPageUrl, $pdfUrl));
                 }
             } catch (\Exception $e) {
                 \Log::error('Failed to send online order email: ' . $e->getMessage(), ['exception' => $e]);

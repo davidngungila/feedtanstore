@@ -33,7 +33,7 @@ class OnlineOrderController extends Controller
         }
         $settings = \App\Models\StoreSetting::firstOrCreate();
         $baseUrl = $settings->store_url ?? config('app.url');
-        $finalTrackingIdentifier = $order->tracking_token ?? $order->order_number;
+        $finalTrackingIdentifier = $order->order_number;
 
         if (($order->payment_method ?? 'cash') !== 'online') {
             return response()->json([
@@ -769,7 +769,7 @@ class OnlineOrderController extends Controller
         $settings = \App\Models\StoreSetting::firstOrCreate();
         $baseUrl = $settings->store_url ?? config('app.url');
 
-        $trackingIdentifier = $order->tracking_token ?? $order->order_number;
+        $trackingIdentifier = $order->order_number;
         return response()->json([
             'success' => true,
             'order_number' => $order->order_number,
