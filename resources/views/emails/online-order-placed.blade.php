@@ -90,6 +90,8 @@
                         @endif
                     </div>
 
+                    <hr style="border: none; border-top: 2px solid #e5e7eb; margin: 24px 0;">
+
                     <div class="section-title">Delivery Information</div>
                     <div class="detail-box">
                         <div class="detail-row">
@@ -111,6 +113,8 @@
                             <span class="detail-value">TZS {{ number_format($order->delivery_fee, 0) }}</span>
                         </div>
                     </div>
+
+                    <hr style="border: none; border-top: 2px solid #e5e7eb; margin: 24px 0;">
 
                     <div class="section-title">Payment Information</div>
                     <div class="detail-box">
