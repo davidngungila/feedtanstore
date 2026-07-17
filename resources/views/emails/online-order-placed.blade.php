@@ -103,6 +103,10 @@
                         </div>
                         @endif
                         <div class="detail-row">
+                            <span class="detail-label">Delivery Code</span>
+                            <span class="detail-value">{{ $order->delivery_code }}</span>
+                        </div>
+                        <div class="detail-row">
                             <span class="detail-label">Delivery Fee</span>
                             <span class="detail-value">TZS {{ number_format($order->delivery_fee, 0) }}</span>
                         </div>
@@ -147,6 +151,12 @@
                             <td>Subtotal</td>
                             <td align="right">TZS {{ number_format($order->subtotal, 0) }}</td>
                         </tr>
+                        @if(($order->discount ?? 0) > 0)
+                        <tr>
+                            <td>Discount</td>
+                            <td align="right">- TZS {{ number_format($order->discount, 0) }}</td>
+                        </tr>
+                        @endif
                         <tr>
                             <td>Delivery Fee</td>
                             <td align="right">TZS {{ number_format($order->delivery_fee, 0) }}</td>
@@ -162,9 +172,6 @@
 
                     <div class="cta-row">
                         <a href="{{ $trackingUrl }}" class="btn btn-primary">Track Order</a>
-                        @if(($order->payment_method ?? 'cash') === 'online' && ($order->payment_status ?? 'pending') !== 'paid')
-                        <a href="{{ $payUrl }}" class="btn btn-secondary">Pay Now</a>
-                        @endif
                         <a href="{{ $pdfUrl }}" class="btn btn-secondary">Download PDF</a>
                     </div>
                 </td>

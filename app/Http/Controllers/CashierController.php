@@ -371,6 +371,9 @@ class CashierController extends Controller
             // Eager load items with product relationship
             $onlineOrder->load('items.product');
 
+            // Dispatch notification job to send SMS/email
+            \App\Jobs\SendOnlineOrderNotifications::dispatch($onlineOrder);
+
             // Initiate payment
             try {
                 $paymentPayload = $this->buildPaymentPayload($onlineOrder, $phoneNumber);
