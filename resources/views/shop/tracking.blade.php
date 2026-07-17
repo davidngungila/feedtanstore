@@ -117,6 +117,7 @@ h1,h2,h3,h4{font-family:var(--font-display);margin:0;letter-spacing:-0.01em;}
 .btn-outline:hover{background:var(--green-100);}
 .btn-ghost{background:transparent;color:var(--ink);border:1.5px solid var(--line);}
 .btn-ghost:hover{background:var(--white);}
+.btn-ghost.active{background:var(--green-700);color:var(--white);border-color:var(--green-700);}
 .btn-block{width:100%;}
 .btn-sm{padding:9px 16px;font-size:13.5px;}
 .btn:disabled{opacity:.45;cursor:not-allowed;transform:none;box-shadow:none;}
@@ -258,6 +259,55 @@ footer{background:var(--green-900);color:#BFD6C8;padding:40px 0 0;margin-top:40p
   .wrap{padding:0 16px;}
   .section{padding:38px 0;}
 }
+
+.qty-stepper{display:flex;align-items:center;border:1.5px solid var(--line);border-radius:999px;overflow:hidden;flex:1;background:#fff;}
+.qty-stepper button{width:40px;height:48px;background:transparent;border:none;font-size:18px;font-weight:700;color:var(--green-700);}
+.qty-stepper button:hover{background:var(--green-100);}
+.qty-stepper span{flex:1;text-align:center;font-weight:700;font-size:16px;}
+
+.cart-drawer{
+  position:fixed;top:50%;left:50%;transform:translate(-50%,-46%);width:92vw;max-width:760px;max-height:88vh;background:#fff;z-index:220;
+  box-shadow:var(--shadow-pop);display:flex;flex-direction:column;opacity:0;visibility:hidden;transition:opacity .22s ease, transform .22s ease;
+}
+.cart-drawer.open{opacity:1;visibility:visible;transform:translate(-50%,-50%);}
+.drawer-head{display:flex;align-items:center;justify-content:space-between;padding:18px 20px;border-bottom:1px solid var(--line);}
+.drawer-head h3{font-size:19px;}
+.close-x{width:36px;height:36px;border-radius:50%;border:none;background:var(--parchment);display:flex;align-items:center;justify-content:center;color:var(--ink);flex-shrink:0;}
+.close-x:hover{background:var(--line);}
+.cart-list{flex:1;overflow-y:auto;padding:14px 20px;display:flex;flex-direction:column;gap:14px;}
+.cart-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;height:100%;gap:14px;color:var(--ink-soft);padding:40px 20px;}
+.cart-empty svg{color:var(--line);}
+.cart-row{display:flex;gap:12px;padding-bottom:14px;border-bottom:1px solid var(--parchment-dim);}
+.cart-row img{width:64px;height:64px;border-radius:10px;object-fit:cover;flex-shrink:0;background:var(--parchment-dim);}
+.cart-row-info{flex:1;min-width:0;}
+.cart-row-info b{font-size:13.5px;display:block;line-height:1.3;}
+.cart-row-info .cr-meta{font-size:12px;color:var(--ink-soft);}
+.cart-row-bottom{display:flex;align-items:center;justify-content:space-between;margin-top:8px;}
+.cart-row .qty-stepper{flex:none;}
+.cart-row .qty-stepper button{width:26px;height:30px;}
+.cart-row .qty-stepper span{width:24px;font-size:13px;}
+.cr-remove{background:none;border:none;color:var(--ink-soft);font-size:12px;text-decoration:underline;padding:0;}
+.cr-remove:hover{color:var(--red);}
+.cr-price{font-weight:700;font-size:13.5px;font-family:var(--font-display);}
+
+.drawer-foot{padding:18px 20px;border-top:1px solid var(--line);background:var(--parchment);}
+.sum-row{display:flex;justify-content:space-between;font-size:13.5px;margin-bottom:8px;color:var(--ink-soft);}
+.sum-row.total{font-size:17px;font-weight:800;color:var(--ink);margin-top:10px;padding-top:10px;border-top:1px dashed var(--line);}
+.sum-row.total span:last-child{font-family:var(--font-display);}
+
+.scrim{position:fixed;inset:0;background:rgba(13,27,18,0.55);z-index:200;opacity:0;visibility:hidden;transition:opacity .25s ease;}
+.scrim.open{opacity:1;visibility:visible;}
+
+@media(max-width:600px){
+  .cart-drawer{width:100%;max-width:100%;height:100%;max-height:100%;border-radius:0;top:0;left:0;transform:translateY(100%);}
+  .cart-drawer.open{transform:translateY(0);}
+}
+
+.toast{
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--green-900);color:#fff;padding:13px 22px;border-radius:999px;font-size:13.5px;font-weight:600;z-index:400;box-shadow:var(--shadow-pop);display:flex;align-items:center;gap:10px;opacity:0;visibility:hidden;transition:all .25s ease;
+}
+.toast.show{opacity:1;visibility:visible;transform:translateX(-50%) translateY(0);}
+
 .page-loader{
   position:fixed;inset:0;z-index:9999;background:rgba(247,244,237,0.94);backdrop-filter:blur(8px);
   display:flex;align-items:center;justify-content:center;transition:opacity .3s ease, visibility .3s ease;
@@ -312,7 +362,7 @@ footer{background:var(--green-900);color:#BFD6C8;padding:40px 0 0;margin-top:40p
     </a>
     <form class="search-bar" id="searchForm" role="search" action="{{ route('shop.index') }}">
       <label for="searchInput" class="visually-hidden">Search products</label>
-      <input type="search" id="searchInput" name="search" placeholder="Search for rice, oil, fruits, electronics…" autocomplete="off" value="{{ request('search', '') }}">
+      <input type="search" id="searchInput" name="search" placeholder="{{ __('Search products placeholder') }}" autocomplete="off" value="{{ request('search', '') }}">
       <button type="submit" aria-label="Search">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
       </button>
@@ -324,25 +374,33 @@ footer{background:var(--green-900);color:#BFD6C8;padding:40px 0 0;margin-top:40p
       <button class="icon-btn" aria-label="Wishlist" onclick="showToast('Saved items live in your wishlist','heart')">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.8 1-1a5.5 5.5 0 0 0 0-7.8z"/></svg>
       </button>
-      <a href="{{ route('shop.tracking') }}" class="icon-btn" aria-label="Track my order" title="Track order">
+      <a href="{{ route('shop.tracking') }}" class="icon-btn" aria-label="Track my order" title="Track my order">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="1.5"/><circle cx="18.5" cy="18.5" r="1.5"/></svg>
       </a>
-      <button class="icon-btn" aria-label="Open cart" onclick="showToast('Cart is on previous page','info')">
-        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+      <button class="icon-btn" aria-label="Open cart" onclick="openCart()">
+        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 0 0 0 2-1.61L23 6H6"/></svg>
+        <span class="badge" id="cartBadge" style="display:none;">0</span>
       </button>
+      <div class="language-switcher" style="margin-left: 10px;">
+        <a href="{{ route('lang.switch', 'en') }}" class="btn btn-ghost btn-sm {{ App::getLocale() === 'en' ? 'active' : '' }}">EN</a>
+        <a href="{{ route('lang.switch', 'sw') }}" class="btn btn-ghost btn-sm {{ App::getLocale() === 'sw' ? 'active' : '' }}">SW</a>
+      </div>
     </div>
   </div>
   <div class="mobile-search" id="mobileSearchBox" style="display:none;">
     <form class="search-bar" action="{{ route('shop.index') }}">
-      <input type="search" id="searchInputMobile" name="search" placeholder="Search products…" autocomplete="off" value="{{ request('search', '') }}">
+      <input type="search" id="searchInputMobile" name="search" placeholder="{{ __('Search products placeholder') }}" autocomplete="off" value="{{ request('search', '') }}">
       <button type="submit" aria-label="Search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></button>
     </form>
   </div>
   <nav class="nav-strip" aria-label="Primary">
     <div class="wrap">
       <a href="{{ route('shop.index') }}">Home</a>
-      <a href="{{ route('shop.index') }}#shop">Shop All</a>
-      <a href="{{ route('shop.tracking') }}" class="active">Track Order</a>
+      <a href="{{ route('shop.index') }}#shop">Buy All</a>
+      @foreach($categories as $cat)
+        <a href="{{ route('shop.index', ['category' => $cat->slug]) }}">{{ $cat->name }}</a>
+      @endforeach
+      <a href="{{ route('shop.tracking') }}" class="active">Track my order</a>
     </div>
   </nav>
 </header>
@@ -495,40 +553,68 @@ footer{background:var(--green-900);color:#BFD6C8;padding:40px 0 0;margin-top:40p
     <div class="footer-grid">
       <div>
         <div class="footer-logo"><span class="logo-mark" style="background:var(--orange);color:var(--green-900);">F</span> Feedtan Store</div>
-        <p style="font-size:13.5px;line-height:1.7;max-width:280px;">Quality products at unbeatable prices, delivered right to your door — or ready when you walk in.</p>
+        <p style="font-size:13.5px;line-height:1.7;max-width:280px;">{{ __('Quality products, unbeatable prices, delivery to your door — or ready when you step in.') }}</p>
+        <div style="display:flex;gap:10px;margin-top:16px;">
+          <a href="#" class="icon-btn" style="background:rgba(255,255,255,0.08);color:#fff;" aria-label="Facebook"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M22 12a10 10 0 1 0-11.6 9.9v-7H7.9V12h2.5V9.8c0-2.5 1.5-3.9 3.8-3.9 1 0 2 .1 2.3.2v2.7h-1.6c-1.2 0-1.5.6-1.5 1.4V12h2.9l-.4 2.9h-2.5v7A10 10 0 0 0 22 12z"/></svg></a>
+          <a href="#" class="icon-btn" style="background:rgba(255,255,255,0.08);color:#fff;" aria-label="Instagram"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1"/></svg></a>
+          <a href="#" class="icon-btn" style="background:rgba(255,255,255,0.08);color:#fff;" aria-label="WhatsApp"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.5 14.4c-.3-.1-1.6-.8-1.9-.9-.2-.1-.4-.1-.6.1-.2.2-.6.9-.8 1-.1.2-.3.2-.5.1-1.4-.7-2.3-1.3-3.3-2.8-.1-.2-.1-.4.1-.5.2-.2.4-.5.6-.7.1-.2.1-.4 0-.5-.1-.2-.7-1.6-.9-2.2-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.5.1-.7.3-.2.3-.9 1-.9 2.3 0 1.4 1 2.7 1.1 2.9.1.2 1.9 3 4.6 4.1 2.3.9 2.3.6 2.7.6.4 0 1.4-.6 1.6-1.1.2-.6.2-1.1.1-1.2 0-.1-.2-.2-.5-.3zM12 2a10 10 0 0 0-8.5 15.3L2 22l4.8-1.5A10 10 0 1 0 12 2z"/></svg></a>
+        </div>
       </div>
       <div>
-        <h4>Shop</h4>
+        <h4>{{ __('Buy') }}</h4>
         <ul>
-          <li><a href="{{ route('shop.index') }}">All Products</a></li>
-          <li><a href="{{ route('shop.tracking') }}">Track Order</a></li>
+          @foreach($categories as $cat)
+            @if ($loop->index < 5)
+              <li><a href="{{ route('shop.index', ['category' => $cat->slug]) }}">{{ $cat->name }}</a></li>
+            @endif
+          @endforeach
         </ul>
       </div>
       <div>
-        <h4>Support</h4>
+        <h4>{{ __('Support') }}</h4>
         <ul>
-          <li><a href="#" onclick="showToast('Reach us on +255 717 358 865','phone')">Contact us</a></li>
-          <li><a href="#" onclick="showToast('Returns accepted within 48 hours of delivery','info')">Returns policy</a></li>
+          <li><a href="{{ route('shop.tracking') }}">{{ __('Track my order') }}</a></li>
+          <li><a href="#" onclick="showToast('{{ __('Contact us') }}','phone')">{{ __('Contact us') }}</a></li>
+          <li><a href="#" onclick="showToast('{{ __('Return policy') }}','info')">{{ __('Return policy') }}</a></li>
+          <li><a href="#" onclick="showToast('{{ __('Delivery info') }}','info')">{{ __('Delivery info') }}</a></li>
         </ul>
       </div>
       <div>
-        <h4>Visit our store</h4>
+        <h4>{{ __('Visit our store') }}</h4>
         <ul>
-          <li>Kiboriloni, Moshi, Kilimanjaro, Tanzania</li>
-          <li>Open daily · 8:00 AM – 9:00 PM</li>
+          <li>{{ __('Location') }}</li>
+          <li>{{ __('Opening hours') }}</li>
           <li>+255 717 358 865</li>
           <li>info@feedtanstore.com</li>
         </ul>
       </div>
     </div>
     <div class="footer-bottom">
-      <span>© {{ date('Y') }} Feedtan Store. All rights reserved.</span>
-      <span>Built with care for everyday shoppers.</span>
+      <span>© {{ date('Y') }} Feedtan Store. Haki zote zimehifadhiwa.</span>
+      <span>Imeundwa kwa usikivu kwa wanunuzi wa kila siku.</span>
     </div>
   </div>
 </footer>
 
-<div id="toast" class="toast" style="position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--green-900);color:#fff;padding:13px 22px;border-radius:999px;font-size:13.5px;font-weight:600;z-index:400;box-shadow:var(--shadow-pop);display:flex;align-items:center;gap:10px;opacity:0;visibility:hidden;transition:all .25s ease;"></div>
+<aside class="cart-drawer" id="cartDrawer" aria-label="{{ __('Your Cart') }}">
+  <div class="drawer-head">
+    <h3>{{ __('Your Cart') }}</h3>
+    <button class="close-x" onclick="closeCart()" aria-label="{{ __('Close cart') }}">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M18 6 6 18M6 6l12 12"/></svg>
+    </button>
+  </div>
+  <div class="cart-list" id="cartList"></div>
+  <div class="drawer-foot" id="cartFoot" style="display:none;">
+    <div class="sum-row"><span>{{ __('Subtotal') }}</span><span id="cartSubtotal">TZS 0</span></div>
+    <div class="sum-row"><span>{{ __('Delivery estimate') }}</span><span id="cartDeliveryEst">{{ __('Calculate at checkout') }}</span></div>
+    <div class="sum-row total"><span>{{ __('Total') }}</span><span id="cartTotal">TZS 0</span></div>
+    <a href="{{ route('shop.checkout') }}" class="btn btn-primary btn-block" style="margin-top:14px;">{{ __('Proceed to Checkout') }}</a>
+    <button class="btn btn-ghost btn-block" style="margin-top:10px;" onclick="closeCart()">{{ __('Continue Shopping') }}</button>
+  </div>
+</aside>
+
+<div id="scrim" class="scrim" onclick="closeAllOverlays()"></div>
+<div id="toast" class="toast"></div>
 
 @if($order && $order->delivery_latitude && $order->delivery_longitude)
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
@@ -538,6 +624,134 @@ footer{background:var(--green-900);color:#BFD6C8;padding:40px 0 0;margin-top:40p
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 @endif
 <script>
+let cart = [];
+const DELIVERY_FEE = 3000;
+const FREE_DELIVERY_THRESHOLD = 50000;
+
+function normalizeCart(raw) {
+  if (Array.isArray(raw)) return raw;
+  if (raw && typeof raw === 'object') {
+    return Object.entries(raw).map(([id, quantity]) => {
+      return { id: String(id), name: 'Item', price: 0, quantity: Number(quantity) || 0 };
+    }).filter(i => i.quantity > 0);
+  }
+  return [];
+}
+
+function initCart() {
+  const saved = localStorage.getItem('shopCart');
+  if (saved) {
+    try {
+      cart = normalizeCart(JSON.parse(saved));
+    } catch (e) {
+      cart = [];
+      localStorage.removeItem('shopCart');
+    }
+  }
+  updateCartUI();
+}
+
+function addToCart(id, name, price) {
+  const existing = cart.find(i => String(i.id) === String(id));
+  if (existing) {
+    existing.quantity += 1;
+    existing.name = name;
+    existing.price = Number(price) || 0;
+  } else {
+    cart.push({ id: String(id), name, price: Number(price) || 0, quantity: 1 });
+  }
+  saveCart();
+  updateCartUI();
+  showToast(name + ' added to cart', 'cart');
+}
+
+function changeQty(id, delta, name = null, price = null) {
+  const idx = cart.findIndex(i => String(i.id) === String(id));
+  if (idx === -1) return;
+  cart[idx].quantity += delta;
+  if (name !== null) cart[idx].name = name;
+  if (price !== null) cart[idx].price = Number(price) || 0;
+  if (cart[idx].quantity <= 0) cart.splice(idx, 1);
+  saveCart();
+  updateCartUI();
+}
+
+function removeFromCart(id) {
+  cart = cart.filter(i => String(i.id) !== String(id));
+  saveCart();
+  updateCartUI();
+}
+
+function saveCart() {
+  localStorage.setItem('shopCart', JSON.stringify(cart));
+}
+
+function cartCount() { return cart.reduce((sum, item) => sum + (Number(item.quantity) || 0), 0); }
+function cartSubtotal() {
+  return cart.reduce((sum, item) => sum + (Number(item.price) || 0) * (Number(item.quantity) || 0), 0);
+}
+
+function updateCartUI() {
+  const count = cartCount();
+  const badge = document.getElementById('cartBadge');
+  badge.style.display = count > 0 ? 'flex' : 'none';
+  badge.textContent = count;
+  renderCartList();
+}
+
+function renderCartList() {
+  const list = document.getElementById('cartList');
+  const foot = document.getElementById('cartFoot');
+  if (cart.length === 0) {
+    list.innerHTML = '<div class="cart-empty">' +
+      '<svg width="54" height="54" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>' +
+      '<b>{{ __("Your cart is empty") }}</b>' +
+      '<span>{{ __("Explore the menu and add something nice.") }}</span>' +
+      '<button class="btn btn-primary btn-sm" onclick="closeCart()">{{ __("Start shopping") }}</button>' +
+      '</div>';
+    foot.style.display = 'none';
+    return;
+  }
+  foot.style.display = 'block';
+  list.innerHTML = cart.map(item => {
+    let img = 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=500&q=80';
+    return '<div class="cart-row">' +
+      '<img src="'+img+'" alt="'+item.name+'">' +
+      '<div class="cart-row-info">' +
+      '<b>'+item.name+'</b>' +
+      '<span class="cr-meta">{{ __("per item") }} · TZS '+item.price.toLocaleString()+' {{ __("each") }}</span>' +
+      '<div class="cart-row-bottom">' +
+      '<div class="qty-stepper">' +
+      '<button onclick="changeQty(\''+item.id+'\', -1, \''+item.name+'\', '+item.price+')" aria-label="Decrease quantity">-</button>' +
+      '<span>'+item.quantity+'</span>' +
+      '<button onclick="changeQty(\''+item.id+'\', 1, \''+item.name+'\', '+item.price+')" aria-label="Increase quantity">+</button>' +
+      '</div>' +
+      '<span class="cr-price">TZS '+(item.price*item.quantity).toLocaleString()+'</span>' +
+      '</div>' +
+      '<button class="cr-remove" onclick="removeFromCart(\''+item.id+'\')">{{ __("Remove") }}</button>' +
+      '</div>' +
+      '</div>';
+  }).join('');
+  const subtotal = cartSubtotal();
+  document.getElementById('cartSubtotal').textContent = 'TZS ' + subtotal.toLocaleString();
+  document.getElementById('cartTotal').textContent = 'TZS ' + subtotal.toLocaleString();
+  document.getElementById('cartDeliveryEst').textContent = subtotal >= FREE_DELIVERY_THRESHOLD ? '{{ __("Free (order qualifies)") }}' : 'TZS ' + DELIVERY_FEE.toLocaleString() + ' {{ __("if delivered") }}';
+}
+
+function openCart() {
+  document.getElementById('cartDrawer').classList.add('open');
+  document.getElementById('scrim').classList.add('open');
+}
+
+function closeCart() {
+  document.getElementById('cartDrawer').classList.remove('open');
+  document.getElementById('scrim').classList.remove('open');
+}
+
+function closeAllOverlays() {
+  closeCart();
+}
+
 function showToast(msg, icon) {
   const toast = document.getElementById('toast');
   const icons = {
@@ -851,6 +1065,11 @@ function hidePageLoader() {
   if (!loader) return;
   loader.classList.add('hidden');
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+  initCart();
+  hidePageLoader();
+});
 
 setTimeout(hidePageLoader, 350);
 window.addEventListener('load', hidePageLoader);

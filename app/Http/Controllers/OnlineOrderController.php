@@ -211,7 +211,15 @@ class OnlineOrderController extends Controller
     {
         $product->load(['category', 'brand', 'images']);
         $settings = \App\Models\StoreSetting::firstOrCreate();
-        return view('shop.product', compact('product', 'settings'));
+        $categories = \App\Models\Category::where('is_active', true)->get();
+        return view('shop.product', compact('product', 'settings', 'categories'));
+    }
+
+    public function checkout()
+    {
+        $settings = \App\Models\StoreSetting::firstOrCreate();
+        $categories = \App\Models\Category::where('is_active', true)->get();
+        return view('shop.checkout', compact('settings', 'categories'));
     }
 
     public function create()
@@ -769,7 +777,6 @@ class OnlineOrderController extends Controller
             'pdf_url' => $baseUrl . '/shop/tracking/' . $trackingIdentifier . '/pdf',
             'payment_initiated' => $paymentInitiated,
             'payment_message' => $paymentMessage,
-            'payment' => $paymentResponse,
         ]);
     }
 
@@ -1036,6 +1043,7 @@ class OnlineOrderController extends Controller
         $order = null;
         $route = null;
         $settings = \App\Models\StoreSetting::firstOrCreate();
+        $categories = \App\Models\Category::where('is_active', true)->get();
 
         if ($trackingIdentifier) {
             $order = $this->findOrderByIdentifier($trackingIdentifier);
@@ -1069,7 +1077,7 @@ class OnlineOrderController extends Controller
             }
         }
 
-        return view('shop.tracking', compact('order', 'route', 'settings'));
+        return view('shop.tracking', compact('order', 'route', 'settings', 'categories'));
     }
 
     public function downloadTrackingPDF($trackingIdentifier)

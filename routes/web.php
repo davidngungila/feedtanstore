@@ -3,6 +3,13 @@
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\AuthController;
+use Illuminate\Support\Facades\Session;
+
+// Language Switcher Route
+Route::get('lang/{locale}', function ($locale) {
+    Session::put('locale', $locale);
+    return redirect()->back();
+})->name('lang.switch');
 
 // Auth Routes
 Route::get('/entry', [AuthController::class, 'redirectEntry'])->name('entry');
@@ -30,15 +37,13 @@ Route::get('/sitemap.xml', function (\Illuminate\Http\Request $request) {
 })->name('shop.sitemap');
 Route::get('/shop', [\App\Http\Controllers\OnlineOrderController::class, 'shop'])->name('shop.index');
 Route::get('/shop/product/{product}', [\App\Http\Controllers\OnlineOrderController::class, 'showProduct'])->name('shop.product');
-Route::get('/shop/checkout', function () {
-    return view('shop.checkout');
-})->name('shop.checkout');
+Route::get('/shop/checkout', [\App\Http\Controllers\OnlineOrderController::class, 'checkout'])->name('shop.checkout');
 Route::get('/shop/tracking', [\App\Http\Controllers\OnlineOrderController::class, 'showTracking'])->name('shop.tracking');
 Route::get('/shop/tracking/{orderNumber}', [\App\Http\Controllers\OnlineOrderController::class, 'showTracking'])->name('shop.tracking.show');
 Route::get('/shop/tracking/{orderNumber}/pdf', [\App\Http\Controllers\OnlineOrderController::class, 'downloadTrackingPDF'])->name('shop.tracking.pdf');
-Route::post('/api/shop/orders', [\App\Http\Controllers\OnlineOrderController::class, 'placeOrder']);
+Route::post('/api/shop/orders', [\App\Http\Controllers\OnlineOrderController::class, 'placeOrder'])->name('shop.place-order');
 Route::get('/api/shop/orders/{orderNumber}/payment-status', [\App\Http\Controllers\OnlineOrderController::class, 'checkPaymentStatus'])->name('shop.payment-status');
-Route::post('/api/shop/calculate-delivery-fee', [\App\Http\Controllers\OnlineOrderController::class, 'calculateDeliveryFee']);
+Route::post('/api/shop/calculate-delivery-fee', [\App\Http\Controllers\OnlineOrderController::class, 'calculateDeliveryFee'])->name('shop.calculate-delivery-fee');
 Route::post('/api/shop/orders/{orderNumber}/initiate-payment', [\App\Http\Controllers\OnlineOrderController::class, 'initiatePaymentForOrder'])->name('shop.payment-initiate');
 
 // Protected Routes (must be authenticated)

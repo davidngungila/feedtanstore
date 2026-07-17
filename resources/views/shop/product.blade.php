@@ -194,6 +194,7 @@ h1,h2,h3,h4{font-family:var(--font-display);margin:0;letter-spacing:-0.01em;}
 .btn-outline:hover{background:var(--green-100);}
 .btn-ghost{background:transparent;color:var(--ink);border:1.5px solid var(--line);}
 .btn-ghost:hover{background:var(--white);}
+.btn-ghost.active{background:var(--green-700);color:var(--white);border-color:var(--green-700);}
 .btn-block{width:100%;}
 .btn-sm{padding:9px 16px;font-size:13.5px;}
 .btn:disabled{opacity:.45;cursor:not-allowed;transform:none;box-shadow:none;}
@@ -297,11 +298,10 @@ footer{background:var(--green-900);color:#BFD6C8;padding:54px 0 0;margin-top:40p
 .scrim.open{opacity:1;visibility:visible;}
 
 .cart-drawer{
-  position:fixed;top:0;right:0;height:100%;width:420px;max-width:92vw;background:#fff;z-index:210;
-  box-shadow:-12px 0 40px rgba(0,0,0,0.18);transform:translateX(100%);transition:transform .3s ease;
-  display:flex;flex-direction:column;
+  position:fixed;top:50%;left:50%;transform:translate(-50%,-46%);width:92vw;max-width:760px;max-height:88vh;background:#fff;z-index:210;
+  box-shadow:var(--shadow-pop);display:flex;flex-direction:column;opacity:0;visibility:hidden;transition:opacity .22s ease, transform .22s ease;
 }
-.cart-drawer.open{transform:translateX(0);}
+.cart-drawer.open{opacity:1;visibility:visible;transform:translate(-50%,-50%);}
 .drawer-head{display:flex;align-items:center;justify-content:space-between;padding:18px 20px;border-bottom:1px solid var(--line);}
 .drawer-head h3{font-size:19px;}
 .close-x{width:36px;height:36px;border-radius:50%;border:none;background:var(--parchment);display:flex;align-items:center;justify-content:center;color:var(--ink);flex-shrink:0;}
@@ -367,6 +367,11 @@ footer{background:var(--green-900);color:#BFD6C8;padding:54px 0 0;margin-top:40p
   .pd-title{font-size:28px;}
   .pd-price{font-size:26px;}
 }
+
+@media(max-width:600px){
+  .cart-drawer{width:100%;max-width:100%;height:100%;max-height:100%;border-radius:0;top:0;left:0;transform:translateY(100%);}
+  .cart-drawer.open{transform:translateY(0);}
+}
 @media (prefers-reduced-motion: reduce){
   .page-loader-ring::before{animation:none;}
 }
@@ -400,45 +405,49 @@ footer{background:var(--green-900);color:#BFD6C8;padding:54px 0 0;margin-top:40p
   <div class="header-inner wrap">
     <a href="{{ route('shop.index') }}" class="logo">
       <span class="logo-mark">F</span>
-      <span>Feedtan<span class="logo-sub">Duka la Mkondoni</span></span>
+      <span>Feedtan<span class="logo-sub">Online Store</span></span>
     </a>
     <form class="search-bar" id="searchForm" role="search" action="{{ route('shop.index') }}">
-      <label for="searchInput" class="visually-hidden">Tafuta bidhaa</label>
-      <input type="search" id="searchInput" name="search" placeholder="Tafuta mchele, mafuta, matunda, vifaa vya kielektroniki…" autocomplete="off" value="{{ request('search', '') }}">
-      <button type="submit" aria-label="Tafuta">
+      <label for="searchInput" class="visually-hidden">Search products</label>
+      <input type="search" id="searchInput" name="search" placeholder="Search products placeholder" autocomplete="off" value="{{ request('search', '') }}">
+      <button type="submit" aria-label="Search">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
       </button>
     </form>
     <div class="header-actions">
-      <button class="icon-btn" id="mobileSearchToggle" aria-label="Badilisha utafiti" onclick="toggleMobileSearch()">
+      <button class="icon-btn" id="mobileSearchToggle" aria-label="Toggle search" onclick="toggleMobileSearch()">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
       </button>
-      <button class="icon-btn" aria-label="Orodha ya mawazo" onclick="showToast('Vitu vya kuchuma zipo kwenye orodha yako ya mawazo','heart')">
+      <button class="icon-btn" aria-label="Wishlist" onclick="showToast('Saved items live in your wishlist','heart')">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.8 1-1a5.5 5.5 0 0 0 0-7.8z"/></svg>
       </button>
-      <a href="{{ route('shop.tracking') }}" class="icon-btn" aria-label="Fuatilia agizo langu" title="Fuatilia agizo">
+      <a href="{{ route('shop.tracking') }}" class="icon-btn" aria-label="Track my order" title="Track my order">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="1.5"/><circle cx="18.5" cy="18.5" r="1.5"/></svg>
       </a>
-      <button class="icon-btn" aria-label="Fungua mkokoteni" onclick="openCart()">
+      <button class="icon-btn" aria-label="Open cart" onclick="openCart()">
         <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
         <span class="badge" id="cartBadge" style="display:none;">0</span>
       </button>
+      <div class="language-switcher" style="margin-left: 10px;">
+        <a href="{{ route('lang.switch', 'en') }}" class="btn btn-ghost btn-sm {{ App::getLocale() === 'en' ? 'active' : '' }}">EN</a>
+        <a href="{{ route('lang.switch', 'sw') }}" class="btn btn-ghost btn-sm {{ App::getLocale() === 'sw' ? 'active' : '' }}">SW</a>
+      </div>
     </div>
   </div>
   <div class="mobile-search" id="mobileSearchBox" style="display:none;">
     <form class="search-bar" action="{{ route('shop.index') }}">
-      <input type="search" id="searchInputMobile" name="search" placeholder="Tafuta bidhaa…" autocomplete="off" value="{{ request('search', '') }}">
-      <button type="submit" aria-label="Tafuta"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></button>
+      <input type="search" id="searchInputMobile" name="search" placeholder="Search products placeholder" autocomplete="off" value="{{ request('search', '') }}">
+      <button type="submit" aria-label="Search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></button>
     </form>
   </div>
   <nav class="nav-strip" aria-label="Primary">
     <div class="wrap">
-      <a href="{{ route('shop.index') }}">Nyumbani</a>
-      <a href="{{ route('shop.index') }}#shop">Nunua Yote</a>
-      @foreach($categories ?? [] as $cat)
-        <a href="{{ route('shop.index', ['category' => $cat->id]) }}">{{ $cat->name }}</a>
+      <a href="{{ route('shop.index') }}">Home</a>
+      <a href="{{ route('shop.index') }}#shop">Buy All</a>
+      @foreach($categories as $cat)
+        <a href="{{ route('shop.index', ['category' => $cat->slug]) }}">{{ $cat->name }}</a>
       @endforeach
-      <a href="{{ route('shop.tracking') }}">Fuatilia Agizo</a>
+      <a href="{{ route('shop.tracking') }}">Track my order</a>
     </div>
   </nav>
 </header>
@@ -536,7 +545,7 @@ footer{background:var(--green-900);color:#BFD6C8;padding:54px 0 0;margin-top:40p
         <h4>Nunua</h4>
         <ul>
           @foreach($categories ?? [] as $cat)
-            <li><a href="{{ route('shop.index', ['category' => $cat->id]) }}">{{ $cat->name }}</a></li>
+            <li><a href="{{ route('shop.index', ['category' => $cat->slug]) }}">{{ $cat->name }}</a></li>
           @endforeach
         </ul>
       </div>
