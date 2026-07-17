@@ -647,13 +647,7 @@ function printReceipt() {
 }
 
 function newSale() {
-    cart = [];
-    currentSaleId = null;
-    renderCart();
-    updateTotals();
-    document.getElementById('successModal').classList.add('hidden');
-    document.getElementById('discountSelect').value = '';
-    currentDiscount = null;
+    window.location.href = '/sales/new';
 }
 
 // Send payment info when sale is submitted
