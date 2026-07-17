@@ -1508,8 +1508,8 @@
       </template>
       <template x-if="isCashier">
         <!-- Cashier Navbar -->
-        <div class="w-full flex items-center justify-between sidebar-bg text-white px-4 py-3">
-          <div class="flex items-center gap-4 bg-white px-3 py-2 rounded-lg border-t-2 border-primary-600">
+        <div class="w-full flex items-center justify-between sidebar-bg text-white px-4 py-3 border-t-2 border-primary-600">
+          <div class="flex items-center gap-4 bg-white px-3 py-2 rounded-lg">
             <img src="https://feedtanstore.com/feedtanstorelogo.png" alt="FEEDTAN STORE" class="h-10 object-contain">
           </div>
           <div class="flex items-center gap-2 sm:gap-4">
