@@ -471,14 +471,15 @@ class CashierController extends Controller
     private function ensureGatewayOrderReference(OnlineOrder $order): string
     {
         $currentReference = strtoupper((string) $order->payment_order_reference);
-        if ($currentReference !== '' && preg_match('/^[A-Z0-9]+$/', $currentReference)) {
+        // If current reference is valid (not empty, alphanumeric, ≤20 chars), use it
+        if ($currentReference !== '' && preg_match('/^[A-Z0-9]+$/', $currentReference) && strlen($currentReference) <= 20) {
             return $currentReference;
         }
 
-        $generatedReference = strtoupper(preg_replace('/[^A-Za-z0-9]/', '', (string) $order->order_number));
-        if ($generatedReference === '') {
-            $generatedReference = 'ORD' . $order->id . strtoupper(substr(md5((string) $order->id), 0, 8));
-        }
+        // Generate a short reference: ORD + order ID (up to 10 digits) + 6 random chars
+        $generatedReference = 'ORD' . $order->id . strtoupper(\Illuminate\Support\Str::random(6));
+        // Ensure it's ≤20 characters
+        $generatedReference = substr($generatedReference, 0, 20);
 
         if ($order->payment_order_reference !== $generatedReference) {
             $order->forceFill([
@@ -492,9 +493,10 @@ class CashierController extends Controller
     private function refreshGatewayOrderReference(OnlineOrder $order): string
     {
         do {
-            $generatedReference = 'ORD'
-                . strtoupper(base_convert((string) $order->id, 10, 36))
-                . strtoupper(\Illuminate\Support\Str::random(10));
+            // Generate a short reference: ORD + order ID (up to 10 digits) + 6 random chars
+            $generatedReference = 'ORD' . $order->id . strtoupper(\Illuminate\Support\Str::random(6));
+            // Ensure it's ≤20 characters
+            $generatedReference = substr($generatedReference, 0, 20);
         } while (OnlineOrder::query()
             ->where('payment_order_reference', $generatedReference)
             ->whereKeyNot($order->id)
