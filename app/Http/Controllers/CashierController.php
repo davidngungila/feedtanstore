@@ -378,8 +378,8 @@ class CashierController extends Controller
 
                 if (isset($paymentResponse['success']) && $paymentResponse['success']) {
                     $this->syncOrderPaymentState($onlineOrder, $paymentResponse['data'] ?? [], 'Payment initiated via cashier dashboard');
-                    $trackingUrl = route('shop.tracking.show', $onlineOrder->order_number);
-                    $pdfUrl = route('shop.tracking.pdf', $onlineOrder->order_number);
+                    $trackingUrl = route('shop.tracking.show', ltrim($onlineOrder->short_customer_reference, '#'));
+                    $pdfUrl = route('shop.tracking.pdf', ltrim($onlineOrder->short_customer_reference, '#'));
                     return response()->json([
                         'success' => true,
                         'message' => 'Payment initiated successfully! Please check your phone to complete the payment.',
@@ -397,7 +397,7 @@ class CashierController extends Controller
             } catch (\Exception $e) {
                 \Log::error('Failed to initiate online payment via cashier: ' . $e->getMessage() . ' Trace: ' . $e->getTraceAsString());
                 // Even if payment fails, we still have the order in the system
-                $trackingUrl = route('shop.tracking.show', $onlineOrder->order_number);
+                $trackingUrl = route('shop.tracking.show', ltrim($onlineOrder->short_customer_reference, '#'));
                 return response()->json([
                     'success' => false,
                     'message' => 'Order created but payment initiation failed: ' . $e->getMessage() . '. Please complete payment manually.',

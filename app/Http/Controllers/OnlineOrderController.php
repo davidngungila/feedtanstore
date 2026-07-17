@@ -33,7 +33,7 @@ class OnlineOrderController extends Controller
         }
         $settings = \App\Models\StoreSetting::firstOrCreate();
         $baseUrl = $settings->store_url ?? config('app.url');
-        $finalTrackingIdentifier = $order->order_number;
+        $finalTrackingIdentifier = ltrim($order->short_customer_reference, '#');
 
         if (($order->payment_method ?? 'cash') !== 'online') {
             return response()->json([
@@ -769,7 +769,7 @@ class OnlineOrderController extends Controller
         $settings = \App\Models\StoreSetting::firstOrCreate();
         $baseUrl = $settings->store_url ?? config('app.url');
 
-        $trackingIdentifier = $order->order_number;
+        $trackingIdentifier = ltrim($order->short_customer_reference, '#');
         return response()->json([
             'success' => true,
             'order_number' => $order->order_number,
@@ -1034,8 +1034,13 @@ class OnlineOrderController extends Controller
             return $order;
         }
         
-        // Then try short reference
-        return OnlineOrder::where('order_number', 'LIKE', '%' . $cleanIdentifier)->with($with)->first();
+        // Then try short reference (last 5 chars of order number)
+        $order = OnlineOrder::where('order_number', 'LIKE', '%' . $cleanIdentifier)->with($with)->first();
+        if ($order) {
+            return $order;
+        }
+
+        return null;
     }
 
     public function showTracking($trackingIdentifier = null)
