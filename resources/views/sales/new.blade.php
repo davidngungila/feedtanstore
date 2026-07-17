@@ -136,7 +136,7 @@
 
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Paid Amount</label>
-                        <input type="number" name="paid" id="paidAmount" value="0" min="0" step="0.01" class="w-full px-4 py-2 border border-gray-300 rounded-lg" onchange="handlePaidChange()">
+                        <input type="number" name="paid" id="paidAmount" value="0" min="0" step="0.01" class="w-full px-4 py-2 border border-gray-300 rounded-lg" onchange="handlePaidChange(); updateTotals();">
                     </div>
 
                     <div id="paidNoteContainer" class="mb-4 hidden">
