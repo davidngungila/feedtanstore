@@ -162,7 +162,7 @@
 </div>
 
 <!-- Loading Overlay -->
-<div id="loadingOverlay" class="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm flex items-center justify-center hidden z-[100]">
+<div id="loadingOverlay" class="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm flex items-center justify-center hidden z-[10000]">
     <div class="bg-white rounded-2xl p-8 text-center">
         <div class="w-20 h-20 mx-auto mb-4">
             <i class="fas fa-spinner fa-spin text-primary-600 text-6xl"></i>
@@ -173,7 +173,7 @@
 </div>
 
 <!-- Success Modal -->
-<div id="successModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+<div id="successModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-[150]">
     <div class="bg-white rounded-2xl p-8 max-w-md w-full mx-4">
         <div class="text-center">
             <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
