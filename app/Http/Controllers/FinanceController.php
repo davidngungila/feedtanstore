@@ -57,6 +57,15 @@ class FinanceController extends Controller
         $relatedEntries = AccountingEntry::with('reference')->where('reference_number', $entry->reference_number)->get();
         return view('finance.transaction-details', compact('entry', 'relatedEntries'));
     }
+
+    public function exportTransactionPDF(AccountingEntry $entry)
+    {
+        $entry->load('reference');
+        $relatedEntries = AccountingEntry::with('reference')->where('reference_number', $entry->reference_number)->get();
+        
+        $pdf = \PDF::loadView('finance.transaction-pdf', compact('entry', 'relatedEntries'));
+        return $pdf->download('transaction-' . $entry->reference_number . '.pdf');
+    }
     
     public function mobileMoneyReconciliation()
     {

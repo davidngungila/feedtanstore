@@ -7,9 +7,14 @@
     <div class="card rounded-2xl p-6 mb-6">
         <div class="flex items-center justify-between mb-6">
             <h2 class="text-xl font-bold text-primary-900">Transaction Details</h2>
-            <a href="{{ route('finance.transactions') }}" class="text-primary-600 hover:text-primary-800 font-medium">
-                <i class="fas fa-arrow-left mr-2"></i>Back to Transactions
-            </a>
+            <div class="flex gap-3">
+                <a href="{{ route('finance.transactions.pdf', $entry->id) }}" target="_blank" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium">
+                    <i class="fas fa-file-pdf mr-2"></i>Export PDF
+                </a>
+                <a href="{{ route('finance.transactions') }}" class="text-primary-600 hover:text-primary-800 font-medium">
+                    <i class="fas fa-arrow-left mr-2"></i>Back to Transactions
+                </a>
+            </div>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">

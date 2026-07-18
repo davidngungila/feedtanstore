@@ -323,6 +323,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/accounts-payable', [\App\Http\Controllers\FinanceController::class, 'accountsPayable'])->name('accounts-payable');
         Route::get('/transactions', [\App\Http\Controllers\FinanceController::class, 'transactions'])->name('transactions');
         Route::get('/transactions/{entry}', [\App\Http\Controllers\FinanceController::class, 'showTransaction'])->name('transactions.show');
+        Route::get('/transactions/{entry}/pdf', [\App\Http\Controllers\FinanceController::class, 'exportTransactionPDF'])->name('transactions.pdf');
         Route::get('/tax-management', [\App\Http\Controllers\FinanceController::class, 'taxManagement'])->name('tax-management');
         // Chart of Accounts
         Route::get('/chart-of-accounts', [\App\Http\Controllers\ChartOfAccountsController::class, 'index'])->name('chart-of-accounts');
