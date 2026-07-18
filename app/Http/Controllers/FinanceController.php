@@ -14,6 +14,7 @@ use App\Models\Income;
 use App\Models\Expense;
 use App\Models\Capital;
 use App\Models\Account;
+use Dompdf\Dompdf;
 
 class FinanceController extends Controller
 {
@@ -63,8 +64,12 @@ class FinanceController extends Controller
         $entry->load('reference');
         $relatedEntries = AccountingEntry::with('reference')->where('reference_number', $entry->reference_number)->get();
         
-        $pdf = \PDF::loadView('finance.transaction-pdf', compact('entry', 'relatedEntries'));
-        return $pdf->download('transaction-' . $entry->reference_number . '.pdf');
+        $pdf = new Dompdf();
+        $pdf->loadHtml(view('finance.transaction-pdf', compact('entry', 'relatedEntries'))->render());
+        $pdf->setPaper('A4', 'portrait');
+        $pdf->render();
+        
+        return $pdf->stream('transaction-' . $entry->reference_number . '.pdf');
     }
     
     public function mobileMoneyReconciliation()
