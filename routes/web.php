@@ -147,6 +147,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/adjustments', [\App\Http\Controllers\StockAdjustmentController::class, 'index'])->name('adjustments');
         Route::get('/adjustments/create', [\App\Http\Controllers\StockAdjustmentController::class, 'create'])->name('adjustments.create');
         Route::post('/adjustments', [\App\Http\Controllers\StockAdjustmentController::class, 'store'])->name('adjustments.store');
+        Route::get('/adjustments/{adjustment}', [\App\Http\Controllers\StockAdjustmentController::class, 'show'])->name('adjustments.show');
         Route::get('/transfers', [\App\Http\Controllers\StockTransferController::class, 'index'])->name('transfers');
         Route::get('/transfers/create', [\App\Http\Controllers\StockTransferController::class, 'create'])->name('transfers.create');
         Route::post('/transfers', [\App\Http\Controllers\StockTransferController::class, 'store'])->name('transfers.store');

@@ -58,4 +58,10 @@ class StockAdjustmentController extends Controller
         
         return redirect()->route('inventory.adjustments')->with('success', 'Stock adjustment created successfully');
     }
+
+    public function show(StockAdjustment $adjustment)
+    {
+        $adjustment->load('product.category', 'product.brand', 'product.unit');
+        return view('inventory.adjustments-show', compact('adjustment'));
+    }
 }

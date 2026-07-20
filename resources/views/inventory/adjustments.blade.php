@@ -30,6 +30,7 @@
                         <th class="text-left">Qty After</th>
                         <th class="text-left">Reason</th>
                         <th class="text-left">Date</th>
+                        <th class="text-left">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -49,6 +50,11 @@
                         <td class="text-gray-600">{{ $adj->quantity_after }}</td>
                         <td class="text-gray-600">{{ $adj->reason }}</td>
                         <td class="text-gray-600">{{ $adj->adjustment_date }}</td>
+                        <td class="flex items-center gap-2">
+                            <a href="{{ route('inventory.adjustments.show', $adj) }}" class="text-primary-600 hover:text-primary-800 p-1" title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                        </td>
                     </tr>
                     @endforeach
                 </tbody>
