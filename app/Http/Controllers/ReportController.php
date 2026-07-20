@@ -246,11 +246,10 @@ class ReportController extends Controller
                 DB::raw('COALESCE(SUM(sale_items.total), 0) as total_sales')
             )
             ->with(['category', 'brand'])
-            ->leftJoin('sale_items', function($join) use ($startDate, $endDate) {
-                $join->on('products.id', '=', 'sale_items.product_id')
-                     ->whereHas('sale', function($q) use ($startDate, $endDate) {
-                         $q->whereBetween('sales.created_at', [$startDate, $endDate]);
-                     });
+            ->leftJoin('sale_items', 'products.id', '=', 'sale_items.product_id')
+            ->leftJoin('sales', function($join) use ($startDate, $endDate) {
+                $join->on('sale_items.sale_id', '=', 'sales.id')
+                     ->whereBetween('sales.created_at', [$startDate, $endDate]);
             })
             ->groupBy('products.id', 'products.name', 'products.category_id', 'products.brand_id', 'products.sku', 'products.selling_price')
             ->orderBy('total_qty', 'asc')
