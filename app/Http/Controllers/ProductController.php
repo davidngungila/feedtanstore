@@ -53,8 +53,13 @@ class ProductController extends Controller
         return view('inventory.products', compact('products', 'search', 'lowStockCount'));
     }
 
-    public function show(Product $product)
+    public function show($identifier)
     {
+        $product = Product::where('id', $identifier)
+            ->orWhere('sku', $identifier)
+            ->orWhere('barcode', $identifier)
+            ->firstOrFail();
+            
         $product->load([
             'grnItems.goodsReceivedNote.supplier',
             'category',
@@ -113,16 +118,26 @@ class ProductController extends Controller
         return redirect()->route('inventory.products')->with('success', 'Product created successfully!');
     }
 
-    public function edit(Product $product)
+    public function edit($identifier)
     {
+        $product = Product::where('id', $identifier)
+            ->orWhere('sku', $identifier)
+            ->orWhere('barcode', $identifier)
+            ->firstOrFail();
+            
         $categories = Category::all();
         $brands = Brand::all();
         $units = Unit::all();
         return view('inventory.products-edit', compact('product', 'categories', 'brands', 'units'));
     }
 
-    public function update(Request $request, Product $product)
+    public function update(Request $request, $identifier)
     {
+        $product = Product::where('id', $identifier)
+            ->orWhere('sku', $identifier)
+            ->orWhere('barcode', $identifier)
+            ->firstOrFail();
+            
         $request->validate([
             'name' => 'required|string|max:255',
             'sku' => 'nullable|string|max:255|unique:products,sku,' . $product->id,
@@ -147,8 +162,13 @@ class ProductController extends Controller
         return redirect()->route('inventory.products')->with('success', 'Product updated successfully!');
     }
 
-    public function destroy(Product $product)
+    public function destroy($identifier)
     {
+        $product = Product::where('id', $identifier)
+            ->orWhere('sku', $identifier)
+            ->orWhere('barcode', $identifier)
+            ->firstOrFail();
+            
         $product->delete();
         return redirect()->route('inventory.products')->with('success', 'Product deleted successfully!');
     }

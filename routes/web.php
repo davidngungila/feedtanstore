@@ -112,10 +112,10 @@ Route::middleware('auth')->group(function () {
         Route::get('/products', [\App\Http\Controllers\ProductController::class, 'index'])->name('products');
         Route::get('/products/create', [\App\Http\Controllers\ProductController::class, 'create'])->name('products.create');
         Route::post('/products', [\App\Http\Controllers\ProductController::class, 'store'])->name('products.store');
-        Route::get('/products/{product}', [\App\Http\Controllers\ProductController::class, 'show'])->name('products.show');
-        Route::get('/products/{product}/edit', [\App\Http\Controllers\ProductController::class, 'edit'])->name('products.edit');
-        Route::put('/products/{product}', [\App\Http\Controllers\ProductController::class, 'update'])->name('products.update');
-        Route::delete('/products/{product}', [\App\Http\Controllers\ProductController::class, 'destroy'])->name('products.destroy');
+        Route::get('/products/{identifier}', [\App\Http\Controllers\ProductController::class, 'show'])->name('products.show');
+        Route::get('/products/{identifier}/edit', [\App\Http\Controllers\ProductController::class, 'edit'])->name('products.edit');
+        Route::put('/products/{identifier}', [\App\Http\Controllers\ProductController::class, 'update'])->name('products.update');
+        Route::delete('/products/{identifier}', [\App\Http\Controllers\ProductController::class, 'destroy'])->name('products.destroy');
         
         Route::get('/categories', [\App\Http\Controllers\CategoryController::class, 'index'])->name('categories');
         Route::get('/categories/create', [\App\Http\Controllers\CategoryController::class, 'create'])->name('categories.create');
