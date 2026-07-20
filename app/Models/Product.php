@@ -80,18 +80,6 @@ class Product extends Model
         return $slug;
     }
 
-    public function getRouteKeyName()
-    {
-        // Fall back to id if slug is empty
-        return $this->slug ? 'slug' : 'id';
-    }
-
-    // Override getRouteKey to handle null slug
-    public function getRouteKey()
-    {
-        return $this->slug ?: $this->getKey();
-    }
-
     protected $casts = [
         'expiry_date' => 'datetime',
         'is_active' => 'boolean',
