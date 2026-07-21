@@ -71,6 +71,53 @@ class VFDService
         $this->sendVFDMessage("THANK YOU", "COME AGAIN");
     }
 
+    public static function openCashDrawer()
+    {
+        try {
+            $settings = StoreSetting::first();
+            if (!$settings || !$settings->vfd_enabled) {
+                return;
+            }
+
+            $port = $settings->vfd_port ?? env('VFD_PORT', 'COM3');
+            $baudRate = $settings->vfd_baud ?? env('VFD_BAUD', 9600);
+            $dataBits = $settings->vfd_data_bits ?? env('VFD_DATA_BITS', 8);
+            $stopBits = $settings->vfd_stop_bits ?? env('VFD_STOP_BITS', 1);
+            $parity = $settings->vfd_parity ?? env('VFD_PARITY', 'none');
+            $isWindows = strtoupper(substr(PHP_OS, 0, 3)) === 'WIN';
+
+            // Configure port
+            if ($isWindows) {
+                $parityCode = ['none' => 'n', 'odd' => 'o', 'even' => 'e'][$parity] ?? 'n';
+                $command = "mode {$port}: BAUD={$baudRate} PARITY={$parityCode} DATA={$dataBits} STOP={$stopBits}";
+                exec($command, $output, $exitCode);
+            } else {
+                $parityArg = [
+                    'none' => '-parenb',
+                    'odd' => 'parenb parodd',
+                    'even' => 'parenb -parodd'
+                ][$parity] ?? '-parenb';
+                $command = "stty -F {$port} {$baudRate} cs{$dataBits} " .
+                    ($stopBits == 2 ? 'cstopb' : '-cstopb') . " $parityArg -echo -echoe -echok -echoctl -echoke -icrnl -onlcr -opost -isig -icanon -iexten";
+                exec($command, $output, $exitCode);
+            }
+
+            // Open port and send cash drawer pulse command (ESC p m t)
+            // ESC = 0x1B, p = 0x70, m = drawer pin (0=pin2, 1=pin5), t = pulse duration (x 2ms)
+            $handle = @fopen($port, 'w');
+            if ($handle) {
+                // ESC p m t - Pulse drawer pin 2 for 100ms (t=50)
+                $command = "\x1B\x70\x00\x32";
+                fwrite($handle, $command);
+                fflush($handle);
+                fclose($handle);
+                \Log::info('Cash drawer pulse sent successfully');
+            }
+        } catch (\Exception $e) {
+            \Log::error('Failed to open cash drawer: ' . $e->getMessage());
+        }
+    }
+
     private function getProtocolGenerator($protocolName)
     {
         $protocols = [

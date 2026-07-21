@@ -200,6 +200,14 @@ class SaleController extends Controller {
 
         $this->createAccountingEntries($sale);
 
+        // Open cash drawer if payment method is cash and setting is enabled
+        if ($request->payment_method == 'cash') {
+            $settings = \App\Models\StoreSetting::first();
+            if ($settings && $settings->cash_drawer_auto_open_after_cash_sale) {
+                $this->openCashDrawer();
+            }
+        }
+
         if ($request->type == 'credit' && $request->customer_id) {
             $customer = Customer::find($request->customer_id);
             $customer->increment('balance', $total);
@@ -339,6 +347,24 @@ class SaleController extends Controller {
             // Ignore accounting entry creation fails, don't break the sale
             // Just log it and continue
             \Log::error('Failed to create accounting entries: ' . $e->getMessage());
+        }
+    }
+
+    protected function openCashDrawer()
+    {
+        try {
+            $settings = \App\Models\StoreSetting::first();
+            if (!$settings || !$settings->vfd_enabled) {
+                return;
+            }
+
+            // Send cash drawer open command to VFD
+            \App\Services\VFDService::openCashDrawer();
+            
+            \Log::info('Cash drawer opened successfully');
+        } catch (\Exception $e) {
+            \Log::error('Failed to open cash drawer: ' . $e->getMessage());
+            // Don't fail the sale if cash drawer doesn't open
         }
     }
 }

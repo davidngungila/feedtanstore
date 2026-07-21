@@ -204,6 +204,14 @@ class CashierController extends Controller
 
             $this->createAccountingEntries($sale);
 
+            // Open cash drawer if payment method is cash and setting is enabled
+            if ($data['payment_method'] == 'cash') {
+                $settings = StoreSetting::first();
+                if ($settings && $settings->cash_drawer_auto_open_after_cash_sale) {
+                    $this->openCashDrawer();
+                }
+            }
+
             \Log::info('Sale completed successfully', ['sale_id' => $sale->id]);
 
             return response()->json(['sale' => $sale, 'change' => $change, 'sale_id' => $sale->id]);
@@ -562,6 +570,24 @@ class CashierController extends Controller
                 'payment_status' => $resolvedPaymentStatus,
                 'notes' => trim($historyNotePrefix . ($notes ? ' | ' . implode(' | ', $notes) : '')),
             ]);
+        }
+    }
+
+    protected function openCashDrawer()
+    {
+        try {
+            $settings = StoreSetting::first();
+            if (!$settings || !$settings->vfd_enabled) {
+                return;
+            }
+
+            // Send cash drawer open command to VFD
+            \App\Services\VFDService::openCashDrawer();
+            
+            \Log::info('Cash drawer opened successfully');
+        } catch (\Exception $e) {
+            \Log::error('Failed to open cash drawer: ' . $e->getMessage());
+            // Don't fail the sale if cash drawer doesn't open
         }
     }
 }

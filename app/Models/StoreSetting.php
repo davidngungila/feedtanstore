@@ -42,6 +42,11 @@ class StoreSetting extends Model
         'delivery_free_threshold',
         'delivery_use_zone_pricing',
         'delivery_zone_config',
+        // Cash Drawer Settings
+        'cash_drawer_auto_open_after_cash_sale',
+        'cash_drawer_auto_open_for_cash_in',
+        'cash_drawer_auto_open_for_cash_out',
+        'cash_drawer_open_before_sale',
         // Communication Settings
         'smtp_host',
         'smtp_port',

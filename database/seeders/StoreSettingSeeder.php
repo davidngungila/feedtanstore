@@ -48,6 +48,11 @@ class StoreSettingSeeder extends Seeder
                 'delivery_free_threshold' => 50000,
                 'delivery_use_zone_pricing' => false,
                 'delivery_zone_config' => null,
+                // Cash Drawer Settings
+                'cash_drawer_auto_open_after_cash_sale' => true,
+                'cash_drawer_auto_open_for_cash_in' => true,
+                'cash_drawer_auto_open_for_cash_out' => true,
+                'cash_drawer_open_before_sale' => false,
                 // Communication Settings
                 'smtp_host' => null,
                 'smtp_port' => 587,

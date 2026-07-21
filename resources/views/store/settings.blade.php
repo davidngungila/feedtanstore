@@ -213,7 +213,48 @@
                     </div>
                 </div>
             </div>
-            
+
+            <!-- Cash Drawer Settings Section -->
+            <div class="mb-8">
+                <h3 class="text-lg font-semibold text-primary-900 mb-4 border-b border-gray-200 pb-2">
+                    <i class="fas fa-cash-register mr-2"></i>
+                    Cash Drawer Settings
+                </h3>
+                <div class="p-4 bg-gray-50 rounded-xl border border-gray-200 space-y-4">
+                    <label class="flex items-center gap-3">
+                        <input type="checkbox" name="cash_drawer_auto_open_after_cash_sale" value="1" {{ $settings->cash_drawer_auto_open_after_cash_sale ? 'checked' : '' }} class="w-5 h-5 rounded border-gray-300 text-primary-600 focus:ring-primary-500">
+                        <div>
+                            <span class="text-base font-semibold text-gray-700">Auto Open After Cash Sale</span>
+                            <p class="text-xs text-gray-500 mt-1">Automatically open cash drawer after completing a cash payment sale</p>
+                        </div>
+                    </label>
+
+                    <label class="flex items-center gap-3">
+                        <input type="checkbox" name="cash_drawer_auto_open_for_cash_in" value="1" {{ $settings->cash_drawer_auto_open_for_cash_in ? 'checked' : '' }} class="w-5 h-5 rounded border-gray-300 text-primary-600 focus:ring-primary-500">
+                        <div>
+                            <span class="text-base font-semibold text-gray-700">Auto Open For Cash In</span>
+                            <p class="text-xs text-gray-500 mt-1">Automatically open cash drawer when adding money to the register</p>
+                        </div>
+                    </label>
+
+                    <label class="flex items-center gap-3">
+                        <input type="checkbox" name="cash_drawer_auto_open_for_cash_out" value="1" {{ $settings->cash_drawer_auto_open_for_cash_out ? 'checked' : '' }} class="w-5 h-5 rounded border-gray-300 text-primary-600 focus:ring-primary-500">
+                        <div>
+                            <span class="text-base font-semibold text-gray-700">Auto Open For Cash Out</span>
+                            <p class="text-xs text-gray-500 mt-1">Automatically open cash drawer when removing money from the register</p>
+                        </div>
+                    </label>
+
+                    <label class="flex items-center gap-3">
+                        <input type="checkbox" name="cash_drawer_open_before_sale" value="1" {{ $settings->cash_drawer_open_before_sale ? 'checked' : '' }} class="w-5 h-5 rounded border-gray-300 text-primary-600 focus:ring-primary-500">
+                        <div>
+                            <span class="text-base font-semibold text-gray-700">Open Drawer Before Sale</span>
+                            <p class="text-xs text-gray-500 mt-1">Open cash drawer before completing the sale (not recommended)</p>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
             <!-- Kiosk Mode Section -->
             <div class="mb-8">
                 <h3 class="text-lg font-semibold text-primary-900 mb-4 border-b border-gray-200 pb-2">

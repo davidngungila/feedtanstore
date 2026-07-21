@@ -58,6 +58,11 @@ class StoreSettingController extends Controller
             'delivery_free_threshold' => 'nullable|numeric|min:0',
             'delivery_use_zone_pricing' => 'boolean',
             'delivery_zone_config' => 'nullable|array',
+            // Cash drawer fields
+            'cash_drawer_auto_open_after_cash_sale' => 'boolean',
+            'cash_drawer_auto_open_for_cash_in' => 'boolean',
+            'cash_drawer_auto_open_for_cash_out' => 'boolean',
+            'cash_drawer_open_before_sale' => 'boolean',
             // Communication fields
             'smtp_host' => 'nullable|string|max:255',
             'smtp_port' => 'nullable|integer|min:1|max:65535',
@@ -97,6 +102,10 @@ class StoreSettingController extends Controller
             'kiosk_auto_focus_cashier',
             'barcode_show_text',
             'delivery_use_zone_pricing',
+            'cash_drawer_auto_open_after_cash_sale',
+            'cash_drawer_auto_open_for_cash_in',
+            'cash_drawer_auto_open_for_cash_out',
+            'cash_drawer_open_before_sale',
             'vfd_enabled'
         ];
         
