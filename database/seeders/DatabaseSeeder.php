@@ -21,7 +21,10 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Seed Chart of Accounts first
+        // Seed Store Settings first
+        $this->call(StoreSettingSeeder::class);
+        
+        // Seed Chart of Accounts
         $this->call(ChartOfAccountsSeeder::class);
         
         // Create admin user

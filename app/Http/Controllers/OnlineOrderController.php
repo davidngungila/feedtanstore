@@ -906,6 +906,7 @@ class OnlineOrderController extends Controller
     private function ensureGatewayOrderReference(OnlineOrder $order): string
     {
         $currentReference = strtoupper((string) $order->payment_order_reference);
+        // If current reference is valid (not empty, alphanumeric, ≤20 chars), use it
         if ($currentReference !== '' && preg_match('/^[A-Z0-9]+$/', $currentReference) && strlen($currentReference) <= 20) {
             return $currentReference;
         }
