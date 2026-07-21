@@ -123,6 +123,14 @@
                             <span>Total:</span>
                             <span id="total">TZS 0.00</span>
                         </div>
+                        <div class="flex justify-between mb-2">
+                            <span class="text-gray-600">Paid Amount:</span>
+                            <input type="number" name="paid" id="paidAmount" value="0" min="0" step="0.01" class="w-32 px-2 py-1 border border-gray-300 rounded text-right font-semibold" onchange="updateTotals();">
+                        </div>
+                        <div class="flex justify-between text-lg font-bold">
+                            <span>Change:</span>
+                            <span id="change" class="text-green-600">TZS 0.00</span>
+                        </div>
                     </div>
 
                     <div class="mb-4">
@@ -132,21 +140,6 @@
                             <option value="card">Card</option>
                             <option value="mobile">Mobile Money</option>
                         </select>
-                    </div>
-
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Paid Amount</label>
-                        <input type="number" name="paid" id="paidAmount" value="0" min="0" step="0.01" class="w-full px-4 py-2 border border-gray-300 rounded-lg" onchange="handlePaidChange(); updateTotals();">
-                    </div>
-
-                    <div id="paidNoteContainer" class="mb-4 hidden">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Reason for Paid Amount Change</label>
-                        <textarea name="paid_note" id="paidNote" rows="2" class="w-full px-4 py-2 border border-gray-300 rounded-lg" placeholder="Explain why you're changing the paid amount..."></textarea>
-                    </div>
-
-                    <div class="flex justify-between mb-4 text-lg font-bold">
-                        <span>Change:</span>
-                        <span id="change" class="text-green-600">TZS 0.00</span>
                     </div>
 
                     <div class="flex gap-2">
@@ -585,31 +578,22 @@ function updateTotals() {
     document.getElementById('subtotal').textContent = 'TZS ' + subtotal.toFixed(2);
     document.getElementById('discountAmount').textContent = '-TZS ' + discount.toFixed(2);
     document.getElementById('total').textContent = 'TZS ' + lastCalculatedTotal.toFixed(2);
-    document.getElementById('change').textContent = 'TZS ' + change.toFixed(2);
     
-    // Change color based on positive/negative
+    // Change display based on payment status
     const changeElement = document.getElementById('change');
-    if (change >= 0) {
+    if (paid < lastCalculatedTotal) {
+        const remaining = lastCalculatedTotal - paid;
+        changeElement.textContent = 'Insufficient Payment - TZS ' + remaining.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",") + ' remaining';
+        changeElement.classList.remove('text-green-600');
+        changeElement.classList.add('text-red-600');
+    } else if (paid === lastCalculatedTotal) {
+        changeElement.textContent = 'Payment Completed - TZS 0.00';
         changeElement.classList.remove('text-red-600');
         changeElement.classList.add('text-green-600');
     } else {
-        changeElement.classList.remove('text-green-600');
-        changeElement.classList.add('text-red-600');
-    }
-}
-
-
-
-function handlePaidChange() {
-    const currentPaid = parseFloat(document.getElementById('paidAmount').value) || 0;
-    const noteContainer = document.getElementById('paidNoteContainer');
-    
-    if (currentPaid !== originalPaidAmount && originalPaidAmount !== 0) {
-        noteContainer.classList.remove('hidden');
-        document.getElementById('paidNote').required = true;
-    } else {
-        noteContainer.classList.add('hidden');
-        document.getElementById('paidNote').required = false;
+        changeElement.textContent = 'TZS ' + change.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        changeElement.classList.remove('text-red-600');
+        changeElement.classList.add('text-green-600');
     }
 }
 

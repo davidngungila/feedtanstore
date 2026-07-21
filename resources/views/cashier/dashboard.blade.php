@@ -1220,7 +1220,22 @@ function calculateChange() {
     const total = cart.reduce((sum, item) => sum + (parseFloat(item.price) * item.quantity), 0) - (parseFloat(document.getElementById('discountInput').value) || 0);
     const paid = parseFloat(document.getElementById('paidAmount').value) || 0;
     const change = paid - total;
-    document.getElementById('changeAmount').textContent = 'TZS ' + formatNumber(change);
+    const changeElement = document.getElementById('changeAmount');
+    
+    if (paid < total) {
+        const remaining = total - paid;
+        changeElement.textContent = 'Insufficient - TZS ' + formatNumber(remaining) + ' remaining';
+        changeElement.classList.remove('text-green-600');
+        changeElement.classList.add('text-red-600');
+    } else if (paid === total) {
+        changeElement.textContent = 'Payment Completed - TZS 0.00';
+        changeElement.classList.remove('text-red-600');
+        changeElement.classList.add('text-green-600');
+    } else {
+        changeElement.textContent = 'TZS ' + formatNumber(change);
+        changeElement.classList.remove('text-red-600');
+        changeElement.classList.add('text-green-600');
+    }
 }
 
 function showOnlinePaymentOptionsModal() {
