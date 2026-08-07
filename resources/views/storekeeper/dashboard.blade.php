@@ -77,7 +77,7 @@
                         </div>
                         <div class="text-right">
                             <p class="font-bold {{ $item->quantity <= 0 ? 'text-red-600' : 'text-yellow-600' }}">
-                                {{ $item->quantity }} {{ $item->unit ?? 'pcs' }}
+                                {{ $item->quantity }} {{ $item->unit?->short_name ?? 'pcs' }}
                             </p>
                         </div>
                     </div>

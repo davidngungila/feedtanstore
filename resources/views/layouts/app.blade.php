@@ -230,6 +230,8 @@
     activeSection: {{ $activeSection ? "'$activeSection'" : 'null' }},
     isCashier: {{ (Auth::check() && Auth::user()->role === 'cashier') ? 'true' : 'false' }},
     isRider: {{ (Auth::check() && Auth::user()->role === 'rider') ? 'true' : 'false' }},
+    isStorekeeper: {{ (Auth::check() && Auth::user()->role === 'storekeeper') ? 'true' : 'false' }},
+    isMarketingOfficer: {{ (Auth::check() && Auth::user()->role === 'marketing_officer') ? 'true' : 'false' }},
     currentTime: '',
     currentUser: {
         name: '{{ Auth::check() ? Auth::user()->name : 'Admin User' }}',
@@ -397,8 +399,112 @@
     </aside>
   </template>
 
+  <!-- Storekeeper Sidebar -->
+  <template x-if="isStorekeeper">
+    <aside :class="[sidebarOpen?'translate-x-0':'lg:translate-x-0 -translate-x-full','sidebar sidebar-bg fixed lg:relative h-screen z-50 flex flex-col transition-all duration-300',sidebarCollapsed&&window.innerWidth>=1024?'w-16':'w-[260px]']"
+           class="sidebar-bg">
+      <!-- Sidebar Header -->
+      <div class="flex items-center justify-between p-4 border-b border-white/20 border-t-2 border-primary-600 flex-shrink-0 bg-white">
+        <div class="flex items-center gap-3" x-show="!sidebarCollapsed || window.innerWidth<1024">
+          <img src="https://feedtanstore.com/feedtanstorelogo.png" alt="FEEDTAN STORE" class="w-full h-12 rounded-lg flex-shrink-0 object-contain" style="max-width: 180px;">
+        </div>
+        <div x-show="sidebarCollapsed && window.innerWidth>=1024" class="w-10 h-10 rounded-lg flex items-center justify-center mx-auto">
+          <img src="https://feedtanstore.com/feedtanstorelogo.png" alt="FEEDTAN STORE" class="w-full h-full rounded-lg object-contain">
+        </div>
+        <button @click="sidebarCollapsed=!sidebarCollapsed" class="text-primary-300 hover:text-white transition-colors hidden lg:block">
+          <i :class="sidebarCollapsed?'fa-solid fa-chevron-right':'fa-solid fa-chevron-left'" class="text-xs"></i>
+        </button>
+      </div>
+
+      <!-- Storekeeper Navigation -->
+      <nav class="flex-1 overflow-y-auto py-3 px-2 space-y-0.5">
+        <!-- Dashboard -->
+        <a href="{{ route('storekeeper.dashboard') }}" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-150 group {{ request()->routeIs('storekeeper.dashboard') ? 'bg-primary-600 text-white' : 'text-primary-200 hover:bg-white/10 hover:text-white' }}">
+          <i class="fa-solid fa-house w-4 text-center flex-shrink-0"></i>
+          <span x-show="!sidebarCollapsed" class="font-medium">Dashboard</span>
+        </a>
+
+        <!-- Products -->
+        <a href="{{ route('storekeeper.products') }}" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-150 group {{ request()->routeIs('storekeeper.products') ? 'bg-primary-600 text-white' : 'text-primary-200 hover:bg-white/10 hover:text-white' }}">
+          <i class="fa-solid fa-boxes w-4 text-center flex-shrink-0"></i>
+          <span x-show="!sidebarCollapsed" class="font-medium">Products</span>
+        </a>
+
+        <!-- Stock -->
+        <a href="{{ route('storekeeper.stock') }}" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-150 group {{ request()->routeIs('storekeeper.stock') ? 'bg-primary-600 text-white' : 'text-primary-200 hover:bg-white/10 hover:text-white' }}">
+          <i class="fa-solid fa-warehouse w-4 text-center flex-shrink-0"></i>
+          <span x-show="!sidebarCollapsed" class="font-medium">Stock</span>
+        </a>
+
+        <!-- Purchase Orders -->
+        <a href="{{ route('storekeeper.purchase-orders') }}" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-150 group {{ request()->routeIs('storekeeper.purchase-orders') ? 'bg-primary-600 text-white' : 'text-primary-200 hover:bg-white/10 hover:text-white' }}">
+          <i class="fa-solid fa-shopping-cart w-4 text-center flex-shrink-0"></i>
+          <span x-show="!sidebarCollapsed" class="font-medium">Purchase Orders</span>
+        </a>
+
+        <!-- Suppliers -->
+        <a href="{{ route('storekeeper.suppliers') }}" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-150 group {{ request()->routeIs('storekeeper.suppliers') ? 'bg-primary-600 text-white' : 'text-primary-200 hover:bg-white/10 hover:text-white' }}">
+          <i class="fa-solid fa-truck w-4 text-center flex-shrink-0"></i>
+          <span x-show="!sidebarCollapsed" class="font-medium">Suppliers</span>
+        </a>
+      </nav>
+    </aside>
+  </template>
+
+  <!-- Marketing Officer Sidebar -->
+  <template x-if="isMarketingOfficer">
+    <aside :class="[sidebarOpen?'translate-x-0':'lg:translate-x-0 -translate-x-full','sidebar sidebar-bg fixed lg:relative h-screen z-50 flex flex-col transition-all duration-300',sidebarCollapsed&&window.innerWidth>=1024?'w-16':'w-[260px]']"
+           class="sidebar-bg">
+      <!-- Sidebar Header -->
+      <div class="flex items-center justify-between p-4 border-b border-white/20 border-t-2 border-primary-600 flex-shrink-0 bg-white">
+        <div class="flex items-center gap-3" x-show="!sidebarCollapsed || window.innerWidth<1024">
+          <img src="https://feedtanstore.com/feedtanstorelogo.png" alt="FEEDTAN STORE" class="w-full h-12 rounded-lg flex-shrink-0 object-contain" style="max-width: 180px;">
+        </div>
+        <div x-show="sidebarCollapsed && window.innerWidth>=1024" class="w-10 h-10 rounded-lg flex items-center justify-center mx-auto">
+          <img src="https://feedtanstore.com/feedtanstorelogo.png" alt="FEEDTAN STORE" class="w-full h-full rounded-lg object-contain">
+        </div>
+        <button @click="sidebarCollapsed=!sidebarCollapsed" class="text-primary-300 hover:text-white transition-colors hidden lg:block">
+          <i :class="sidebarCollapsed?'fa-solid fa-chevron-right':'fa-solid fa-chevron-left'" class="text-xs"></i>
+        </button>
+      </div>
+
+      <!-- Marketing Officer Navigation -->
+      <nav class="flex-1 overflow-y-auto py-3 px-2 space-y-0.5">
+        <!-- Dashboard -->
+        <a href="{{ route('marketing-officer.dashboard') }}" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-150 group {{ request()->routeIs('marketing-officer.dashboard') ? 'bg-primary-600 text-white' : 'text-primary-200 hover:bg-white/10 hover:text-white' }}">
+          <i class="fa-solid fa-house w-4 text-center flex-shrink-0"></i>
+          <span x-show="!sidebarCollapsed" class="font-medium">Dashboard</span>
+        </a>
+
+        <!-- Orders -->
+        <a href="{{ route('marketing-officer.orders') }}" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-150 group {{ request()->routeIs('marketing-officer.orders') ? 'bg-primary-600 text-white' : 'text-primary-200 hover:bg-white/10 hover:text-white' }}">
+          <i class="fa-solid fa-list-alt w-4 text-center flex-shrink-0"></i>
+          <span x-show="!sidebarCollapsed" class="font-medium">Orders</span>
+        </a>
+
+        <!-- Customers -->
+        <a href="{{ route('marketing-officer.customers') }}" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-150 group {{ request()->routeIs('marketing-officer.customers') ? 'bg-primary-600 text-white' : 'text-primary-200 hover:bg-white/10 hover:text-white' }}">
+          <i class="fa-solid fa-users w-4 text-center flex-shrink-0"></i>
+          <span x-show="!sidebarCollapsed" class="font-medium">Customers</span>
+        </a>
+
+        <!-- Riders -->
+        <a href="{{ route('marketing-officer.riders') }}" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-150 group {{ request()->routeIs('marketing-officer.riders') ? 'bg-primary-600 text-white' : 'text-primary-200 hover:bg-white/10 hover:text-white' }}">
+          <i class="fa-solid fa-motorcycle w-4 text-center flex-shrink-0"></i>
+          <span x-show="!sidebarCollapsed" class="font-medium">Riders</span>
+        </a>
+
+        <!-- Delivery Map -->
+        <a href="{{ route('delivery-management.index') }}" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-150 group {{ request()->routeIs('delivery-management.*') ? 'bg-primary-600 text-white' : 'text-primary-200 hover:bg-white/10 hover:text-white' }}">
+          <i class="fa-solid fa-map-marked-alt w-4 text-center flex-shrink-0"></i>
+          <span x-show="!sidebarCollapsed" class="font-medium">Delivery Map</span>
+        </a>
+      </nav>
+    </aside>
+  </template>
+
   <!-- Regular Sidebar -->
-  <template x-if="!isCashier && !isRider">
+  <template x-if="!isCashier && !isRider && !isStorekeeper && !isMarketingOfficer">
     <aside :class="[sidebarOpen?'translate-x-0':'lg:translate-x-0 -translate-x-full','sidebar sidebar-bg fixed lg:relative h-screen z-50 flex flex-col transition-all duration-300',sidebarCollapsed&&window.innerWidth>=1024?'w-16':'w-[260px]']"
            class="sidebar-bg">
 
