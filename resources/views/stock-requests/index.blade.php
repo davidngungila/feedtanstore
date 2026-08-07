@@ -45,11 +45,16 @@
                                 <span class="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">Completed</span>
                             @endif
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{{ $stockRequest->requested_at->format('M d, Y H:i') }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm">
-                            <a href="{{ route('stock-requests.show', $stockRequest) }}" class="text-primary-600 hover:text-primary-900 font-medium">
+                        <td class="px-6 py-4 text-sm text-gray-600">{{ $stockRequest->requested_at->format('M d, Y H:i') }}</td>
+                        <td class="px-6 py-4 text-sm">
+                            <a href="{{ route('stock-requests.show', $stockRequest) }}" class="text-primary-600 hover:text-primary-900 font-medium mr-3">
                                 View Details
                             </a>
+                            @if($stockRequest->status === 'approved' && (Auth::user()->role === 'storekeeper' || Auth::user()->role === 'admin' || Auth::user()->role === 'manager'))
+                            <a href="{{ route('stock-requests.show', $stockRequest) }}" class="text-green-600 hover:text-green-900 font-medium">
+                                Issue Products
+                            </a>
+                            @endif
                         </td>
                     </tr>
                     @empty

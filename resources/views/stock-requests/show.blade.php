@@ -118,31 +118,35 @@
 
     @if($stockRequest->status === 'approved' && (Auth::user()->role === 'storekeeper' || Auth::user()->role === 'admin' || Auth::user()->role === 'manager'))
     <div class="card rounded-2xl p-6 mt-6">
-        <h2 class="text-lg font-bold text-primary-900 mb-4">Issue Products</h2>
+        <h2 class="text-lg font-bold text-primary-900 mb-4">Issue Products to Packaging</h2>
+        <p class="text-sm text-gray-600 mb-4">Add products to packaging one by one. Each addition will be verified and recorded.</p>
         <form action="{{ route('stock-requests.issue', $stockRequest) }}" method="POST">
             @csrf
             <div class="space-y-4">
                 @foreach($stockRequest->items as $item)
-                <div class="p-4 border border-gray-200 rounded-lg">
+                <div class="p-4 border border-gray-200 rounded-lg @if($item->quantity_approved > 0) bg-green-50 @endif">
                     <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
                         <div class="md:col-span-2">
                             <p class="font-semibold text-gray-900">{{ $item->product->name }}</p>
                             <p class="text-sm text-gray-600">Requested: {{ $item->quantity_requested }} | Available: {{ $item->product->quantity }}</p>
+                            @if($item->quantity_approved > 0)
+                            <p class="text-sm text-green-600 font-medium">✓ Already issued: {{ $item->quantity_approved }}</p>
+                            @endif
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Quantity to Issue</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Add to Package</label>
                             <input type="number" 
                                    name="items[{{ $item->id }}][quantity_issued]" 
                                    min="0" 
-                                   max="{{ min($item->quantity_requested, $item->product->quantity) }}"
-                                   value="{{ min($item->quantity_requested, $item->product->quantity) }}"
+                                   max="{{ min($item->quantity_requested - $item->quantity_approved, $item->product->quantity) }}"
+                                   value="0"
                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
                             <span class="px-2 py-1 text-xs font-semibold rounded-full 
-                                @if($item->product->quantity >= $item->quantity_requested) bg-green-100 text-green-800 @else bg-red-100 text-red-800 @endif">
-                                @if($item->product->quantity >= $item->quantity_requested) In Stock @else Insufficient Stock @endif
+                                @if($item->product->quantity >= ($item->quantity_requested - $item->quantity_approved)) bg-green-100 text-green-800 @else bg-red-100 text-red-800 @endif">
+                                @if($item->product->quantity >= ($item->quantity_requested - $item->quantity_approved)) In Stock @else Insufficient Stock @endif
                             </span>
                         </div>
                     </div>
@@ -151,7 +155,7 @@
             </div>
             <div class="flex justify-end mt-6">
                 <button type="submit" class="px-6 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors">
-                    Issue Products
+                    Add Selected to Package
                 </button>
             </div>
         </form>

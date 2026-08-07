@@ -97,23 +97,22 @@ class StockRequestController extends Controller
 
         $stockRequest = StockRequest::findOrFail($stockRequest);
         
-        // Update item quantities and issue stock
+        // Update item quantities and issue stock incrementally
         foreach ($request->items as $itemId => $itemData) {
             $stockRequestItem = StockRequestItem::findOrFail($itemId);
-            $stockRequestItem->quantity_approved = $itemData['quantity_issued'];
-            $stockRequestItem->save();
-
-            // Issue stock if quantity > 0
-            if ($itemData['quantity_issued'] > 0) {
+            $additionalQuantity = $itemData['quantity_issued'];
+            
+            // Only process if additional quantity > 0
+            if ($additionalQuantity > 0) {
                 $product = Product::findOrFail($stockRequestItem->product_id);
                 
                 // Check if enough stock is available
-                if ($product->quantity >= $itemData['quantity_issued']) {
+                if ($product->quantity >= $additionalQuantity) {
                     // Create stock movement record
                     \App\Models\StockMovement::create([
                         'product_id' => $product->id,
                         'movement_type' => 'out',
-                        'quantity' => $itemData['quantity_issued'],
+                        'quantity' => $additionalQuantity,
                         'reference_type' => 'stock_request',
                         'reference_id' => $stockRequest->id,
                         'user_id' => Auth::id(),
@@ -121,17 +120,31 @@ class StockRequestController extends Controller
                     ]);
 
                     // Update product quantity
-                    $product->quantity -= $itemData['quantity_issued'];
+                    $product->quantity -= $additionalQuantity;
                     $product->save();
+                    
+                    // Increment approved quantity (add to existing)
+                    $stockRequestItem->quantity_approved += $additionalQuantity;
+                    $stockRequestItem->save();
                 }
             }
         }
 
-        // Mark as completed if items are issued
-        $stockRequest->status = 'completed';
-        $stockRequest->save();
+        // Check if all requested items are fully issued
+        $allFullyIssued = true;
+        foreach ($stockRequest->items as $item) {
+            if ($item->quantity_approved < $item->quantity_requested) {
+                $allFullyIssued = false;
+                break;
+            }
+        }
+        
+        if ($allFullyIssued) {
+            $stockRequest->status = 'completed';
+            $stockRequest->save();
+        }
 
-        return redirect()->back()->with('success', 'Products issued successfully');
+        return redirect()->back()->with('success', 'Products added to packaging successfully');
     }
 
     public function reject($stockRequest)
