@@ -21,7 +21,7 @@ class PurchaseOrderRequestController extends Controller
     public function create()
     {
         $products = Product::where('is_active', true)->orderBy('name')->get();
-        return view('purchase-order-requests.create', compact('products'));
+        return view('storekeeper.purchase-order-requests-create', compact('products'));
     }
 
     public function store(Request $request)
