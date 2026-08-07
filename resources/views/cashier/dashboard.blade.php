@@ -1638,14 +1638,13 @@ function completeSale() {
                             setTimeout(() => {
                                 document.getElementById('loadingOverlay').classList.add('hidden');
                                 currentSaleId = data.sale_id;
+                                document.getElementById('modalTotal').textContent = 'TZS ' + formatNumber(total);
+                                document.getElementById('modalPaid').textContent = 'TZS ' + formatNumber(paid);
+                                const changeValue = selectedPaymentMethod === 'cash' ? (paid - total) : 0;
+                                document.getElementById('modalChange').textContent = 'TZS ' + formatNumber(changeValue);
+                                document.getElementById('successModal').classList.remove('hidden');
                                 loadDashboardData();
                                 playSuccessSound();
-                                
-                                // Auto-redirect to receipt page
-                                if (currentSaleId) {
-                                    console.log('Redirecting to receipt page');
-                                    window.location.href = '/sales/' + currentSaleId;
-                                }
                             }, 500);
                         })
                         .catch(e => {
