@@ -73,7 +73,7 @@
                                 <select name="products[0][product_id]" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 product_select">
                                     <option value="">Select Product</option>
                                     @foreach($products as $product)
-                                        <option value="{{ $product->id }}" data-price="{{ $product->cost_price }}" data-selling-price="{{ $product->selling_price }}">{{ $product->name }}</option>
+                                        <option value="{{ $product->id }}" data-price="{{ $product->cost_price }}" data-selling-price="{{ $product->selling_price }}" data-requires-expiry="{{ $product->category && $product->category->requires_expiry_date ? 'true' : 'false' }}">{{ $product->name }}</option>
                                     @endforeach
                                 </select>
                             </div>
@@ -106,8 +106,9 @@
                                 <input type="number" step="0.01" name="products[0][selling_price]" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 product_selling_price">
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Expiry Date</label>
-                                <input type="date" name="products[0][expiry_date]" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Expiry Date <span class="expiry-required text-red-500 hidden">*</span></label>
+                                <input type="date" name="products[0][expiry_date]" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 product_expiry_date">
+                                <span class="expiry-hint text-xs text-gray-500 hidden">Required for this product category</span>
                             </div>
                         </div>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -293,9 +294,25 @@ function addProductItemListeners(item) {
             const selectedOption = this.options[this.selectedIndex];
             const costPrice = parseFloat(selectedOption.dataset.price) || 0;
             const sellingPrice = parseFloat(selectedOption.dataset.sellingPrice) || 0;
+            const requiresExpiry = selectedOption.dataset.requiresExpiry === 'true';
             
             item.querySelector('.product_cost_price').value = costPrice.toFixed(2);
             item.querySelector('.product_selling_price').value = sellingPrice.toFixed(2);
+            
+            // Update expiry date requirement
+            const expiryRequired = item.querySelector('.expiry-required');
+            const expiryHint = item.querySelector('.expiry-hint');
+            const expiryInput = item.querySelector('.product_expiry_date');
+            
+            if (requiresExpiry) {
+                expiryRequired.classList.remove('hidden');
+                expiryHint.classList.remove('hidden');
+                expiryInput.setAttribute('required', 'required');
+            } else {
+                expiryRequired.classList.add('hidden');
+                expiryHint.classList.add('hidden');
+                expiryInput.removeAttribute('required');
+            }
             
             // Set default profit value
             const defaultProfitValue = (sellingPrice - costPrice).toFixed(2);
@@ -390,8 +407,9 @@ function addProductItemFromPo(productData, orderedQuantity, unitPrice) {
                     <input type="number" step="0.01" name="products[${productIndex}][selling_price]" value="${productSellingPrice}" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 product_selling_price">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Expiry Date</label>
-                    <input type="date" name="products[${productIndex}][expiry_date]" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Expiry Date <span class="expiry-required text-red-500 hidden">*</span></label>
+                    <input type="date" name="products[${productIndex}][expiry_date]" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 product_expiry_date">
+                    <span class="expiry-hint text-xs text-gray-500 hidden">Required for this product category</span>
                 </div>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">

@@ -40,11 +40,11 @@ class GoodsReceivedNoteController extends Controller
     public function create()
     {
         $suppliers = Supplier::all();
-        $products = Product::all();
+        $products = Product::with('category')->get();
         $purchaseOrders = PurchaseOrder::with(['supplier', 'items.product'])->where('status', 'pending')->where('approval_status', 'approved')->whereNotNull('sent_at')->get();
         $selectedPurchaseOrder = null;
         if (request()->has('purchase_order_id')) {
-            $selectedPurchaseOrder = PurchaseOrder::with(['supplier', 'items.product'])->where('approval_status', 'approved')->whereNotNull('sent_at')->find(request()->purchase_order_id);
+            $selectedPurchaseOrder = PurchaseOrder::with(['supplier', 'items.product.category'])->where('approval_status', 'approved')->whereNotNull('sent_at')->find(request()->purchase_order_id);
             if (!$selectedPurchaseOrder) {
                 return redirect()->route('purchasing.grn.create')->with('error', 'Invalid purchase order ID.');
             }
@@ -68,6 +68,7 @@ class GoodsReceivedNoteController extends Controller
             'products.*.product_id' => 'required|exists:products,id',
             'products.*.quantity' => 'required|numeric|min:1',
             'products.*.unit_price' => 'required|numeric|min:0',
+            'products.*.expiry_date' => 'nullable|date',
         ]);
 
         // Validate PO is sent if provided
@@ -75,6 +76,16 @@ class GoodsReceivedNoteController extends Controller
             $po = PurchaseOrder::findOrFail($request->purchase_order_id);
             if (!$po->sent_at) {
                 return back()->with('error', 'Cannot receive goods for a purchase order that has not been sent to the supplier!');
+            }
+        }
+
+        // Validate expiry dates for products in categories that require them
+        foreach ($request->products as $productData) {
+            $product = Product::with('category')->find($productData['product_id']);
+            if ($product && $product->category && $product->category->requires_expiry_date) {
+                if (empty($productData['expiry_date'])) {
+                    return back()->with('error', "Expiry date is required for {$product->name} (Category: {$product->category->name})");
+                }
             }
         }
 
@@ -97,7 +108,8 @@ class GoodsReceivedNoteController extends Controller
 
         foreach ($request->products as $productData) {
             $itemTotal = $productData['quantity'] * $productData['unit_price'];
-            $grn->items()->create([
+            
+            $grnItem = $grn->items()->create([
                 'product_id' => $productData['product_id'],
                 'quantity' => $productData['quantity'],
                 'unit_price' => $productData['unit_price'],
