@@ -68,6 +68,26 @@ Route::middleware('auth')->group(function () {
     Route::get('/dashboard/purchases', [\App\Http\Controllers\PurchasesDashboardController::class, 'index'])->name('dashboard.purchases');
     Route::get('/dashboard/inventory', [\App\Http\Controllers\InventoryDashboardController::class, 'index'])->name('dashboard.inventory');
     
+    // Storekeeper Routes
+    Route::prefix('storekeeper')->name('storekeeper.')->group(function () {
+        Route::get('/dashboard', [\App\Http\Controllers\StorekeeperController::class, 'dashboard'])->name('dashboard');
+        Route::get('/products', [\App\Http\Controllers\StorekeeperController::class, 'products'])->name('products');
+        Route::get('/stock', [\App\Http\Controllers\StorekeeperController::class, 'stock'])->name('stock');
+        Route::get('/purchase-orders', [\App\Http\Controllers\StorekeeperController::class, 'purchaseOrders'])->name('purchase-orders');
+        Route::get('/suppliers', [\App\Http\Controllers\StorekeeperController::class, 'suppliers'])->name('suppliers');
+    });
+
+    // Marketing Officer Routes
+    Route::prefix('marketing-officer')->name('marketing-officer.')->group(function () {
+        Route::get('/dashboard', [\App\Http\Controllers\MarketingOfficerController::class, 'dashboard'])->name('dashboard');
+        Route::get('/orders', [\App\Http\Controllers\MarketingOfficerController::class, 'orders'])->name('orders');
+        Route::get('/orders/{id}', [\App\Http\Controllers\MarketingOfficerController::class, 'orderDetails'])->name('order-details');
+        Route::put('/orders/{id}/status', [\App\Http\Controllers\MarketingOfficerController::class, 'updateOrderStatus'])->name('update-order-status');
+        Route::put('/orders/{id}/assign-rider', [\App\Http\Controllers\MarketingOfficerController::class, 'assignRider'])->name('assign-rider');
+        Route::get('/customers', [\App\Http\Controllers\MarketingOfficerController::class, 'customers'])->name('customers');
+        Route::get('/riders', [\App\Http\Controllers\MarketingOfficerController::class, 'riders'])->name('riders');
+    });
+    
     // Profile
     Route::get('/profile', [\App\Http\Controllers\ProfileController::class, 'show'])->name('profile.show');
     Route::put('/profile', [\App\Http\Controllers\ProfileController::class, 'update'])->name('profile.update');
