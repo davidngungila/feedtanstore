@@ -1165,20 +1165,9 @@ function formatNumber(num) {
 
 function updateTotals() {
     const subtotal = cart.reduce((sum, item) => sum + (parseFloat(item.price) * item.quantity), 0);
-    const discountType = document.getElementById('discountType').value;
-    const discountValue = parseFloat(document.getElementById('discountInput').value) || 0;
-    let discount = 0;
-
-    if (discountType === 'percent') {
-        discount = (discountValue / 100) * subtotal;
-    } else {
-        discount = discountValue;
-    }
-
-    const total = Math.max(0, subtotal - discount);
+    const total = Math.max(0, subtotal);
 
     document.getElementById('subtotal').textContent = 'TZS ' + formatNumber(subtotal);
-    document.getElementById('discountAmount').textContent = '-TZS ' + formatNumber(discount);
     document.getElementById('total').textContent = 'TZS ' + formatNumber(total);
     document.getElementById('paymentTotal').textContent = 'TZS ' + formatNumber(total);
 
