@@ -141,7 +141,6 @@ class StockTransferController extends Controller
         // Delete the transfer
         $stockTransfer->delete();
 
-        return redirect()->route('inventory.transfers')
-            ->with('success', 'Stock transfer deleted successfully');
+        return back()->with('success', 'Stock transfer deleted successfully');
     }
 }
