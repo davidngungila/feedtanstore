@@ -495,7 +495,7 @@
         </a>
 
         <!-- Delivery Map -->
-        <a href="{{ route('delivery-management.index') }}" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-150 group {{ request()->routeIs('delivery-management.*') ? 'bg-primary-600 text-white' : 'text-primary-200 hover:bg-white/10 hover:text-white' }}">
+        <a href="{{ route('delivery.map') }}" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-150 group {{ request()->routeIs('delivery.*') ? 'bg-primary-600 text-white' : 'text-primary-200 hover:bg-white/10 hover:text-white' }}">
           <i class="fa-solid fa-map-marked-alt w-4 text-center flex-shrink-0"></i>
           <span x-show="!sidebarCollapsed" class="font-medium">Delivery Map</span>
         </a>
