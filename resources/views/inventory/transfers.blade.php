@@ -2,7 +2,7 @@
 
 @section('page-title', 'Stock Transfers')
 
-@push('scripts')
+@section('scripts')
 <script>
     function showDeleteModal(transferId) {
         document.getElementById('deleteModal').classList.remove('hidden');
@@ -15,7 +15,7 @@
         document.getElementById('deleteModal').classList.remove('flex');
     }
 </script>
-@endpush
+@endsection
 
 @section('content')
 <div class="animate-[fadeIn_0.4s_ease]">
