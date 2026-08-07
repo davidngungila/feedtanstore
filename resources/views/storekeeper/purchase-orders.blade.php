@@ -27,7 +27,7 @@
                     @foreach($purchaseOrders as $order)
                     <tr class="hover:bg-gray-50">
                         <td class="px-6 py-4">
-                            <p class="font-semibold text-gray-900">{{ $order->order_number }}</p>
+                            <p class="font-semibold text-gray-900">{{ $order->po_number }}</p>
                         </td>
                         <td class="px-6 py-4 text-sm text-gray-600">{{ $order->supplier->name ?? 'N/A' }}</td>
                         <td class="px-6 py-4 text-sm text-gray-600">{{ $order->created_at->format('M d, Y') }}</td>
