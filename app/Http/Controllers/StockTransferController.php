@@ -20,7 +20,7 @@ class StockTransferController extends Controller
 
     public function create()
     {
-        $products = Product::where('is_active', true)->orderBy('name')->get();
+        $products = Product::where('is_active', true)->where('quantity', '>', 0)->orderBy('name')->get();
         $locations = Location::orderBy('name')->get();
         return view('storekeeper.stock-transfers-create', compact('products', 'locations'));
     }

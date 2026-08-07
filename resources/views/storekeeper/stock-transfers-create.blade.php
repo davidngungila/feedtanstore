@@ -3,6 +3,7 @@
 @section('page-title', 'Create Stock Transfer')
 
 @section('scripts')
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
     function addTransferItem() {
         const itemsContainer = document.getElementById('transferItems');
@@ -38,6 +39,24 @@
             button.closest('.transfer-item').remove();
         }
     }
+
+    @if(session('success'))
+    Swal.fire({
+        icon: 'success',
+        title: 'Success',
+        text: '{{ session('success') }}',
+        confirmButtonColor: '#4F46E5'
+    });
+    @endif
+
+    @if(session('error'))
+    Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: '{{ session('error') }}',
+        confirmButtonColor: '#DC2626'
+    });
+    @endif
 </script>
 @endsection
 
