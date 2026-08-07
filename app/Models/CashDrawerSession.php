@@ -13,6 +13,10 @@ class CashDrawerSession extends Model
         'session_number',
         'user_id',
         'opening_balance',
+        'cash_balance',
+        'mobile_balance',
+        'bank_balance',
+        'online_balance',
         'opened_at',
         'closing_balance',
         'closed_at',
@@ -26,6 +30,10 @@ class CashDrawerSession extends Model
 
     protected $casts = [
         'opening_balance' => 'decimal:2',
+        'cash_balance' => 'decimal:2',
+        'mobile_balance' => 'decimal:2',
+        'bank_balance' => 'decimal:2',
+        'online_balance' => 'decimal:2',
         'closing_balance' => 'decimal:2',
         'expected_balance' => 'decimal:2',
         'difference' => 'decimal:2',

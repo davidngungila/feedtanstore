@@ -1638,12 +1638,27 @@
             <span class="hidden sm:inline-flex px-3 py-1 bg-green-500 text-white rounded-full text-xs font-semibold">
               <i class="fa-solid fa-circle text-[8px] mr-1"></i>Shift Open
             </span>
+            @php
+              $activeSession = \App\Models\CashDrawerSession::where('user_id', Auth::id())
+                  ->where('status', 'opened')
+                  ->first();
+              $reconciledSession = \App\Models\CashDrawerSession::where('user_id', Auth::id())
+                  ->where('status', 'reconciled')
+                  ->first();
+              $canLogout = !$activeSession && $reconciledSession;
+            @endphp
+            @if($canLogout)
             <form method="POST" action="{{ route('logout') }}">
               @csrf
               <button type="submit" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition-colors">
                 <i class="fa-solid fa-right-from-bracket mr-1"></i>Logout
               </button>
             </form>
+            @elseif($activeSession)
+            <a href="{{ route('cash-drawer-sessions.close') }}" class="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg text-sm font-medium transition-colors">
+              <i class="fa-solid fa-calculator mr-1"></i>Reconcile Now
+            </a>
+            @endif
           </div>
         </div>
       </template>

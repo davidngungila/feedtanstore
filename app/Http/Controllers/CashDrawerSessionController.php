@@ -25,7 +25,10 @@ class CashDrawerSessionController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'opening_balance' => 'required|numeric|min:0',
+            'cash_balance' => 'required|numeric|min:0',
+            'mobile_balance' => 'required|numeric|min:0',
+            'bank_balance' => 'required|numeric|min:0',
+            'online_balance' => 'required|numeric|min:0',
             'notes' => 'nullable|string',
         ]);
 
@@ -38,10 +41,16 @@ class CashDrawerSessionController extends Controller
             return back()->with('error', 'You already have an open cash drawer session');
         }
 
+        $totalOpeningBalance = $request->cash_balance + $request->mobile_balance + $request->bank_balance + $request->online_balance;
+
         CashDrawerSession::create([
             'session_number' => CashDrawerSession::generateSessionNumber(),
             'user_id' => Auth::id(),
-            'opening_balance' => $request->opening_balance,
+            'opening_balance' => $totalOpeningBalance,
+            'cash_balance' => $request->cash_balance,
+            'mobile_balance' => $request->mobile_balance,
+            'bank_balance' => $request->bank_balance,
+            'online_balance' => $request->online_balance,
             'opened_at' => now(),
             'status' => 'opened',
             'notes' => $request->notes,
