@@ -84,7 +84,7 @@
             <i class="fas fa-lock mr-2"></i>Close Cash Drawer
         </a>
     </div>
-    @elseif($session->status == 'closed' && auth()->user()->role === 'admin')
+    @elseif($session->status == 'closed' && in_array(auth()->user()->role, ['admin', 'manager']))
     <div class="card rounded-2xl p-6 mb-6">
         <div class="flex gap-4">
             <a href="{{ route('cash-drawer-sessions.report', $session) }}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">

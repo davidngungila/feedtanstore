@@ -148,6 +148,11 @@ class CashDrawerSessionController extends Controller
             return back()->with('error', 'This session must be closed before reconciliation');
         }
 
+        // Check if user is manager or admin
+        if (!in_array(auth()->user()->role, ['manager', 'admin'])) {
+            return back()->with('error', 'Only managers and admins can reconcile cash drawer sessions');
+        }
+
         $request->validate([
             'notes' => 'nullable|string',
         ]);
