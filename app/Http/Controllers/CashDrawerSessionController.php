@@ -80,15 +80,9 @@ class CashDrawerSessionController extends Controller
             return back()->with('error', 'You can only close your own sessions');
         }
 
-        // Calculate expected sales
-        $totalCashSales = Sale::where('cash_drawer_session_id', $cashDrawerSession->id)
-            ->where('payment_method', 'cash')
-            ->sum('total');
-        
         $session = $cashDrawerSession;
-        $expectedSales = $totalCashSales;
 
-        return view('cash-drawer-sessions.close', compact('session', 'expectedSales'));
+        return view('cash-drawer-sessions.close', compact('session'));
     }
 
     public function close(Request $request, CashDrawerSession $cashDrawerSession)
@@ -102,23 +96,44 @@ class CashDrawerSessionController extends Controller
         }
 
         $request->validate([
-            'closing_balance' => 'required|numeric|min:0',
+            'closing_cash_balance' => 'required|numeric|min:0',
+            'closing_mobile_balance' => 'required|numeric|min:0',
+            'closing_bank_balance' => 'required|numeric|min:0',
+            'closing_online_balance' => 'required|numeric|min:0',
             'notes' => 'nullable|string',
         ]);
 
-        // Calculate expected balance
+        // Calculate expected balances by payment method
         $totalCashSales = Sale::where('cash_drawer_session_id', $cashDrawerSession->id)
             ->where('payment_method', 'cash')
             ->sum('total');
         
-        $expectedBalance = $cashDrawerSession->opening_balance + $totalCashSales;
-        $difference = $request->closing_balance - $expectedBalance;
+        $totalMobileSales = Sale::where('cash_drawer_session_id', $cashDrawerSession->id)
+            ->where('payment_method', 'mobile')
+            ->sum('total');
+        
+        $totalCardSales = Sale::where('cash_drawer_session_id', $cashDrawerSession->id)
+            ->where('payment_method', 'card')
+            ->sum('total');
+        
+        $totalOnlineSales = Sale::where('cash_drawer_session_id', $cashDrawerSession->id)
+            ->where('payment_method', 'online')
+            ->sum('total');
+
+        $expectedCashBalance = $cashDrawerSession->cash_balance + $totalCashSales;
+        $expectedMobileBalance = $cashDrawerSession->mobile_balance + $totalMobileSales;
+        $expectedBankBalance = $cashDrawerSession->bank_balance + $totalCardSales;
+        $expectedOnlineBalance = $cashDrawerSession->online_balance + $totalOnlineSales;
+        
+        $totalExpectedBalance = $expectedCashBalance + $expectedMobileBalance + $expectedBankBalance + $expectedOnlineBalance;
+        $totalClosingBalance = $request->closing_cash_balance + $request->closing_mobile_balance + $request->closing_bank_balance + $request->closing_online_balance;
+        $totalDifference = $totalClosingBalance - $totalExpectedBalance;
 
         $cashDrawerSession->update([
-            'closing_balance' => $request->closing_balance,
+            'closing_balance' => $totalClosingBalance,
             'closed_at' => now(),
-            'expected_balance' => $expectedBalance,
-            'difference' => $difference,
+            'expected_balance' => $totalExpectedBalance,
+            'difference' => $totalDifference,
             'status' => 'closed',
             'notes' => $request->notes,
         ]);

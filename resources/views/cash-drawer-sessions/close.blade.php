@@ -16,12 +16,24 @@
 
             <div class="bg-gray-50 rounded-lg p-4 mb-6">
                 <div class="flex justify-between items-center mb-2">
-                    <span class="text-sm text-gray-600">Opening Balance:</span>
-                    <span class="font-semibold">TZS {{ number_format($session->opening_balance, 0) }}</span>
+                    <span class="text-sm text-gray-600">Opening Cash Balance:</span>
+                    <span class="font-semibold">TZS {{ number_format($session->cash_balance, 0) }}</span>
                 </div>
-                <div class="flex justify-between items-center">
-                    <span class="text-sm text-gray-600">Expected Sales:</span>
-                    <span class="font-semibold">TZS {{ number_format($expectedSales, 0) }}</span>
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-sm text-gray-600">Opening Mobile Balance:</span>
+                    <span class="font-semibold">TZS {{ number_format($session->mobile_balance, 0) }}</span>
+                </div>
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-sm text-gray-600">Opening Bank Balance:</span>
+                    <span class="font-semibold">TZS {{ number_format($session->bank_balance, 0) }}</span>
+                </div>
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-sm text-gray-600">Opening Online Balance:</span>
+                    <span class="font-semibold">TZS {{ number_format($session->online_balance, 0) }}</span>
+                </div>
+                <div class="flex justify-between items-center border-t pt-2 mt-2">
+                    <span class="text-sm font-semibold text-gray-700">Total Opening Balance:</span>
+                    <span class="font-bold text-primary-900">TZS {{ number_format($session->opening_balance, 0) }}</span>
                 </div>
             </div>
 
@@ -30,10 +42,31 @@
                 @csrf
                 <div class="space-y-6">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Closing Balance (TZS)</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Closing Cash Balance (TZS)</label>
                         <div class="relative">
                             <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">TZS</span>
-                            <input type="number" name="closing_balance" class="w-full pl-16 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-lg" required min="0" step="0.01" placeholder="0.00">
+                            <input type="number" name="closing_cash_balance" class="w-full pl-16 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-lg" required min="0" step="0.01" placeholder="0.00">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Closing Mobile Balance (TZS)</label>
+                        <div class="relative">
+                            <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">TZS</span>
+                            <input type="number" name="closing_mobile_balance" class="w-full pl-16 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-lg" required min="0" step="0.01" placeholder="0.00">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Closing Bank Balance (TZS)</label>
+                        <div class="relative">
+                            <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">TZS</span>
+                            <input type="number" name="closing_bank_balance" class="w-full pl-16 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-lg" required min="0" step="0.01" placeholder="0.00">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Closing Online Balance (TZS)</label>
+                        <div class="relative">
+                            <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">TZS</span>
+                            <input type="number" name="closing_online_balance" class="w-full pl-16 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-lg" required min="0" step="0.01" placeholder="0.00">
                         </div>
                     </div>
                     <div>
