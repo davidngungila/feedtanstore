@@ -4,15 +4,14 @@
 
 @section('content')
 <div class="animate-[fadeIn_0.4s_ease]">
-    <div class="min-h-screen flex items-center justify-center">
-        <div class="card rounded-2xl p-8 max-w-md w-full">
-            <div class="text-center mb-8">
-                <div class="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <i class="fas fa-cash-register text-4xl text-red-600"></i>
-                </div>
-                <h1 class="text-2xl font-bold text-primary-900">Close Cash Drawer</h1>
-                <p class="text-gray-600 mt-2">Enter your ending cash balance to close your shift</p>
+    <div class="card rounded-2xl p-8 max-w-4xl mx-auto">
+        <div class="text-center mb-8">
+            <div class="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-cash-register text-4xl text-red-600"></i>
             </div>
+            <h1 class="text-2xl font-bold text-primary-900">Close Cash Drawer</h1>
+            <p class="text-gray-600 mt-2">Enter your ending cash balance to close your shift</p>
+        </div>
 
             <div class="bg-gray-50 rounded-lg p-4 mb-6">
                 <div class="flex justify-between items-center mb-2">
