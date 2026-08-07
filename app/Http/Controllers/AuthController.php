@@ -184,6 +184,18 @@ class AuthController extends Controller
 
     public function logout(Request $request)
     {
+        // Check if cashier has unreconciled cash drawer session
+        if (Auth::check() && Auth::user()->role === 'cashier') {
+            $unreconciledSession = \App\Models\CashDrawerSession::where('user_id', Auth::id())
+                ->where('status', 'closed')
+                ->first();
+
+            if ($unreconciledSession) {
+                return redirect()->route('cash-drawer-sessions.show', $unreconciledSession)
+                    ->with('error', 'You must complete cash drawer reconciliation before logout.');
+            }
+        }
+
         // Record logout action
         if (Auth::check()) {
             ActionLog::create([

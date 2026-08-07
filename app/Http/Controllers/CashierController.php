@@ -24,11 +24,20 @@ class CashierController extends Controller
             return redirect()->route('dashboard');
         }
 
+        // Check if cashier has an open cash drawer session
+        $activeSession = \App\Models\CashDrawerSession::where('user_id', Auth::id())
+            ->where('status', 'opened')
+            ->first();
+
+        if (!$activeSession) {
+            return redirect()->route('cash-drawer-sessions.create');
+        }
+
         $products = Product::with(['category', 'brand', 'unit'])->where('is_active', true)->get();
         $storeSetting = StoreSetting::firstOrCreate();
         $customers = \App\Models\Customer::all();
         
-        return view('cashier.dashboard', compact('products', 'storeSetting', 'customers'));
+        return view('cashier.dashboard', compact('products', 'storeSetting', 'customers', 'activeSession'));
     }
 
     public function getProductByBarcode($barcode)
@@ -154,14 +163,24 @@ class CashierController extends Controller
             \Log::info('Creating sale', [
                 'invoice_number' => $invoiceNumber,
                 'subtotal' => $subtotal,
-                'total' => $total,
-                'shift_id' => $shiftId
             ]);
 
+            $activeSession = \App\Models\CashDrawerSession::where('user_id', Auth::id())
+            ->where('status', 'opened')
+            ->first();
+
+            if (!$activeSession) {
+                return response()->json(['error' => 'No active cash drawer session'], 403);
+            }
+
             $sale = Sale::create([
-                'invoice_number' => $invoiceNumber,
+                'sale_number' => 'SAL-' . date('YmdHis'),
+                'total' => $total,
+                'discount' => $data['discount'] ?? 0,
+                'payment_method' => $data['payment_method'],
                 'customer_id' => $data['customer_id'] ?? null,
                 'user_id' => Auth::id(),
+                'cash_drawer_session_id' => $activeSession->id,
                 'shift_id' => $shiftId,
                 'discount_id' => null,
                 'subtotal' => $subtotal,

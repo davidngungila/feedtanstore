@@ -454,6 +454,12 @@
           <span x-show="!sidebarCollapsed" class="font-medium">Stock Requests</span>
         </a>
 
+        <!-- Stock Adjustments -->
+        <a href="{{ route('storekeeper.stock-adjustments') }}" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-150 group {{ request()->routeIs('storekeeper.stock-adjustments*') ? 'bg-primary-600 text-white' : 'text-primary-200 hover:bg-white/10 hover:text-white' }}">
+          <i class="fa-solid fa-sliders-h w-4 text-center flex-shrink-0"></i>
+          <span x-show="!sidebarCollapsed" class="font-medium">Stock Adjustments</span>
+        </a>
+
         <!-- Suppliers -->
         <a href="{{ route('storekeeper.suppliers') }}" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-150 group {{ request()->routeIs('storekeeper.suppliers') ? 'bg-primary-600 text-white' : 'text-primary-200 hover:bg-white/10 hover:text-white' }}">
           <i class="fa-solid fa-truck w-4 text-center flex-shrink-0"></i>

@@ -62,6 +62,16 @@ Route::middleware('auth')->group(function () {
     Route::post('/cashier/sale', [\App\Http\Controllers\CashierController::class, 'completeSale'])->name('cashier.sale');
     Route::post('/cashier/initiate-online-payment', [\App\Http\Controllers\CashierController::class, 'initiateOnlinePayment'])->name('cashier.initiate-online-payment');
     
+    // Cash Drawer Sessions
+    Route::get('/cash-drawer-sessions', [\App\Http\Controllers\CashDrawerSessionController::class, 'index'])->name('cash-drawer-sessions');
+    Route::get('/cash-drawer-sessions/create', [\App\Http\Controllers\CashDrawerSessionController::class, 'create'])->name('cash-drawer-sessions.create');
+    Route::post('/cash-drawer-sessions', [\App\Http\Controllers\CashDrawerSessionController::class, 'store'])->name('cash-drawer-sessions.store');
+    Route::get('/cash-drawer-sessions/{cashDrawerSession}', [\App\Http\Controllers\CashDrawerSessionController::class, 'show'])->name('cash-drawer-sessions.show');
+    Route::get('/cash-drawer-sessions/{cashDrawerSession}/report', [\App\Http\Controllers\CashDrawerSessionController::class, 'generateReport'])->name('cash-drawer-sessions.report');
+    Route::put('/cash-drawer-sessions/{cashDrawerSession}/close', [\App\Http\Controllers\CashDrawerSessionController::class, 'close'])->name('cash-drawer-sessions.close');
+    Route::put('/cash-drawer-sessions/{cashDrawerSession}/reconcile', [\App\Http\Controllers\CashDrawerSessionController::class, 'reconcile'])->name('cash-drawer-sessions.reconcile');
+    Route::get('/api/cash-drawer-sessions/active', [\App\Http\Controllers\CashDrawerSessionController::class, 'getActiveSession'])->name('api.cash-drawer-sessions.active');
+    
     Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
     Route::get('/dashboard/sales', [\App\Http\Controllers\SalesDashboardController::class, 'index'])->name('dashboard.sales');
     Route::get('/dashboard/online-orders', [\App\Http\Controllers\OnlineOrdersDashboardController::class, 'index'])->name('dashboard.online-orders');
