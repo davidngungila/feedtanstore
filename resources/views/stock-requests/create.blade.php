@@ -53,6 +53,10 @@
                             <p class="text-sm text-blue-700">Delivery Address</p>
                             <p class="font-semibold text-blue-900" id="order_address">-</p>
                         </div>
+                        <div>
+                            <p class="text-sm text-blue-700">Distance from Store</p>
+                            <p class="font-semibold text-blue-900" id="order_distance">-</p>
+                        </div>
                     </div>
                     @if(isset($onlineOrders) && $onlineOrders->firstWhere('delivery_latitude'))
                     <div class="mt-4">
@@ -120,6 +124,24 @@ let productIndex = 1;
 const onlineOrdersData = @json($onlineOrders);
 const preSelectedOrderId = {{ $preSelectedOrderId ?? 'null' }};
 
+// Store location (you can configure this in .env or settings)
+const STORE_LATITUDE = -6.7924; // Example: Dar es Salaam coordinates
+const STORE_LONGITUDE = 39.2083;
+
+// Calculate distance between two coordinates using Haversine formula
+function calculateDistance(lat1, lon1, lat2, lon2) {
+    const R = 6371; // Earth's radius in km
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = 
+        Math.sin(dLat/2) * Math.sin(dLat/2) +
+        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+        Math.sin(dLon/2) * Math.sin(dLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    const distance = R * c; // Distance in km
+    return distance.toFixed(2); // Return distance rounded to 2 decimal places
+}
+
 document.getElementById('request_type').addEventListener('change', function() {
     const onlineOrderSection = document.getElementById('online_order_section');
     const onlineOrderSelect = document.getElementById('online_order_id');
@@ -151,6 +173,7 @@ document.getElementById('online_order_id').addEventListener('change', function()
     const orderDetailsSection = document.getElementById('order_details_section');
     const orderCustomer = document.getElementById('order_customer');
     const orderAddress = document.getElementById('order_address');
+    const orderDistance = document.getElementById('order_distance');
     const mapContainer = document.getElementById('map_container');
     
     if (this.value) {
@@ -161,6 +184,15 @@ document.getElementById('online_order_id').addEventListener('change', function()
         
         orderCustomer.textContent = customer || '-';
         orderAddress.textContent = address || '-';
+        
+        // Calculate and display distance if coordinates available
+        if (lat && lng) {
+            const distance = calculateDistance(STORE_LATITUDE, STORE_LONGITUDE, parseFloat(lat), parseFloat(lng));
+            orderDistance.textContent = distance + ' km';
+        } else {
+            orderDistance.textContent = 'No location data';
+        }
+        
         orderDetailsSection.classList.remove('hidden');
         
         // Auto-populate products from order

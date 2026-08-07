@@ -111,7 +111,7 @@
         <h2 class="text-lg font-bold text-primary-900 mb-4">Delivery Location</h2>
         
         @if($order->delivery_latitude && $order->delivery_longitude)
-        <div class="bg-gray-50 rounded-lg overflow-hidden">
+        <div class="bg-gray-50 rounded-lg overflow-hidden mb-4">
             <iframe 
                 width="100%" 
                 height="300" 
@@ -122,7 +122,7 @@
                 src="https://maps.google.com/maps?q={{ $order->delivery_latitude }},{{ $order->delivery_longitude }}&hl=en&z=14&output=embed">
             </iframe>
         </div>
-        <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
                 <p class="text-sm text-gray-600">Delivery Address</p>
                 <p class="font-semibold">{{ $order->delivery_address }}</p>
@@ -130,6 +130,10 @@
             <div>
                 <p class="text-sm text-gray-600">Coordinates</p>
                 <p class="font-semibold">{{ $order->delivery_latitude }}, {{ $order->delivery_longitude }}</p>
+            </div>
+            <div>
+                <p class="text-sm text-gray-600">Distance from Store</p>
+                <p class="font-semibold" id="distance_from_store">Calculating...</p>
             </div>
         </div>
         @else
@@ -172,4 +176,40 @@
         @endif
     </div>
 </div>
+
+<script>
+// Store location (configure this in .env or settings)
+const STORE_LATITUDE = -6.7924; // Example: Dar es Salaam coordinates
+const STORE_LONGITUDE = 39.2083;
+
+// Calculate distance between two coordinates using Haversine formula
+function calculateDistance(lat1, lon1, lat2, lon2) {
+    const R = 6371; // Earth's radius in km
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = 
+        Math.sin(dLat/2) * Math.sin(dLat/2) +
+        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+        Math.sin(dLon/2) * Math.sin(dLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    const distance = R * c; // Distance in km
+    return distance.toFixed(2); // Return distance rounded to 2 decimal places
+}
+
+// Calculate distance when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    @if($order->delivery_latitude && $order->delivery_longitude)
+    const distanceElement = document.getElementById('distance_from_store');
+    if (distanceElement) {
+        const distance = calculateDistance(
+            STORE_LATITUDE, 
+            STORE_LONGITUDE, 
+            {{ $order->delivery_latitude }}, 
+            {{ $order->delivery_longitude }}
+        );
+        distanceElement.textContent = distance + ' km';
+    }
+    @endif
+});
+</script>
 @endsection
