@@ -1645,6 +1645,13 @@ function completeSale() {
                                 document.getElementById('successModal').classList.remove('hidden');
                                 loadDashboardData();
                                 playSuccessSound();
+                                
+                                // Auto-print receipt after showing success modal
+                                setTimeout(() => {
+                                    if (currentSaleId) {
+                                        printReceipt();
+                                    }
+                                }, 1000);
                             }, 500);
                         })
                         .catch(e => {
