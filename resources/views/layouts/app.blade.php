@@ -1326,6 +1326,12 @@
             </div>
           </div>
 
+          <!-- Cash Drawer Sessions -->
+          <a href="{{ route('cash-drawer-sessions.index') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('cash-drawer-sessions.*') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+            <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
+            Cash Drawer Sessions
+          </a>
+
           <!-- Management Dashboard Reports -->
           <div x-data="{ managementOpen: false }">
             <button @click="managementOpen = !managementOpen" class="w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('reports.management.*') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
