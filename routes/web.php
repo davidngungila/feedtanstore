@@ -82,6 +82,7 @@ Route::middleware('auth')->group(function () {
     Route::prefix('storekeeper')->name('storekeeper.')->group(function () {
         Route::get('/dashboard', [\App\Http\Controllers\StorekeeperController::class, 'dashboard'])->name('dashboard');
         Route::get('/products', [\App\Http\Controllers\StorekeeperController::class, 'products'])->name('products');
+        Route::get('/products/{id}', [\App\Http\Controllers\StorekeeperController::class, 'showProduct'])->name('products.show');
         Route::get('/stock', [\App\Http\Controllers\StorekeeperController::class, 'stock'])->name('stock');
         Route::get('/purchase-orders', [\App\Http\Controllers\StorekeeperController::class, 'purchaseOrders'])->name('purchase-orders');
         Route::get('/purchase-orders/{id}', [\App\Http\Controllers\StorekeeperController::class, 'showPurchaseOrder'])->name('purchase-orders.show');

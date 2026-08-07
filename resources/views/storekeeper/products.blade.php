@@ -34,9 +34,8 @@
                         <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Category</th>
                         <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">SKU</th>
                         <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Stock</th>
-                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Cost Price</th>
-                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Selling Price</th>
                         <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Status</th>
+                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Action</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200">
@@ -65,12 +64,13 @@
                                 {{ $product->quantity }} {{ $product->unit?->short_name ?? 'pcs' }}
                             </span>
                         </td>
-                        <td class="px-6 py-4 text-sm text-gray-600">TZS {{ number_format($product->cost_price, 0) }}</td>
-                        <td class="px-6 py-4 text-sm text-gray-600">TZS {{ number_format($product->selling_price, 0) }}</td>
                         <td class="px-6 py-4">
                             <span class="px-2 py-1 text-xs font-semibold rounded-full {{ $product->is_active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700' }}">
                                 {{ $product->is_active ? 'Active' : 'Inactive' }}
                             </span>
+                        </td>
+                        <td class="px-6 py-4">
+                            <a href="{{ route('storekeeper.products.show', $product->id) }}" class="text-primary-600 hover:text-primary-700 text-sm font-medium">View</a>
                         </td>
                     </tr>
                     @endforeach

@@ -51,6 +51,12 @@ class StorekeeperController extends Controller
         return view('storekeeper.products', compact('products', 'categories'));
     }
 
+    public function showProduct($id)
+    {
+        $product = Product::with(['category', 'brand', 'unit'])->findOrFail($id);
+        return view('storekeeper.product-show', compact('product'));
+    }
+
     public function stock()
     {
         $products = Product::where('quantity', '<=', 10)
