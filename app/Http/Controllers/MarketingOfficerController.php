@@ -58,7 +58,7 @@ class MarketingOfficerController extends Controller
 
     public function orders()
     {
-        $orders = OnlineOrder::with('deliveryRider', 'customer')
+        $orders = OnlineOrder::with('rider', 'customer')
             ->orderBy('created_at', 'desc')
             ->paginate(20);
         return view('marketing-officer.orders', compact('orders'));
@@ -66,7 +66,7 @@ class MarketingOfficerController extends Controller
 
     public function orderDetails($id)
     {
-        $order = OnlineOrder::with('deliveryRider', 'customer', 'items')->findOrFail($id);
+        $order = OnlineOrder::with('rider', 'customer', 'items')->findOrFail($id);
         return view('marketing-officer.order-details', compact('order'));
     }
 
