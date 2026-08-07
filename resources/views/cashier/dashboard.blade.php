@@ -1185,6 +1185,9 @@ function selectPaymentMethod(method) {
 
     document.getElementById('method' + method.charAt(0).toUpperCase() + method.slice(1)).classList.remove('border-gray-300', 'text-gray-700');
     document.getElementById('method' + method.charAt(0).toUpperCase() + method.slice(1)).classList.add('border-primary-600', 'bg-primary-600', 'text-white');
+    
+    // Recalculate change when payment method changes
+    calculateChange();
 }
 
 function setPaidAmount(amount) {
@@ -1197,6 +1200,14 @@ function calculateChange() {
     const paid = parseFloat(document.getElementById('paidAmount').value) || 0;
     const change = paid - total;
     const changeElement = document.getElementById('changeAmount');
+    
+    // Only show change for cash payments
+    if (selectedPaymentMethod !== 'cash') {
+        changeElement.textContent = 'N/A';
+        changeElement.classList.remove('text-green-600', 'text-red-600');
+        changeElement.classList.add('text-gray-500');
+        return;
+    }
     
     if (paid < total) {
         const remaining = total - paid;
