@@ -17,32 +17,34 @@
             <form action="{{ route('cash-drawer-sessions.store') }}" method="POST">
                 @csrf
                 <div class="space-y-6">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Cash Balance (TZS)</label>
-                        <div class="relative">
-                            <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">TZS</span>
-                            <input type="number" name="cash_balance" class="w-full pl-16 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-lg" required min="0" step="0.01" placeholder="0.00">
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Cash Balance (TZS)</label>
+                            <div class="relative">
+                                <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">TZS</span>
+                                <input type="number" name="cash_balance" class="w-full pl-16 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-lg" required min="0" step="0.01" placeholder="0.00">
+                            </div>
                         </div>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Mobile Money Balance (TZS)</label>
-                        <div class="relative">
-                            <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">TZS</span>
-                            <input type="number" name="mobile_balance" class="w-full pl-16 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-lg" required min="0" step="0.01" placeholder="0.00">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Mobile Money Balance (TZS)</label>
+                            <div class="relative">
+                                <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">TZS</span>
+                                <input type="number" name="mobile_balance" class="w-full pl-16 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-lg" required min="0" step="0.01" placeholder="0.00">
+                            </div>
                         </div>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Bank Balance (TZS)</label>
-                        <div class="relative">
-                            <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">TZS</span>
-                            <input type="number" name="bank_balance" class="w-full pl-16 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-lg" required min="0" step="0.01" placeholder="0.00">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Bank Balance (TZS)</label>
+                            <div class="relative">
+                                <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">TZS</span>
+                                <input type="number" name="bank_balance" class="w-full pl-16 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-lg" required min="0" step="0.01" placeholder="0.00">
+                            </div>
                         </div>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Online Payment Balance (TZS)</label>
-                        <div class="relative">
-                            <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">TZS</span>
-                            <input type="number" name="online_balance" class="w-full pl-16 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-lg" required min="0" step="0.01" placeholder="0.00">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Online Payment Balance (TZS)</label>
+                            <div class="relative">
+                                <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">TZS</span>
+                                <input type="number" name="online_balance" class="w-full pl-16 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-lg" required min="0" step="0.01" placeholder="0.00">
+                            </div>
                         </div>
                     </div>
                     <div>
