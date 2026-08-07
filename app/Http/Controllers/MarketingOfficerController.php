@@ -38,7 +38,7 @@ class MarketingOfficerController extends Controller
             ->pluck('count', 'status');
         
         // Available riders
-        $availableRiders = DeliveryRider::where('is_available', true)->count();
+        $availableRiders = DeliveryRider::where('is_active', true)->count();
         $totalRiders = DeliveryRider::count();
         
         return view('marketing-officer.dashboard', compact(
