@@ -120,6 +120,63 @@
         </div>
     </div>
 
+    <div class="card rounded-2xl p-6 mb-6">
+        <h2 class="text-lg font-bold text-primary-900 mb-4">Order Processing</h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Assign Rider -->
+            <div class="p-4 border border-gray-200 rounded-lg">
+                <h3 class="font-semibold text-gray-900 mb-3">Assign Rider</h3>
+                @if($order->rider)
+                    <div class="flex items-center gap-3 p-3 bg-green-50 rounded-lg">
+                        <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                            <i class="fas fa-motorcycle text-green-600"></i>
+                        </div>
+                        <div>
+                            <p class="font-medium text-green-800">{{ $order->rider->name }}</p>
+                            <p class="text-sm text-green-600">Assigned</p>
+                        </div>
+                    </div>
+                @else
+                    <form action="{{ route('marketing-officer.assign-rider', $order->id) }}" method="POST">
+                        @csrf
+                        @method('PUT')
+                        <select name="rider_id" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 mb-3">
+                            <option value="">Select Rider</option>
+                            @foreach(\App\Models\DeliveryRider::where('is_active', true)->get() as $rider)
+                                <option value="{{ $rider->id }}">{{ $rider->name }} - {{ $rider->vehicle_type }}</option>
+                            @endforeach
+                        </select>
+                        <button type="submit" class="w-full bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                            <i class="fas fa-user-plus mr-2"></i>Assign Rider
+                        </button>
+                    </form>
+                @endif
+            </div>
+
+            <!-- Request Packaging -->
+            <div class="p-4 border border-gray-200 rounded-lg">
+                <h3 class="font-semibold text-gray-900 mb-3">Request Packaging</h3>
+                <form action="{{ route('marketing-officer.request-packaging', $order->id) }}" method="POST">
+                    @csrf
+                    <textarea name="notes" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 mb-3" rows="2" placeholder="Packaging notes..."></textarea>
+                    <button type="submit" class="w-full bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                        <i class="fas fa-box mr-2"></i>Request Packaging
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Track Delivery -->
+        @if($order->rider)
+        <div class="mt-6">
+            <a href="{{ route('marketing-officer.track-delivery', $order->id) }}" class="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-lg text-sm font-medium transition-colors inline-flex items-center justify-center">
+                <i class="fas fa-map-marker-alt mr-2"></i>Track Delivery
+            </a>
+        </div>
+        @endif
+    </div>
+
     <div class="card rounded-2xl p-6">
         <h2 class="text-lg font-bold text-primary-900 mb-4">Update Order Status</h2>
         <form action="{{ route('marketing-officer.update-order-status', $order->id) }}" method="POST">

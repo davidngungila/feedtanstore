@@ -81,6 +81,10 @@ class MarketingOfficerController extends Controller
 
     public function assignRider(Request $request, $id)
     {
+        $request->validate([
+            'rider_id' => 'required|exists:delivery_riders,id',
+        ]);
+
         $order = OnlineOrder::findOrFail($id);
         $order->delivery_rider_id = $request->rider_id;
         $order->rider_acceptance_status = 'pending';
@@ -88,6 +92,43 @@ class MarketingOfficerController extends Controller
         $order->save();
         
         return redirect()->back()->with('success', 'Rider assigned successfully');
+    }
+
+    public function requestPackaging(Request $request, $id)
+    {
+        $request->validate([
+            'notes' => 'nullable|string',
+        ]);
+
+        $order = OnlineOrder::findOrFail($id);
+        
+        // Create stock request for packaging
+        $stockRequest = \App\Models\StockRequest::create([
+            'user_id' => Auth::id(),
+            'online_order_id' => $order->id,
+            'request_type' => 'online_order',
+            'status' => 'pending',
+            'notes' => $request->notes ?? 'Packaging request for order',
+        ]);
+
+        // Add order items to stock request
+        foreach ($order->items as $item) {
+            \App\Models\StockRequestItem::create([
+                'stock_request_id' => $stockRequest->id,
+                'product_id' => $item->product_id,
+                'quantity_requested' => $item->quantity,
+                'quantity_approved' => 0,
+                'notes' => 'Packaging for order ' . $order->order_number,
+            ]);
+        }
+
+        return redirect()->back()->with('success', 'Packaging request submitted successfully');
+    }
+
+    public function trackDelivery($id)
+    {
+        $order = OnlineOrder::with(['rider', 'rider.latestLocation', 'statusHistory'])->findOrFail($id);
+        return view('marketing-officer.track-delivery', compact('order'));
     }
 
     public function customers()
