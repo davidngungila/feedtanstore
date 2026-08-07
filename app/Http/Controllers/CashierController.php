@@ -172,8 +172,11 @@ class CashierController extends Controller
             ->first();
 
             if (!$activeSession) {
-                return response()->json(['error' => 'No active cash drawer session'], 403);
+                \Log::error('No active cash drawer session', ['user_id' => Auth::id()]);
+                return response()->json(['error' => 'No active cash drawer session. Please open a cash drawer first.'], 403);
             }
+
+            \Log::info('Active session found', ['session_id' => $activeSession->id]);
 
             // Check cash limit if payment method is cash
             if ($data['payment_method'] === 'cash') {
@@ -218,17 +221,27 @@ class CashierController extends Controller
             \Log::info('Sale created', ['sale_id' => $sale->id]);
 
             foreach ($data['items'] as $itemData) {
-                $itemTotal = $itemData['quantity'] * $itemData['price'];
-                $sale->items()->create([
-                    'product_id' => $itemData['id'],
-                    'quantity' => $itemData['quantity'],
-                    'unit_price' => $itemData['price'],
-                    'discount' => 0,
-                    'total' => $itemTotal
-                ]);
+                try {
+                    $itemTotal = $itemData['quantity'] * $itemData['price'];
+                    $sale->items()->create([
+                        'product_id' => $itemData['id'],
+                        'quantity' => $itemData['quantity'],
+                        'unit_price' => $itemData['price'],
+                        'discount' => 0,
+                        'total' => $itemTotal
+                    ]);
 
-                $product = Product::find($itemData['id']);
-                $product->decrement('quantity', $itemData['quantity']);
+                    $product = Product::find($itemData['id']);
+                    if ($product) {
+                        $product->decrement('quantity', $itemData['quantity']);
+                    }
+                } catch (\Exception $e) {
+                    \Log::error('Failed to create sale item or update product', [
+                        'item_data' => $itemData,
+                        'error' => $e->getMessage()
+                    ]);
+                    throw $e;
+                }
             }
 
             if ($currentShift) {
@@ -241,7 +254,16 @@ class CashierController extends Controller
                 }
             }
 
-            $this->createAccountingEntries($sale);
+            // Create accounting entries (optional - don't fail sale if accounting fails)
+            try {
+                $this->createAccountingEntries($sale);
+            } catch (\Exception $e) {
+                \Log::warning('Failed to create accounting entries for sale', [
+                    'sale_id' => $sale->id,
+                    'error' => $e->getMessage()
+                ]);
+                // Continue with sale completion even if accounting fails
+            }
 
             // Open cash drawer if payment method is cash and setting is enabled
             if ($data['payment_method'] == 'cash') {
