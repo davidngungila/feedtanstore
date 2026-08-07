@@ -173,6 +173,24 @@ class CashierController extends Controller
                 return response()->json(['error' => 'No active cash drawer session'], 403);
             }
 
+            // Check cash limit if payment method is cash
+            if ($data['payment_method'] === 'cash') {
+                $cashLimit = \App\Models\CashLimit::where('user_id', Auth::id())
+                    ->where('is_active', true)
+                    ->first();
+                
+                if ($cashLimit) {
+                    $currentCash = $activeSession->cash_balance + $total;
+                    if ($cashLimit->isExceeded($currentCash)) {
+                        return response()->json([
+                            'error' => 'Cash limit exceeded. Please send money to bank before continuing.',
+                            'current_cash' => $currentCash,
+                            'limit' => $cashLimit->max_cash_limit
+                        ], 403);
+                    }
+                }
+            }
+
             $sale = Sale::create([
                 'sale_number' => 'SAL-' . date('YmdHis'),
                 'total' => $total,
