@@ -86,8 +86,8 @@
                         <td class="px-6 py-4">
                             <span class="px-2 py-1 text-xs font-semibold rounded-full 
                                 {{ $product->quantity <= 0 ? 'bg-red-100 text-red-700' : 
-                                   $product->quantity <= 5 ? 'bg-orange-100 text-orange-700' : 
-                                   'bg-yellow-100 text-yellow-700' }}">
+                                   ($product->quantity <= 5 ? 'bg-orange-100 text-orange-700' : 
+                                   'bg-yellow-100 text-yellow-700') }}">
                                 {{ $product->quantity }} {{ $product->unit?->short_name ?? 'pcs' }}
                             </span>
                         </td>
@@ -95,11 +95,11 @@
                         <td class="px-6 py-4">
                             <span class="px-2 py-1 text-xs font-semibold rounded-full 
                                 {{ $product->quantity <= 0 ? 'bg-red-100 text-red-700' : 
-                                   $product->quantity <= $product->reorder_level ? 'bg-orange-100 text-orange-700' : 
-                                   'bg-yellow-100 text-yellow-700' }}">
+                                   ($product->quantity <= $product->reorder_level ? 'bg-orange-100 text-orange-700' : 
+                                   'bg-yellow-100 text-yellow-700') }}">
                                 {{ $product->quantity <= 0 ? 'Out of Stock' : 
-                                   $product->quantity <= $product->reorder_level ? 'Below Reorder Level' : 
-                                   'Low Stock' }}
+                                   ($product->quantity <= $product->reorder_level ? 'Below Reorder Level' : 
+                                   'Low Stock') }}
                             </span>
                         </td>
                         <td class="px-6 py-4">

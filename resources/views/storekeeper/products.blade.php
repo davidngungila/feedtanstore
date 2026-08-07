@@ -60,8 +60,8 @@
                         <td class="px-6 py-4">
                             <span class="px-2 py-1 text-xs font-semibold rounded-full 
                                 {{ $product->quantity <= 0 ? 'bg-red-100 text-red-700' : 
-                                   $product->quantity <= 10 ? 'bg-yellow-100 text-yellow-700' : 
-                                   'bg-green-100 text-green-700' }}">
+                                   ($product->quantity <= 10 ? 'bg-yellow-100 text-yellow-700' : 
+                                   'bg-green-100 text-green-700') }}">
                                 {{ $product->quantity }} {{ $product->unit?->short_name ?? 'pcs' }}
                             </span>
                         </td>
