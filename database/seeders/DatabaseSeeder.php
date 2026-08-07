@@ -27,6 +27,9 @@ class DatabaseSeeder extends Seeder
         // Seed Chart of Accounts
         $this->call(ChartOfAccountsSeeder::class);
         
+        // Seed Role Users
+        $this->call(RoleUserSeeder::class);
+        
         // Create admin user
         User::factory()->create([
             'name' => 'Admin User',
