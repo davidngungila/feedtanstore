@@ -73,4 +73,28 @@ class StorekeeperController extends Controller
         $suppliers = Supplier::orderBy('name')->paginate(20);
         return view('storekeeper.suppliers', compact('suppliers'));
     }
+
+    public function stockTransfers()
+    {
+        $transfers = \App\Models\StockTransfer::with(['product', 'fromLocation', 'toLocation', 'requester', 'approver'])
+            ->orderBy('created_at', 'desc')
+            ->paginate(20);
+        return view('storekeeper.stock-transfers', compact('transfers'));
+    }
+
+    public function purchaseOrderRequests()
+    {
+        $requests = \App\Models\PurchaseOrderRequest::with('product', 'requester', 'supplier')
+            ->orderBy('created_at', 'desc')
+            ->paginate(20);
+        return view('storekeeper.purchase-order-requests', compact('requests'));
+    }
+
+    public function stockAdjustments()
+    {
+        $adjustments = \App\Models\StockAdjustment::with('product')
+            ->orderBy('created_at', 'desc')
+            ->paginate(20);
+        return view('storekeeper.stock-adjustments', compact('adjustments'));
+    }
 }

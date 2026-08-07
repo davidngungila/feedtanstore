@@ -77,16 +77,21 @@ Route::middleware('auth')->group(function () {
         Route::get('/suppliers', [\App\Http\Controllers\StorekeeperController::class, 'suppliers'])->name('suppliers');
         
         // Stock Transfer Routes
-        Route::get('/stock-transfers', [\App\Http\Controllers\StockTransferController::class, 'index'])->name('stock-transfers');
+        Route::get('/stock-transfers', [\App\Http\Controllers\StorekeeperController::class, 'stockTransfers'])->name('stock-transfers');
         Route::get('/stock-transfers/create', [\App\Http\Controllers\StockTransferController::class, 'create'])->name('stock-transfers.create');
         Route::post('/stock-transfers', [\App\Http\Controllers\StockTransferController::class, 'store'])->name('stock-transfers.store');
         Route::get('/stock-transfers/{stockTransfer}', [\App\Http\Controllers\StockTransferController::class, 'show'])->name('stock-transfers.show');
         
         // Purchase Order Request Routes
-        Route::get('/purchase-order-requests', [\App\Http\Controllers\PurchaseOrderRequestController::class, 'index'])->name('purchase-order-requests');
+        Route::get('/purchase-order-requests', [\App\Http\Controllers\StorekeeperController::class, 'purchaseOrderRequests'])->name('purchase-order-requests');
         Route::get('/purchase-order-requests/create', [\App\Http\Controllers\PurchaseOrderRequestController::class, 'create'])->name('purchase-order-requests.create');
         Route::post('/purchase-order-requests', [\App\Http\Controllers\PurchaseOrderRequestController::class, 'store'])->name('purchase-order-requests.store');
         Route::get('/purchase-order-requests/{purchaseOrderRequest}', [\App\Http\Controllers\PurchaseOrderRequestController::class, 'show'])->name('purchase-order-requests.show');
+        
+        // Stock Adjustment Routes
+        Route::get('/stock-adjustments', [\App\Http\Controllers\StorekeeperController::class, 'stockAdjustments'])->name('stock-adjustments');
+        Route::get('/stock-adjustments/create', [\App\Http\Controllers\StockAdjustmentController::class, 'create'])->name('stock-adjustments.create');
+        Route::post('/stock-adjustments', [\App\Http\Controllers\StockAdjustmentController::class, 'store'])->name('stock-adjustments.store');
     });
 
     // Marketing Officer Routes
