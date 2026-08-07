@@ -67,7 +67,7 @@ class StockTransferController extends Controller
 
     public function show(StockTransfer $stockTransfer)
     {
-        $stockTransfer->load(['items.product', 'fromLocation', 'toLocation', 'requester', 'approver']);
+        $stockTransfer->load(['items.product', 'product', 'fromLocation', 'toLocation', 'requester', 'approver']);
         return view('inventory.transfers-show', compact('stockTransfer'));
     }
 
