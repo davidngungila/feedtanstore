@@ -76,12 +76,10 @@
     <!-- Barcode Section for Printing -->
     <div id="barcodeSection" class="card rounded-2xl p-6 mb-6">
         <h2 class="text-lg font-bold text-primary-900 mb-4">Barcode</h2>
-        <div class="flex items-center justify-center p-8 bg-white border-2 border-dashed border-gray-300 rounded-lg">
-            <div class="text-center">
-                <div class="text-6xl font-mono font-bold text-gray-900 mb-2">{{ $product->barcode }}</div>
-                <div class="text-xl font-semibold text-gray-700">{{ $product->name }}</div>
-                <div class="text-sm text-gray-500 mt-1">{{ $product->sku }}</div>
-            </div>
+        <div class="flex flex-col items-center justify-center p-8 bg-white border-2 border-dashed border-gray-300 rounded-lg">
+            <h4 class="font-semibold text-gray-900 mb-2">{{ $product->name }}</h4>
+            <img src="{{ $barcodeBase64 }}" alt="Barcode for {{ $product->name }}" class="mb-2" style="width: 400px;">
+            <p class="text-sm text-gray-600 font-mono">{{ $barcodeValue }}</p>
         </div>
     </div>
 
@@ -127,20 +125,18 @@ function printBarcode() {
                     text-align: center;
                     border: 2px solid #000;
                     padding: 20px;
-                    width: 300px;
-                }
-                .barcode {
-                    font-family: 'Courier New', monospace;
-                    font-size: 24px;
-                    font-weight: bold;
-                    margin-bottom: 10px;
+                    width: 450px;
                 }
                 .product-name {
                     font-size: 18px;
                     font-weight: bold;
-                    margin-bottom: 5px;
+                    margin-bottom: 10px;
                 }
-                .sku {
+                .barcode-image {
+                    margin-bottom: 10px;
+                }
+                .barcode-value {
+                    font-family: 'Courier New', monospace;
                     font-size: 14px;
                     color: #666;
                 }
@@ -148,9 +144,9 @@ function printBarcode() {
         </head>
         <body>
             <div class="barcode-container">
-                <div class="barcode">{{ $product->barcode }}</div>
                 <div class="product-name">{{ $product->name }}</div>
-                <div class="sku">{{ $product->sku }}</div>
+                <img src="{{ $barcodeBase64 }}" alt="Barcode" class="barcode-image" style="width: 400px;">
+                <div class="barcode-value">{{ $barcodeValue }}</div>
             </div>
         </body>
         </html>

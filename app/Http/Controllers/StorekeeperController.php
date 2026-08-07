@@ -54,7 +54,13 @@ class StorekeeperController extends Controller
     public function showProduct($id)
     {
         $product = Product::with(['category', 'brand', 'unit'])->findOrFail($id);
-        return view('storekeeper.product-show', compact('product'));
+        
+        $barcodeValue = $product->barcode ?? $product->sku ?? $product->id;
+        $generator = new \Picqer\Barcode\BarcodeGeneratorPNG();
+        $barcodePng = $generator->getBarcode($barcodeValue, \Picqer\Barcode\BarcodeGeneratorPNG::TYPE_CODE_128);
+        $barcodeBase64 = 'data:image/png;base64,' . base64_encode($barcodePng);
+        
+        return view('storekeeper.product-show', compact('product', 'barcodeBase64', 'barcodeValue'));
     }
 
     public function stock()
