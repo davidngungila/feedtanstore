@@ -2,7 +2,7 @@
 
 @section('page-title', 'Create Stock Transfer')
 
-@push('scripts')
+@section('scripts')
 <script>
     function addTransferItem() {
         const itemsContainer = document.getElementById('transferItems');
@@ -39,7 +39,7 @@
         }
     }
 </script>
-@endpush
+@endsection
 
 @section('content')
 <div class="animate-[fadeIn_0.4s_ease]">
