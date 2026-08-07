@@ -71,36 +71,43 @@ class StockRequestController extends Controller
 
     public function approve(Request $request, $stockRequest)
     {
-        $request->validate([
-            'items' => 'required|array',
-            'items.*.quantity_approved' => 'required|integer|min:0',
-        ]);
-
         $stockRequest = StockRequest::findOrFail($stockRequest);
         
-        // Update stock request status
+        // Update stock request status to approved (but don't issue stock yet)
         $stockRequest->status = 'approved';
         $stockRequest->approved_by = Auth::id();
         $stockRequest->approved_at = now();
         $stockRequest->save();
 
+        return redirect()->back()->with('success', 'Stock request approved successfully. You can now issue the products.');
+    }
+
+    public function issue(Request $request, $stockRequest)
+    {
+        $request->validate([
+            'items' => 'required|array',
+            'items.*.quantity_issued' => 'required|integer|min:0',
+        ]);
+
+        $stockRequest = StockRequest::findOrFail($stockRequest);
+        
         // Update item quantities and issue stock
         foreach ($request->items as $itemId => $itemData) {
             $stockRequestItem = StockRequestItem::findOrFail($itemId);
-            $stockRequestItem->quantity_approved = $itemData['quantity_approved'];
+            $stockRequestItem->quantity_approved = $itemData['quantity_issued'];
             $stockRequestItem->save();
 
-            // Issue stock if approved quantity > 0
-            if ($itemData['quantity_approved'] > 0) {
+            // Issue stock if quantity > 0
+            if ($itemData['quantity_issued'] > 0) {
                 $product = Product::findOrFail($stockRequestItem->product_id);
                 
                 // Check if enough stock is available
-                if ($product->quantity >= $itemData['quantity_approved']) {
+                if ($product->quantity >= $itemData['quantity_issued']) {
                     // Create stock movement record
                     \App\Models\StockMovement::create([
                         'product_id' => $product->id,
                         'movement_type' => 'out',
-                        'quantity' => $itemData['quantity_approved'],
+                        'quantity' => $itemData['quantity_issued'],
                         'reference_type' => 'stock_request',
                         'reference_id' => $stockRequest->id,
                         'user_id' => Auth::id(),
@@ -108,20 +115,17 @@ class StockRequestController extends Controller
                     ]);
 
                     // Update product quantity
-                    $product->quantity -= $itemData['quantity_approved'];
+                    $product->quantity -= $itemData['quantity_issued'];
                     $product->save();
                 }
             }
         }
 
-        // Mark as completed if all items are issued
-        $allIssued = $stockRequest->items()->where('quantity_approved', '>', 0)->count() > 0;
-        if ($allIssued) {
-            $stockRequest->status = 'completed';
-            $stockRequest->save();
-        }
+        // Mark as completed if items are issued
+        $stockRequest->status = 'completed';
+        $stockRequest->save();
 
-        return redirect()->back()->with('success', 'Stock request approved and products issued successfully');
+        return redirect()->back()->with('success', 'Products issued successfully');
     }
 
     public function reject($stockRequest)

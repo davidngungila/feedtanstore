@@ -99,7 +99,27 @@
     @if($stockRequest->status === 'pending' && (Auth::user()->role === 'storekeeper' || Auth::user()->role === 'admin' || Auth::user()->role === 'manager'))
     <div class="card rounded-2xl p-6 mt-6">
         <h2 class="text-lg font-bold text-primary-900 mb-4">Approve Stock Request</h2>
-        <form action="{{ route('stock-requests.approve', $stockRequest) }}" method="POST">
+        <div class="flex justify-end gap-3">
+            <form action="{{ route('stock-requests.reject', $stockRequest) }}" method="POST" class="inline">
+                @csrf
+                <button type="submit" class="px-6 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors">
+                    Reject Request
+                </button>
+            </form>
+            <form action="{{ route('stock-requests.approve', $stockRequest) }}" method="POST" class="inline">
+                @csrf
+                <button type="submit" class="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors">
+                    Approve Request
+                </button>
+            </form>
+        </div>
+    </div>
+    @endif
+
+    @if($stockRequest->status === 'approved' && (Auth::user()->role === 'storekeeper' || Auth::user()->role === 'admin' || Auth::user()->role === 'manager'))
+    <div class="card rounded-2xl p-6 mt-6">
+        <h2 class="text-lg font-bold text-primary-900 mb-4">Issue Products</h2>
+        <form action="{{ route('stock-requests.issue', $stockRequest) }}" method="POST">
             @csrf
             <div class="space-y-4">
                 @foreach($stockRequest->items as $item)
@@ -112,7 +132,7 @@
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Quantity to Issue</label>
                             <input type="number" 
-                                   name="items[{{ $item->id }}][quantity_approved]" 
+                                   name="items[{{ $item->id }}][quantity_issued]" 
                                    min="0" 
                                    max="{{ min($item->quantity_requested, $item->product->quantity) }}"
                                    value="{{ min($item->quantity_requested, $item->product->quantity) }}"
@@ -129,15 +149,9 @@
                 </div>
                 @endforeach
             </div>
-            <div class="flex justify-end gap-3 mt-6">
-                <form action="{{ route('stock-requests.reject', $stockRequest) }}" method="POST" class="inline">
-                    @csrf
-                    <button type="submit" class="px-6 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors">
-                        Reject Request
-                    </button>
-                </form>
-                <button type="submit" class="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors">
-                    Approve & Issue Stock
+            <div class="flex justify-end mt-6">
+                <button type="submit" class="px-6 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors">
+                    Issue Products
                 </button>
             </div>
         </form>
