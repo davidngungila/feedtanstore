@@ -128,4 +128,20 @@ class StockTransferController extends Controller
 
         return back()->with('success', 'Stock transfer completed');
     }
+
+    public function destroy(StockTransfer $stockTransfer)
+    {
+        if ($stockTransfer->status === 'approved' || $stockTransfer->status === 'completed') {
+            return back()->with('error', 'Cannot delete approved or completed transfers');
+        }
+
+        // Delete transfer items first
+        $stockTransfer->items()->delete();
+        
+        // Delete the transfer
+        $stockTransfer->delete();
+
+        return redirect()->route('inventory.transfers')
+            ->with('success', 'Stock transfer deleted successfully');
+    }
 }
