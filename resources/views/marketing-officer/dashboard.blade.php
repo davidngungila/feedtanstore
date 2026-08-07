@@ -180,12 +180,6 @@
                     <p class="font-semibold text-gray-800">Riders</p>
                 </div>
             </a>
-            <a href="{{ route('delivery.map') }}" class="card rounded-xl p-4 hover:shadow-lg transition-shadow">
-                <div class="text-center">
-                    <i class="fas fa-map-marked-alt text-3xl text-purple-600 mb-2"></i>
-                    <p class="font-semibold text-gray-800">Delivery Map</p>
-                </div>
-            </a>
         </div>
     </div>
 </div>
