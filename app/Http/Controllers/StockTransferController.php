@@ -22,7 +22,7 @@ class StockTransferController extends Controller
     {
         $products = Product::where('is_active', true)->orderBy('name')->get();
         $locations = Location::orderBy('name')->get();
-        return view('inventory.transfers-create', compact('products', 'locations'));
+        return view('storekeeper.stock-transfers-create', compact('products', 'locations'));
     }
 
     public function store(Request $request)
