@@ -26,7 +26,7 @@ class MarketingOfficerController extends Controller
         $totalRevenue = OnlineOrder::where('status', '!=', 'cancelled')->sum('total');
         
         // Recent orders
-        $recentOrders = OnlineOrder::with('deliveryRider')
+        $recentOrders = OnlineOrder::with('rider')
             ->orderBy('created_at', 'desc')
             ->take(10)
             ->get();
