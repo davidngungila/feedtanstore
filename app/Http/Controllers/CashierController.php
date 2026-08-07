@@ -197,6 +197,7 @@ class CashierController extends Controller
             }
 
             $sale = Sale::create([
+                'invoice_number' => $invoiceNumber,
                 'sale_number' => 'SAL-' . date('YmdHis'),
                 'total' => $total,
                 'discount' => 0,
