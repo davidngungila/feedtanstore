@@ -1651,7 +1651,7 @@ function completeSale() {
                         .catch(e => {
                             console.error('=== Error in completeSale ===', e);
                             document.getElementById('loadingOverlay').classList.add('hidden');
-                            isProcessing = false;
+                            isProcessing = false; // Reset processing flag on error
                             showNotification(e.error || e.message || 'Error completing sale', 'error');
                         });
                     }, 200);
