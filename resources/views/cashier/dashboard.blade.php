@@ -1186,6 +1186,15 @@ function selectPaymentMethod(method) {
     document.getElementById('method' + method.charAt(0).toUpperCase() + method.slice(1)).classList.remove('border-gray-300', 'text-gray-700');
     document.getElementById('method' + method.charAt(0).toUpperCase() + method.slice(1)).classList.add('border-primary-600', 'bg-primary-600', 'text-white');
     
+    // Set paid amount to 0 for cash payments
+    if (method === 'cash') {
+        document.getElementById('paidAmount').value = 0;
+    } else {
+        // For card/mobile, set paid amount to total
+        const total = cart.reduce((sum, item) => sum + (parseFloat(item.price) * item.quantity), 0);
+        document.getElementById('paidAmount').value = total;
+    }
+    
     // Recalculate change when payment method changes
     calculateChange();
 }
@@ -1206,6 +1215,14 @@ function calculateChange() {
         changeElement.textContent = 'N/A';
         changeElement.classList.remove('text-green-600', 'text-red-600');
         changeElement.classList.add('text-gray-500');
+        return;
+    }
+    
+    // For cash payments, if paid is 0, show payment completed message
+    if (paid === 0) {
+        changeElement.textContent = 'Payment Completed - TZS 0.00';
+        changeElement.classList.remove('text-red-600');
+        changeElement.classList.add('text-green-600');
         return;
     }
     
