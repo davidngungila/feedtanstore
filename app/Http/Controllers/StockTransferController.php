@@ -27,6 +27,8 @@ class StockTransferController extends Controller
 
     public function store(Request $request)
     {
+        \Log::info('Stock transfer submission', $request->all());
+        
         $request->validate([
             'from_location_id' => 'required|exists:locations,id|different:to_location_id',
             'to_location_id' => 'required|exists:locations,id|different:from_location_id',
@@ -36,6 +38,8 @@ class StockTransferController extends Controller
             'notes' => 'nullable|string',
         ]);
         
+        \Log::info('Validation passed');
+        
         // Validate stock availability for all items
         foreach ($request->items as $item) {
             $product = Product::find($item['product_id']);
@@ -43,6 +47,8 @@ class StockTransferController extends Controller
                 return back()->withErrors(['items' => "Not enough stock for {$product->name}"]);
             }
         }
+        
+        \Log::info('Stock validation passed');
         
         $stockTransfer = StockTransfer::create([
             'transfer_number' => StockTransfer::generateTransferNumber(),
@@ -53,6 +59,8 @@ class StockTransferController extends Controller
             'requested_by' => Auth::id(),
         ]);
         
+        \Log::info('Stock transfer created', ['id' => $stockTransfer->id]);
+        
         // Add transfer items
         foreach ($request->items as $item) {
             $stockTransfer->items()->create([
@@ -60,6 +68,8 @@ class StockTransferController extends Controller
                 'quantity' => $item['quantity'],
             ]);
         }
+        
+        \Log::info('Items added');
         
         return redirect()->route('storekeeper.stock-transfers')
             ->with('success', 'Stock transfer request submitted successfully');
