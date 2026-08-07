@@ -16,8 +16,8 @@
                 <p class="text-sm text-gray-600">Status</p>
                 <span class="px-3 py-1 text-sm font-semibold rounded-full 
                     {{ $session->status == 'opened' ? 'bg-green-100 text-green-700' : 
-                       $session->status == 'closed' ? 'bg-yellow-100 text-yellow-700' : 
-                       'bg-blue-100 text-blue-700' }}">
+                       ($session->status == 'closed' ? 'bg-yellow-100 text-yellow-700' : 
+                       'bg-blue-100 text-blue-700') }}">
                     {{ ucfirst($session->status) }}
                 </span>
             </div>
