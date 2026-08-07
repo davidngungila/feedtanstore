@@ -132,7 +132,11 @@ class CashierController extends Controller
                 'items.*.price' => 'required|numeric|min:0',
                 'paid' => 'required|numeric|min:0',
                 'payment_method' => 'required|string|in:cash,card,mobile',
-                'customer_id' => 'nullable|exists:customers,id'
+                'customer_id' => 'nullable|exists:customers,id',
+                'total' => 'required|numeric|min:0',
+                'discount' => 'nullable|numeric|min:0',
+                'discount_type' => 'nullable|string',
+                'discount_value' => 'nullable|numeric|min:0'
             ]);
 
             \Log::info('Validation passed', $data);
