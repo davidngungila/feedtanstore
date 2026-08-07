@@ -52,6 +52,16 @@ class StockTransfer extends Model
         return $this->belongsTo(User::class, 'approved_by');
     }
 
+    public function items()
+    {
+        return $this->hasMany(StockTransferItem::class);
+    }
+
+    public function isBulkTransfer()
+    {
+        return $this->items()->count() > 0;
+    }
+
     public static function generateTransferNumber()
     {
         $prefix = 'ST-';

@@ -85,12 +85,23 @@
                             <p class="font-semibold text-gray-900">{{ $transfer->transfer_number }}</p>
                         </td>
                         <td class="px-6 py-4">
-                            <p class="font-medium text-gray-900">{{ $transfer->product->name }}</p>
-                            <p class="text-sm text-gray-500">{{ $transfer->product->sku }}</p>
+                            @if($transfer->isBulkTransfer())
+                                <p class="font-medium text-gray-900">{{ $transfer->items->count() }} items</p>
+                                <p class="text-sm text-gray-500">{{ $transfer->items->first()->product->name ?? '' }} @if($transfer->items->count() > 1) + {{ $transfer->items->count() - 1 }} more @endif</p>
+                            @else
+                                <p class="font-medium text-gray-900">{{ $transfer->product->name ?? 'N/A' }}</p>
+                                <p class="text-sm text-gray-500">{{ $transfer->product->sku ?? '' }}</p>
+                            @endif
                         </td>
                         <td class="px-6 py-4 text-sm text-gray-600">{{ $transfer->fromLocation->name ?? 'N/A' }}</td>
                         <td class="px-6 py-4 text-sm text-gray-600">{{ $transfer->toLocation->name ?? 'N/A' }}</td>
-                        <td class="px-6 py-4 text-sm text-gray-600">{{ $transfer->quantity }} {{ $transfer->product->unit?->short_name ?? 'pcs' }}</td>
+                        <td class="px-6 py-4 text-sm text-gray-600">
+                            @if($transfer->isBulkTransfer())
+                                {{ $transfer->items->sum('quantity') }} total
+                            @else
+                                {{ $transfer->quantity }} {{ $transfer->product->unit?->short_name ?? 'pcs' }}
+                            @endif
+                        </td>
                         <td class="px-6 py-4">
                             <span class="px-2 py-1 text-xs font-semibold rounded-full 
                                 {{ $transfer->status == 'completed' ? 'bg-green-100 text-green-700' : 

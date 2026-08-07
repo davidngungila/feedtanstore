@@ -28,29 +28,38 @@ class StockTransferController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'product_id' => 'required|exists:products,id',
             'from_location_id' => 'required|exists:locations,id|different:to_location_id',
             'to_location_id' => 'required|exists:locations,id|different:from_location_id',
-            'quantity' => 'required|numeric|min:1',
+            'items' => 'required|array|min:1',
+            'items.*.product_id' => 'required|exists:products,id',
+            'items.*.quantity' => 'required|numeric|min:1',
             'notes' => 'nullable|string',
         ]);
         
-        $product = Product::find($request->product_id);
-        
-        if ($product->quantity < $request->quantity) {
-            return back()->withErrors(['quantity' => 'Not enough stock in current inventory']);
+        // Validate stock availability for all items
+        foreach ($request->items as $item) {
+            $product = Product::find($item['product_id']);
+            if ($product->quantity < $item['quantity']) {
+                return back()->withErrors(['items' => "Not enough stock for {$product->name}"]);
+            }
         }
         
-        StockTransfer::create([
+        $stockTransfer = StockTransfer::create([
             'transfer_number' => StockTransfer::generateTransferNumber(),
-            'product_id' => $request->product_id,
             'from_location_id' => $request->from_location_id,
             'to_location_id' => $request->to_location_id,
-            'quantity' => $request->quantity,
             'status' => 'pending',
             'notes' => $request->notes,
             'requested_by' => Auth::id(),
         ]);
+        
+        // Add transfer items
+        foreach ($request->items as $item) {
+            $stockTransfer->items()->create([
+                'product_id' => $item['product_id'],
+                'quantity' => $item['quantity'],
+            ]);
+        }
         
         return redirect()->route('stock-transfers.index')
             ->with('success', 'Stock transfer request submitted successfully');
@@ -58,7 +67,7 @@ class StockTransferController extends Controller
 
     public function show(StockTransfer $stockTransfer)
     {
-        $stockTransfer->load(['product', 'fromLocation', 'toLocation', 'requester', 'approver']);
+        $stockTransfer->load(['items.product', 'fromLocation', 'toLocation', 'requester', 'approver']);
         return view('inventory.transfers-show', compact('stockTransfer'));
     }
 
@@ -68,15 +77,19 @@ class StockTransferController extends Controller
             return back()->with('error', 'This transfer has already been processed');
         }
 
-        $product = Product::find($stockTransfer->product_id);
-        
-        if ($product->quantity < $stockTransfer->quantity) {
-            return back()->with('error', 'Not enough stock available for transfer');
+        // Validate stock availability for all items
+        foreach ($stockTransfer->items as $item) {
+            $product = Product::find($item->product_id);
+            if ($product->quantity < $item->quantity) {
+                return back()->with('error', "Not enough stock for {$product->name}");
+            }
         }
 
-        // Deduct from source location and add to destination
-        $product->quantity -= $stockTransfer->quantity;
-        $product->save();
+        // Deduct stock for all items
+        foreach ($stockTransfer->items as $item) {
+            $product = Product::find($item->product_id);
+            $product->decrement('quantity', $item->quantity);
+        }
 
         $stockTransfer->update([
             'status' => 'approved',

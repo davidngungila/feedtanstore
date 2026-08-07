@@ -89,7 +89,7 @@ class StorekeeperController extends Controller
 
     public function stockTransfers()
     {
-        $transfers = \App\Models\StockTransfer::with(['product', 'fromLocation', 'toLocation', 'requester', 'approver'])
+        $transfers = \App\Models\StockTransfer::with(['items.product', 'fromLocation', 'toLocation', 'requester', 'approver'])
             ->orderBy('created_at', 'desc')
             ->paginate(20);
         return view('storekeeper.stock-transfers', compact('transfers'));

@@ -18,14 +18,28 @@
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-                <p class="text-sm text-gray-500 mb-1">Product</p>
-                <p class="font-medium">{{ $stockTransfer->product->name ?? 'N/A' }}</p>
-            </div>
-            <div>
-                <p class="text-sm text-gray-500 mb-1">Quantity</p>
-                <p class="font-medium">{{ $stockTransfer->quantity }}</p>
-            </div>
+            @if($stockTransfer->isBulkTransfer())
+                <div class="md:col-span-2">
+                    <p class="text-sm text-gray-500 mb-1">Products</p>
+                    <div class="space-y-2">
+                        @foreach($stockTransfer->items as $item)
+                        <div class="flex justify-between items-center bg-gray-50 p-2 rounded">
+                            <span class="font-medium">{{ $item->product->name }}</span>
+                            <span class="text-gray-600">{{ $item->quantity }} {{ $item->product->unit?->short_name ?? 'pcs' }}</span>
+                        </div>
+                        @endforeach
+                    </div>
+                </div>
+            @else
+                <div>
+                    <p class="text-sm text-gray-500 mb-1">Product</p>
+                    <p class="font-medium">{{ $stockTransfer->product->name ?? 'N/A' }}</p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-500 mb-1">Quantity</p>
+                    <p class="font-medium">{{ $stockTransfer->quantity }}</p>
+                </div>
+            @endif
             <div>
                 <p class="text-sm text-gray-500 mb-1">From Location</p>
                 <p class="font-medium">{{ $stockTransfer->fromLocation->name ?? 'N/A' }}</p>
