@@ -105,8 +105,8 @@
                         <div class="text-right">
                             <span class="px-2 py-1 text-xs font-semibold rounded-full 
                                 {{ $order->status == 'received' ? 'bg-green-100 text-green-700' : 
-                                   $order->status == 'pending' ? 'bg-yellow-100 text-yellow-700' : 
-                                   'bg-gray-100 text-gray-700' }}">
+                                   ($order->status == 'pending' ? 'bg-yellow-100 text-yellow-700' : 
+                                   'bg-gray-100 text-gray-700') }}">
                                 {{ ucfirst($order->status) }}
                             </span>
                         </div>
