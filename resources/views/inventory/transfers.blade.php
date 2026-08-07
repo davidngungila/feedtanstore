@@ -7,7 +7,7 @@
     function showDeleteModal(transferId) {
         document.getElementById('deleteModal').classList.remove('hidden');
         document.getElementById('deleteModal').classList.add('flex');
-        document.getElementById('deleteForm').action = '{{ route('inventory.transfers.destroy', '') }}/' + transferId;
+        document.getElementById('deleteForm').action = '/inventory/transfers/' + transferId;
     }
 
     function hideDeleteModal() {
@@ -96,7 +96,7 @@
             <button onclick="hideDeleteModal()" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
                 Cancel
             </button>
-            <form action="{{ route('inventory.transfers.destroy', '') }}" method="POST" id="deleteForm">
+            <form action="/inventory/transfers" method="POST" id="deleteForm">
                 @csrf
                 @method('DELETE')
                 <button type="submit" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors">
