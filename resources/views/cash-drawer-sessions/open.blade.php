@@ -4,15 +4,14 @@
 
 @section('content')
 <div class="animate-[fadeIn_0.4s_ease]">
-    <div class="min-h-screen flex items-center justify-center">
-        <div class="card rounded-2xl p-8 max-w-md w-full">
-            <div class="text-center mb-8">
-                <div class="w-20 h-20 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <i class="fas fa-cash-register text-4xl text-primary-600"></i>
-                </div>
-                <h1 class="text-2xl font-bold text-primary-900">Open Cash Drawer</h1>
-                <p class="text-gray-600 mt-2">Enter your starting cash balance to begin your shift</p>
+    <div class="card rounded-2xl p-8 max-w-4xl mx-auto">
+        <div class="text-center mb-8">
+            <div class="w-20 h-20 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-cash-register text-4xl text-primary-600"></i>
             </div>
+            <h1 class="text-2xl font-bold text-primary-900">Open Cash Drawer</h1>
+            <p class="text-gray-600 mt-2">Enter your starting cash balance to begin your shift</p>
+        </div>
 
             <form action="{{ route('cash-drawer-sessions.store') }}" method="POST">
                 @csrf
