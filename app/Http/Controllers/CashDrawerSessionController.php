@@ -66,7 +66,8 @@ class CashDrawerSessionController extends Controller
         $totalCashSales = Sale::where('cash_drawer_session_id', $cashDrawerSession->id)
             ->where('payment_method', 'cash')
             ->sum('total');
-        return view('cash-drawer-sessions.show', compact('cashDrawerSession', 'totalCashSales'));
+        $session = $cashDrawerSession;
+        return view('cash-drawer-sessions.show', compact('session', 'totalCashSales'));
     }
 
     public function editClose(CashDrawerSession $cashDrawerSession)
