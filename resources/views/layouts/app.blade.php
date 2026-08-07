@@ -442,6 +442,18 @@
           <span x-show="!sidebarCollapsed" class="font-medium">Purchase Orders</span>
         </a>
 
+        <!-- Stock Transfers -->
+        <a href="{{ route('storekeeper.stock-transfers') }}" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-150 group {{ request()->routeIs('storekeeper.stock-transfers*') ? 'bg-primary-600 text-white' : 'text-primary-200 hover:bg-white/10 hover:text-white' }}">
+          <i class="fa-solid fa-exchange-alt w-4 text-center flex-shrink-0"></i>
+          <span x-show="!sidebarCollapsed" class="font-medium">Stock Transfers</span>
+        </a>
+
+        <!-- Purchase Order Requests -->
+        <a href="{{ route('storekeeper.purchase-order-requests') }}" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-150 group {{ request()->routeIs('storekeeper.purchase-order-requests*') ? 'bg-primary-600 text-white' : 'text-primary-200 hover:bg-white/10 hover:text-white' }}">
+          <i class="fa-solid fa-file-invoice w-4 text-center flex-shrink-0"></i>
+          <span x-show="!sidebarCollapsed" class="font-medium">Stock Requests</span>
+        </a>
+
         <!-- Suppliers -->
         <a href="{{ route('storekeeper.suppliers') }}" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-150 group {{ request()->routeIs('storekeeper.suppliers') ? 'bg-primary-600 text-white' : 'text-primary-200 hover:bg-white/10 hover:text-white' }}">
           <i class="fa-solid fa-truck w-4 text-center flex-shrink-0"></i>

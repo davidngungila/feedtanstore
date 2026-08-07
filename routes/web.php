@@ -75,6 +75,18 @@ Route::middleware('auth')->group(function () {
         Route::get('/stock', [\App\Http\Controllers\StorekeeperController::class, 'stock'])->name('stock');
         Route::get('/purchase-orders', [\App\Http\Controllers\StorekeeperController::class, 'purchaseOrders'])->name('purchase-orders');
         Route::get('/suppliers', [\App\Http\Controllers\StorekeeperController::class, 'suppliers'])->name('suppliers');
+        
+        // Stock Transfer Routes
+        Route::get('/stock-transfers', [\App\Http\Controllers\StockTransferController::class, 'index'])->name('stock-transfers');
+        Route::get('/stock-transfers/create', [\App\Http\Controllers\StockTransferController::class, 'create'])->name('stock-transfers.create');
+        Route::post('/stock-transfers', [\App\Http\Controllers\StockTransferController::class, 'store'])->name('stock-transfers.store');
+        Route::get('/stock-transfers/{stockTransfer}', [\App\Http\Controllers\StockTransferController::class, 'show'])->name('stock-transfers.show');
+        
+        // Purchase Order Request Routes
+        Route::get('/purchase-order-requests', [\App\Http\Controllers\PurchaseOrderRequestController::class, 'index'])->name('purchase-order-requests');
+        Route::get('/purchase-order-requests/create', [\App\Http\Controllers\PurchaseOrderRequestController::class, 'create'])->name('purchase-order-requests.create');
+        Route::post('/purchase-order-requests', [\App\Http\Controllers\PurchaseOrderRequestController::class, 'store'])->name('purchase-order-requests.store');
+        Route::get('/purchase-order-requests/{purchaseOrderRequest}', [\App\Http\Controllers\PurchaseOrderRequestController::class, 'show'])->name('purchase-order-requests.show');
     });
 
     // Marketing Officer Routes
@@ -406,6 +418,20 @@ Route::middleware('auth')->group(function () {
         Route::delete('/carousel/{carousel}', [\App\Http\Controllers\CarouselController::class, 'destroy'])->name('carousel.destroy');
         
         Route::get('/delivery', [\App\Http\Controllers\DeliveryManagementController::class, 'index'])->name('delivery');
+        
+        // Purchase Order Request Management (Admin/Manager)
+        Route::get('/purchase-order-requests', [\App\Http\Controllers\PurchaseOrderRequestController::class, 'index'])->name('purchase-order-requests');
+        Route::get('/purchase-order-requests/{purchaseOrderRequest}', [\App\Http\Controllers\PurchaseOrderRequestController::class, 'show'])->name('purchase-order-requests.show');
+        Route::put('/purchase-order-requests/{purchaseOrderRequest}/approve', [\App\Http\Controllers\PurchaseOrderRequestController::class, 'approve'])->name('purchase-order-requests.approve');
+        Route::put('/purchase-order-requests/{purchaseOrderRequest}/reject', [\App\Http\Controllers\PurchaseOrderRequestController::class, 'reject'])->name('purchase-order-requests.reject');
+        Route::put('/purchase-order-requests/{purchaseOrderRequest}/process', [\App\Http\Controllers\PurchaseOrderRequestController::class, 'process'])->name('purchase-order-requests.process');
+        
+        // Stock Transfer Management (Admin/Manager)
+        Route::get('/stock-transfers', [\App\Http\Controllers\StockTransferController::class, 'index'])->name('stock-transfers');
+        Route::get('/stock-transfers/{stockTransfer}', [\App\Http\Controllers\StockTransferController::class, 'show'])->name('stock-transfers.show');
+        Route::put('/stock-transfers/{stockTransfer}/approve', [\App\Http\Controllers\StockTransferController::class, 'approve'])->name('stock-transfers.approve');
+        Route::put('/stock-transfers/{stockTransfer}/reject', [\App\Http\Controllers\StockTransferController::class, 'reject'])->name('stock-transfers.reject');
+        Route::put('/stock-transfers/{stockTransfer}/complete', [\App\Http\Controllers\StockTransferController::class, 'complete'])->name('stock-transfers.complete');
         
         Route::get('/riders', [\App\Http\Controllers\DeliveryRiderController::class, 'index'])->name('riders');
         Route::get('/riders/create', [\App\Http\Controllers\DeliveryRiderController::class, 'create'])->name('riders.create');
