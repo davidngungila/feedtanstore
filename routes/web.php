@@ -84,6 +84,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/products', [\App\Http\Controllers\StorekeeperController::class, 'products'])->name('products');
         Route::get('/stock', [\App\Http\Controllers\StorekeeperController::class, 'stock'])->name('stock');
         Route::get('/purchase-orders', [\App\Http\Controllers\StorekeeperController::class, 'purchaseOrders'])->name('purchase-orders');
+        Route::get('/purchase-orders/{id}', [\App\Http\Controllers\StorekeeperController::class, 'showPurchaseOrder'])->name('purchase-orders.show');
         Route::get('/suppliers', [\App\Http\Controllers\StorekeeperController::class, 'suppliers'])->name('suppliers');
         
         // Stock Transfer Routes

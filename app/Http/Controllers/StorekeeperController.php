@@ -68,6 +68,13 @@ class StorekeeperController extends Controller
         return view('storekeeper.purchase-orders', compact('purchaseOrders', 'suppliers'));
     }
 
+    public function showPurchaseOrder($id)
+    {
+        $purchaseOrder = PurchaseOrder::with(['supplier', 'items.product', 'createdBy', 'approvedBy'])
+            ->findOrFail($id);
+        return view('storekeeper.purchase-order-show', compact('purchaseOrder'));
+    }
+
     public function suppliers()
     {
         $suppliers = Supplier::orderBy('name')->paginate(20);

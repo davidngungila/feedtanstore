@@ -42,7 +42,7 @@
                             </span>
                         </td>
                         <td class="px-6 py-4">
-                            <a href="#" class="text-primary-600 hover:text-primary-700 text-sm font-medium">View</a>
+                            <a href="{{ route('storekeeper.purchase-orders.show', $order->id) }}" class="text-primary-600 hover:text-primary-700 text-sm font-medium">View</a>
                         </td>
                     </tr>
                     @endforeach
