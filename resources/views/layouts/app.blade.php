@@ -1655,7 +1655,7 @@
               </button>
             </form>
             @elseif($activeSession)
-            <a href="{{ route('cash-drawer-sessions.close', $activeSession->id) }}" class="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg text-sm font-medium transition-colors">
+            <a href="{{ route('cash-drawer-sessions.edit-close', $activeSession->id) }}" class="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg text-sm font-medium transition-colors">
               <i class="fa-solid fa-calculator mr-1"></i>Reconcile Now
             </a>
             @endif

@@ -67,9 +67,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/cash-drawer-sessions/create', [\App\Http\Controllers\CashDrawerSessionController::class, 'create'])->name('cash-drawer-sessions.create');
     Route::post('/cash-drawer-sessions', [\App\Http\Controllers\CashDrawerSessionController::class, 'store'])->name('cash-drawer-sessions.store');
     Route::get('/cash-drawer-sessions/{cashDrawerSession}', [\App\Http\Controllers\CashDrawerSessionController::class, 'show'])->name('cash-drawer-sessions.show');
-    Route::get('/cash-drawer-sessions/{cashDrawerSession}/report', [\App\Http\Controllers\CashDrawerSessionController::class, 'generateReport'])->name('cash-drawer-sessions.report');
+    Route::get('/cash-drawer-sessions/{cashDrawerSession}/close', [\App\Http\Controllers\CashDrawerSessionController::class, 'editClose'])->name('cash-drawer-sessions.edit-close');
     Route::put('/cash-drawer-sessions/{cashDrawerSession}/close', [\App\Http\Controllers\CashDrawerSessionController::class, 'close'])->name('cash-drawer-sessions.close');
     Route::put('/cash-drawer-sessions/{cashDrawerSession}/reconcile', [\App\Http\Controllers\CashDrawerSessionController::class, 'reconcile'])->name('cash-drawer-sessions.reconcile');
+    Route::get('/cash-drawer-sessions/{cashDrawerSession}/report', [\App\Http\Controllers\CashDrawerSessionController::class, 'generateReport'])->name('cash-drawer-sessions.report');
     Route::get('/api/cash-drawer-sessions/active', [\App\Http\Controllers\CashDrawerSessionController::class, 'getActiveSession'])->name('api.cash-drawer-sessions.active');
     
     Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');

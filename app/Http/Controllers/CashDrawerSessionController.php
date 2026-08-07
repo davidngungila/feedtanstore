@@ -69,6 +69,27 @@ class CashDrawerSessionController extends Controller
         return view('cash-drawer-sessions.show', compact('cashDrawerSession', 'totalCashSales'));
     }
 
+    public function editClose(CashDrawerSession $cashDrawerSession)
+    {
+        if ($cashDrawerSession->status !== 'opened') {
+            return back()->with('error', 'This session is already closed');
+        }
+
+        if ($cashDrawerSession->user_id !== Auth::id()) {
+            return back()->with('error', 'You can only close your own sessions');
+        }
+
+        // Calculate expected sales
+        $totalCashSales = Sale::where('cash_drawer_session_id', $cashDrawerSession->id)
+            ->where('payment_method', 'cash')
+            ->sum('total');
+        
+        $session = $cashDrawerSession;
+        $expectedSales = $totalCashSales;
+
+        return view('cash-drawer-sessions.close', compact('session', 'expectedSales'));
+    }
+
     public function close(Request $request, CashDrawerSession $cashDrawerSession)
     {
         if ($cashDrawerSession->status !== 'opened') {
