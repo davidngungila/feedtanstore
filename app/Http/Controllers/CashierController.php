@@ -130,7 +130,6 @@ class CashierController extends Controller
                 'items.*.id' => 'required|exists:products,id',
                 'items.*.quantity' => 'required|integer|min:1',
                 'items.*.price' => 'required|numeric|min:0',
-                'discount' => 'nullable|numeric',
                 'paid' => 'required|numeric|min:0',
                 'payment_method' => 'required|string|in:cash,card,mobile',
                 'customer_id' => 'nullable|exists:customers,id'
@@ -152,8 +151,7 @@ class CashierController extends Controller
             $invoiceNumber = 'INV-' . date('YmdHis');
             $subtotal = collect($data['items'])->sum(fn($item) => $item['price'] * $item['quantity']);
             $tax = 0; // 0% tax
-            $discount = $data['discount'] ?? 0;
-            $total = $subtotal + $tax - $discount;
+            $total = $subtotal + $tax;
             $paid = $data['paid'];
             $change = max(0, $paid - $total);
 
@@ -194,7 +192,7 @@ class CashierController extends Controller
             $sale = Sale::create([
                 'sale_number' => 'SAL-' . date('YmdHis'),
                 'total' => $total,
-                'discount' => $data['discount'] ?? 0,
+                'discount' => 0,
                 'payment_method' => $data['payment_method'],
                 'customer_id' => $data['customer_id'] ?? null,
                 'user_id' => Auth::id(),
@@ -203,7 +201,7 @@ class CashierController extends Controller
                 'discount_id' => null,
                 'subtotal' => $subtotal,
                 'tax' => $tax,
-                'discount' => $discount,
+                'discount' => 0,
                 'total' => $total,
                 'paid' => $paid,
                 'change' => $change,

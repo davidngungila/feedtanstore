@@ -119,19 +119,6 @@
                         <span class="text-gray-600">Subtotal:</span>
                         <span id="subtotal" class="font-semibold">TZS 0.00</span>
                     </div>
-                    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 mb-1.5 text-sm">
-                        <label class="text-gray-600">Discount:</label>
-                        <div class="flex flex-col sm:flex-row sm:items-center gap-2">
-                            <div class="flex w-full sm:w-auto border border-gray-300 rounded overflow-hidden">
-                                <select id="discountType" class="px-2 py-1 border-r border-gray-300 bg-gray-50 text-sm" onchange="updateTotals()">
-                                    <option value="amount">TZS</option>
-                                    <option value="percent">%</option>
-                                </select>
-                                <input type="number" id="discountInput" placeholder="0" class="w-full sm:w-24 px-2 py-1 border-0 text-sm" onchange="updateTotals()">
-                            </div>
-                            <span id="discountAmount" class="font-semibold text-red-600">-TZS 0.00</span>
-                        </div>
-                    </div>
                     <div class="flex justify-between text-lg font-bold">
                         <span>Total:</span>
                         <span id="total">TZS 0.00</span>
