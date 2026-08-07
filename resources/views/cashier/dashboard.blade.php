@@ -1193,7 +1193,7 @@ function setPaidAmount(amount) {
 }
 
 function calculateChange() {
-    const total = cart.reduce((sum, item) => sum + (parseFloat(item.price) * item.quantity), 0) - (parseFloat(document.getElementById('discountInput').value) || 0);
+    const total = cart.reduce((sum, item) => sum + (parseFloat(item.price) * item.quantity), 0);
     const paid = parseFloat(document.getElementById('paidAmount').value) || 0;
     const change = paid - total;
     const changeElement = document.getElementById('changeAmount');
