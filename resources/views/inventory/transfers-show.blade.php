@@ -18,26 +18,31 @@
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            @if($stockTransfer->isBulkTransfer())
+            @if($stockTransfer->items && $stockTransfer->items->count() > 0)
                 <div class="md:col-span-2">
                     <p class="text-sm text-gray-500 mb-1">Products</p>
                     <div class="space-y-2">
                         @foreach($stockTransfer->items as $item)
                         <div class="flex justify-between items-center bg-gray-50 p-2 rounded">
-                            <span class="font-medium">{{ $item->product->name }}</span>
+                            <span class="font-medium">{{ $item->product->name ?? 'N/A' }}</span>
                             <span class="text-gray-600">{{ $item->quantity }} {{ $item->product->unit?->short_name ?? 'pcs' }}</span>
                         </div>
                         @endforeach
                     </div>
                 </div>
-            @else
+            @elseif($stockTransfer->product_id)
                 <div>
                     <p class="text-sm text-gray-500 mb-1">Product</p>
                     <p class="font-medium">{{ $stockTransfer->product->name ?? 'N/A' }}</p>
                 </div>
                 <div>
                     <p class="text-sm text-gray-500 mb-1">Quantity</p>
-                    <p class="font-medium">{{ $stockTransfer->quantity }}</p>
+                    <p class="font-medium">{{ $stockTransfer->quantity ?? 'N/A' }}</p>
+                </div>
+            @else
+                <div class="md:col-span-2">
+                    <p class="text-sm text-gray-500 mb-1">Products</p>
+                    <p class="text-gray-600">No product information available for this transfer</p>
                 </div>
             @endif
             <div>
