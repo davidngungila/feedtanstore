@@ -1615,7 +1615,7 @@ function completeSale() {
                             if (!r.ok) {
                                 return r.json().then(err => {
                                     console.error('Server error response:', err);
-                                    Promise.reject(err);
+                                    throw err;
                                 });
                             }
                             return r.json();
