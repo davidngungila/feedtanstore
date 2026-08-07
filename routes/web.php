@@ -217,6 +217,14 @@ Route::middleware('auth')->group(function () {
         Route::post('/barcodes/print-all', [\App\Http\Controllers\ProductController::class, 'printAllBarcodes'])->name('barcodes.print-all');
     });
 
+    // Stock Requests
+    Route::prefix('stock-requests')->name('stock-requests.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\StockRequestController::class, 'index'])->name('index');
+        Route::get('/create', [\App\Http\Controllers\StockRequestController::class, 'create'])->name('create');
+        Route::post('/', [\App\Http\Controllers\StockRequestController::class, 'store'])->name('store');
+        Route::get('/{stockRequest}', [\App\Http\Controllers\StockRequestController::class, 'show'])->name('show');
+    });
+
     // Purchasing & Suppliers
     Route::prefix('purchasing')->name('purchasing.')->group(function () {
         Route::get('/suppliers', [\App\Http\Controllers\SupplierController::class, 'index'])->name('suppliers');
