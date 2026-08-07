@@ -30,9 +30,38 @@
                     <select name="online_order_id" id="online_order_id" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
                         <option value="">Select Online Order</option>
                         @foreach($onlineOrders as $order)
-                            <option value="{{ $order->id }}">{{ $order->order_number }} - {{ $order->customer_name }}</option>
+                            <option value="{{ $order->id }}" 
+                                    data-customer="{{ $order->customer_name }}"
+                                    data-address="{{ $order->delivery_address }}"
+                                    data-lat="{{ $order->delivery_latitude }}"
+                                    data-lng="{{ $order->delivery_longitude }}">
+                                {{ $order->order_number }} - {{ $order->customer_name }}
+                            </option>
                         @endforeach
                     </select>
+                </div>
+
+                <!-- Order Details (shown when online order selected) -->
+                <div id="order_details_section" class="hidden p-4 bg-blue-50 rounded-lg">
+                    <h3 class="font-semibold text-blue-900 mb-3">Order Details</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <p class="text-sm text-blue-700">Customer</p>
+                            <p class="font-semibold text-blue-900" id="order_customer">-</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-blue-700">Delivery Address</p>
+                            <p class="font-semibold text-blue-900" id="order_address">-</p>
+                        </div>
+                    </div>
+                    @if(isset($onlineOrders) && $onlineOrders->firstWhere('delivery_latitude'))
+                    <div class="mt-4">
+                        <p class="text-sm text-blue-700 mb-2">Delivery Location</p>
+                        <div id="map_container" class="h-48 bg-gray-200 rounded-lg flex items-center justify-center">
+                            <p class="text-gray-500 text-sm">Select an order to view location</p>
+                        </div>
+                    </div>
+                    @endif
                 </div>
 
                 <div>
@@ -88,10 +117,12 @@
 
 <script>
 let productIndex = 1;
+const onlineOrdersData = @json($onlineOrders);
 
 document.getElementById('request_type').addEventListener('change', function() {
     const onlineOrderSection = document.getElementById('online_order_section');
     const onlineOrderSelect = document.getElementById('online_order_id');
+    const orderDetailsSection = document.getElementById('order_details_section');
     
     if (this.value === 'online_order') {
         onlineOrderSection.classList.remove('hidden');
@@ -100,6 +131,116 @@ document.getElementById('request_type').addEventListener('change', function() {
         onlineOrderSection.classList.add('hidden');
         onlineOrderSelect.removeAttribute('required');
         onlineOrderSelect.value = '';
+        orderDetailsSection.classList.add('hidden');
+    }
+});
+
+document.getElementById('online_order_id').addEventListener('change', function() {
+    const selectedOption = this.options[this.selectedIndex];
+    const orderDetailsSection = document.getElementById('order_details_section');
+    const orderCustomer = document.getElementById('order_customer');
+    const orderAddress = document.getElementById('order_address');
+    const mapContainer = document.getElementById('map_container');
+    
+    if (this.value) {
+        const customer = selectedOption.getAttribute('data-customer');
+        const address = selectedOption.getAttribute('data-address');
+        const lat = selectedOption.getAttribute('data-lat');
+        const lng = selectedOption.getAttribute('data-lng');
+        
+        orderCustomer.textContent = customer || '-';
+        orderAddress.textContent = address || '-';
+        orderDetailsSection.classList.remove('hidden');
+        
+        // Auto-populate products from order
+        const orderId = this.value;
+        const order = onlineOrdersData.find(o => o.id == orderId);
+        
+        if (order && order.items && order.items.length > 0) {
+            const container = document.getElementById('products_container');
+            container.innerHTML = '';
+            productIndex = 0;
+            
+            order.items.forEach((item, index) => {
+                const template = `
+                    <div class="product-item mb-4 p-4 border border-gray-200 rounded-lg bg-blue-50">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Product *</label>
+                                <select name="products[${productIndex}][product_id]" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                                    <option value="">Select Product</option>
+                                    @foreach($products as $product)
+                                        <option value="{{ $product->id }}" {{ $product->id == ${item.product_id} ? 'selected' : '' }}>{{ $product->name }} (Available: {{ $product->quantity }})</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Quantity Requested *</label>
+                                <input type="number" name="products[${productIndex}][quantity_requested]" required min="1" value="${item.quantity}" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                                <input type="text" name="products[${productIndex}][notes]" value="From order item" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.insertAdjacentHTML('beforeend', template);
+                productIndex++;
+            });
+            
+            // Hide add product button for auto-populated orders
+            document.getElementById('add_product').classList.add('hidden');
+        }
+        
+        // Show map if coordinates available
+        if (lat && lng) {
+            mapContainer.innerHTML = `
+                <iframe 
+                    width="100%" 
+                    height="100%" 
+                    frameborder="0" 
+                    scrolling="no" 
+                    marginheight="0" 
+                    marginwidth="0" 
+                    src="https://maps.google.com/maps?q=${lat},${lng}&hl=en&z=14&output=embed">
+                </iframe>
+            `;
+        } else {
+            mapContainer.innerHTML = '<p class="text-gray-500 text-sm">No location data available for this order</p>';
+        }
+    } else {
+        orderDetailsSection.classList.add('hidden');
+        // Reset products container
+        const container = document.getElementById('products_container');
+        container.innerHTML = `
+            <div class="product-item mb-4 p-4 border border-gray-200 rounded-lg">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Product *</label>
+                        <select name="products[0][product_id]" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 product-select">
+                            <option value="">Select Product</option>
+                            @foreach($products as $product)
+                                <option value="{{ $product->id }}" data-quantity="{{ $product->quantity }}">{{ $product->name }} (Available: {{ $product->quantity }})</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Quantity Requested *</label>
+                        <input type="number" name="products[0][quantity_requested]" required min="1" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                        <input type="text" name="products[0][notes]" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                    </div>
+                </div>
+                <button type="button" class="remove-product mt-2 text-red-600 hover:text-red-800 text-sm">
+                    <i class="fas fa-trash mr-1"></i>Remove
+                </button>
+            </div>
+        `;
+        productIndex = 1;
+        document.getElementById('add_product').classList.remove('hidden');
     }
 });
 
@@ -123,7 +264,7 @@ document.getElementById('add_product').addEventListener('click', function() {
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
-                    <input type="number" name="products[${productIndex}][notes]" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                    <input type="text" name="products[${productIndex}][notes]" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
                 </div>
             </div>
             <button type="button" class="remove-product mt-2 text-red-600 hover:text-red-800 text-sm">
