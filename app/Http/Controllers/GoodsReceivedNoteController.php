@@ -49,7 +49,8 @@ class GoodsReceivedNoteController extends Controller
                 return redirect()->route('purchasing.grn.create')->with('error', 'Invalid purchase order ID.');
             }
         }
-        return view('purchasing.grn-create', compact('suppliers', 'products', 'purchaseOrders', 'selectedPurchaseOrder'));
+        $isStoreOfficer = auth()->user()->role === 'store_officer';
+        return view('purchasing.grn-create', compact('suppliers', 'products', 'purchaseOrders', 'selectedPurchaseOrder', 'isStoreOfficer'));
     }
 
     public function store(Request $request)

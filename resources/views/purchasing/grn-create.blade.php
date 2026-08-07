@@ -81,10 +81,15 @@
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Quantity *</label>
                                 <input type="number" name="products[0][quantity]" value="1" min="1" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 product_quantity">
                             </div>
+                            @if(!$isStoreOfficer)
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Cost Price *</label>
                                 <input type="number" step="0.01" name="products[0][unit_price]" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 product_cost_price">
                             </div>
+                            @else
+                            <input type="hidden" name="products[0][unit_price]" value="0">
+                            @endif
+                            @if(!$isStoreOfficer)
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Pricing Method</label>
                                 <select name="products[0][pricing_method]" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 product_pricing_method">
@@ -92,25 +97,37 @@
                                     <option value="flat">Flat Amount</option>
                                 </select>
                             </div>
+                            @else
+                            <input type="hidden" name="products[0][pricing_method]" value="percentage">
+                            @endif
                             <div class="flex items-end">
                                 <button type="button" class="remove_product text-red-600 hover:text-red-800 px-4 py-2 border border-red-300 rounded-lg">Remove</button>
                             </div>
                         </div>
                         <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                            @if(!$isStoreOfficer)
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Profit Value</label>
                                 <input type="number" step="0.01" name="products[0][profit_value]" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 product_profit_value">
                             </div>
+                            @else
+                            <input type="hidden" name="products[0][profit_value]" value="0">
+                            @endif
+                            @if(!$isStoreOfficer)
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Selling Price *</label>
                                 <input type="number" step="0.01" name="products[0][selling_price]" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 product_selling_price">
                             </div>
+                            @else
+                            <input type="hidden" name="products[0][selling_price]" value="0">
+                            @endif
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Expiry Date <span class="expiry-required text-red-500 hidden">*</span></label>
                                 <input type="date" name="products[0][expiry_date]" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 product_expiry_date">
                                 <span class="expiry-hint text-xs text-gray-500 hidden">Required for this product category</span>
                             </div>
                         </div>
+                        @if(!$isStoreOfficer)
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Profit per Unit</label>
@@ -125,6 +142,7 @@
                                 </div>
                             </div>
                         </div>
+                        @endif
                     </div>
                     @endif
                 </div>
@@ -354,6 +372,7 @@ function addProductItemListeners(item) {
 
 function addProductItemFromPo(productData, orderedQuantity, unitPrice) {
     const container = document.getElementById('products_container');
+    const isStoreOfficer = {{ $isStoreOfficer ? 'true' : 'false' }};
     
     // Extract product details directly from productData
     const productId = productData ? productData.id : '';
@@ -385,6 +404,7 @@ function addProductItemFromPo(productData, orderedQuantity, unitPrice) {
                     <label class="block text-sm font-medium text-gray-700 mb-1">Received Qty *</label>
                     <input type="number" name="products[${productIndex}][quantity]" value="${orderedQuantity}" min="1" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 product_quantity">
                 </div>
+                ${!isStoreOfficer ? `
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Cost Price *</label>
                     <input type="number" step="0.01" name="products[${productIndex}][unit_price]" value="${unitPrice}" required class="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed product_cost_price" readonly>
@@ -396,8 +416,13 @@ function addProductItemFromPo(productData, orderedQuantity, unitPrice) {
                         <option value="flat">Flat Amount</option>
                     </select>
                 </div>
+                ` : `
+                <input type="hidden" name="products[${productIndex}][unit_price]" value="${unitPrice}">
+                <input type="hidden" name="products[${productIndex}][pricing_method]" value="percentage">
+                `}
             </div>
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                ${!isStoreOfficer ? `
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Profit Value</label>
                     <input type="number" step="0.01" name="products[${productIndex}][profit_value]" value="${defaultProfitValue}" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 product_profit_value">
@@ -406,12 +431,17 @@ function addProductItemFromPo(productData, orderedQuantity, unitPrice) {
                     <label class="block text-sm font-medium text-gray-700 mb-1">Selling Price *</label>
                     <input type="number" step="0.01" name="products[${productIndex}][selling_price]" value="${productSellingPrice}" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 product_selling_price">
                 </div>
+                ` : `
+                <input type="hidden" name="products[${productIndex}][profit_value]" value="${defaultProfitValue}">
+                <input type="hidden" name="products[${productIndex}][selling_price]" value="${productSellingPrice}">
+                `}
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Expiry Date <span class="expiry-required text-red-500 hidden">*</span></label>
                     <input type="date" name="products[${productIndex}][expiry_date]" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 product_expiry_date">
                     <span class="expiry-hint text-xs text-gray-500 hidden">Required for this product category</span>
                 </div>
             </div>
+            ${!isStoreOfficer ? `
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Profit per Unit</label>
@@ -426,19 +456,14 @@ function addProductItemFromPo(productData, orderedQuantity, unitPrice) {
                     </div>
                 </div>
             </div>
+            ` : ''}
         </div>
     `;
     
-    container.innerHTML += template;
-    
-    // Add event listeners to the new item
-    const lastItem = container.lastElementChild;
-    addProductItemListeners(lastItem);
-    
-    // Calculate initial profit
-    calculateSellingPrice(lastItem);
-    calculateProfit(lastItem);
-    
+    container.insertAdjacentHTML('beforeend', template);
+    const newItem = container.lastElementChild;
+    addProductItemListeners(newItem);
+    calculateProfit(newItem);
     productIndex++;
 }
 
