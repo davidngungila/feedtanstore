@@ -8,10 +8,10 @@
         <div class="flex items-center justify-between mb-6">
             <h2 class="text-xl font-bold text-primary-900">{{ $stockTransfer->transfer_number }}</h2>
             <div class="flex gap-3">
-                <a href="{{ route('inventory.transfers.edit', $stockTransfer->id) }}" class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors">
+                <a href="/inventory/transfers/{{ $stockTransfer->id }}/edit" class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors">
                     Edit
                 </a>
-                <a href="{{ route('inventory.transfers') }}" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
+                <a href="/inventory/transfers" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
                     Back to Transfers
                 </a>
             </div>
