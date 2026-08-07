@@ -54,7 +54,7 @@ class CashDrawerSession extends Model
 
     public function sales()
     {
-        return $this->hasMany(Sale::class);
+        return $this->hasMany(Sale::class, 'cash_drawer_session_id');
     }
 
     public static function generateSessionNumber()

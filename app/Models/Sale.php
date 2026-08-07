@@ -36,4 +36,8 @@ class Sale extends Model {
     public function accountingEntries() {
         return $this->morphMany(AccountingEntry::class, 'reference');
     }
+
+    public function cashDrawerSession() {
+        return $this->belongsTo(CashDrawerSession::class);
+    }
 }
