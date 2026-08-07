@@ -13,10 +13,16 @@ class StockRequestController extends Controller
 {
     public function index()
     {
-        $stockRequests = StockRequest::with(['user', 'onlineOrder', 'items.product'])
-            ->where('user_id', Auth::id())
-            ->orderBy('created_at', 'desc')
-            ->paginate(20);
+        $query = StockRequest::with(['user', 'onlineOrder', 'items.product'])
+            ->orderBy('created_at', 'desc');
+        
+        // Marketing officers only see their own requests
+        if (Auth::user()->role === 'marketing_officer') {
+            $query->where('user_id', Auth::id());
+        }
+        
+        // Storekeepers, admins, and managers see all requests
+        $stockRequests = $query->paginate(20);
         
         return view('stock-requests.index', compact('stockRequests'));
     }
