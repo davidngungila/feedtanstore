@@ -61,7 +61,7 @@ class StockTransferController extends Controller
             ]);
         }
         
-        return redirect()->route('stock-transfers.index')
+        return redirect()->route('storekeeper.stock-transfers')
             ->with('success', 'Stock transfer request submitted successfully');
     }
 
