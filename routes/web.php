@@ -225,6 +225,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/create', [\App\Http\Controllers\StockRequestController::class, 'create'])->name('create');
         Route::post('/', [\App\Http\Controllers\StockRequestController::class, 'store'])->name('store');
         Route::get('/{stockRequest}', [\App\Http\Controllers\StockRequestController::class, 'show'])->name('show');
+        Route::post('/{stockRequest}/approve', [\App\Http\Controllers\StockRequestController::class, 'approve'])->name('approve');
+        Route::post('/{stockRequest}/reject', [\App\Http\Controllers\StockRequestController::class, 'reject'])->name('reject');
     });
 
     // Purchasing & Suppliers

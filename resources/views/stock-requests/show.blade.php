@@ -76,6 +76,7 @@
                     <tr>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity Requested</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Available Stock</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity Approved</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Notes</th>
                     </tr>
@@ -85,6 +86,7 @@
                     <tr class="hover:bg-gray-50">
                         <td class="px-6 py-4 font-semibold text-gray-900">{{ $item->product->name }}</td>
                         <td class="px-6 py-4 text-sm text-gray-600">{{ $item->quantity_requested }}</td>
+                        <td class="px-6 py-4 text-sm text-gray-600">{{ $item->product->quantity }}</td>
                         <td class="px-6 py-4 text-sm text-gray-600">{{ $item->quantity_approved }}</td>
                         <td class="px-6 py-4 text-sm text-gray-600">{{ $item->notes ?? '-' }}</td>
                     </tr>
@@ -93,5 +95,53 @@
             </table>
         </div>
     </div>
+
+    @if($stockRequest->status === 'pending' && (Auth::user()->role === 'storekeeper' || Auth::user()->role === 'admin' || Auth::user()->role === 'manager'))
+    <div class="card rounded-2xl p-6 mt-6">
+        <h2 class="text-lg font-bold text-primary-900 mb-4">Approve Stock Request</h2>
+        <form action="{{ route('stock-requests.approve', $stockRequest) }}" method="POST">
+            @csrf
+            <div class="space-y-4">
+                @foreach($stockRequest->items as $item)
+                <div class="p-4 border border-gray-200 rounded-lg">
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
+                        <div class="md:col-span-2">
+                            <p class="font-semibold text-gray-900">{{ $item->product->name }}</p>
+                            <p class="text-sm text-gray-600">Requested: {{ $item->quantity_requested }} | Available: {{ $item->product->quantity }}</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Quantity to Issue</label>
+                            <input type="number" 
+                                   name="items[{{ $item->id }}][quantity_approved]" 
+                                   min="0" 
+                                   max="{{ min($item->quantity_requested, $item->product->quantity) }}"
+                                   value="{{ min($item->quantity_requested, $item->product->quantity) }}"
+                                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                            <span class="px-2 py-1 text-xs font-semibold rounded-full 
+                                @if($item->product->quantity >= $item->quantity_requested) bg-green-100 text-green-800 @else bg-red-100 text-red-800 @endif">
+                                @if($item->product->quantity >= $item->quantity_requested) In Stock @else Insufficient Stock @endif
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                @endforeach
+            </div>
+            <div class="flex justify-end gap-3 mt-6">
+                <form action="{{ route('stock-requests.reject', $stockRequest) }}" method="POST" class="inline">
+                    @csrf
+                    <button type="submit" class="px-6 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors">
+                        Reject Request
+                    </button>
+                </form>
+                <button type="submit" class="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors">
+                    Approve & Issue Stock
+                </button>
+            </div>
+        </form>
+    </div>
+    @endif
 </div>
 @endsection
