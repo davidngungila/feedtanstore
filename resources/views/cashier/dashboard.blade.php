@@ -1763,11 +1763,15 @@ function newSale() {
     document.getElementById('successModal').classList.add('hidden');
     document.getElementById('loadingOverlay').classList.add('hidden');
     document.getElementById('paidAmount').value = '';
-    document.getElementById('discountInput').value = '';
-    document.getElementById('discountType').value = 'amount';
     selectCustomer(null, '');
     selectPaymentMethod('cash');
     renderCart();
+    
+    // Focus on barcode input for scanning new products
+    setTimeout(() => {
+        document.getElementById('barcodeInput').focus();
+    }, 100);
+    
     console.log('New sale initialized');
 }
 
