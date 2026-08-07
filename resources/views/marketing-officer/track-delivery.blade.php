@@ -108,34 +108,35 @@
     </div>
 
     <div class="card rounded-2xl p-6 mb-6">
-        <h2 class="text-lg font-bold text-primary-900 mb-4">Rider Location</h2>
+        <h2 class="text-lg font-bold text-primary-900 mb-4">Delivery Location</h2>
         
-        @if($order->rider && $order->rider->latestLocation)
-        <div class="bg-gray-50 rounded-lg p-4">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                    <p class="text-sm text-gray-600">Last Updated</p>
-                    <p class="font-semibold">{{ $order->rider->latestLocation->created_at->format('M d, Y H:i') }}</p>
-                </div>
-                <div>
-                    <p class="text-sm text-gray-600">Latitude</p>
-                    <p class="font-semibold">{{ $order->rider->latestLocation->latitude }}</p>
-                </div>
-                <div>
-                    <p class="text-sm text-gray-600">Longitude</p>
-                    <p class="font-semibold">{{ $order->rider->latestLocation->longitude }}</p>
-                </div>
-                <div>
-                    <p class="text-sm text-gray-600">Accuracy</p>
-                    <p class="font-semibold">{{ $order->rider->latestLocation->accuracy }}m</p>
-                </div>
+        @if($order->delivery_latitude && $order->delivery_longitude)
+        <div class="bg-gray-50 rounded-lg overflow-hidden">
+            <iframe 
+                width="100%" 
+                height="300" 
+                frameborder="0" 
+                scrolling="no" 
+                marginheight="0" 
+                marginwidth="0" 
+                src="https://maps.google.com/maps?q={{ $order->delivery_latitude }},{{ $order->delivery_longitude }}&hl=en&z=14&output=embed">
+            </iframe>
+        </div>
+        <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <p class="text-sm text-gray-600">Delivery Address</p>
+                <p class="font-semibold">{{ $order->delivery_address }}</p>
+            </div>
+            <div>
+                <p class="text-sm text-gray-600">Coordinates</p>
+                <p class="font-semibold">{{ $order->delivery_latitude }}, {{ $order->delivery_longitude }}</p>
             </div>
         </div>
         @else
         <div class="text-center py-8 text-gray-500">
             <i class="fas fa-map-marker-alt text-4xl mb-4 text-gray-300"></i>
-            <p class="font-medium">No location data available</p>
-            <p class="text-sm">Rider location will appear here when available</p>
+            <p class="font-medium">No delivery location available</p>
+            <p class="text-sm">Location coordinates not provided for this order</p>
         </div>
         @endif
     </div>

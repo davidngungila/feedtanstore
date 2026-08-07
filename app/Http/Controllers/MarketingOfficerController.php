@@ -96,33 +96,8 @@ class MarketingOfficerController extends Controller
 
     public function requestPackaging(Request $request, $id)
     {
-        $request->validate([
-            'notes' => 'nullable|string',
-        ]);
-
-        $order = OnlineOrder::findOrFail($id);
-        
-        // Create stock request for packaging
-        $stockRequest = \App\Models\StockRequest::create([
-            'user_id' => Auth::id(),
-            'online_order_id' => $order->id,
-            'request_type' => 'online_order',
-            'status' => 'pending',
-            'notes' => $request->notes ?? 'Packaging request for order',
-        ]);
-
-        // Add order items to stock request
-        foreach ($order->items as $item) {
-            \App\Models\StockRequestItem::create([
-                'stock_request_id' => $stockRequest->id,
-                'product_id' => $item->product_id,
-                'quantity_requested' => $item->quantity,
-                'quantity_approved' => 0,
-                'notes' => 'Packaging for order ' . $order->order_number,
-            ]);
-        }
-
-        return redirect()->back()->with('success', 'Packaging request submitted successfully');
+        // Redirect to stock requests create page with the order pre-selected
+        return redirect()->route('stock-requests.create')->with('online_order_id', $id);
     }
 
     public function trackDelivery($id)

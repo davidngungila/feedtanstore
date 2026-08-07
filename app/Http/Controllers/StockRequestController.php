@@ -25,8 +25,9 @@ class StockRequestController extends Controller
     {
         $products = Product::with('category')->get();
         $onlineOrders = OnlineOrder::with('items')->where('status', 'confirmed')->get();
+        $preSelectedOrderId = session('online_order_id');
         
-        return view('stock-requests.create', compact('products', 'onlineOrders'));
+        return view('stock-requests.create', compact('products', 'onlineOrders', 'preSelectedOrderId'));
     }
 
     public function store(Request $request)

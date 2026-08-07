@@ -118,6 +118,7 @@
 <script>
 let productIndex = 1;
 const onlineOrdersData = @json($onlineOrders);
+const preSelectedOrderId = {{ $preSelectedOrderId ?? 'null' }};
 
 document.getElementById('request_type').addEventListener('change', function() {
     const onlineOrderSection = document.getElementById('online_order_section');
@@ -134,6 +135,16 @@ document.getElementById('request_type').addEventListener('change', function() {
         orderDetailsSection.classList.add('hidden');
     }
 });
+
+// Auto-select order if pre-selected
+if (preSelectedOrderId) {
+    document.getElementById('request_type').value = 'online_order';
+    document.getElementById('request_type').dispatchEvent(new Event('change'));
+    
+    const onlineOrderSelect = document.getElementById('online_order_id');
+    onlineOrderSelect.value = preSelectedOrderId;
+    onlineOrderSelect.dispatchEvent(new Event('change'));
+}
 
 document.getElementById('online_order_id').addEventListener('change', function() {
     const selectedOption = this.options[this.selectedIndex];
