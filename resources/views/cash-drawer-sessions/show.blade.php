@@ -139,14 +139,24 @@
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200">
-                    @foreach($session->sales as $sale)
-                    <tr class="hover:bg-gray-50">
-                        <td class="px-6 py-4 font-semibold text-gray-900">{{ $sale->sale_number }}</td>
-                        <td class="px-6 py-4 text-sm text-gray-600">{{ $sale->created_at->format('H:i') }}</td>
-                        <td class="px-6 py-4 text-sm text-gray-600">TZS {{ number_format($sale->total, 0) }}</td>
-                        <td class="px-6 py-4 text-sm text-gray-600">{{ ucfirst($sale->payment_method) }}</td>
+                    @if($session->sales->count() > 0)
+                        @foreach($session->sales as $sale)
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-6 py-4 font-semibold text-gray-900">{{ $sale->sale_number }}</td>
+                            <td class="px-6 py-4 text-sm text-gray-600">{{ $sale->created_at->format('H:i') }}</td>
+                            <td class="px-6 py-4 text-sm text-gray-600">TZS {{ number_format($sale->total, 0) }}</td>
+                            <td class="px-6 py-4 text-sm text-gray-600">{{ ucfirst($sale->payment_method) }}</td>
+                        </tr>
+                        @endforeach
+                    @else
+                    <tr>
+                        <td colspan="4" class="px-6 py-12 text-center text-gray-500">
+                            <i class="fas fa-shopping-cart text-4xl mb-4 text-gray-300"></i>
+                            <p class="text-lg font-medium">No sales recorded in this session</p>
+                            <p class="text-sm">Sales will appear here once transactions are made.</p>
+                        </td>
                     </tr>
-                    @endforeach
+                    @endif
                 </tbody>
             </table>
         </div>
