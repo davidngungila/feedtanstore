@@ -178,10 +178,10 @@ document.getElementById('online_order_id').addEventListener('change', function()
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Product *</label>
-                                <select name="products[${productIndex}][product_id]" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                                <select name="products[${productIndex}][product_id]" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500" data-product-id="${item.product_id}">
                                     <option value="">Select Product</option>
                                     @foreach($products as $product)
-                                        <option value="{{ $product->id }}" {{ $product->id == ${item.product_id} ? 'selected' : '' }}>{{ $product->name }} (Available: {{ $product->quantity }})</option>
+                                        <option value="{{ $product->id }}">{{ $product->name }} (Available: {{ $product->quantity }})</option>
                                     @endforeach
                                 </select>
                             </div>
@@ -198,6 +198,13 @@ document.getElementById('online_order_id').addEventListener('change', function()
                 `;
                 container.insertAdjacentHTML('beforeend', template);
                 productIndex++;
+            });
+            
+            // Set selected values after HTML is inserted
+            const selects = container.querySelectorAll('select[data-product-id]');
+            selects.forEach(select => {
+                const productId = select.getAttribute('data-product-id');
+                select.value = productId;
             });
             
             // Hide add product button for auto-populated orders
