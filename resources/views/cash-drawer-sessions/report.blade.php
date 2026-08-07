@@ -5,13 +5,32 @@
 @section('content')
 <div class="animate-[fadeIn_0.4s_ease]">
     <div class="mb-6 flex items-center justify-between">
-        <div>
-            <h1 class="text-2xl font-bold text-primary-900">Cash Drawer Reconciliation Report</h1>
-            <p class="text-gray-600">{{ $cashDrawerSession->session_number }}</p>
+        <div class="flex items-center gap-4">
+            <a href="{{ route('cash-drawer-sessions.show', $cashDrawerSession) }}" class="text-gray-600 hover:text-gray-900 transition-colors">
+                <i class="fas fa-arrow-left text-xl"></i>
+            </a>
+            <div>
+                <h1 class="text-2xl font-bold text-primary-900">Cash Drawer Reconciliation Report</h1>
+                <p class="text-gray-600">{{ $cashDrawerSession->session_number }}</p>
+            </div>
         </div>
-        <button onclick="window.print()" class="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
-            <i class="fas fa-print mr-2"></i>Print Report
-        </button>
+        <div class="flex gap-3">
+            @if($cashDrawerSession->status == 'closed' && in_array(auth()->user()->role, ['admin', 'manager']))
+            <form action="{{ route('cash-drawer-sessions.reconcile', $cashDrawerSession) }}" method="POST">
+                @method('PUT')
+                @csrf
+                <div class="flex gap-2">
+                    <input type="text" name="notes" class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500" placeholder="Reconciliation notes...">
+                    <button type="submit" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                        <i class="fas fa-check mr-2"></i>Reconcile
+                    </button>
+                </div>
+            </form>
+            @endif
+            <button onclick="window.print()" class="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                <i class="fas fa-print mr-2"></i>Print Report
+            </button>
+        </div>
     </div>
 
     <div class="card rounded-2xl p-8 mb-6">
