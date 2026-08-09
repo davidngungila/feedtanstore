@@ -94,6 +94,17 @@ class CashierController extends Controller
             'shift_sales_with_shift_id' => $shiftSales->pluck('id', 'shift_id')
         ]);
         
+        // Debug: Check individual sale items
+        foreach ($shiftSales as $sale) {
+            \Log::info('Shift sale details', [
+                'sale_id' => $sale->id,
+                'shift_id' => $sale->shift_id,
+                'items_count' => $sale->items ? $sale->items->count() : 0,
+                'items_total_quantity' => $sale->items ? $sale->items->sum('quantity') : 0,
+                'items_data' => $sale->items ? $sale->items->toArray() : null
+            ]);
+        }
+        
         // Calculate totals
         $todayTotal = $todaySales->sum('total');
         $shiftTotal = $shiftSales->sum('total');
