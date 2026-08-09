@@ -34,7 +34,37 @@ class StockRequestController extends Controller
         $preSelectedOrderId = session('online_order_id');
         $storeSettings = \App\Models\StoreSetting::first();
         
-        return view('stock-requests.create', compact('products', 'onlineOrders', 'preSelectedOrderId', 'storeSettings'));
+        // Get store location
+        $storeLat = $storeSettings->store_latitude ?? -3.3869;
+        $storeLng = $storeSettings->store_longitude ?? 36.6883;
+        
+        // Pre-fetch routes for all orders
+        $routes = [];
+        if ($storeSettings->openrouteservice_api_key) {
+            foreach ($onlineOrders as $order) {
+                if ($order->delivery_latitude && $order->delivery_longitude) {
+                    try {
+                        $response = \Illuminate\Support\Facades\Http::withHeaders([
+                            'Authorization' => $storeSettings->openrouteservice_api_key,
+                            'Content-Type' => 'application/json'
+                        ])->post('https://api.openrouteservice.org/v2/directions/driving-car/geojson', [
+                            'coordinates' => [
+                                [$storeLng, $storeLat],
+                                [$order->delivery_longitude, $order->delivery_latitude]
+                            ]
+                        ]);
+                        
+                        if ($response->successful()) {
+                            $routes[$order->id] = $response->json();
+                        }
+                    } catch (\Exception $e) {
+                        // Log error or ignore
+                    }
+                }
+            }
+        }
+        
+        return view('stock-requests.create', compact('products', 'onlineOrders', 'preSelectedOrderId', 'storeSettings', 'storeLat', 'storeLng', 'routes'));
     }
 
     public function store(Request $request)

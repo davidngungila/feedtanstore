@@ -125,10 +125,11 @@ let orderMap = null;
 let routePolyline = null;
 const onlineOrdersData = @json($onlineOrders);
 const preSelectedOrderId = {{ $preSelectedOrderId ?? 'null' }};
+const routes = @json($routes);
 
 // Store location from settings
-const STORE_LATITUDE = {{ $storeSettings->store_latitude ?? -6.7924 }};
-const STORE_LONGITUDE = {{ $storeSettings->store_longitude ?? 39.2083 }};
+const STORE_LATITUDE = {{ $storeLat ?? -6.7924 }};
+const STORE_LONGITUDE = {{ $storeLng ?? 39.2083 }};
 
 // Calculate distance between two coordinates using Haversine formula
 function calculateDistance(lat1, lon1, lat2, lon2) {
@@ -191,45 +192,16 @@ function initMap() {
     document.head.appendChild(script);
 }
 
-// Fetch route from OpenRouteService API
-async function fetchRoute(fromLat, fromLng, toLat, toLng) {
-    const apiKey = '{{ $storeSettings->openrouteservice_api_key ?? "" }}';
-    
-    if (!apiKey) {
-        console.warn('OpenRouteService API key not configured');
-        return null;
-    }
-    
-    try {
-        const response = await fetch(`https://api.openrouteservice.org/v2/directions/driving-car?start=${fromLng},${fromLat}&end=${toLng},${toLat}`, {
-            headers: {
-                'Authorization': apiKey,
-                'Accept': 'application/json, application/geo+json, application/gpx+xml, img/png; charset=utf-8'
-            }
-        });
-        
-        if (!response.ok) {
-            console.error('Failed to fetch route:', response.statusText);
-            return null;
-        }
-        
-        const data = await response.json();
-        return data;
-    } catch (error) {
-        console.error('Error fetching route:', error);
-        return null;
-    }
-}
-
-// Update map with order location and route
-async function updateMapWithOrder(lat, lng, customerName, address) {
+// Update map with order location and pre-fetched route
+function updateMapWithOrder(lat, lng, customerName, address, orderId) {
     if (!orderMap) {
         initMap();
         // Wait for map to initialize
-        await new Promise(resolve => setTimeout(resolve, 500));
+        setTimeout(() => {
+            updateMapWithOrder(lat, lng, customerName, address, orderId);
+        }, 500);
+        return;
     }
-    
-    if (!orderMap) return;
     
     // Remove existing route if any
     if (routePolyline) {
@@ -261,11 +233,9 @@ async function updateMapWithOrder(lat, lng, customerName, address) {
     ]);
     orderMap.fitBounds(bounds, { padding: [50, 50] });
     
-    // Fetch and display route
-    const route = await fetchRoute(STORE_LATITUDE, STORE_LONGITUDE, lat, lng);
-    
-    if (route && route.features && route.features.length > 0) {
-        const coords = route.features[0].geometry.coordinates;
+    // Add pre-fetched route if available
+    if (routes && routes[orderId] && routes[orderId].features && routes[orderId].features.length > 0) {
+        const coords = routes[orderId].features[0].geometry.coordinates;
         const points = coords.map(c => [c[1], c[0]]);
         routePolyline = L.polyline(points, { color: '#3b82f6', weight: 4, opacity: 0.7 }).addTo(orderMap);
         orderMap.fitBounds(points, { padding: [50, 50] });
@@ -298,7 +268,7 @@ if (preSelectedOrderId) {
     onlineOrderSelect.dispatchEvent(new Event('change'));
 }
 
-document.getElementById('online_order_id').addEventListener('change', async function() {
+document.getElementById('online_order_id').addEventListener('change', function() {
     const selectedOption = this.options[this.selectedIndex];
     const orderDetailsSection = document.getElementById('order_details_section');
     const orderCustomer = document.getElementById('order_customer');
@@ -375,7 +345,7 @@ document.getElementById('online_order_id').addEventListener('change', async func
         
         // Show map with route if coordinates available
         if (lat && lng) {
-            await updateMapWithOrder(parseFloat(lat), parseFloat(lng), customer, address);
+            updateMapWithOrder(parseFloat(lat), parseFloat(lng), customer, address, this.value);
         } else {
             mapContainer.innerHTML = '<p class="text-gray-500 text-sm">No location data available for this order</p>';
         }
