@@ -12,7 +12,7 @@
     </div>
     
     <!-- Dashboard Stats -->
-    <div id="dashboardStats" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4 hidden lg:grid">
+    <div id="dashboardStats" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-4 hidden lg:grid">
         <div class="card rounded-2xl p-4">
             <h4 class="text-sm font-medium text-gray-600 mb-1">Shift Sales</h4>
             <p class="text-xl font-bold text-primary-900" id="shiftSales">TZS 0.00</p>
@@ -29,6 +29,10 @@
         <div class="card rounded-2xl p-4">
             <h4 class="text-sm font-medium text-gray-600 mb-1">Total Mobile</h4>
             <p class="text-xl font-bold text-purple-700" id="todayMobile">TZS 0.00</p>
+        </div>
+        <div class="card rounded-2xl p-4">
+            <h4 class="text-sm font-medium text-gray-600 mb-1">Total ClickPesa</h4>
+            <p class="text-xl font-bold text-orange-700" id="todayClickpesa">TZS 0.00</p>
         </div>
     </div>
 
@@ -762,7 +766,8 @@ function updateDashboardDisplay() {
     document.getElementById('shiftItems').textContent = shiftItemsCount + ' items';
     document.getElementById('todayCash').textContent = 'TZS ' + formatNumber(todayCash);
     document.getElementById('todayCard').textContent = 'TZS ' + formatNumber(todayCard);
-    document.getElementById('todayMobile').textContent = 'TZS ' + formatNumber(todayMobile + todayClickpesa);
+    document.getElementById('todayMobile').textContent = 'TZS ' + formatNumber(todayMobile);
+    document.getElementById('todayClickpesa').textContent = 'TZS ' + formatNumber(todayClickpesa);
 }
 
 function updateTime() {
