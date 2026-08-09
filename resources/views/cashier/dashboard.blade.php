@@ -1044,7 +1044,28 @@ function addProductByBarcode(barcode, options = {}) {
 }
 
 function addProductToCart(id, name, price) {
+    const product = productsData.find(p => p.id === id);
+    
+    // Check if product exists and has stock
+    if (!product) {
+        showNotification('Product not found', 'error');
+        return;
+    }
+    
+    // Check if product has sufficient stock
+    if (product.quantity <= 0) {
+        showNotification('Insufficient stock for ' + name + '. Available: 0', 'error');
+        return;
+    }
+    
+    // Check if adding would exceed available stock
     const existing = cart.find(item => item.id === id);
+    const currentQuantity = existing ? existing.quantity : 0;
+    if (currentQuantity >= product.quantity) {
+        showNotification('Insufficient stock for ' + name + '. Available: ' + product.quantity, 'error');
+        return;
+    }
+    
     if (existing) {
         existing.quantity += 1;
     } else {
