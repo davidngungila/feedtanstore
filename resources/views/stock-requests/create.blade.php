@@ -60,9 +60,9 @@
                     </div>
                     @if(isset($onlineOrders) && $onlineOrders->firstWhere('delivery_latitude'))
                     <div class="mt-4">
-                        <p class="text-sm text-blue-700 mb-2">Delivery Location</p>
-                        <div id="map_container" class="h-48 bg-gray-200 rounded-lg flex items-center justify-center">
-                            <p class="text-gray-500 text-sm">Select an order to view location</p>
+                        <p class="text-sm text-blue-700 mb-2">Delivery Location & Route</p>
+                        <div id="map_container" class="h-64 bg-gray-200 rounded-lg flex items-center justify-center">
+                            <p class="text-gray-500 text-sm">Select an order to view location and route</p>
                         </div>
                     </div>
                     @endif
@@ -121,12 +121,14 @@
 
 <script>
 let productIndex = 1;
+let orderMap = null;
+let routePolyline = null;
 const onlineOrdersData = @json($onlineOrders);
 const preSelectedOrderId = {{ $preSelectedOrderId ?? 'null' }};
 
-// Store location (you can configure this in .env or settings)
-const STORE_LATITUDE = -6.7924; // Example: Dar es Salaam coordinates
-const STORE_LONGITUDE = 39.2083;
+// Store location from settings
+const STORE_LATITUDE = {{ $storeSettings->store_latitude ?? -6.7924 }};
+const STORE_LONGITUDE = {{ $storeSettings->store_longitude ?? 39.2083 }};
 
 // Calculate distance between two coordinates using Haversine formula
 function calculateDistance(lat1, lon1, lat2, lon2) {
@@ -140,6 +142,134 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
     const distance = R * c; // Distance in km
     return distance.toFixed(2); // Return distance rounded to 2 decimal places
+}
+
+// Initialize map with Leaflet
+function initMap() {
+    if (orderMap) return;
+    
+    mapContainer = document.getElementById('map_container');
+    if (!mapContainer) return;
+    
+    // Load Leaflet CSS and JS
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = 'https://unpkg.com/leaflet/dist/leaflet.css';
+    document.head.appendChild(link);
+    
+    const script = document.createElement('script');
+    script.src = 'https://unpkg.com/leaflet/dist/leaflet.js';
+    script.onload = function() {
+        orderMap = L.map('map_container').setView([STORE_LATITUDE, STORE_LONGITUDE], 12);
+        
+        // OpenStreetMap base layer
+        const osmLayer = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        });
+        
+        // World Imagery base layer (Esri)
+        const worldImageryLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+            attribution: 'Tiles &copy; Esri &mdash; Source: Esri, DigitalGlobe, GeoEye, i-cubed, USDA, USGS, AEX, Getmapping, Aerogrid, IGN, IGP, swisstopo, and the GIS User Community'
+        });
+        
+        // Add OSM as default
+        osmLayer.addTo(orderMap);
+        
+        // Layer control
+        const baseLayers = {
+            'OpenStreetMap': osmLayer,
+            'World Imagery': worldImageryLayer
+        };
+        
+        L.control.layers(baseLayers).addTo(orderMap);
+        
+        // Add store marker
+        L.marker([STORE_LATITUDE, STORE_LONGITUDE])
+            .addTo(orderMap)
+            .bindPopup('<strong>Store</strong>').openPopup();
+    };
+    document.head.appendChild(script);
+}
+
+// Fetch route from OpenRouteService API
+async function fetchRoute(fromLat, fromLng, toLat, toLng) {
+    const apiKey = '{{ $storeSettings->openrouteservice_api_key ?? "" }}';
+    
+    if (!apiKey) {
+        console.warn('OpenRouteService API key not configured');
+        return null;
+    }
+    
+    try {
+        const response = await fetch(`https://api.openrouteservice.org/v2/directions/driving-car?start=${fromLng},${fromLat}&end=${toLng},${toLat}`, {
+            headers: {
+                'Authorization': apiKey,
+                'Accept': 'application/json, application/geo+json, application/gpx+xml, img/png; charset=utf-8'
+            }
+        });
+        
+        if (!response.ok) {
+            console.error('Failed to fetch route:', response.statusText);
+            return null;
+        }
+        
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Error fetching route:', error);
+        return null;
+    }
+}
+
+// Update map with order location and route
+async function updateMapWithOrder(lat, lng, customerName, address) {
+    if (!orderMap) {
+        initMap();
+        // Wait for map to initialize
+        await new Promise(resolve => setTimeout(resolve, 500));
+    }
+    
+    if (!orderMap) return;
+    
+    // Remove existing route if any
+    if (routePolyline) {
+        orderMap.removeLayer(routePolyline);
+        routePolyline = null;
+    }
+    
+    // Add order marker
+    const orderMarker = L.circleMarker([lat, lng], {
+        radius: 8,
+        fillColor: '#f97316',
+        color: '#fff',
+        weight: 2,
+        fillOpacity: 0.8
+    })
+        .addTo(orderMap)
+        .bindPopup(`
+            <div class="p-2">
+                <h4 class="font-bold text-sm">Delivery Location</h4>
+                <p class="text-xs text-gray-600">${customerName}</p>
+                <p class="text-xs text-gray-500 mt-1">${address}</p>
+            </div>
+        `);
+    
+    // Fit bounds to show both markers
+    const bounds = L.latLngBounds([
+        [STORE_LATITUDE, STORE_LONGITUDE],
+        [lat, lng]
+    ]);
+    orderMap.fitBounds(bounds, { padding: [50, 50] });
+    
+    // Fetch and display route
+    const route = await fetchRoute(STORE_LATITUDE, STORE_LONGITUDE, lat, lng);
+    
+    if (route && route.features && route.features.length > 0) {
+        const coords = route.features[0].geometry.coordinates;
+        const points = coords.map(c => [c[1], c[0]]);
+        routePolyline = L.polyline(points, { color: '#3b82f6', weight: 4, opacity: 0.7 }).addTo(orderMap);
+        orderMap.fitBounds(points, { padding: [50, 50] });
+    }
 }
 
 document.getElementById('request_type').addEventListener('change', function() {
@@ -168,7 +298,7 @@ if (preSelectedOrderId) {
     onlineOrderSelect.dispatchEvent(new Event('change'));
 }
 
-document.getElementById('online_order_id').addEventListener('change', function() {
+document.getElementById('online_order_id').addEventListener('change', async function() {
     const selectedOption = this.options[this.selectedIndex];
     const orderDetailsSection = document.getElementById('order_details_section');
     const orderCustomer = document.getElementById('order_customer');
@@ -243,19 +373,9 @@ document.getElementById('online_order_id').addEventListener('change', function()
             document.getElementById('add_product').classList.add('hidden');
         }
         
-        // Show map if coordinates available
+        // Show map with route if coordinates available
         if (lat && lng) {
-            mapContainer.innerHTML = `
-                <iframe 
-                    width="100%" 
-                    height="100%" 
-                    frameborder="0" 
-                    scrolling="no" 
-                    marginheight="0" 
-                    marginwidth="0" 
-                    src="https://maps.google.com/maps?q=${lat},${lng}&hl=en&z=14&output=embed">
-                </iframe>
-            `;
+            await updateMapWithOrder(parseFloat(lat), parseFloat(lng), customer, address);
         } else {
             mapContainer.innerHTML = '<p class="text-gray-500 text-sm">No location data available for this order</p>';
         }
