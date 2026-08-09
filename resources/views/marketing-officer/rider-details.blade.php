@@ -148,17 +148,69 @@
         <h2 class="text-lg font-bold text-primary-900 mb-4">Current Location</h2>
         
         @if($rider->latestLocation)
-        <div class="bg-gray-50 rounded-lg overflow-hidden mb-4">
-            <iframe 
-                width="100%" 
-                height="300" 
-                frameborder="0" 
-                scrolling="no" 
-                marginheight="0" 
-                marginwidth="0" 
-                src="https://maps.google.com/maps?q={{ $rider->latestLocation->latitude }},{{ $rider->latestLocation->longitude }}&hl=en&z=14&output=embed">
-            </iframe>
-        </div>
+        <div id="rider-map" class="w-full h-[400px] rounded-lg overflow-hidden mb-4"></div>
+        
+        <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
+        <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+        <script>
+            const storeLat = {{ $storeLat ?? -3.3869 }};
+            const storeLng = {{ $storeLng ?? 36.6883 }};
+            const riderLat = {{ $rider->latestLocation->latitude }};
+            const riderLng = {{ $rider->latestLocation->longitude }};
+            
+            const riderMap = L.map('rider-map').setView([(storeLat + riderLat) / 2, (storeLng + riderLng) / 2], 12);
+            
+            // OpenStreetMap base layer
+            const osmLayer = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            });
+            
+            // World Imagery base layer (Esri)
+            const worldImageryLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+                attribution: 'Tiles &copy; Esri &mdash; Source: Esri, DigitalGlobe, GeoEye, i-cubed, USDA, USGS, AEX, Getmapping, Aerogrid, IGN, IGP, swisstopo, and the GIS User Community'
+            });
+            
+            // Add OSM as default
+            osmLayer.addTo(riderMap);
+            
+            // Layer control
+            const baseLayers = {
+                'OpenStreetMap': osmLayer,
+                'World Imagery': worldImageryLayer
+            };
+            
+            L.control.layers(baseLayers).addTo(riderMap);
+            
+            // Add store marker
+            L.marker([storeLat, storeLng])
+                .addTo(riderMap)
+                .bindPopup('<strong>Store</strong>').openPopup();
+            
+            // Add rider marker
+            L.circleMarker([riderLat, riderLng], {
+                radius: 8,
+                fillColor: '#22c55e',
+                color: '#fff',
+                weight: 2,
+                fillOpacity: 0.8
+            })
+                .addTo(riderMap)
+                .bindPopup(`
+                    <div class="p-2">
+                        <h4 class="font-bold text-sm">Rider Location</h4>
+                        <p class="text-xs text-gray-600">{{ $rider->name }}</p>
+                        <p class="text-xs text-gray-500 mt-1">{{ $rider->phone }}</p>
+                    </div>
+                `);
+            
+            // Fit bounds to show both markers
+            const bounds = L.latLngBounds([
+                [storeLat, storeLng],
+                [riderLat, riderLng]
+            ]);
+            riderMap.fitBounds(bounds, { padding: [50, 50] });
+        </script>
+        
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
                 <p class="text-sm text-gray-600">Latitude</p>
@@ -236,8 +288,8 @@
 
 <script>
 // Store location from settings
-const STORE_LATITUDE = {{ $storeSettings->store_latitude ?? -6.7924 }};
-const STORE_LONGITUDE = {{ $storeSettings->store_longitude ?? 39.2083 }};
+const STORE_LATITUDE = {{ $storeLat ?? -6.7924 }};
+const STORE_LONGITUDE = {{ $storeLng ?? 39.2083 }};
 
 // Calculate distance between two coordinates using Haversine formula
 function calculateDistance(lat1, lon1, lat2, lon2) {

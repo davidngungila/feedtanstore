@@ -108,20 +108,81 @@
     </div>
 
     <div class="card rounded-2xl p-6 mb-6">
-        <h2 class="text-lg font-bold text-primary-900 mb-4">Delivery Location</h2>
+        <h2 class="text-lg font-bold text-primary-900 mb-4">Delivery Location & Route</h2>
         
         @if($order->delivery_latitude && $order->delivery_longitude)
-        <div class="bg-gray-50 rounded-lg overflow-hidden mb-4">
-            <iframe 
-                width="100%" 
-                height="300" 
-                frameborder="0" 
-                scrolling="no" 
-                marginheight="0" 
-                marginwidth="0" 
-                src="https://maps.google.com/maps?q={{ $order->delivery_latitude }},{{ $order->delivery_longitude }}&hl=en&z=14&output=embed">
-            </iframe>
-        </div>
+        <div id="delivery-map" class="w-full h-[400px] rounded-lg overflow-hidden mb-4"></div>
+        
+        <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
+        <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+        <script>
+            const storeLat = {{ $storeLat ?? -3.3869 }};
+            const storeLng = {{ $storeLng ?? 36.6883 }};
+            const orderLat = {{ $order->delivery_latitude }};
+            const orderLng = {{ $order->delivery_longitude }};
+            const route = @json($route);
+            
+            const deliveryMap = L.map('delivery-map').setView([(storeLat + orderLat) / 2, (storeLng + orderLng) / 2], 12);
+            
+            // OpenStreetMap base layer
+            const osmLayer = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            });
+            
+            // World Imagery base layer (Esri)
+            const worldImageryLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+                attribution: 'Tiles &copy; Esri &mdash; Source: Esri, DigitalGlobe, GeoEye, i-cubed, USDA, USGS, AEX, Getmapping, Aerogrid, IGN, IGP, swisstopo, and the GIS User Community'
+            });
+            
+            // Add OSM as default
+            osmLayer.addTo(deliveryMap);
+            
+            // Layer control
+            const baseLayers = {
+                'OpenStreetMap': osmLayer,
+                'World Imagery': worldImageryLayer
+            };
+            
+            L.control.layers(baseLayers).addTo(deliveryMap);
+            
+            // Add store marker
+            L.marker([storeLat, storeLng])
+                .addTo(deliveryMap)
+                .bindPopup('<strong>Store</strong>').openPopup();
+            
+            // Add order marker
+            L.circleMarker([orderLat, orderLng], {
+                radius: 8,
+                fillColor: '#f97316',
+                color: '#fff',
+                weight: 2,
+                fillOpacity: 0.8
+            })
+                .addTo(deliveryMap)
+                .bindPopup(`
+                    <div class="p-2">
+                        <h4 class="font-bold text-sm">Delivery Location</h4>
+                        <p class="text-xs text-gray-600">{{ $order->customer_name }}</p>
+                        <p class="text-xs text-gray-500 mt-1">{{ $order->delivery_address }}</p>
+                    </div>
+                `);
+            
+            // Add route if available
+            if (route && route.features && route.features.length > 0) {
+                const coords = route.features[0].geometry.coordinates;
+                const points = coords.map(c => [c[1], c[0]]);
+                L.polyline(points, { color: '#3b82f6', weight: 4, opacity: 0.7 }).addTo(deliveryMap);
+                deliveryMap.fitBounds(points, { padding: [50, 50] });
+            } else {
+                // Fit bounds to show both markers
+                const bounds = L.latLngBounds([
+                    [storeLat, storeLng],
+                    [orderLat, orderLng]
+                ]);
+                deliveryMap.fitBounds(bounds, { padding: [50, 50] });
+            }
+        </script>
+        
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
                 <p class="text-sm text-gray-600">Delivery Address</p>

@@ -107,7 +107,33 @@ class MarketingOfficerController extends Controller
         // Get store settings for store location
         $storeSettings = \App\Models\StoreSetting::first();
         
-        return view('marketing-officer.track-delivery', compact('order', 'storeSettings'));
+        // Get store location
+        $storeLat = $storeSettings->store_latitude ?? -3.3869;
+        $storeLng = $storeSettings->store_longitude ?? 36.6883;
+        
+        // Fetch route from OpenRouteService API
+        $route = null;
+        if ($storeSettings->openrouteservice_api_key && $order->delivery_latitude && $order->delivery_longitude) {
+            try {
+                $response = \Illuminate\Support\Facades\Http::withHeaders([
+                    'Authorization' => $storeSettings->openrouteservice_api_key,
+                    'Content-Type' => 'application/json'
+                ])->post('https://api.openrouteservice.org/v2/directions/driving-car/geojson', [
+                    'coordinates' => [
+                        [$storeLng, $storeLat],
+                        [$order->delivery_longitude, $order->delivery_latitude]
+                    ]
+                ]);
+                
+                if ($response->successful()) {
+                    $route = $response->json();
+                }
+            } catch (\Exception $e) {
+                // Do nothing if route fails to load
+            }
+        }
+        
+        return view('marketing-officer.track-delivery', compact('order', 'storeSettings', 'storeLat', 'storeLng', 'route'));
     }
 
     public function customers()
@@ -126,6 +152,11 @@ class MarketingOfficerController extends Controller
     {
         $rider = DeliveryRider::with(['user', 'latestLocation', 'onlineOrders', 'reviews'])->findOrFail($id);
         $storeSettings = \App\Models\StoreSetting::first();
-        return view('marketing-officer.rider-details', compact('rider', 'storeSettings'));
+        
+        // Get store location
+        $storeLat = $storeSettings->store_latitude ?? -3.3869;
+        $storeLng = $storeSettings->store_longitude ?? 36.6883;
+        
+        return view('marketing-officer.rider-details', compact('rider', 'storeSettings', 'storeLat', 'storeLng'));
     }
 }
