@@ -755,18 +755,18 @@ async function loadDashboardData() {
 
 function updateDashboardDisplay() {
     // Safely parse all numbers
-    const shiftTotal = parseFloat(dashboardData.shiftTotal || 0);
-    const shiftItemsCount = parseInt(dashboardData.shiftItems || 0);
-    const todayCash = parseFloat(dashboardData.todayBreakdown?.cash || 0);
-    const todayMobile = parseFloat(dashboardData.todayBreakdown?.mobile || 0);
-    const todayCard = parseFloat(dashboardData.todayBreakdown?.card || 0);
-    const todayClickpesa = parseFloat(dashboardData.todayBreakdown?.clickpesa || 0);
+    const sessionTotal = parseFloat(dashboardData.sessionTotal || 0);
+    const sessionItemsCount = parseInt(dashboardData.sessionItems || 0);
+    const todayCash = parseFloat(dashboardData.sessionBreakdown?.cash || 0);
+    const todayMobile = parseFloat(dashboardData.sessionBreakdown?.mobile || 0);
+    const todayCard = parseFloat(dashboardData.sessionBreakdown?.card || 0);
+    const todayClickpesa = parseFloat(dashboardData.sessionBreakdown?.clickpesa || 0);
     
     // Calculate total of all payment methods
     const totalPayments = todayCash + todayCard + todayMobile + todayClickpesa;
     
     document.getElementById('shiftSales').textContent = 'TZS ' + formatNumber(totalPayments);
-    document.getElementById('shiftItems').textContent = shiftItemsCount + ' items';
+    document.getElementById('shiftItems').textContent = sessionItemsCount + ' items';
     document.getElementById('todayCash').textContent = 'TZS ' + formatNumber(todayCash);
     document.getElementById('todayCard').textContent = 'TZS ' + formatNumber(todayCard);
     document.getElementById('todayMobile').textContent = 'TZS ' + formatNumber(todayMobile);

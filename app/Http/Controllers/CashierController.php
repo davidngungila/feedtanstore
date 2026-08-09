@@ -67,13 +67,15 @@ class CashierController extends Controller
         $userId = Auth::id();
         $today = now()->startOfDay();
         
-        // Get current shift
-        $currentShift = Shift::where('user_id', $userId)->whereNull('closed_at')->first();
+        // Get current cash drawer session (not shift)
+        $currentSession = \App\Models\CashDrawerSession::where('user_id', $userId)
+            ->where('status', 'opened')
+            ->first();
         
         \Log::info('Dashboard data request', [
             'user_id' => $userId,
-            'current_shift_id' => $currentShift ? $currentShift->id : null,
-            'current_shift' => $currentShift
+            'current_session_id' => $currentSession ? $currentSession->id : null,
+            'current_session' => $currentSession
         ]);
         
         // Today's sales - eager load items to avoid N+1 queries
@@ -83,22 +85,22 @@ class CashierController extends Controller
             ->latest()
             ->get();
         
-        // Shift's sales (if shift exists) - eager load items
-        $shiftSales = $currentShift 
-            ? Sale::with('items')->where('shift_id', $currentShift->id)->where('status', 'completed')->get()
+        // Session's sales (if session exists) - eager load items
+        $sessionSales = $currentSession 
+            ? Sale::with('items')->where('cash_drawer_session_id', $currentSession->id)->where('status', 'completed')->get()
             : collect();
         
         \Log::info('Sales data', [
             'today_sales_count' => $todaySales->count(),
-            'shift_sales_count' => $shiftSales->count(),
-            'shift_sales_with_shift_id' => $shiftSales->pluck('id', 'shift_id')
+            'session_sales_count' => $sessionSales->count(),
+            'session_sales_with_session_id' => $sessionSales->pluck('id', 'cash_drawer_session_id')
         ]);
         
         // Debug: Check individual sale items
-        foreach ($shiftSales as $sale) {
-            \Log::info('Shift sale details', [
+        foreach ($sessionSales as $sale) {
+            \Log::info('Session sale details', [
                 'sale_id' => $sale->id,
-                'shift_id' => $sale->shift_id,
+                'cash_drawer_session_id' => $sale->cash_drawer_session_id,
                 'items_count' => $sale->items ? $sale->items->count() : 0,
                 'items_total_quantity' => $sale->items ? $sale->items->sum('quantity') : 0,
                 'items_data' => $sale->items ? $sale->items->toArray() : null
@@ -107,15 +109,15 @@ class CashierController extends Controller
         
         // Calculate totals
         $todayTotal = $todaySales->sum('total');
-        $shiftTotal = $shiftSales->sum('total');
+        $sessionTotal = $sessionSales->sum('total');
         $todayItems = $todaySales->sum(fn($sale) => $sale->items ? $sale->items->sum('quantity') : 0);
-        $shiftItems = $shiftSales->sum(fn($sale) => $sale->items ? $sale->items->sum('quantity') : 0);
+        $sessionItems = $sessionSales->sum(fn($sale) => $sale->items ? $sale->items->sum('quantity') : 0);
         
         \Log::info('Calculated totals', [
             'today_total' => $todayTotal,
-            'shift_total' => $shiftTotal,
+            'session_total' => $sessionTotal,
             'today_items' => $todayItems,
-            'shift_items' => $shiftItems
+            'session_items' => $sessionItems
         ]);
         
         // Payment breakdown
@@ -126,29 +128,28 @@ class CashierController extends Controller
             'clickpesa' => $todaySales->where('payment_method', 'clickpesa')->sum('total'),
         ];
         
-        $shiftBreakdown = [
-            'cash' => $shiftSales->where('payment_method', 'cash')->sum('total'),
-            'card' => $shiftSales->where('payment_method', 'card')->sum('total'),
-            'mobile' => $shiftSales->where('payment_method', 'mobile')->sum('total'),
-            'clickpesa' => $shiftSales->where('payment_method', 'clickpesa')->sum('total'),
+        $sessionBreakdown = [
+            'cash' => $sessionSales->where('payment_method', 'cash')->sum('total'),
+            'card' => $sessionSales->where('payment_method', 'card')->sum('total'),
+            'mobile' => $sessionSales->where('payment_method', 'mobile')->sum('total'),
+            'clickpesa' => $sessionSales->where('payment_method', 'clickpesa')->sum('total'),
         ];
         
         return response()->json([
             'todayTotal' => $todayTotal,
-            'shiftTotal' => $shiftTotal,
+            'sessionTotal' => $sessionTotal,
             'todayItems' => $todayItems,
-            'shiftItems' => $shiftItems,
+            'sessionItems' => $sessionItems,
             'todayBreakdown' => $todayBreakdown,
-            'shiftBreakdown' => $shiftBreakdown,
+            'sessionBreakdown' => $sessionBreakdown,
             'transactions' => $todaySales->take(10)->map(fn($sale) => [
                 'id' => $sale->id,
                 'invoice_number' => $sale->invoice_number,
                 'total' => $sale->total,
+                'created_at' => $sale->created_at->format('H:i'),
                 'payment_method' => $sale->payment_method,
-                'created_at' => $sale->created_at->format('H:i:s'),
-                'items_count' => $sale->items->count()
-            ]),
-            'currentShift' => $currentShift
+                'items_count' => $sale->items ? $sale->items->sum('quantity') : 0
+            ])
         ]);
     }
 
