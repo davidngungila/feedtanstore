@@ -178,9 +178,9 @@
 </div>
 
 <script>
-// Store location (configure this in .env or settings)
-const STORE_LATITUDE = -6.7924; // Example: Dar es Salaam coordinates
-const STORE_LONGITUDE = 39.2083;
+// Store location from settings
+const STORE_LATITUDE = {{ $storeSettings->store_latitude ?? -6.7924 }}; // Default: Dar es Salaam coordinates
+const STORE_LONGITUDE = {{ $storeSettings->store_longitude ?? 39.2083 }};
 
 // Calculate distance between two coordinates using Haversine formula
 function calculateDistance(lat1, lon1, lat2, lon2) {

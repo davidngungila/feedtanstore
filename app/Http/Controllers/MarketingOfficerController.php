@@ -103,7 +103,11 @@ class MarketingOfficerController extends Controller
     public function trackDelivery($id)
     {
         $order = OnlineOrder::with(['rider', 'rider.latestLocation', 'statusHistory'])->findOrFail($id);
-        return view('marketing-officer.track-delivery', compact('order'));
+        
+        // Get store settings for store location
+        $storeSettings = \App\Models\StoreSetting::first();
+        
+        return view('marketing-officer.track-delivery', compact('order', 'storeSettings'));
     }
 
     public function customers()
