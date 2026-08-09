@@ -63,11 +63,33 @@ class CashDrawerSessionController extends Controller
     public function show(CashDrawerSession $cashDrawerSession)
     {
         $cashDrawerSession->load(['user', 'reconciler', 'sales']);
+        
+        // Calculate totals by payment method
         $totalCashSales = Sale::where('cash_drawer_session_id', $cashDrawerSession->id)
             ->where('payment_method', 'cash')
             ->sum('total');
+        
+        $totalMobileSales = Sale::where('cash_drawer_session_id', $cashDrawerSession->id)
+            ->where('payment_method', 'mobile')
+            ->sum('total');
+        
+        $totalCardSales = Sale::where('cash_drawer_session_id', $cashDrawerSession->id)
+            ->where('payment_method', 'card')
+            ->sum('total');
+        
+        $totalClickpesaSales = Sale::where('cash_drawer_session_id', $cashDrawerSession->id)
+            ->where('payment_method', 'clickpesa')
+            ->sum('total');
+
         $session = $cashDrawerSession;
-        return view('cash-drawer-sessions.show', compact('session', 'totalCashSales'));
+        
+        return view('cash-drawer-sessions.show', compact(
+            'session', 
+            'totalCashSales',
+            'totalMobileSales',
+            'totalCardSales',
+            'totalClickpesaSales'
+        ));
     }
 
     public function editClose(CashDrawerSession $cashDrawerSession)
