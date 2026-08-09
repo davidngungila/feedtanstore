@@ -14,22 +14,21 @@
     <!-- Dashboard Stats -->
     <div id="dashboardStats" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4 hidden lg:grid">
         <div class="card rounded-2xl p-4">
-            <h4 class="text-sm font-medium text-gray-600 mb-1">Today's Sales</h4>
-            <p class="text-xl font-bold text-primary-900" id="todaySales">TZS 0.00</p>
-            <p class="text-xs text-gray-500" id="todayItems">0 items</p>
-        </div>
-        <div class="card rounded-2xl p-4">
             <h4 class="text-sm font-medium text-gray-600 mb-1">Shift Sales</h4>
             <p class="text-xl font-bold text-primary-900" id="shiftSales">TZS 0.00</p>
             <p class="text-xs text-gray-500" id="shiftItems">0 items</p>
         </div>
         <div class="card rounded-2xl p-4">
-            <h4 class="text-sm font-medium text-gray-600 mb-1">Today's Cash</h4>
+            <h4 class="text-sm font-medium text-gray-600 mb-1">Total Cash</h4>
             <p class="text-xl font-bold text-green-700" id="todayCash">TZS 0.00</p>
         </div>
         <div class="card rounded-2xl p-4">
-            <h4 class="text-sm font-medium text-gray-600 mb-1">Today's Mobile</h4>
-            <p class="text-xl font-bold text-blue-700" id="todayMobile">TZS 0.00</p>
+            <h4 class="text-sm font-medium text-gray-600 mb-1">Total Card</h4>
+            <p class="text-xl font-bold text-blue-700" id="todayCard">TZS 0.00</p>
+        </div>
+        <div class="card rounded-2xl p-4">
+            <h4 class="text-sm font-medium text-gray-600 mb-1">Total Mobile</h4>
+            <p class="text-xl font-bold text-purple-700" id="todayMobile">TZS 0.00</p>
         </div>
     </div>
 
@@ -138,7 +137,7 @@
                 </div>
                 <div class="mb-4">
                     <p class="text-gray-700 font-medium mb-2 text-sm">Payment Method</p>
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                    <div class="grid grid-cols-2 sm:grid-cols-2 gap-2">
                         <button type="button" class="flex-1 py-2.5 border-2 border-primary-600 bg-primary-600 text-white rounded-lg font-semibold text-sm" id="methodCash" onclick="selectPaymentMethod('cash')">
                             <i class="fas fa-money-bill mr-1"></i>Cash
                         </button>
@@ -147,6 +146,9 @@
                         </button>
                         <button type="button" class="flex-1 py-2.5 border-2 border-gray-300 text-gray-700 hover:border-primary-500 rounded-lg font-semibold text-sm" id="methodMobile" onclick="selectPaymentMethod('mobile')">
                             <i class="fas fa-mobile-alt mr-1"></i>Mobile
+                        </button>
+                        <button type="button" class="flex-1 py-2.5 border-2 border-gray-300 text-gray-700 hover:border-primary-500 rounded-lg font-semibold text-sm" id="methodClickpesa" onclick="selectPaymentMethod('clickpesa')">
+                            <i class="fas fa-mobile-alt mr-1"></i>ClickPesa
                         </button>
                     </div>
                 </div>
@@ -749,23 +751,18 @@ async function loadDashboardData() {
 
 function updateDashboardDisplay() {
     // Safely parse all numbers
-    const todayTotal = parseFloat(dashboardData.todayTotal || 0);
     const shiftTotal = parseFloat(dashboardData.shiftTotal || 0);
-    const todayItemsCount = parseInt(dashboardData.todayItems || 0);
     const shiftItemsCount = parseInt(dashboardData.shiftItems || 0);
     const todayCash = parseFloat(dashboardData.todayBreakdown?.cash || 0);
     const todayMobile = parseFloat(dashboardData.todayBreakdown?.mobile || 0);
     const todayCard = parseFloat(dashboardData.todayBreakdown?.card || 0);
-    const shiftCash = parseFloat(dashboardData.shiftBreakdown?.cash || 0);
-    const shiftCard = parseFloat(dashboardData.shiftBreakdown?.card || 0);
-    const shiftMobile = parseFloat(dashboardData.shiftBreakdown?.mobile || 0);
+    const todayClickpesa = parseFloat(dashboardData.todayBreakdown?.clickpesa || 0);
     
-    document.getElementById('todaySales').textContent = 'TZS ' + formatNumber(todayTotal);
     document.getElementById('shiftSales').textContent = 'TZS ' + formatNumber(shiftTotal);
-    document.getElementById('todayItems').textContent = todayItemsCount + ' items';
     document.getElementById('shiftItems').textContent = shiftItemsCount + ' items';
     document.getElementById('todayCash').textContent = 'TZS ' + formatNumber(todayCash);
-    document.getElementById('todayMobile').textContent = 'TZS ' + formatNumber(todayMobile + todayCard);
+    document.getElementById('todayCard').textContent = 'TZS ' + formatNumber(todayCard);
+    document.getElementById('todayMobile').textContent = 'TZS ' + formatNumber(todayMobile + todayClickpesa);
 }
 
 function updateTime() {

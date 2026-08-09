@@ -131,7 +131,7 @@ class CashierController extends Controller
                 'items.*.quantity' => 'required|integer|min:1',
                 'items.*.price' => 'required|numeric|min:0',
                 'paid' => 'required|numeric|min:0',
-                'payment_method' => 'required|string|in:cash,card,mobile',
+                'payment_method' => 'required|string|in:cash,card,mobile,clickpesa',
                 'customer_id' => 'nullable|exists:customers,id',
                 'total' => 'required|numeric|min:0',
                 'discount' => 'nullable|numeric|min:0',
