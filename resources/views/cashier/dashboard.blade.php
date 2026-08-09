@@ -1307,8 +1307,10 @@ function initiateOnlinePayment() {
 
 function showOnlinePaymentModal(phoneNumber) {
     const subtotal = cart.reduce((sum, item) => sum + (parseFloat(item.price) * item.quantity), 0);
-    const discountType = document.getElementById('discountType').value;
-    const discountValue = parseFloat(document.getElementById('discountInput').value) || 0;
+    const discountTypeEl = document.getElementById('discountType');
+    const discountInputEl = document.getElementById('discountInput');
+    const discountType = discountTypeEl ? discountTypeEl.value : 'fixed';
+    const discountValue = discountInputEl ? parseFloat(discountInputEl.value) || 0 : 0;
     let discount = 0;
     
     if (discountType === 'percent') {
@@ -1341,8 +1343,10 @@ async function confirmOnlinePayment() {
     }
     
     const subtotal = cart.reduce((sum, item) => sum + (parseFloat(item.price) * item.quantity), 0);
-    const discountType = document.getElementById('discountType').value;
-    const discountValue = parseFloat(document.getElementById('discountInput').value) || 0;
+    const discountTypeEl = document.getElementById('discountType');
+    const discountInputEl = document.getElementById('discountInput');
+    const discountType = discountTypeEl ? discountTypeEl.value : 'fixed';
+    const discountValue = discountInputEl ? parseFloat(discountInputEl.value) || 0 : 0;
     let discount = 0;
     
     if (discountType === 'percent') {
@@ -1953,8 +1957,10 @@ function retrieveSale(index) {
     const sale = heldSales[index];
 
     cart = [...sale.cart];
-    document.getElementById('discountType').value = sale.discountType;
-    document.getElementById('discountInput').value = sale.discountValue;
+    const discountTypeEl = document.getElementById('discountType');
+    const discountInputEl = document.getElementById('discountInput');
+    if (discountTypeEl) discountTypeEl.value = sale.discountType;
+    if (discountInputEl) discountInputEl.value = sale.discountValue;
     
     // Restore customer selection
     if (sale.customerId) {
@@ -1995,7 +2001,8 @@ function cancelSale() {
 
     if (confirm('Cancel this sale? All items will be cleared.')) {
         cart = [];
-        document.getElementById('discountInput').value = '';
+        const discountInputEl = document.getElementById('discountInput');
+        if (discountInputEl) discountInputEl.value = '';
         selectCustomer(null, '');
         renderCart();
         showNotification('Sale cancelled', 'success');
