@@ -99,7 +99,7 @@
                         </td>
                         <td class="px-6 py-4 text-sm text-gray-600">{{ $rider->completed_deliveries ?? 0 }}</td>
                         <td class="px-6 py-4">
-                            <a href="#" class="text-primary-600 hover:text-primary-700 text-sm font-medium">View</a>
+                            <a href="{{ route('marketing-officer.rider-details', $rider) }}" class="text-primary-600 hover:text-primary-700 text-sm font-medium">View</a>
                         </td>
                     </tr>
                     @endforeach

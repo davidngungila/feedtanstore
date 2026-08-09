@@ -121,4 +121,11 @@ class MarketingOfficerController extends Controller
         $riders = DeliveryRider::with('user')->orderBy('name')->paginate(20);
         return view('marketing-officer.riders', compact('riders'));
     }
+
+    public function riderDetails($id)
+    {
+        $rider = DeliveryRider::with(['user', 'latestLocation', 'onlineOrders', 'reviews'])->findOrFail($id);
+        $storeSettings = \App\Models\StoreSetting::first();
+        return view('marketing-officer.rider-details', compact('rider', 'storeSettings'));
+    }
 }
