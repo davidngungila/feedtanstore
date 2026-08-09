@@ -85,8 +85,8 @@ class CashierController extends Controller
         // Calculate totals
         $todayTotal = $todaySales->sum('total');
         $shiftTotal = $shiftSales->sum('total');
-        $todayItems = $todaySales->sum(fn($sale) => $sale->items->sum('quantity'));
-        $shiftItems = $shiftSales->sum(fn($sale) => $sale->items->sum('quantity'));
+        $todayItems = $todaySales->sum(fn($sale) => $sale->items ? $sale->items->sum('quantity') : 0);
+        $shiftItems = $shiftSales->sum(fn($sale) => $sale->items ? $sale->items->sum('quantity') : 0);
         
         // Payment breakdown
         $todayBreakdown = [
