@@ -30,7 +30,7 @@
                     <span class="font-semibold whitespace-nowrap text-right" style="font-size: clamp(0.625rem, 1vw + 0.5rem, 1rem);">TZS {{ number_format($bankBalance, 2) }}</span>
                 </div>
                 <div class="flex justify-between items-center py-2 border-b border-gray-100 gap-4">
-                    <span class="text-gray-600 flex-shrink-0">Mobile Money Balance</span>
+                    <span class="text-gray-600 flex-shrink-0">Lipa Namba Voda</span>
                     <span class="font-semibold whitespace-nowrap text-right" style="font-size: clamp(0.625rem, 1vw + 0.5rem, 1rem);">TZS {{ number_format($mobileMoneyBalance, 2) }}</span>
                 </div>
                 <div class="flex justify-between items-center py-2 border-b border-gray-100 gap-4">

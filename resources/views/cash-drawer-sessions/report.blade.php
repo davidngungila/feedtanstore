@@ -68,7 +68,7 @@
                 <p class="text-2xl font-bold text-blue-600">TZS {{ number_format($totalCardSales, 0) }}</p>
             </div>
             <div class="bg-gray-50 rounded-lg p-4">
-                <p class="text-sm text-gray-600">Total Mobile Sales</p>
+                <p class="text-sm text-gray-600">Total Lipa Namba Voda Sales</p>
                 <p class="text-2xl font-bold text-purple-600">TZS {{ number_format($totalMobileSales, 0) }}</p>
             </div>
         </div>

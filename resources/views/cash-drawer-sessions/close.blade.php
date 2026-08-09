@@ -22,7 +22,7 @@
                     <span class="font-semibold">TZS {{ number_format($session->cash_balance, 0) }}</span>
                 </div>
                 <div class="flex justify-between items-center mb-2">
-                    <span class="text-sm text-gray-600">Mobile:</span>
+                    <span class="text-sm text-gray-600">Lipa Namba Voda:</span>
                     <span class="font-semibold">TZS {{ number_format($session->mobile_balance, 0) }}</span>
                 </div>
                 <div class="flex justify-between items-center mb-2">
@@ -51,7 +51,7 @@
                     <span class="font-semibold text-blue-700">TZS {{ number_format($totalCardSales ?? 0, 0) }}</span>
                 </div>
                 <div class="flex justify-between items-center mb-2">
-                    <span class="text-sm text-gray-600">Total Mobile:</span>
+                    <span class="text-sm text-gray-600">Total Lipa Namba Voda:</span>
                     <span class="font-semibold text-purple-700">TZS {{ number_format($totalMobileSales ?? 0, 0) }}</span>
                 </div>
                 <div class="flex justify-between items-center mb-2">
@@ -80,7 +80,7 @@
                         </div>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Mobile (TZS)</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Lipa Namba Voda (TZS)</label>
                         <div class="relative">
                             <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">TZS</span>
                             <input type="number" name="closing_mobile_balance" value="{{ number_format($expectedClosingMobile ?? 0, 2, '.', '') }}" class="w-full pl-16 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500" required min="0" step="0.01">
