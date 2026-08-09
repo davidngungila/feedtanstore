@@ -70,6 +70,12 @@ class CashierController extends Controller
         // Get current shift
         $currentShift = Shift::where('user_id', $userId)->whereNull('closed_at')->first();
         
+        \Log::info('Dashboard data request', [
+            'user_id' => $userId,
+            'current_shift_id' => $currentShift ? $currentShift->id : null,
+            'current_shift' => $currentShift
+        ]);
+        
         // Today's sales - eager load items to avoid N+1 queries
         $todaySales = Sale::with('items')->where('user_id', $userId)
             ->where('created_at', '>=', $today)
@@ -82,11 +88,24 @@ class CashierController extends Controller
             ? Sale::with('items')->where('shift_id', $currentShift->id)->where('status', 'completed')->get()
             : collect();
         
+        \Log::info('Sales data', [
+            'today_sales_count' => $todaySales->count(),
+            'shift_sales_count' => $shiftSales->count(),
+            'shift_sales_with_shift_id' => $shiftSales->pluck('id', 'shift_id')
+        ]);
+        
         // Calculate totals
         $todayTotal = $todaySales->sum('total');
         $shiftTotal = $shiftSales->sum('total');
         $todayItems = $todaySales->sum(fn($sale) => $sale->items ? $sale->items->sum('quantity') : 0);
         $shiftItems = $shiftSales->sum(fn($sale) => $sale->items ? $sale->items->sum('quantity') : 0);
+        
+        \Log::info('Calculated totals', [
+            'today_total' => $todayTotal,
+            'shift_total' => $shiftTotal,
+            'today_items' => $todayItems,
+            'shift_items' => $shiftItems
+        ]);
         
         // Payment breakdown
         $todayBreakdown = [
