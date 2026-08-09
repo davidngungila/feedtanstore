@@ -77,7 +77,6 @@
                     <tr class="hover:bg-gray-50">
                         <td class="px-6 py-4">
                             <p class="font-semibold text-gray-900">{{ $order->order_number }}</p>
-                            <p class="text-sm text-gray-500">{{ $order->tracking_token ?? 'N/A' }}</p>
                         </td>
                         <td class="px-6 py-4">
                             <p class="font-medium text-gray-900">{{ $order->customer_name }}</p>
