@@ -93,12 +93,14 @@ class CashierController extends Controller
             'cash' => $todaySales->where('payment_method', 'cash')->sum('total'),
             'card' => $todaySales->where('payment_method', 'card')->sum('total'),
             'mobile' => $todaySales->where('payment_method', 'mobile')->sum('total'),
+            'clickpesa' => $todaySales->where('payment_method', 'clickpesa')->sum('total'),
         ];
         
         $shiftBreakdown = [
             'cash' => $shiftSales->where('payment_method', 'cash')->sum('total'),
             'card' => $shiftSales->where('payment_method', 'card')->sum('total'),
             'mobile' => $shiftSales->where('payment_method', 'mobile')->sum('total'),
+            'clickpesa' => $shiftSales->where('payment_method', 'clickpesa')->sum('total'),
         ];
         
         return response()->json([
