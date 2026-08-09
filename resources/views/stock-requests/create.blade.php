@@ -310,20 +310,21 @@ document.getElementById('online_order_id').addEventListener('change', function()
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Product *</label>
-                                <select name="products[${productIndex}][product_id]" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500" data-product-id="${item.product_id}">
+                                <select name="products[${productIndex}][product_id]" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-gray-100" data-product-id="${item.product_id}" disabled>
                                     <option value="">Select Product</option>
                                     @foreach($products as $product)
                                         <option value="{{ $product->id }}">{{ $product->name }} (Available: {{ $product->quantity }})</option>
                                     @endforeach
                                 </select>
+                                <input type="hidden" name="products[${productIndex}][product_id]" value="${item.product_id}">
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Quantity Requested *</label>
-                                <input type="number" name="products[${productIndex}][quantity_requested]" required min="1" value="${item.quantity}" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                                <input type="number" name="products[${productIndex}][quantity_requested]" required min="1" value="${item.quantity}" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-gray-100" readonly>
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
-                                <input type="text" name="products[${productIndex}][notes]" value="From order item" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                                <input type="text" name="products[${productIndex}][notes]" value="From order item" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-gray-100" readonly>
                             </div>
                         </div>
                     </div>
