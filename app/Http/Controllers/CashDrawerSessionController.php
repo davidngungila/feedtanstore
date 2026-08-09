@@ -80,9 +80,42 @@ class CashDrawerSessionController extends Controller
             return back()->with('error', 'You can only close your own sessions');
         }
 
+        // Calculate shift sales by payment method
+        $totalCashSales = Sale::where('cash_drawer_session_id', $cashDrawerSession->id)
+            ->where('payment_method', 'cash')
+            ->sum('total');
+        
+        $totalMobileSales = Sale::where('cash_drawer_session_id', $cashDrawerSession->id)
+            ->where('payment_method', 'mobile')
+            ->sum('total');
+        
+        $totalCardSales = Sale::where('cash_drawer_session_id', $cashDrawerSession->id)
+            ->where('payment_method', 'card')
+            ->sum('total');
+        
+        $totalClickpesaSales = Sale::where('cash_drawer_session_id', $cashDrawerSession->id)
+            ->where('payment_method', 'clickpesa')
+            ->sum('total');
+
+        // Calculate expected closing balances
+        $expectedClosingCash = $cashDrawerSession->cash_balance + $totalCashSales;
+        $expectedClosingMobile = $cashDrawerSession->mobile_balance + $totalMobileSales;
+        $expectedClosingBank = $cashDrawerSession->bank_balance + $totalCardSales;
+        $expectedClosingOnline = $cashDrawerSession->online_balance + $totalClickpesaSales;
+
         $session = $cashDrawerSession;
 
-        return view('cash-drawer-sessions.close', compact('session'));
+        return view('cash-drawer-sessions.close', compact(
+            'session',
+            'totalCashSales',
+            'totalMobileSales',
+            'totalCardSales',
+            'totalClickpesaSales',
+            'expectedClosingCash',
+            'expectedClosingMobile',
+            'expectedClosingBank',
+            'expectedClosingOnline'
+        ));
     }
 
     public function close(Request $request, CashDrawerSession $cashDrawerSession)

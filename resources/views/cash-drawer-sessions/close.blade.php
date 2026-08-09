@@ -39,40 +39,70 @@
                 </div>
             </div>
 
-            <!-- Row 2: Closing Balances Form -->
-            <form action="{{ route('cash-drawer-sessions.close', $session) }}" method="POST">
-                @method('PUT')
-                @csrf
+            <!-- Row 2: Shift Sales Summary -->
+            <div class="bg-blue-50 rounded-lg p-4">
+                <h3 class="font-semibold text-gray-700 mb-3">Shift Sales Summary</h3>
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-sm text-gray-600">Total Cash:</span>
+                    <span class="font-semibold text-green-700">TZS {{ number_format($totalCashSales ?? 0, 0) }}</span>
+                </div>
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-sm text-gray-600">Total Card:</span>
+                    <span class="font-semibold text-blue-700">TZS {{ number_format($totalCardSales ?? 0, 0) }}</span>
+                </div>
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-sm text-gray-600">Total Mobile:</span>
+                    <span class="font-semibold text-purple-700">TZS {{ number_format($totalMobileSales ?? 0, 0) }}</span>
+                </div>
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-sm text-gray-600">Total ClickPesa:</span>
+                    <span class="font-semibold text-orange-700">TZS {{ number_format($totalClickpesaSales ?? 0, 0) }}</span>
+                </div>
+                <div class="flex justify-between items-center border-t pt-2 mt-2">
+                    <span class="text-sm font-semibold text-gray-700">Total Sales:</span>
+                    <span class="font-bold text-primary-900">TZS {{ number_format(($totalCashSales ?? 0) + ($totalCardSales ?? 0) + ($totalMobileSales ?? 0) + ($totalClickpesaSales ?? 0), 0) }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Row 3: Closing Balances Form -->
+        <form action="{{ route('cash-drawer-sessions.close', $session) }}" method="POST">
+            @method('PUT')
+            @csrf
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div class="space-y-4">
-                    <h3 class="font-semibold text-gray-700 mb-3">Closing Balances</h3>
+                    <h3 class="font-semibold text-gray-700 mb-3">Closing Balances (Auto-calculated)</h3>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Cash (TZS)</label>
                         <div class="relative">
                             <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">TZS</span>
-                            <input type="number" name="closing_cash_balance" class="w-full pl-16 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500" required min="0" step="0.01" placeholder="0.00">
+                            <input type="number" name="closing_cash_balance" value="{{ number_format($expectedClosingCash ?? 0, 2, '.', '') }}" class="w-full pl-16 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500" required min="0" step="0.01">
                         </div>
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Mobile (TZS)</label>
                         <div class="relative">
                             <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">TZS</span>
-                            <input type="number" name="closing_mobile_balance" class="w-full pl-16 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500" required min="0" step="0.01" placeholder="0.00">
+                            <input type="number" name="closing_mobile_balance" value="{{ number_format($expectedClosingMobile ?? 0, 2, '.', '') }}" class="w-full pl-16 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500" required min="0" step="0.01">
                         </div>
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Bank (TZS)</label>
                         <div class="relative">
                             <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">TZS</span>
-                            <input type="number" name="closing_bank_balance" class="w-full pl-16 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500" required min="0" step="0.01" placeholder="0.00">
+                            <input type="number" name="closing_bank_balance" value="{{ number_format($expectedClosingBank ?? 0, 2, '.', '') }}" class="w-full pl-16 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500" required min="0" step="0.01">
                         </div>
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Online (TZS)</label>
                         <div class="relative">
                             <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">TZS</span>
-                            <input type="number" name="closing_online_balance" class="w-full pl-16 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500" required min="0" step="0.01" placeholder="0.00">
+                            <input type="number" name="closing_online_balance" value="{{ number_format($expectedClosingOnline ?? 0, 2, '.', '') }}" class="w-full pl-16 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500" required min="0" step="0.01">
                         </div>
                     </div>
+                </div>
+                <div class="space-y-4">
+                    <h3 class="font-semibold text-gray-700 mb-3">Notes & Submit</h3>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Notes (Optional)</label>
                         <textarea name="notes" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500" rows="2" placeholder="Any notes about closing balance..."></textarea>
@@ -81,8 +111,8 @@
                         <i class="fas fa-lock mr-2"></i>Close Cash Drawer
                     </button>
                 </div>
-            </form>
-        </div>
+            </div>
+        </form>
 
         <div class="p-4 bg-yellow-50 rounded-lg">
             <div class="flex items-start">
