@@ -424,12 +424,12 @@ class CashierController extends Controller
             $customer = null;
             $customerName = 'Walk-in Customer';
             $customerEmail = null;
-            $customerAddress = null;
+            $customerAddress = 'Store Pickup';
             if ($data['customer_id']) {
                 $customer = Customer::find($data['customer_id']);
                 $customerName = $customer->name;
                 $customerEmail = $customer->email;
-                $customerAddress = $customer->address;
+                $customerAddress = $customer->address ?? 'Store Pickup';
             }
 
             // Calculate totals
