@@ -34,7 +34,7 @@
                         <td class="px-6 py-4 text-sm text-gray-600">{{ $customer->orders_count ?? 0 }}</td>
                         <td class="px-6 py-4 text-sm text-gray-600">TZS {{ number_format($customer->total_spent ?? 0, 0) }}</td>
                         <td class="px-6 py-4">
-                            <a href="#" class="text-primary-600 hover:text-primary-700 text-sm font-medium">View</a>
+                            <a href="{{ route('marketing-officer.customer-details', $customer) }}" class="text-primary-600 hover:text-primary-700 text-sm font-medium">View</a>
                         </td>
                     </tr>
                     @endforeach

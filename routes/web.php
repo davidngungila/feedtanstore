@@ -117,6 +117,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/orders/{id}/request-packaging', [\App\Http\Controllers\MarketingOfficerController::class, 'requestPackaging'])->name('request-packaging');
         Route::get('/orders/{id}/track-delivery', [\App\Http\Controllers\MarketingOfficerController::class, 'trackDelivery'])->name('track-delivery');
         Route::get('/customers', [\App\Http\Controllers\MarketingOfficerController::class, 'customers'])->name('customers');
+        Route::get('/customers/{id}', [\App\Http\Controllers\MarketingOfficerController::class, 'customerDetails'])->name('customer-details');
         Route::get('/riders', [\App\Http\Controllers\MarketingOfficerController::class, 'riders'])->name('riders');
         Route::get('/riders/{id}', [\App\Http\Controllers\MarketingOfficerController::class, 'riderDetails'])->name('rider-details');
     });

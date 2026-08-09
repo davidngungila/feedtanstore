@@ -142,6 +142,12 @@ class MarketingOfficerController extends Controller
         return view('marketing-officer.customers', compact('customers'));
     }
 
+    public function customerDetails($id)
+    {
+        $customer = Customer::with('onlineOrders')->findOrFail($id);
+        return view('marketing-officer.customer-details', compact('customer'));
+    }
+
     public function riders()
     {
         $riders = DeliveryRider::with('user')->orderBy('name')->paginate(20);
