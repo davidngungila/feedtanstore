@@ -762,7 +762,10 @@ function updateDashboardDisplay() {
     const todayCard = parseFloat(dashboardData.todayBreakdown?.card || 0);
     const todayClickpesa = parseFloat(dashboardData.todayBreakdown?.clickpesa || 0);
     
-    document.getElementById('shiftSales').textContent = 'TZS ' + formatNumber(shiftTotal);
+    // Calculate total of all payment methods
+    const totalPayments = todayCash + todayCard + todayMobile + todayClickpesa;
+    
+    document.getElementById('shiftSales').textContent = 'TZS ' + formatNumber(totalPayments);
     document.getElementById('shiftItems').textContent = shiftItemsCount + ' items';
     document.getElementById('todayCash').textContent = 'TZS ' + formatNumber(todayCash);
     document.getElementById('todayCard').textContent = 'TZS ' + formatNumber(todayCard);
