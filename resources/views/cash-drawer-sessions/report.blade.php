@@ -128,7 +128,11 @@
                 <tbody class="divide-y divide-gray-200">
                     @foreach($cashDrawerSession->sales as $sale)
                     <tr class="hover:bg-gray-50">
-                        <td class="px-6 py-4 font-semibold text-gray-900">{{ $sale->invoice_number ?? 'N/A' }}</td>
+                        <td class="px-6 py-4 font-semibold text-gray-900">
+                            <a href="{{ route('sales.show', $sale) }}" class="text-primary-600 hover:text-primary-800 hover:underline">
+                                {{ $sale->invoice_number ?? 'N/A' }}
+                            </a>
+                        </td>
                         <td class="px-6 py-4 text-sm text-gray-600">{{ $sale->created_at ? $sale->created_at->format('H:i') : 'N/A' }}</td>
                         <td class="px-6 py-4 text-sm text-gray-600">TZS {{ number_format($sale->total ?? 0, 0) }}</td>
                         <td class="px-6 py-4 text-sm text-gray-600">{{ $sale->payment_method ? ucfirst($sale->payment_method) : 'N/A' }}</td>
