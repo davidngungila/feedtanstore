@@ -64,6 +64,12 @@ class CashDrawerSessionController extends Controller
     {
         $cashDrawerSession->load(['user', 'reconciler', 'sales']);
         
+        \Log::info('Cash drawer session sales debug', [
+            'session_id' => $cashDrawerSession->id,
+            'sales_count' => $cashDrawerSession->sales ? $cashDrawerSession->sales->count() : 0,
+            'sales_data' => $cashDrawerSession->sales ? $cashDrawerSession->sales->toArray() : []
+        ]);
+        
         // Calculate totals by payment method
         $totalCashSales = Sale::where('cash_drawer_session_id', $cashDrawerSession->id)
             ->where('payment_method', 'cash')
