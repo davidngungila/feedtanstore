@@ -128,11 +128,11 @@
                 <tbody class="divide-y divide-gray-200">
                     @foreach($cashDrawerSession->sales as $sale)
                     <tr class="hover:bg-gray-50">
-                        <td class="px-6 py-4 font-semibold text-gray-900">{{ $sale->sale_number }}</td>
-                        <td class="px-6 py-4 text-sm text-gray-600">{{ $sale->created_at->format('H:i') }}</td>
-                        <td class="px-6 py-4 text-sm text-gray-600">TZS {{ number_format($sale->total, 0) }}</td>
-                        <td class="px-6 py-4 text-sm text-gray-600">{{ ucfirst($sale->payment_method) }}</td>
-                        <td class="px-6 py-4 text-sm text-gray-600">{{ $sale->items->count() }}</td>
+                        <td class="px-6 py-4 font-semibold text-gray-900">{{ $sale->invoice_number ?? 'N/A' }}</td>
+                        <td class="px-6 py-4 text-sm text-gray-600">{{ $sale->created_at ? $sale->created_at->format('H:i') : 'N/A' }}</td>
+                        <td class="px-6 py-4 text-sm text-gray-600">TZS {{ number_format($sale->total ?? 0, 0) }}</td>
+                        <td class="px-6 py-4 text-sm text-gray-600">{{ $sale->payment_method ? ucfirst($sale->payment_method) : 'N/A' }}</td>
+                        <td class="px-6 py-4 text-sm text-gray-600">{{ $sale->items ? $sale->items->count() : 0 }}</td>
                     </tr>
                     @endforeach
                 </tbody>
