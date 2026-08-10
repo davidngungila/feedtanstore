@@ -461,6 +461,28 @@ function playSuccessSound() {
     }
 }
 
+function playFailureSound() {
+    try {
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        
+        oscillator.frequency.value = 300;
+        oscillator.type = 'sawtooth';
+        
+        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+        
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.2);
+    } catch (error) {
+        console.log('Audio play failed:', error);
+    }
+}
+
 function onScanFailure(error) {
     // Handle scan failure silently
 }
@@ -503,6 +525,7 @@ async function verifyAndPackage(barcode) {
                 }, 1000);
             }
         } else {
+            playFailureSound();
             showScannerStatus(data.message, false);
             // Resume scanning after showing error
             setTimeout(() => {
