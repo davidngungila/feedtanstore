@@ -442,20 +442,35 @@ function onScanSuccess(decodedText, decodedResult) {
 function playSuccessSound() {
     try {
         const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        const oscillator = audioContext.createOscillator();
+        
+        // Create two oscillators for a two-tone success sound
+        const oscillator1 = audioContext.createOscillator();
+        const oscillator2 = audioContext.createOscillator();
         const gainNode = audioContext.createGain();
         
-        oscillator.connect(gainNode);
+        oscillator1.connect(gainNode);
+        oscillator2.connect(gainNode);
         gainNode.connect(audioContext.destination);
         
-        oscillator.frequency.value = 800;
-        oscillator.type = 'sine';
+        // First tone - higher pitch
+        oscillator1.frequency.value = 880;
+        oscillator1.type = 'sine';
         
-        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+        // Second tone - even higher pitch
+        oscillator2.frequency.value = 1100;
+        oscillator2.type = 'sine';
         
-        oscillator.start(audioContext.currentTime);
-        oscillator.stop(audioContext.currentTime + 0.1);
+        // Volume envelope
+        gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+        gainNode.gain.linearRampToValueAtTime(0.2, audioContext.currentTime + 0.05);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.15);
+        
+        // Timing for two-tone effect
+        oscillator1.start(audioContext.currentTime);
+        oscillator1.stop(audioContext.currentTime + 0.15);
+        
+        oscillator2.start(audioContext.currentTime + 0.08);
+        oscillator2.stop(audioContext.currentTime + 0.15);
     } catch (error) {
         console.log('Audio play failed:', error);
     }
