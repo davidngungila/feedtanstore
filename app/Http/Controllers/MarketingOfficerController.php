@@ -92,12 +92,33 @@ class MarketingOfficerController extends Controller
             return redirect()->back()->with('error', 'Cannot assign rider until packaging is completed');
         }
         
+        // Restrict rider assignment until reconciliation is complete
+        if ($order->reconciliation_status !== 'completed') {
+            return redirect()->back()->with('error', 'Cannot assign rider until reconciliation is completed');
+        }
+        
         $order->delivery_rider_id = $request->rider_id;
         $order->rider_acceptance_status = 'pending';
         $order->status = 'confirmed';
         $order->save();
         
         return redirect()->back()->with('success', 'Rider assigned successfully');
+    }
+
+    public function completeReconciliation(Request $request, $id)
+    {
+        $order = OnlineOrder::findOrFail($id);
+        
+        // Ensure packaging is complete before reconciliation
+        if ($order->packaging_status !== 'completed') {
+            return redirect()->back()->with('error', 'Cannot complete reconciliation until packaging is completed');
+        }
+        
+        // Mark reconciliation as complete
+        $order->reconciliation_status = 'completed';
+        $order->save();
+        
+        return redirect()->back()->with('success', 'Reconciliation completed successfully. You can now assign a rider.');
     }
 
     public function updatePackagingStatus(Request $request, $id)

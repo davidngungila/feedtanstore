@@ -173,6 +173,64 @@
         @endif
     </div>
 
+    @if($order->packaging_status === 'completed')
+    <div class="card rounded-2xl p-6 mb-6">
+        <h2 class="text-lg font-bold text-primary-900 mb-4">Order Reconciliation</h2>
+        
+        <div class="mb-4">
+            <div class="flex items-center gap-3 mb-4">
+                @if($order->reconciliation_status === 'pending')
+                    <span class="px-3 py-1 text-sm font-semibold rounded-full bg-yellow-100 text-yellow-800">Pending</span>
+                @elseif($order->reconciliation_status === 'completed')
+                    <span class="px-3 py-1 text-sm font-semibold rounded-full bg-green-100 text-green-800">Completed</span>
+                @endif
+            </div>
+            
+            <div class="bg-gray-50 p-4 rounded-lg mb-4">
+                <h3 class="font-semibold text-gray-900 mb-3">Order Summary</h3>
+                <div class="space-y-2 text-sm">
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Order Number:</span>
+                        <span class="font-medium">{{ $order->order_number }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Customer:</span>
+                        <span class="font-medium">{{ $order->customer_name }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Total Items:</span>
+                        <span class="font-medium">{{ $order->items->count() }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Packaged Items:</span>
+                        <span class="font-medium text-green-600">{{ $order->items->where('is_packaged', true)->count() }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Total Amount:</span>
+                        <span class="font-medium">TZS {{ number_format($order->total, 0) }}</span>
+                    </div>
+                </div>
+            </div>
+            
+            @if($order->reconciliation_status === 'pending')
+            <form action="{{ route('marketing-officer.complete-reconciliation', $order->id) }}" method="POST">
+                @csrf
+                <button type="submit" class="w-full bg-primary-600 hover:bg-primary-700 text-white px-4 py-3 rounded-lg text-sm font-medium transition-colors">
+                    <i class="fas fa-check-double mr-2"></i>Complete Reconciliation
+                </button>
+            </form>
+            @else
+            <div class="p-4 bg-green-50 border border-green-200 rounded-lg">
+                <p class="text-sm text-green-800">
+                    <i class="fas fa-check-circle mr-2"></i>
+                    Reconciliation completed. You can now assign a rider for delivery.
+                </p>
+            </div>
+            @endif
+        </div>
+    </div>
+    @endif
+
     <div class="card rounded-2xl p-6 mb-6">
         <h2 class="text-lg font-bold text-primary-900 mb-4">Order Processing</h2>
         
@@ -188,6 +246,16 @@
                         <div>
                             <p class="font-medium text-yellow-800">Packaging Not Complete</p>
                             <p class="text-sm text-yellow-600">Complete packaging first</p>
+                        </div>
+                    </div>
+                @elseif($order->reconciliation_status !== 'completed')
+                    <div class="flex items-center gap-3 p-3 bg-yellow-50 rounded-lg">
+                        <div class="w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center">
+                            <i class="fas fa-lock text-yellow-600"></i>
+                        </div>
+                        <div>
+                            <p class="font-medium text-yellow-800">Reconciliation Not Complete</p>
+                            <p class="text-sm text-yellow-600">Complete reconciliation first</p>
                         </div>
                     </div>
                 @elseif($order->rider)
