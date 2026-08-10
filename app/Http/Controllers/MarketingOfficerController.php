@@ -66,7 +66,7 @@ class MarketingOfficerController extends Controller
 
     public function orderDetails($id)
     {
-        $order = OnlineOrder::with('rider', 'customer', 'items')->findOrFail($id);
+        $order = OnlineOrder::with('rider', 'customer', 'items.product')->findOrFail($id);
         return view('marketing-officer.order-details', compact('order'));
     }
 
@@ -154,18 +154,24 @@ class MarketingOfficerController extends Controller
         
         // Check if all items are packaged
         $allPackaged = $order->items()->where('is_packaged', true)->count() === $order->items()->count();
+        $packagedCount = $order->items()->where('is_packaged', true)->count();
         
-        // If all items are packaged, update order packaging status
+        // Update packaging status based on progress
         if ($allPackaged) {
             $order->packaging_status = 'completed';
             $order->status = 'confirmed';
+            $order->save();
+        } elseif ($packagedCount > 0 && $order->packaging_status === 'pending') {
+            $order->packaging_status = 'in_progress';
             $order->save();
         }
         
         return response()->json([
             'success' => true,
             'message' => 'Product verified and marked as packaged',
-            'all_packaged' => $allPackaged
+            'all_packaged' => $allPackaged,
+            'packaged_count' => $packagedCount,
+            'total_items' => $order->items()->count()
         ]);
     }
 

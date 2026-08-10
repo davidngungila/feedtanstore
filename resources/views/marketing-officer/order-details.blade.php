@@ -91,9 +91,9 @@
                 <tbody class="bg-white divide-y divide-gray-200">
                     @foreach($order->items as $item)
                     <tr class="hover:bg-gray-50">
-                        <td class="px-6 py-4 font-semibold text-gray-900">{{ $item->product_name }}</td>
+                        <td class="px-6 py-4 font-semibold text-gray-900">{{ $item->product ? $item->product->name : ($item->product_name ?? 'N/A') }}</td>
                         <td class="px-6 py-4 text-sm text-gray-600">{{ $item->quantity }}</td>
-                        <td class="px-6 py-4 text-sm text-gray-600">TZS {{ number_format($item->unit_price, 0) }}</td>
+                        <td class="px-6 py-4 text-sm text-gray-600">TZS {{ number_format($item->price, 0) }}</td>
                         <td class="px-6 py-4 text-sm text-gray-600">TZS {{ number_format($item->total, 0) }}</td>
                         <td class="px-6 py-4">
                             @if($item->is_packaged)
@@ -108,7 +108,7 @@
                         </td>
                         <td class="px-6 py-4">
                             @if(!$item->is_packaged)
-                                <button onclick="openPackageModal({{ $item->id }}, '{{ $item->product_name }}')" class="px-3 py-1 bg-primary-600 hover:bg-primary-700 text-white text-sm rounded-lg transition-colors">
+                                <button onclick="openPackageModal({{ $item->id }}, '{{ $item->product ? $item->product->name : ($item->product_name ?? 'N/A') }}')" class="px-3 py-1 bg-primary-600 hover:bg-primary-700 text-white text-sm rounded-lg transition-colors">
                                     <i class="fas fa-box mr-1"></i>Package
                                 </button>
                             @else
@@ -158,27 +158,16 @@
                 @endif
             </div>
             
-            <form action="{{ route('marketing-officer.update-packaging-status', $order->id) }}" method="POST">
-                @csrf
-                @method('PUT')
-                <div class="flex gap-4">
-                    <select name="packaging_status" required class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
-                        <option value="pending" {{ $order->packaging_status === 'pending' ? 'selected' : '' }}>Pending</option>
-                        <option value="in_progress" {{ $order->packaging_status === 'in_progress' ? 'selected' : '' }}>In Progress</option>
-                        <option value="completed" {{ $order->packaging_status === 'completed' ? 'selected' : '' }}>Completed</option>
-                    </select>
-                    <button type="submit" class="px-6 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors">
-                        Update Packaging
-                    </button>
-                </div>
-            </form>
+            <div class="text-sm text-gray-600">
+                <p>Items packaged: {{ $order->items->where('is_packaged', true)->count() }} / {{ $order->items->count() }}</p>
+            </div>
         </div>
         
         @if($order->packaging_status !== 'completed')
         <div class="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
             <p class="text-sm text-yellow-800">
                 <i class="fas fa-info-circle mr-2"></i>
-                Packaging must be completed before assigning a rider for delivery.
+                Scan each product barcode to verify and mark as packaged. Status will automatically update when all items are packaged.
             </p>
         </div>
         @endif
@@ -285,7 +274,7 @@
 
 <!-- Barcode Scanner Modal -->
 <div id="packageModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center">
-    <div class="bg-white rounded-2xl p-6 w-full max-w-md mx-4">
+    <div class="bg-white rounded-2xl p-6 w-full max-w-lg mx-4">
         <div class="flex items-center justify-between mb-4">
             <h3 class="text-lg font-bold text-primary-900">Scan Product Barcode</h3>
             <button onclick="closePackageModal()" class="text-gray-400 hover:text-gray-600">
@@ -295,42 +284,50 @@
         
         <div class="mb-4">
             <p class="text-sm text-gray-600 mb-2">Product: <span id="modalProductName" class="font-semibold"></span></p>
-            <p class="text-xs text-gray-500">Scan the product barcode to verify and mark as packaged</p>
+            <p class="text-xs text-gray-500">Point camera at product barcode to verify and mark as packaged</p>
         </div>
         
         <div class="mb-4">
-            <label class="block text-sm font-medium text-gray-700 mb-2">Barcode / SKU</label>
-            <input type="text" id="barcodeInput" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500" placeholder="Scan or enter barcode..." autofocus>
-        </div>
-        
-        <div id="scannerStatus" class="mb-4 hidden">
-            <div class="p-3 rounded-lg text-sm"></div>
+            <div id="reader" class="w-full" style="width: 100%;"></div>
+            <div id="scannerStatus" class="mt-4 hidden">
+                <div class="p-3 rounded-lg text-sm"></div>
+            </div>
         </div>
         
         <div class="flex gap-3">
             <button onclick="closePackageModal()" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
                 Cancel
             </button>
-            <button onclick="verifyAndPackage()" class="flex-1 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors">
-                <i class="fas fa-check mr-2"></i>Verify & Package
-            </button>
         </div>
     </div>
 </div>
 
+<!-- Html5-Qrcode Library -->
+<script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+
 <script>
 let currentItemId = null;
+let html5QrcodeScanner = null;
 
 function openPackageModal(itemId, productName) {
     currentItemId = itemId;
     document.getElementById('modalProductName').textContent = productName;
-    document.getElementById('barcodeInput').value = '';
     document.getElementById('scannerStatus').classList.add('hidden');
     document.getElementById('packageModal').classList.remove('hidden');
-    document.getElementById('barcodeInput').focus();
+    
+    // Initialize scanner
+    startScanner();
 }
 
 function closePackageModal() {
+    if (html5QrcodeScanner) {
+        html5QrcodeScanner.stop().then(() => {
+            html5QrcodeScanner.clear();
+            html5QrcodeScanner = null;
+        }).catch(error => {
+            console.error('Failed to stop scanner', error);
+        });
+    }
     document.getElementById('packageModal').classList.add('hidden');
     currentItemId = null;
 }
@@ -342,11 +339,45 @@ function showScannerStatus(message, isSuccess) {
     statusDiv.querySelector('div').className = 'p-3 rounded-lg text-sm ' + (isSuccess ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700');
 }
 
-async function verifyAndPackage() {
-    const barcode = document.getElementById('barcodeInput').value.trim();
+function startScanner() {
+    html5QrcodeScanner = new Html5Qrcode("reader");
     
+    const config = {
+        fps: 10,
+        qrbox: { width: 250, height: 250 },
+        aspectRatio: 1.0
+    };
+    
+    html5QrcodeScanner.start(
+        { facingMode: "environment" },
+        config,
+        onScanSuccess,
+        onScanFailure
+    ).catch(err => {
+        showScannerStatus('Camera access denied or not available', false);
+        console.error('Error starting scanner', err);
+    });
+}
+
+function onScanSuccess(decodedText, decodedResult) {
+    // Stop scanning temporarily to prevent multiple scans
+    if (html5QrcodeScanner) {
+        html5QrcodeScanner.pause();
+    }
+    
+    verifyAndPackage(decodedText);
+}
+
+function onScanFailure(error) {
+    // Handle scan failure silently
+}
+
+async function verifyAndPackage(barcode) {
     if (!barcode) {
-        showScannerStatus('Please enter a barcode', false);
+        showScannerStatus('No barcode detected', false);
+        if (html5QrcodeScanner) {
+            html5QrcodeScanner.resume();
+        }
         return;
     }
     
@@ -369,6 +400,7 @@ async function verifyAndPackage() {
             
             if (data.all_packaged) {
                 setTimeout(() => {
+                    closePackageModal();
                     location.reload();
                 }, 1500);
             } else {
@@ -379,17 +411,19 @@ async function verifyAndPackage() {
             }
         } else {
             showScannerStatus(data.message, false);
+            // Resume scanning after showing error
+            setTimeout(() => {
+                if (html5QrcodeScanner) {
+                    html5QrcodeScanner.resume();
+                }
+            }, 2000);
         }
     } catch (error) {
         showScannerStatus('Error verifying product', false);
+        if (html5QrcodeScanner) {
+            html5QrcodeScanner.resume();
+        }
     }
 }
-
-// Handle Enter key in barcode input
-document.getElementById('barcodeInput').addEventListener('keypress', function(e) {
-    if (e.key === 'Enter') {
-        verifyAndPackage();
-    }
-});
 </script>
 @endsection
