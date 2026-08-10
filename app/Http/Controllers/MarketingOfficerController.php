@@ -169,8 +169,22 @@ class MarketingOfficerController extends Controller
             ], 400);
         }
         
-        // Mark item as packaged
-        $item->is_packaged = true;
+        // Check if already fully packaged
+        if ($item->packaged_quantity >= $item->quantity) {
+            return response()->json([
+                'success' => false,
+                'message' => 'All quantity for this item has already been packaged'
+            ], 400);
+        }
+        
+        // Increment packaged quantity
+        $item->packaged_quantity += 1;
+        
+        // Check if fully packaged
+        if ($item->packaged_quantity >= $item->quantity) {
+            $item->is_packaged = true;
+        }
+        
         $item->save();
         
         // Check if all items are packaged
@@ -189,10 +203,13 @@ class MarketingOfficerController extends Controller
         
         return response()->json([
             'success' => true,
-            'message' => 'Product verified and marked as packaged',
+            'message' => 'Product verified and quantity incremented',
             'all_packaged' => $allPackaged,
             'packaged_count' => $packagedCount,
-            'total_items' => $order->items()->count()
+            'total_items' => $order->items()->count(),
+            'item_packaged_quantity' => $item->packaged_quantity,
+            'item_total_quantity' => $item->quantity,
+            'item_fully_packaged' => $item->is_packaged
         ]);
     }
 

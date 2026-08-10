@@ -98,11 +98,11 @@
                         <td class="px-6 py-4">
                             @if($item->is_packaged)
                                 <span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-700">
-                                    <i class="fas fa-check mr-1"></i>Packaged
+                                    <i class="fas fa-check mr-1"></i>{{ $item->packaged_quantity }}/{{ $item->quantity }}
                                 </span>
                             @else
                                 <span class="px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-700">
-                                    Pending
+                                    {{ $item->packaged_quantity }}/{{ $item->quantity }}
                                 </span>
                             @endif
                         </td>

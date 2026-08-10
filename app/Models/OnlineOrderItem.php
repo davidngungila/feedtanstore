@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 
 class OnlineOrderItem extends Model {
-    protected $fillable = ['online_order_id', 'product_id', 'quantity', 'price', 'total', 'is_packaged'];
+    protected $fillable = ['online_order_id', 'product_id', 'quantity', 'price', 'total', 'is_packaged', 'packaged_quantity'];
     
     public function order() {
         return $this->belongsTo(OnlineOrder::class, 'online_order_id');
