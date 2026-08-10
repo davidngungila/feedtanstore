@@ -528,16 +528,22 @@ async function verifyAndPackage(barcode) {
         if (data.success) {
             showScannerStatus(data.message, true);
             
-            if (data.all_packaged) {
-                setTimeout(() => {
-                    closePackageModal();
-                    location.reload();
-                }, 1500);
-            } else {
+            if (data.item_fully_packaged) {
+                // Item fully packaged, close modal and reload
                 setTimeout(() => {
                     closePackageModal();
                     location.reload();
                 }, 1000);
+            } else {
+                // Item not fully packaged, keep modal open for more scans
+                showScannerStatus(`Packaged: ${data.item_packaged_quantity}/${data.item_total_quantity}. Continue scanning...`, true);
+                
+                // Resume scanning after short delay
+                setTimeout(() => {
+                    if (html5QrcodeScanner) {
+                        html5QrcodeScanner.resume();
+                    }
+                }, 1500);
             }
         } else {
             playFailureSound();
