@@ -121,13 +121,63 @@
     </div>
 
     <div class="card rounded-2xl p-6 mb-6">
+        <h2 class="text-lg font-bold text-primary-900 mb-4">Packaging Status</h2>
+        
+        <div class="mb-4">
+            <div class="flex items-center gap-3 mb-4">
+                @if($order->packaging_status === 'pending')
+                    <span class="px-3 py-1 text-sm font-semibold rounded-full bg-yellow-100 text-yellow-800">Pending</span>
+                @elseif($order->packaging_status === 'in_progress')
+                    <span class="px-3 py-1 text-sm font-semibold rounded-full bg-blue-100 text-blue-800">In Progress</span>
+                @elseif($order->packaging_status === 'completed')
+                    <span class="px-3 py-1 text-sm font-semibold rounded-full bg-green-100 text-green-800">Completed</span>
+                @endif
+            </div>
+            
+            <form action="{{ route('marketing-officer.update-packaging-status', $order->id) }}" method="POST">
+                @csrf
+                @method('PUT')
+                <div class="flex gap-4">
+                    <select name="packaging_status" required class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                        <option value="pending" {{ $order->packaging_status === 'pending' ? 'selected' : '' }}>Pending</option>
+                        <option value="in_progress" {{ $order->packaging_status === 'in_progress' ? 'selected' : '' }}>In Progress</option>
+                        <option value="completed" {{ $order->packaging_status === 'completed' ? 'selected' : '' }}>Completed</option>
+                    </select>
+                    <button type="submit" class="px-6 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors">
+                        Update Packaging
+                    </button>
+                </div>
+            </form>
+        </div>
+        
+        @if($order->packaging_status !== 'completed')
+        <div class="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <p class="text-sm text-yellow-800">
+                <i class="fas fa-info-circle mr-2"></i>
+                Packaging must be completed before assigning a rider for delivery.
+            </p>
+        </div>
+        @endif
+    </div>
+
+    <div class="card rounded-2xl p-6 mb-6">
         <h2 class="text-lg font-bold text-primary-900 mb-4">Order Processing</h2>
         
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <!-- Assign Rider -->
             <div class="p-4 border border-gray-200 rounded-lg">
                 <h3 class="font-semibold text-gray-900 mb-3">Assign Rider</h3>
-                @if($order->rider)
+                @if($order->packaging_status !== 'completed')
+                    <div class="flex items-center gap-3 p-3 bg-yellow-50 rounded-lg">
+                        <div class="w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center">
+                            <i class="fas fa-lock text-yellow-600"></i>
+                        </div>
+                        <div>
+                            <p class="font-medium text-yellow-800">Packaging Not Complete</p>
+                            <p class="text-sm text-yellow-600">Complete packaging first</p>
+                        </div>
+                    </div>
+                @elseif($order->rider)
                     <div class="flex items-center gap-3 p-3 bg-green-50 rounded-lg">
                         <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
                             <i class="fas fa-motorcycle text-green-600"></i>
@@ -154,16 +204,27 @@
                 @endif
             </div>
 
-            <!-- Request Packaging -->
+            <!-- Packaging Instructions -->
             <div class="p-4 border border-gray-200 rounded-lg">
-                <h3 class="font-semibold text-gray-900 mb-3">Request Packaging</h3>
-                <form action="{{ route('marketing-officer.request-packaging', $order->id) }}" method="POST">
-                    @csrf
-                    <textarea name="notes" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 mb-3" rows="2" placeholder="Packaging notes..."></textarea>
-                    <button type="submit" class="w-full bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
-                        <i class="fas fa-box mr-2"></i>Request Packaging
-                    </button>
-                </form>
+                <h3 class="font-semibold text-gray-900 mb-3">Packaging Instructions</h3>
+                <div class="space-y-2">
+                    <div class="flex items-center gap-2 text-sm">
+                        <i class="fas fa-check-circle text-green-600"></i>
+                        <span class="text-gray-600">Process all paid orders</span>
+                    </div>
+                    <div class="flex items-center gap-2 text-sm">
+                        <i class="fas fa-check-circle text-green-600"></i>
+                        <span class="text-gray-600">Package products at the shop</span>
+                    </div>
+                    <div class="flex items-center gap-2 text-sm">
+                        <i class="fas fa-check-circle text-green-600"></i>
+                        <span class="text-gray-600">Mark packaging as complete</span>
+                    </div>
+                    <div class="flex items-center gap-2 text-sm">
+                        <i class="fas fa-check-circle text-green-600"></i>
+                        <span class="text-gray-600">Assign rider for delivery</span>
+                    </div>
+                </div>
             </div>
         </div>
 

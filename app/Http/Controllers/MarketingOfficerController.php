@@ -86,6 +86,12 @@ class MarketingOfficerController extends Controller
         ]);
 
         $order = OnlineOrder::findOrFail($id);
+        
+        // Restrict rider assignment until packaging is complete
+        if ($order->packaging_status !== 'completed') {
+            return redirect()->back()->with('error', 'Cannot assign rider until packaging is completed');
+        }
+        
         $order->delivery_rider_id = $request->rider_id;
         $order->rider_acceptance_status = 'pending';
         $order->status = 'confirmed';
@@ -94,10 +100,23 @@ class MarketingOfficerController extends Controller
         return redirect()->back()->with('success', 'Rider assigned successfully');
     }
 
-    public function requestPackaging(Request $request, $id)
+    public function updatePackagingStatus(Request $request, $id)
     {
-        // Redirect to stock requests create page with the order pre-selected
-        return redirect()->route('stock-requests.create')->with('online_order_id', $id);
+        $request->validate([
+            'packaging_status' => 'required|in:pending,in_progress,completed',
+        ]);
+
+        $order = OnlineOrder::findOrFail($id);
+        $order->packaging_status = $request->packaging_status;
+        
+        // If packaging is completed, update order status to confirmed
+        if ($request->packaging_status === 'completed') {
+            $order->status = 'confirmed';
+        }
+        
+        $order->save();
+        
+        return redirect()->back()->with('success', 'Packaging status updated successfully');
     }
 
     public function trackDelivery($id)
