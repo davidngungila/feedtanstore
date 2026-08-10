@@ -119,6 +119,56 @@ class MarketingOfficerController extends Controller
         return redirect()->back()->with('success', 'Packaging status updated successfully');
     }
 
+    public function verifyAndPackageItem(Request $request, $orderId, $itemId)
+    {
+        $request->validate([
+            'barcode' => 'required|string',
+        ]);
+
+        $order = OnlineOrder::findOrFail($orderId);
+        $item = $order->items()->findOrFail($itemId);
+        
+        // Find product by barcode
+        $product = \App\Models\Product::where('barcode', $request->barcode)->orWhere('sku', $request->barcode)->first();
+        
+        if (!$product) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Product not found with this barcode'
+            ], 404);
+        }
+        
+        // Verify if the scanned product matches the order item
+        if ($product->id !== $item->product_id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Scanned product does not match the ordered product',
+                'expected_product' => $item->product->name,
+                'scanned_product' => $product->name
+            ], 400);
+        }
+        
+        // Mark item as packaged
+        $item->is_packaged = true;
+        $item->save();
+        
+        // Check if all items are packaged
+        $allPackaged = $order->items()->where('is_packaged', true)->count() === $order->items()->count();
+        
+        // If all items are packaged, update order packaging status
+        if ($allPackaged) {
+            $order->packaging_status = 'completed';
+            $order->status = 'confirmed';
+            $order->save();
+        }
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Product verified and marked as packaged',
+            'all_packaged' => $allPackaged
+        ]);
+    }
+
     public function trackDelivery($id)
     {
         $order = OnlineOrder::with(['rider', 'rider.latestLocation', 'statusHistory'])->findOrFail($id);

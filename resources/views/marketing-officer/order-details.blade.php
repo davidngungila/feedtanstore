@@ -84,6 +84,8 @@
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Unit Price</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Packaging</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
@@ -93,6 +95,28 @@
                         <td class="px-6 py-4 text-sm text-gray-600">{{ $item->quantity }}</td>
                         <td class="px-6 py-4 text-sm text-gray-600">TZS {{ number_format($item->unit_price, 0) }}</td>
                         <td class="px-6 py-4 text-sm text-gray-600">TZS {{ number_format($item->total, 0) }}</td>
+                        <td class="px-6 py-4">
+                            @if($item->is_packaged)
+                                <span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-700">
+                                    <i class="fas fa-check mr-1"></i>Packaged
+                                </span>
+                            @else
+                                <span class="px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-700">
+                                    Pending
+                                </span>
+                            @endif
+                        </td>
+                        <td class="px-6 py-4">
+                            @if(!$item->is_packaged)
+                                <button onclick="openPackageModal({{ $item->id }}, '{{ $item->product_name }}')" class="px-3 py-1 bg-primary-600 hover:bg-primary-700 text-white text-sm rounded-lg transition-colors">
+                                    <i class="fas fa-box mr-1"></i>Package
+                                </button>
+                            @else
+                                <span class="text-gray-400 text-sm">
+                                    <i class="fas fa-check-circle mr-1"></i>Done
+                                </span>
+                            @endif
+                        </td>
                     </tr>
                     @endforeach
                 </tbody>
@@ -258,4 +282,114 @@
         </form>
     </div>
 </div>
+
+<!-- Barcode Scanner Modal -->
+<div id="packageModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center">
+    <div class="bg-white rounded-2xl p-6 w-full max-w-md mx-4">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-bold text-primary-900">Scan Product Barcode</h3>
+            <button onclick="closePackageModal()" class="text-gray-400 hover:text-gray-600">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+        </div>
+        
+        <div class="mb-4">
+            <p class="text-sm text-gray-600 mb-2">Product: <span id="modalProductName" class="font-semibold"></span></p>
+            <p class="text-xs text-gray-500">Scan the product barcode to verify and mark as packaged</p>
+        </div>
+        
+        <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700 mb-2">Barcode / SKU</label>
+            <input type="text" id="barcodeInput" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500" placeholder="Scan or enter barcode..." autofocus>
+        </div>
+        
+        <div id="scannerStatus" class="mb-4 hidden">
+            <div class="p-3 rounded-lg text-sm"></div>
+        </div>
+        
+        <div class="flex gap-3">
+            <button onclick="closePackageModal()" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
+                Cancel
+            </button>
+            <button onclick="verifyAndPackage()" class="flex-1 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors">
+                <i class="fas fa-check mr-2"></i>Verify & Package
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentItemId = null;
+
+function openPackageModal(itemId, productName) {
+    currentItemId = itemId;
+    document.getElementById('modalProductName').textContent = productName;
+    document.getElementById('barcodeInput').value = '';
+    document.getElementById('scannerStatus').classList.add('hidden');
+    document.getElementById('packageModal').classList.remove('hidden');
+    document.getElementById('barcodeInput').focus();
+}
+
+function closePackageModal() {
+    document.getElementById('packageModal').classList.add('hidden');
+    currentItemId = null;
+}
+
+function showScannerStatus(message, isSuccess) {
+    const statusDiv = document.getElementById('scannerStatus');
+    statusDiv.classList.remove('hidden');
+    statusDiv.querySelector('div').textContent = message;
+    statusDiv.querySelector('div').className = 'p-3 rounded-lg text-sm ' + (isSuccess ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700');
+}
+
+async function verifyAndPackage() {
+    const barcode = document.getElementById('barcodeInput').value.trim();
+    
+    if (!barcode) {
+        showScannerStatus('Please enter a barcode', false);
+        return;
+    }
+    
+    const orderId = {{ $order->id }};
+    
+    try {
+        const response = await fetch(`{{ route('marketing-officer.verify-package-item', [$order->id, 'ITEM_ID']) }}`.replace('ITEM_ID', currentItemId), {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            },
+            body: JSON.stringify({ barcode: barcode })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            showScannerStatus(data.message, true);
+            
+            if (data.all_packaged) {
+                setTimeout(() => {
+                    location.reload();
+                }, 1500);
+            } else {
+                setTimeout(() => {
+                    closePackageModal();
+                    location.reload();
+                }, 1000);
+            }
+        } else {
+            showScannerStatus(data.message, false);
+        }
+    } catch (error) {
+        showScannerStatus('Error verifying product', false);
+    }
+}
+
+// Handle Enter key in barcode input
+document.getElementById('barcodeInput').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+        verifyAndPackage();
+    }
+});
+</script>
 @endsection
