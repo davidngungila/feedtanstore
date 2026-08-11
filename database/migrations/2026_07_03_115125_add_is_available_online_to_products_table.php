@@ -11,9 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('products', function (Blueprint $table) {
-            $table->boolean('is_available_online')->default(true)->after('is_active');
-        });
+        if (! Schema::hasColumn('products', 'is_available_online')) {
+            Schema::table('products', function (Blueprint $table) {
+                $table->boolean('is_available_online')->default(true)->after('is_active');
+            });
+        }
     }
 
     /**
@@ -22,7 +24,9 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('products', function (Blueprint $table) {
-            $table->dropColumn('is_available_online');
+            if (Schema::hasColumn('products', 'is_available_online')) {
+                $table->dropColumn('is_available_online');
+            }
         });
     }
 };
