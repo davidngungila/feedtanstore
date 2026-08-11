@@ -8,6 +8,7 @@ use App\Models\RiderLocation;
 use App\Models\RiderReview;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class RiderController extends Controller
 {
@@ -34,6 +35,48 @@ class RiderController extends Controller
         ]);
         $rider->update($request->only(['name', 'phone', 'date_of_birth', 'gender', 'address']));
         return response()->json(['message' => 'Personal info updated', 'rider' => $rider]);
+    }
+
+    /**
+     * Upload or remove the rider profile picture.
+     *
+     * Upload:  POST multipart/form-data  image=file
+     * Remove:  POST multipart/form-data  remove=true
+     */
+    public function updateProfileImage(Request $request)
+    {
+        $rider = $request->user()->deliveryRider;
+
+        if (! $rider) {
+            return response()->json(['message' => 'Rider not found'], 404);
+        }
+
+        if ($request->boolean('remove')) {
+            if ($rider->profile_image) {
+                Storage::disk('public')->delete($rider->profile_image);
+                $rider->update(['profile_image' => null]);
+            }
+
+            return response()->json(['message' => 'Profile image removed', 'rider' => $rider]);
+        }
+
+        $request->validate([
+            'image' => 'required|image|mimes:jpeg,png,jpg,webp,gif|max:4096',
+        ]);
+
+        if ($rider->profile_image) {
+            Storage::disk('public')->delete($rider->profile_image);
+        }
+
+        $path = $request->file('image')->store('profile-images', 'public');
+
+        $rider->update(['profile_image' => $path]);
+
+        return response()->json([
+            'message' => 'Profile image updated',
+            'rider' => $rider,
+            'profile_image' => Storage::disk('public')->url($path),
+        ]);
     }
 
     // Vehicle Details

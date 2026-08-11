@@ -40,6 +40,7 @@ Route::middleware('auth:sanctum')->group(function () {
     
     // Rider routes
     Route::get('/rider/profile', [RiderController::class, 'profile']);
+    Route::post('/rider/profile-image', [RiderController::class, 'updateProfileImage']);
     
     // Personal Info
     Route::put('/rider/personal-info', [RiderController::class, 'updatePersonalInfo']);
