@@ -4,9 +4,12 @@
 
 @section('content')
 <div class="animate-[fadeIn_0.4s_ease]">
-    <div class="mb-6">
+    <div class="mb-6 flex flex-wrap items-center justify-between gap-4">
         <a href="{{ route('marketing-officer.order-details', $order->id) }}" class="text-primary-600 hover:text-primary-800 font-medium">
             <i class="fas fa-arrow-left mr-2"></i>Back to Order Details
+        </a>
+        <a href="{{ route('marketing-officer.live-tracking', $order->id) }}" class="btn px-4 py-2 rounded-lg text-sm bg-primary-600 text-white hover:bg-primary-700">
+            <i class="fas fa-satellite-dish mr-2"></i>Open Live Tracking
         </a>
     </div>
 

@@ -121,6 +121,8 @@ Route::middleware('auth')->group(function () {
         Route::post('/orders/{orderId}/items/{itemId}/verify-package', [\App\Http\Controllers\MarketingOfficerController::class, 'verifyAndPackageItem'])->name('verify-package-item');
         Route::post('/orders/{id}/complete-reconciliation', [\App\Http\Controllers\MarketingOfficerController::class, 'completeReconciliation'])->name('complete-reconciliation');
         Route::get('/orders/{id}/track-delivery', [\App\Http\Controllers\MarketingOfficerController::class, 'trackDelivery'])->name('track-delivery');
+        Route::get('/orders/{id}/live-tracking', [\App\Http\Controllers\MarketingOfficerController::class, 'liveTracking'])->name('live-tracking');
+        Route::post('/orders/{id}/recalculate-route', [\App\Http\Controllers\MarketingOfficerController::class, 'recalculateRoute'])->name('recalculate-route');
         Route::get('/customers', [\App\Http\Controllers\MarketingOfficerController::class, 'customers'])->name('customers');
         Route::get('/customers/{id}', [\App\Http\Controllers\MarketingOfficerController::class, 'customerDetails'])->name('customer-details');
         Route::get('/riders', [\App\Http\Controllers\MarketingOfficerController::class, 'riders'])->name('riders');

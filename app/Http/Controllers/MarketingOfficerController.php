@@ -6,6 +6,7 @@ use App\Models\OnlineOrder;
 use App\Models\Customer;
 use App\Models\DeliveryRider;
 use App\Models\RiderDispatchRequest;
+use App\Services\Tracking\TrackingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -315,6 +316,50 @@ class MarketingOfficerController extends Controller
         }
         
         return view('marketing-officer.track-delivery', compact('order', 'storeSettings', 'storeLat', 'storeLng', 'route'));
+    }
+
+    public function liveTracking($id)
+    {
+        $order = OnlineOrder::with(['rider', 'rider.latestLocation', 'statusHistory'])->findOrFail($id);
+
+        $session = app(TrackingService::class)->activeSessionForOrder($order);
+
+        if (! $session) {
+            return redirect()
+                ->route('marketing-officer.order-details', $order->id)
+                ->with('error', 'No active delivery session for this order yet.');
+        }
+
+        $payload = app(TrackingService::class)->sessionPayload($session);
+
+        // Reverb client configuration for Laravel Echo (matches env / production reverse proxy)
+        $reverb = [
+            'key' => config('reverb.apps.apps.0.key'),
+            'host' => config('reverb.servers.reverb.hostname') ?: config('reverb.apps.apps.0.options.host'),
+            'port' => config('reverb.apps.apps.0.options.port'),
+            'scheme' => config('reverb.apps.apps.0.options.scheme'),
+            'useTLS' => (bool) config('reverb.apps.apps.0.options.useTLS'),
+        ];
+
+        $storeSettings = \App\Models\StoreSetting::first();
+
+        return view('marketing-officer.live-tracking', compact('order', 'session', 'payload', 'reverb', 'storeSettings'));
+    }
+
+    public function recalculateRoute($id)
+    {
+        $order = OnlineOrder::with('rider')->findOrFail($id);
+
+        $session = app(TrackingService::class)->activeSessionForOrder($order);
+
+        if (! $session) {
+            return response()->json(['message' => 'No active delivery session'], 404);
+        }
+
+        return response()->json([
+            'route' => app(TrackingService::class)->recalculateRoute($session),
+            'recalculated_at' => now()->toIso8601String(),
+        ]);
     }
 
     public function customers()

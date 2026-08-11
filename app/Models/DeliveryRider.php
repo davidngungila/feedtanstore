@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 class DeliveryRider extends Model
 {
     protected $fillable = [
-        'name', 'phone', 'vehicle_type', 'vehicle_plate', 'is_active', 'user_id',
+        'name', 'phone', 'vehicle_type', 'vehicle_plate', 'is_active', 'is_online', 'last_seen_at', 'user_id',
         'date_of_birth', 'gender', 'address', 'nid_number',
         'driving_license_number', 'license_expiry_date',
         'vehicle_model', 'vehicle_color', 'vehicle_year',
@@ -18,6 +18,11 @@ class DeliveryRider extends Model
         'bank_name', 'bank_account_number', 'bank_account_name', 'bank_branch',
         'mobile_money_number', 'mobile_money_provider',
         'total_deliveries', 'total_earnings', 'rating', 'total_reviews'
+    ];
+
+    protected $casts = [
+        'is_online' => 'boolean',
+        'last_seen_at' => 'datetime',
     ];
 
     public function user(): BelongsTo

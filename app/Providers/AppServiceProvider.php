@@ -5,6 +5,9 @@ namespace App\Providers;
 use App\Models\Product;
 use App\Models\Category;
 use App\Observers\SitemapObserver;
+use App\Services\Routing\Contracts\RoutingProvider;
+use App\Services\Routing\OpenRouteServiceProvider;
+use App\Services\Routing\RoutingService;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
@@ -15,7 +18,14 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // Routing provider is swappable (OpenRouteService today, others later)
+        $this->app->singleton(RoutingProvider::class, function () {
+            return new OpenRouteServiceProvider();
+        });
+
+        $this->app->singleton(RoutingService::class, function ($app) {
+            return new RoutingService($app->make(RoutingProvider::class));
+        });
     }
 
     /**

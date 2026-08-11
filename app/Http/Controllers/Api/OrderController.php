@@ -5,11 +5,16 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\OnlineOrder;
 use App\Models\OnlineOrderStatusHistory;
+use App\Services\Tracking\TrackingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class OrderController extends Controller
 {
+    public function __construct(
+        private readonly TrackingService $tracking,
+    ) {
+    }
     public function index(Request $request)
     {
         $rider = $request->user()->deliveryRider;
@@ -124,7 +129,14 @@ class OrderController extends Controller
             'user_id' => $request->user()->id,
         ]);
 
-        return response()->json(['message' => 'Order accepted', 'order' => $order]);
+        // Start a live tracking session for the trip
+        $this->tracking->createSession($order, $rider, $order->customer);
+
+        return response()->json([
+            'message' => 'Order accepted',
+            'order' => $order,
+            'tracking_session_id' => $this->tracking->activeSessionForOrder($order)?->id,
+        ]);
     }
 
     public function reject(Request $request, $id)

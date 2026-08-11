@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\PublicController;
 use App\Http\Controllers\Api\RiderController;
 use App\Http\Controllers\Api\TrackingController;
+use App\Http\Controllers\Api\TrackingSessionController;
 use App\Http\Controllers\OnlineOrderController;
 use App\Models\DeliveryRider;
 use App\Models\OnlineOrder;
@@ -18,6 +19,7 @@ Route::get('/catalog/products', [CatalogController::class, 'products']);
 Route::get('/catalog/products/{id}', [CatalogController::class, 'product']);
 Route::get('/catalog/carousel', [CatalogController::class, 'carousel']);
 Route::get('/tracking/{orderNumber}', [TrackingController::class, 'trackOrder']);
+Route::get('/tracking/order/{orderNumber}', [TrackingSessionController::class, 'byOrder']);
 Route::post('/payments/feedtan/callback', [OnlineOrderController::class, 'handlePaymentCallback'])->name('api.shop.payments.feedtan.callback');
 Route::get('/terms-policies', [PublicController::class, 'termsAndPolicies']);
 Route::get('/rider-support', [PublicController::class, 'riderSupport']);
@@ -76,4 +78,18 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/rider/dispatch-requests', [DispatchRequestController::class, 'index']);
     Route::post('/rider/dispatch-requests/{id}/accept', [DispatchRequestController::class, 'accept']);
     Route::post('/rider/dispatch-requests/{id}/decline', [DispatchRequestController::class, 'decline']);
+
+    // Live trip tracking (Bolt/Uber style)
+    Route::post('/tracking/location', [TrackingSessionController::class, 'storeLocation'])
+        ->middleware('throttle:tracking-location');
+    Route::post('/tracking/presence', [TrackingSessionController::class, 'presence'])
+        ->middleware('throttle:tracking-api');
+    Route::get('/tracking/sessions', [TrackingSessionController::class, 'index'])
+        ->middleware('throttle:tracking-api');
+    Route::get('/tracking/sessions/{id}', [TrackingSessionController::class, 'show'])
+        ->middleware('throttle:tracking-api');
+    Route::post('/tracking/sessions/{id}/status', [TrackingSessionController::class, 'updateStatus'])
+        ->middleware('throttle:tracking-api');
+    Route::post('/tracking/sessions/{id}/route', [TrackingSessionController::class, 'route'])
+        ->middleware('throttle:tracking-api');
 });

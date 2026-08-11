@@ -6,11 +6,17 @@ use App\Http\Controllers\Controller;
 use App\Models\OnlineOrderStatusHistory;
 use App\Models\RiderDispatchRequest;
 use App\Models\RiderDispatchResponse;
+use App\Services\Tracking\TrackingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class DispatchRequestController extends Controller
 {
+    public function __construct(
+        private readonly TrackingService $tracking,
+    ) {
+    }
+
     /**
      * List pending dispatch requests available to the authenticated rider.
      * A request disappears once accepted by another rider or once this rider has responded.
@@ -104,9 +110,13 @@ class DispatchRequestController extends Controller
 
             DB::commit();
 
+            // Start a live tracking session for the trip (broadcasts trip.status.updated)
+            $this->tracking->createSession($order, $rider, $order->customer);
+
             return response()->json([
                 'message' => 'Dispatch request accepted. Order assigned to you.',
                 'order' => $order,
+                'tracking_session_id' => $this->tracking->activeSessionForOrder($order)?->id,
             ]);
         } catch (\Throwable $e) {
             DB::rollBack();
