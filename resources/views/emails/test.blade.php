@@ -97,7 +97,7 @@
             <!-- Logo Container -->
             <tr>
                 <td class="logo-container" align="center">
-                    <img src="https://store.feedtancmg.org/feedtanstorelogo.png" alt="Feedtan Store Logo" class="logo">
+                    <img src="https://www.feedtanstore.com/feedtanstorelogo.png" alt="Feedtan Store Logo" class="logo">
                 </td>
             </tr>
             
@@ -115,7 +115,7 @@
             <tr>
                 <td class="footer">
                     <p>&copy; {{ date('Y') }} Feedtan Store. All rights reserved.</p>
-                    <p><a href="https://store.feedtancmg.org">Visit our store</a></p>
+                    <p><a href="https://www.feedtanstore.com">Visit our store</a></p>
                 </td>
             </tr>
         </table>

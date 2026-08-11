@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\OnlineOrder;
 use App\Models\Customer;
 use App\Models\DeliveryRider;
+use App\Models\RiderDispatchRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -67,7 +68,11 @@ class MarketingOfficerController extends Controller
     public function orderDetails($id)
     {
         $order = OnlineOrder::with('rider', 'customer', 'items.product')->findOrFail($id);
-        return view('marketing-officer.order-details', compact('order'));
+        $dispatchRequest = RiderDispatchRequest::with('acceptedRider')
+            ->where('online_order_id', $order->id)
+            ->latest()
+            ->first();
+        return view('marketing-officer.order-details', compact('order', 'dispatchRequest'));
     }
 
     public function updateOrderStatus(Request $request, $id)
@@ -103,6 +108,69 @@ class MarketingOfficerController extends Controller
         $order->save();
         
         return redirect()->back()->with('success', 'Rider assigned successfully');
+    }
+
+    public function sendDispatchRequest($id)
+    {
+        $order = OnlineOrder::findOrFail($id);
+
+        if ($order->packaging_status !== 'completed') {
+            return redirect()->back()->with('error', 'Cannot send dispatch request until packaging is completed');
+        }
+
+        if ($order->reconciliation_status !== 'completed') {
+            return redirect()->back()->with('error', 'Cannot send dispatch request until reconciliation is completed');
+        }
+
+        if ($order->delivery_rider_id) {
+            return redirect()->back()->with('error', 'A rider is already assigned to this order');
+        }
+
+        // Cancel any previous pending request for this order
+        RiderDispatchRequest::where('online_order_id', $order->id)
+            ->where('status', 'pending')
+            ->update(['status' => 'cancelled']);
+
+        RiderDispatchRequest::create([
+            'online_order_id' => $order->id,
+            'status' => 'pending',
+            'expires_at' => now()->addMinutes(30),
+        ]);
+
+        return redirect()->back()->with('success', 'Dispatch request sent to all available riders. Waiting for a rider to accept.');
+    }
+
+    public function cancelDispatchRequest($id)
+    {
+        $order = OnlineOrder::findOrFail($id);
+
+        RiderDispatchRequest::where('online_order_id', $order->id)
+            ->where('status', 'pending')
+            ->update(['status' => 'cancelled']);
+
+        return redirect()->back()->with('success', 'Dispatch request cancelled. You can send a new one anytime.');
+    }
+
+    public function dispatchStatus($id)
+    {
+        $order = OnlineOrder::findOrFail($id);
+        $dispatchRequest = RiderDispatchRequest::with('acceptedRider')
+            ->where('online_order_id', $order->id)
+            ->latest()
+            ->first();
+
+        return response()->json([
+            'rider' => $order->rider ? [
+                'id' => $order->rider->id,
+                'name' => $order->rider->name,
+                'phone' => $order->rider->phone,
+            ] : null,
+            'dispatch_request' => $dispatchRequest ? [
+                'id' => $dispatchRequest->id,
+                'status' => $dispatchRequest->status,
+                'accepted_rider' => $dispatchRequest->acceptedRider ? $dispatchRequest->acceptedRider->name : null,
+            ] : null,
+        ]);
     }
 
     public function completeReconciliation(Request $request, $id)

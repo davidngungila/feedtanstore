@@ -33,6 +33,13 @@ class AuthController extends Controller
             ]);
         }
 
+        // Check if the rider account is active
+        if (!$user->deliveryRider->is_active) {
+            throw ValidationException::withMessages([
+                'email' => ['Your rider account has been deactivated. Contact support.'],
+            ]);
+        }
+
         return response()->json([
             'user' => $user,
             'rider' => $user->deliveryRider,

@@ -235,8 +235,8 @@
         <h2 class="text-lg font-bold text-primary-900 mb-4">Order Processing</h2>
         
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <!-- Assign Rider -->
-            <div class="p-4 border border-gray-200 rounded-lg">
+            <!-- Assign Rider (via dispatch request) -->
+            <div class="p-4 border border-gray-200 rounded-lg" id="assign-rider-section">
                 <h3 class="font-semibold text-gray-900 mb-3">Assign Rider</h3>
                 @if($order->packaging_status !== 'completed')
                     <div class="flex items-center gap-3 p-3 bg-yellow-50 rounded-lg">
@@ -265,23 +265,54 @@
                         </div>
                         <div>
                             <p class="font-medium text-green-800">{{ $order->rider->name }}</p>
-                            <p class="text-sm text-green-600">Assigned</p>
+                            <p class="text-sm text-green-600">Assigned — out for delivery</p>
                         </div>
                     </div>
+                @elseif($dispatchRequest && $dispatchRequest->status === 'accepted' && $dispatchRequest->acceptedRider)
+                    <div class="flex items-center gap-3 p-3 bg-green-50 rounded-lg">
+                        <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                            <i class="fas fa-motorcycle text-green-600"></i>
+                        </div>
+                        <div>
+                            <p class="font-medium text-green-800">{{ $dispatchRequest->acceptedRider->name }}</p>
+                            <p class="text-sm text-green-600">Accepted the dispatch request — out for delivery</p>
+                        </div>
+                    </div>
+                @elseif($dispatchRequest && $dispatchRequest->status === 'pending')
+                    <div class="p-4 bg-blue-50 border border-blue-200 rounded-lg" id="dispatch-pending">
+                        <div class="flex items-center gap-3 mb-3">
+                            <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                                <i class="fas fa-paper-plane text-blue-600 animate-pulse"></i>
+                            </div>
+                            <div>
+                                <p class="font-medium text-blue-800">Dispatch Request Sent</p>
+                                <p class="text-sm text-blue-600">Waiting for an available rider to accept</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2 text-sm text-blue-700 mb-3">
+                            <div class="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                            <span>Broadcasting to all available riders...</span>
+                        </div>
+                        <form action="{{ route('marketing-officer.cancel-dispatch-request', $order->id) }}" method="POST">
+                            @csrf
+                            <button type="submit" class="w-full px-4 py-2 border border-blue-300 text-blue-700 rounded-lg text-sm font-medium hover:bg-blue-100 transition-colors">
+                                <i class="fas fa-times mr-2"></i>Cancel Request
+                            </button>
+                        </form>
+                    </div>
                 @else
-                    <form action="{{ route('marketing-officer.assign-rider', $order->id) }}" method="POST">
-                        @csrf
-                        @method('PUT')
-                        <select name="rider_id" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 mb-3">
-                            <option value="">Select Rider</option>
-                            @foreach(\App\Models\DeliveryRider::where('is_active', true)->get() as $rider)
-                                <option value="{{ $rider->id }}">{{ $rider->name }} - {{ $rider->vehicle_type }}</option>
-                            @endforeach
-                        </select>
-                        <button type="submit" class="w-full bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
-                            <i class="fas fa-user-plus mr-2"></i>Assign Rider
-                        </button>
-                    </form>
+                    <div class="p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                        <p class="text-sm text-gray-600 mb-4">
+                            <i class="fas fa-info-circle mr-2 text-primary-600"></i>
+                            Send a dispatch request to all available riders. The first rider to accept is assigned immediately.
+                        </p>
+                        <form action="{{ route('marketing-officer.send-dispatch-request', $order->id) }}" method="POST">
+                            @csrf
+                            <button type="submit" class="w-full bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                                <i class="fas fa-paper-plane mr-2"></i>Send Dispatch Request
+                            </button>
+                        </form>
+                    </div>
                 @endif
             </div>
 
@@ -562,5 +593,33 @@ async function verifyAndPackage(barcode) {
         }
     }
 }
+
+// Live dispatch request polling - reloads when the dispatch status changes or a rider accepts
+(function () {
+    const statusUrl = @json(route('marketing-officer.dispatch-status', $order->id));
+    let lastState = null;
+
+    async function pollDispatchStatus() {
+        if (document.getElementById('packageModal') && !document.getElementById('packageModal').classList.contains('hidden')) {
+            return; // don't reload while the barcode scanner modal is open
+        }
+        try {
+            const response = await fetch(statusUrl, { headers: { 'Accept': 'application/json' } });
+            const data = await response.json();
+            const state = JSON.stringify({ rider: data.rider?.id ?? null, status: data.dispatch_request?.status ?? null, accepted: data.dispatch_request?.accepted_rider ?? null });
+
+            if (lastState !== null && state !== lastState) {
+                location.reload();
+                return;
+            }
+            lastState = state;
+        } catch (e) {
+            // ignore polling errors (offline / transient)
+        }
+    }
+
+    pollDispatchStatus();
+    setInterval(pollDispatchStatus, 5000);
+})();
 </script>
 @endsection

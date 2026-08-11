@@ -29,22 +29,39 @@ class OrderController extends Controller
     public function updateStatus(Request $request, $id)
     {
         $request->validate([
-            'status' => 'required|in:pending,confirmed,processing,ready,out_for_delivery,delivered,cancelled',
+            'status' => 'required|in:out_for_delivery,delivered',
+            'delivery_code' => 'nullable|string',
             'notes' => 'nullable|string',
         ]);
 
         DB::beginTransaction();
         try {
             $order = OnlineOrder::findOrFail($id);
+            $rider = $request->user()->deliveryRider;
+
+            if (!$order->delivery_rider_id || $order->delivery_rider_id != $rider->id) {
+                return response()->json(['message' => 'Order not assigned to you'], 403);
+            }
+
+            // Validate the 4-digit delivery code when marking as delivered
+            if ($request->status === 'delivered' && trim((string) $request->delivery_code) !== $order->delivery_code) {
+                return response()->json(['message' => 'Invalid delivery code. Please enter the correct 4-digit code.'], 422);
+            }
+
             $oldStatus = $order->status;
             $order->update(['status' => $request->status]);
 
+            $statusChangeNote = $request->notes;
+            if (!$statusChangeNote && $oldStatus !== $order->status) {
+                $statusChangeNote = "Status changed from {$oldStatus} to {$order->status} by rider via API";
+            }
+
             OnlineOrderStatusHistory::create([
                 'online_order_id' => $order->id,
-                'old_status' => $oldStatus,
-                'new_status' => $request->status,
-                'notes' => $request->notes,
-                'changed_by' => $request->user()->id,
+                'status' => $order->status,
+                'payment_status' => $order->payment_status,
+                'notes' => $statusChangeNote,
+                'user_id' => $request->user()->id,
             ]);
 
             DB::commit();
@@ -59,6 +76,8 @@ class OrderController extends Controller
     {
         $orders = OnlineOrder::whereNull('delivery_rider_id')
             ->where('status', 'confirmed')
+            ->where('packaging_status', 'completed')
+            ->where('reconciliation_status', 'completed')
             ->with(['items.product', 'customer'])
             ->latest()
             ->get();
@@ -78,24 +97,36 @@ class OrderController extends Controller
             return response()->json(['message' => 'Order already accepted'], 400);
         }
 
+        if (!$order->delivery_rider_id) {
+            // Rider is self-assigning an available order; enforce packaging & reconciliation
+            if ($order->packaging_status !== 'completed') {
+                return response()->json(['message' => 'Order packaging is not completed yet'], 400);
+            }
+            if ($order->reconciliation_status !== 'completed') {
+                return response()->json(['message' => 'Order reconciliation is not completed yet'], 400);
+            }
+        }
+
+        $oldStatus = $order->status;
+
         $order->update([
-            'delivery_rider_id' => $rider->id, 
+            'delivery_rider_id' => $rider->id,
             'status' => 'out_for_delivery',
             'rider_acceptance_status' => 'accepted',
             'rider_accepted_at' => now()
         ]);
-        
+
         OnlineOrderStatusHistory::create([
             'online_order_id' => $order->id,
-            'old_status' => $order->status,
-            'new_status' => 'out_for_delivery',
-            'notes' => 'Order accepted by rider via API',
-            'changed_by' => $request->user()->id,
+            'status' => 'out_for_delivery',
+            'payment_status' => $order->payment_status,
+            'notes' => 'Order accepted by rider via API (status changed from ' . $oldStatus . ' to out_for_delivery)',
+            'user_id' => $request->user()->id,
         ]);
-        
+
         return response()->json(['message' => 'Order accepted', 'order' => $order]);
     }
-    
+
     public function reject(Request $request, $id)
     {
         $rider = $request->user()->deliveryRider;
@@ -109,20 +140,22 @@ class OrderController extends Controller
             return response()->json(['message' => 'Cannot reject accepted order'], 400);
         }
 
+        $oldStatus = $order->status;
+
         $order->update([
             'rider_acceptance_status' => 'rejected',
             'delivery_rider_id' => null,
             'status' => 'confirmed'
         ]);
-        
+
         OnlineOrderStatusHistory::create([
             'online_order_id' => $order->id,
-            'old_status' => $order->status,
-            'new_status' => 'confirmed',
-            'notes' => 'Order rejected by rider via API',
-            'changed_by' => $request->user()->id,
+            'status' => 'confirmed',
+            'payment_status' => $order->payment_status,
+            'notes' => 'Order rejected by rider via API (status changed from ' . $oldStatus . ' to confirmed), unassigned',
+            'user_id' => $request->user()->id,
         ]);
-        
+
         return response()->json(['message' => 'Order rejected', 'order' => $order]);
     }
 }

@@ -10,7 +10,7 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
-Artisan::command('admin:entry-link {--minutes=10 : Minutes before the link expires} {--host= : Override the base host, e.g. https://store.feedtancmg.org}', function () {
+Artisan::command('admin:entry-link {--minutes=10 : Minutes before the link expires} {--host= : Override the base host, e.g. https://www.feedtanstore.com}', function () {
     $minutes = max(1, (int) $this->option('minutes'));
     $host = trim((string) $this->option('host'));
     $token = Str::random(40);

@@ -14,7 +14,7 @@ Feedtan Store is a comprehensive multi-module retail management system with the 
 - **Reports & Analytics**: Comprehensive reporting for all modules
 
 ## Live System
-The system is hosted at: [https://store.feedtancmg.org/](https://store.feedtancmg.org/)
+The system is hosted at: [https://www.feedtanstore.com/](https://www.feedtanstore.com/)
 
 ## Tech Stack
 - **Framework**: Laravel 11
@@ -161,7 +161,7 @@ The system provides comprehensive management of delivery riders:
 ## 3. Mobile Delivery Rider API
 
 ### 3.1 Base URL
-`https://store.feedtancmg.org/api`
+`https://www.feedtanstore.com/api`
 
 ### 3.2 Authentication
 The API uses Laravel Sanctum for authentication. All endpoints except public ones require a Bearer token.

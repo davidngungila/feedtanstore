@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CatalogController;
+use App\Http\Controllers\Api\DispatchRequestController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\PublicController;
 use App\Http\Controllers\Api\RiderController;
@@ -70,4 +71,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/rider/orders/{id}/status', [OrderController::class, 'updateStatus']);
     Route::post('/rider/orders/{id}/accept', [OrderController::class, 'accept']);
     Route::post('/rider/orders/{id}/reject', [OrderController::class, 'reject']);
+
+    // Rider Dispatch Requests (broadcast requests sent by the marketing officer)
+    Route::get('/rider/dispatch-requests', [DispatchRequestController::class, 'index']);
+    Route::post('/rider/dispatch-requests/{id}/accept', [DispatchRequestController::class, 'accept']);
+    Route::post('/rider/dispatch-requests/{id}/decline', [DispatchRequestController::class, 'decline']);
 });
