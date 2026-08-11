@@ -12,14 +12,22 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('assets', function (Blueprint $table) {
-            $table->date('depreciation_start_date')->nullable();
-            $table->decimal('accumulated_depreciation', 15, 2)->default(0);
-            $table->date('last_depreciation_date')->nullable();
-            $table->string('manufacturer')->nullable();
-            $table->string('model')->nullable();
-            $table->date('warranty_expiry')->nullable();
-            $table->string('assigned_to')->nullable();
-            $table->text('maintenance_notes')->nullable();
+            $columns = [
+                'depreciation_start_date' => fn () => $table->date('depreciation_start_date')->nullable(),
+                'accumulated_depreciation' => fn () => $table->decimal('accumulated_depreciation', 15, 2)->default(0),
+                'last_depreciation_date' => fn () => $table->date('last_depreciation_date')->nullable(),
+                'manufacturer' => fn () => $table->string('manufacturer')->nullable(),
+                'model' => fn () => $table->string('model')->nullable(),
+                'warranty_expiry' => fn () => $table->date('warranty_expiry')->nullable(),
+                'assigned_to' => fn () => $table->string('assigned_to')->nullable(),
+                'maintenance_notes' => fn () => $table->text('maintenance_notes')->nullable(),
+            ];
+
+            foreach ($columns as $column => $add) {
+                if (! Schema::hasColumn('assets', $column)) {
+                    $add();
+                }
+            }
         });
     }
 
@@ -29,7 +37,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('assets', function (Blueprint $table) {
-            $table->dropColumn([
+            foreach ([
                 'depreciation_start_date',
                 'accumulated_depreciation',
                 'last_depreciation_date',
@@ -38,7 +46,11 @@ return new class extends Migration
                 'warranty_expiry',
                 'assigned_to',
                 'maintenance_notes'
-            ]);
+            ] as $column) {
+                if (Schema::hasColumn('assets', $column)) {
+                    $table->dropColumn($column);
+                }
+            }
         });
     }
 };
