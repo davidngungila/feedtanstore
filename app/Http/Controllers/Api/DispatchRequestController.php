@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\OnlineOrderStatusHistory;
 use App\Models\RiderDispatchRequest;
 use App\Models\RiderDispatchResponse;
+use App\Services\Notifications\NotificationService;
 use App\Services\Tracking\TrackingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -14,8 +15,8 @@ class DispatchRequestController extends Controller
 {
     public function __construct(
         private readonly TrackingService $tracking,
-    ) {
-    }
+        private readonly NotificationService $notifications,
+    ) {}
 
     /**
      * List pending dispatch requests available to the authenticated rider.
@@ -62,6 +63,7 @@ class DispatchRequestController extends Controller
 
             if ($dispatch->status !== 'pending') {
                 DB::rollBack();
+
                 return response()->json(['message' => 'This dispatch request has already been handled'], 409);
             }
 
@@ -69,11 +71,13 @@ class DispatchRequestController extends Controller
 
             if ($order->delivery_rider_id) {
                 DB::rollBack();
+
                 return response()->json(['message' => 'Order already assigned to another rider'], 409);
             }
 
             if ($order->packaging_status !== 'completed' || $order->reconciliation_status !== 'completed') {
                 DB::rollBack();
+
                 return response()->json(['message' => 'Order is not ready for dispatch'], 409);
             }
 
@@ -90,7 +94,7 @@ class DispatchRequestController extends Controller
                 'online_order_id' => $order->id,
                 'status' => 'out_for_delivery',
                 'payment_status' => $order->payment_status,
-                'notes' => 'Dispatch request accepted by rider via API (status changed from ' . $oldStatus . ' to out_for_delivery)',
+                'notes' => 'Dispatch request accepted by rider via API (status changed from '.$oldStatus.' to out_for_delivery)',
                 'user_id' => $request->user()->id,
             ]);
 
@@ -112,6 +116,13 @@ class DispatchRequestController extends Controller
 
             // Start a live tracking session for the trip (broadcasts trip.status.updated)
             $this->tracking->createSession($order, $rider, $order->customer);
+
+            $this->notifications->sendOrderNotification($order, 'accepted');
+
+            $session = $this->tracking->activeSessionForOrder($order);
+            if ($session) {
+                $this->notifications->sendTripNotification($session, 'accepted');
+            }
 
             return response()->json([
                 'message' => 'Dispatch request accepted. Order assigned to you.',

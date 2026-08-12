@@ -194,10 +194,73 @@ php artisan migrate:reconcile  # if a DB was imported from an older backup
 
 ---
 
-## 7. Push notifications (plan)
+## 7. Push notifications (implemented in Flutter)
 
-FCM tokens belong to `user_devices` (per authenticated user, multiple devices).
-Register the token after login (`POST` a token-registration endpoint), handle
-refresh, and deep-link taps to the trip screen via the `tracking_session_id` in
-the notification payload. FCM sends only on alert events; the live map stays on
-WebSocket.
+Flutter side is complete and enabled (`AppConfig.firebaseEnabled = true`):
+
+- `lib/services/push_service.dart` — Firebase init, foreground/background/terminated
+  handling, local notification display, tap deep-linking.
+- Token registered after login via `POST /api/device-token` (alias
+  `POST /api/rider/device-token`). Tokens refresh automatically via `onTokenRefresh`.
+- Tap behavior: notifications whose payload type suggests a new dispatch request
+  (`dispatch`, `trip`, `available`, `new_order`, `request`) open the **Available**
+  tab; other payloads with an order id open the order detail screen.
+
+### Backend (implemented)
+
+- Migration adds `fcm_token`, `app_version`, `last_used_at` to `user_devices`
+  (unique index on `fcm_token`).
+- `POST /api/device-token` — register/refresh the authenticated user's token
+  (`fcm_token`, `device_name`, `device_type`, `app_version`); upserts by token,
+  re-homes a token that moves to another user, marks the device active.
+- `DELETE /api/device-token` — deactivate + clear the token on logout.
+- `App\Services\Fcm\FcmClient` — service-account OAuth2 (JWT assertion → access
+  token, cached ~55 min) + FCM HTTP v1 send. Retries 429/5xx with backoff,
+  classifies errors: unregistered tokens (`FcmInvalidTokenException`),
+  auth failures (`FcmUnauthorizedException`), non-retryable API errors
+  (`FcmApiException`), missing config (`FcmNotConfiguredException`).
+- `App\Services\Notifications\NotificationService` — builds event payloads and
+  sends to every active device of each recipient; deactivates + clears tokens
+  FCM reports as expired/unregistered; structured logging on failures.
+
+### Env config
+
+```
+FCM_ENABLED=false
+FCM_PROJECT_ID=
+FCM_CREDENTIALS_PATH=          # path to the service-account JSON file
+FCM_CREDENTIALS_JSON=          # OR: base64-encoded contents of that file
+FCM_MAX_ATTEMPTS=3
+FCM_RETRY_DELAY_SECONDS=2
+FCM_DEFAULT_CHANNEL=general    # Android notification channel id
+FCM_DEFAULT_ICON=ic_notification
+FCM_DEFAULT_SOUND=default
+```
+
+### Data payload (deep-link keys)
+
+Every notification carries `type`, `screen`, `title`, `body`, `sent_at`, plus
+event-specific keys (`order_id`, `order_number`, `tracking_session_id`, ...).
+
+| Event | `type` | `screen` |
+|---|---|---|
+| New order | `order.new` | `order` |
+| Order accepted | `order.accepted` | `order` |
+| Order dispatched | `order.dispatched` | `order` |
+| Order delivered | `order.delivered` | `order` |
+| Payment success/failed | `payment.success` / `payment.failed` | `order` |
+| Trip accepted | `trip.accepted` | `trip` |
+| Driver arriving/arrived | `trip.driver_arriving` / `trip.driver_arrived` | `trip` |
+| Trip started / in progress | `trip.started` / `trip.in_progress` | `trip` |
+| Trip completed / cancelled | `trip.completed` / `trip.cancelled` | `trip` |
+| New dispatch request | `dispatch.request.new` | `dispatch` |
+| New message | `message.new` | `chat` |
+
+Wired triggers: `placeOrder` → `order.new`; rider accept (both `OrderController`
+and `DispatchRequestController`) → `order.accepted` + `trip.accepted`;
+`TrackingService::transitionStatus` → trip event per status;
+`OrderController::updateStatus` → `dispatched`/`delivered`;
+`syncOrderPaymentState` → payment event on status change; marketing officer
+`sendDispatchRequest` → `dispatch.request.new` to **online** riders.
+
+

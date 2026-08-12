@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CatalogController;
+use App\Http\Controllers\Api\DeviceTokenController;
 use App\Http\Controllers\Api\DispatchRequestController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\PublicController;
@@ -27,46 +28,53 @@ Route::get('/rider-support', [PublicController::class, 'riderSupport']);
 // Real-Time Data (Public)
 Route::get('/realtime/riders', function () {
     $riders = DeliveryRider::with('latestLocation')->get();
+
     return response()->json($riders);
 });
 Route::get('/realtime/orders', function () {
     $orders = OnlineOrder::with(['rider', 'items.product'])->whereNotNull('delivery_latitude')->whereNotNull('delivery_longitude')->get();
+
     return response()->json($orders);
 });
 
 // Protected routes (Sanctum auth)
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/auth/logout', [AuthController::class, 'logout']);
+
+    // Push notification device token management
+    Route::post('/device-token', [DeviceTokenController::class, 'store']);
+    Route::delete('/device-token', [DeviceTokenController::class, 'destroy']);
+    Route::post('/rider/device-token', [DeviceTokenController::class, 'store']);
     
     // Rider routes
     Route::get('/rider/profile', [RiderController::class, 'profile']);
     Route::post('/rider/profile-image', [RiderController::class, 'updateProfileImage']);
-    
+
     // Personal Info
     Route::put('/rider/personal-info', [RiderController::class, 'updatePersonalInfo']);
-    
+
     // Vehicle Details
     Route::get('/rider/vehicle', [RiderController::class, 'getVehicleDetails']);
     Route::put('/rider/vehicle', [RiderController::class, 'updateVehicleDetails']);
-    
+
     // Documents
     Route::get('/rider/documents', [RiderController::class, 'getDocuments']);
     Route::put('/rider/documents', [RiderController::class, 'updateDocuments']);
-    
+
     // Bank Details
     Route::get('/rider/bank-details', [RiderController::class, 'getBankDetails']);
     Route::put('/rider/bank-details', [RiderController::class, 'updateBankDetails']);
-    
+
     // Performance Stats
     Route::get('/rider/performance', [RiderController::class, 'getPerformanceStats']);
-    
+
     // Customer Reviews
     Route::get('/rider/reviews', [RiderController::class, 'getReviews']);
-    
+
     // Location
     Route::post('/rider/location', [RiderController::class, 'updateLocation']);
     Route::get('/rider/location/{riderId}', [RiderController::class, 'getLocation']);
-    
+
     // Rider Order routes
     Route::get('/rider/orders', [OrderController::class, 'index']);
     Route::get('/rider/orders/available', [OrderController::class, 'available']);

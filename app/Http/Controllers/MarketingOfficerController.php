@@ -7,11 +7,16 @@ use App\Models\Customer;
 use App\Models\DeliveryRider;
 use App\Models\RiderDispatchRequest;
 use App\Services\Tracking\TrackingService;
+use App\Services\Notifications\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class MarketingOfficerController extends Controller
 {
+    public function __construct(
+        private readonly NotificationService $notifications,
+    ) {
+    }
     public function dashboard()
     {
         $user = Auth::user();
@@ -137,6 +142,15 @@ class MarketingOfficerController extends Controller
             'status' => 'pending',
             'expires_at' => now()->addMinutes(30),
         ]);
+
+        $dispatch = RiderDispatchRequest::where('online_order_id', $order->id)
+            ->where('status', 'pending')
+            ->latest()
+            ->first();
+
+        if ($dispatch) {
+            $this->notifications->sendDispatchRequestNotification($dispatch);
+        }
 
         return redirect()->back()->with('success', 'Dispatch request sent to all available riders. Waiting for a rider to accept.');
     }

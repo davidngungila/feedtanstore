@@ -12,9 +12,11 @@ use App\Models\RiderLocation;
 use App\Models\StoreSetting;
 use App\Models\TrackingSession;
 use App\Models\User;
+use App\Services\Notifications\NotificationService;
+use App\Services\Routing\RoutingService;
 use App\Support\Geo;
 use App\Support\RouteMath;
-use App\Services\Routing\RoutingService;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
 class TrackingService
@@ -27,8 +29,8 @@ class TrackingService
 
     public function __construct(
         private readonly RoutingService $routing,
-    ) {
-    }
+        private readonly NotificationService $notifications,
+    ) {}
 
     public function createSession(OnlineOrder $order, DeliveryRider $rider, ?Customer $customer = null): TrackingSession
     {
@@ -159,6 +161,8 @@ class TrackingService
 
         broadcast(new TripStatusUpdated($session, $status, $user));
 
+        $this->notifications->sendTripNotification($session, $status);
+
         return $session->fresh();
     }
 
@@ -280,11 +284,11 @@ class TrackingService
         ];
     }
 
-    private function resolveRecordedAt(mixed $value): \Illuminate\Support\Carbon
+    private function resolveRecordedAt(mixed $value): Carbon
     {
         if ($value) {
             try {
-                $recordedAt = \Illuminate\Support\Carbon::parse($value);
+                $recordedAt = Carbon::parse($value);
 
                 // Reject future timestamps (clock skew) and stale fixes older than 5 minutes
                 abort_if($recordedAt->isAfter(now()->addSeconds(60)), 422, 'Location timestamp is in the future');
@@ -299,7 +303,7 @@ class TrackingService
         return now();
     }
 
-    private function assertPlausible(DeliveryRider $rider, float $latitude, float $longitude, \Illuminate\Support\Carbon $recordedAt): void
+    private function assertPlausible(DeliveryRider $rider, float $latitude, float $longitude, Carbon $recordedAt): void
     {
         $previous = RiderLocation::where('delivery_rider_id', $rider->id)->latest('recorded_at')->first();
 

@@ -20,9 +20,15 @@ use Illuminate\Support\Facades\Crypt;
 use Dompdf\Dompdf;
 use App\Services\FeedtanEcommercePaymentService;
 use App\Services\MessagingService;
+use App\Services\Notifications\NotificationService;
 
 class OnlineOrderController extends Controller
 {
+
+    public function __construct(
+        private readonly NotificationService $notifications,
+    ) {
+    }
 
 
     public function initiatePaymentForOrder(Request $request, $trackingIdentifier, FeedtanEcommercePaymentService $paymentService)
@@ -748,6 +754,8 @@ class OnlineOrderController extends Controller
             'notes' => 'Order placed from public shop'
         ]);
 
+        $this->notifications->sendOrderNotification($order, 'new');
+
         // Dispatch notification job to queue
         \App\Jobs\SendOnlineOrderNotifications::dispatch($order);
 
@@ -994,6 +1002,14 @@ class OnlineOrderController extends Controller
                 'payment_status' => $resolvedPaymentStatus,
                 'notes' => trim($historyNotePrefix . ($notes ? ' | ' . implode(' | ', $notes) : '')),
             ]);
+        }
+
+        if ($paymentStatusChanged) {
+            if ($resolvedPaymentStatus === 'paid') {
+                $this->notifications->sendPaymentNotification($order, 'success');
+            } elseif ($resolvedPaymentStatus === 'failed') {
+                $this->notifications->sendPaymentNotification($order, 'failed');
+            }
         }
     }
 

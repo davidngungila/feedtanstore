@@ -40,4 +40,21 @@ return [
         'sender_id' => env('MESSAGING_SENDER_ID', 'TANZANIATIP'),
     ],
 
+    'fcm' => [
+        'enabled' => env('FCM_ENABLED', false),
+        'project_id' => env('FCM_PROJECT_ID'),
+        // Absolute path to the Firebase service-account JSON file, or the file
+        // contents itself when FCM_CREDENTIALS_JSON is set (base64 encoded).
+        'credentials_path' => env('FCM_CREDENTIALS_PATH'),
+        'credentials_json' => env('FCM_CREDENTIALS_JSON'),
+        'oauth_scope' => 'https://www.googleapis.com/auth/firebase.messaging',
+        'token_uri' => env('FCM_OAUTH_TOKEN_URI', 'https://oauth2.googleapis.com/token'),
+        'api_uri' => env('FCM_API_URI', 'https://fcm.googleapis.com/v1/projects/{project_id}/messages:send'),
+        'max_attempts' => (int) env('FCM_MAX_ATTEMPTS', 3),
+        'retry_delay_seconds' => (int) env('FCM_RETRY_DELAY_SECONDS', 2),
+        'default_channel' => env('FCM_DEFAULT_CHANNEL', 'general'),
+        'default_icon' => env('FCM_DEFAULT_ICON', 'ic_notification'),
+        'default_sound' => env('FCM_DEFAULT_SOUND', 'default'),
+    ],
+
 ];
