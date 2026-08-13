@@ -203,7 +203,10 @@ class NotificationService
     }
 
     /**
-     * Notify online riders about a new broadcast dispatch request.
+     * Notify riders about a new broadcast dispatch request. Every rider with a
+     * registered, active device token is notified — a rider whose app is closed
+     * still receives the push via FCM (delivered by the OS when the app is not
+     * running).
      */
     public function sendDispatchRequestNotification(RiderDispatchRequest $dispatch): array
     {
@@ -214,7 +217,7 @@ class NotificationService
             : 'A new delivery request is available.';
 
         $riders = DeliveryRider::query()
-            ->where('is_online', true)
+            ->where('is_active', true)
             ->whereHas('user', function ($query) {
                 $query->whereHas('devices', fn ($q) => $q->active()->hasFcmToken());
             })
