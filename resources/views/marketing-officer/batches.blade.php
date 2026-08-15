@@ -83,10 +83,10 @@
                         <td class="px-6 py-4">
                             <a href="{{ route('marketing-officer.dispatch-batch-details', $batch->id) }}" class="text-primary-600 hover:text-primary-800 font-medium text-sm">View</a>
                             @if($batch->status === 'pending')
-                            <form action="{{ route('marketing-officer.dispatch-batch-cancel', $batch->id) }}" method="POST" class="inline"
-                                  onsubmit="return confirm('Cancel batch #{{ $batch->id }}? Its orders will be released for a new dispatch.')">
+                            <form action="{{ route('marketing-officer.dispatch-batch-cancel', $batch->id) }}" method="POST" class="inline" id="cancel-batch-{{ $batch->id }}">
                                 @csrf
-                                <button type="submit" class="text-red-600 hover:text-red-800 font-medium text-sm ml-3">Cancel</button>
+                                <button type="button" class="text-red-600 hover:text-red-800 font-medium text-sm ml-3"
+                                        onclick="openConfirmModal('Cancel batch #{{ $batch->id }}?', 'Its orders will be released for a new dispatch.', () => document.getElementById('cancel-batch-{{ $batch->id }}').submit())">Cancel</button>
                             </form>
                             @endif
                         </td>
@@ -107,4 +107,6 @@
         </div>
     </div>
 </div>
+
+@include('marketing-officer.partials.confirm-modal')
 @endsection

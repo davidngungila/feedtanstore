@@ -23,9 +23,10 @@
                 <i class="fas fa-layer-group mr-2"></i>New Bulk Dispatch
             </a>
             @if($batch->status === 'pending')
-            <form action="{{ route('marketing-officer.dispatch-batch-cancel', $batch->id) }}" method="POST" onsubmit="return confirm('Cancel batch #{{ $batch->id }}? Its orders will be released for a new dispatch.')">
+            <form action="{{ route('marketing-officer.dispatch-batch-cancel', $batch->id) }}" method="POST" id="cancel-batch-form">
                 @csrf
-                <button type="submit" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition-colors">
+                <button type="button" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition-colors"
+                        onclick="openConfirmModal('Cancel batch #{{ $batch->id }}?', 'Its orders will be released for a new dispatch.', () => document.getElementById('cancel-batch-form').submit())">
                     <i class="fas fa-ban mr-2"></i>Cancel Batch
                 </button>
             </form>
@@ -184,4 +185,6 @@
     });
 })();
 </script>
+
+@include('marketing-officer.partials.confirm-modal')
 @endsection
