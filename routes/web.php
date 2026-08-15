@@ -131,6 +131,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/dispatch/bulk/send', [\App\Http\Controllers\MarketingOfficerController::class, 'sendBulkDispatch'])->name('bulk-dispatch.send');
         Route::get('/dispatch/batches', [\App\Http\Controllers\MarketingOfficerController::class, 'batches'])->name('dispatch-batches');
         Route::get('/dispatch/batches/{id}', [\App\Http\Controllers\MarketingOfficerController::class, 'batchDetails'])->name('dispatch-batch-details');
+        Route::post('/dispatch/batches/{id}/cancel', [\App\Http\Controllers\MarketingOfficerController::class, 'cancelBatch'])->name('dispatch-batch-cancel');
     });
     
     // Profile

@@ -37,6 +37,7 @@
                         <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Accepted By</th>
                         <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Expires</th>
                         <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Created</th>
+                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Actions</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200">
@@ -79,10 +80,20 @@
                             {{ $batch->expires_at ? $batch->expires_at->format('M d, H:i') : '—' }}
                         </td>
                         <td class="px-6 py-4 text-sm text-gray-600">{{ $batch->created_at->format('M d, Y H:i') }}</td>
+                        <td class="px-6 py-4">
+                            <a href="{{ route('marketing-officer.dispatch-batch-details', $batch->id) }}" class="text-primary-600 hover:text-primary-800 font-medium text-sm">View</a>
+                            @if($batch->status === 'pending')
+                            <form action="{{ route('marketing-officer.dispatch-batch-cancel', $batch->id) }}" method="POST" class="inline"
+                                  onsubmit="return confirm('Cancel batch #{{ $batch->id }}? Its orders will be released for a new dispatch.')">
+                                @csrf
+                                <button type="submit" class="text-red-600 hover:text-red-800 font-medium text-sm ml-3">Cancel</button>
+                            </form>
+                            @endif
+                        </td>
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="7" class="px-6 py-12 text-center">
+                        <td colspan="8" class="px-6 py-12 text-center">
                             <i class="fas fa-inbox text-3xl text-gray-300 mb-3"></i>
                             <p class="text-gray-500">No dispatch batches yet.</p>
                         </td>

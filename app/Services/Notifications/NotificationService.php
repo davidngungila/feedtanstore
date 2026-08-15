@@ -273,6 +273,38 @@ class NotificationService
         ]);
     }
 
+    /**
+     * Notify riders that a bulk dispatch batch was cancelled so they stop
+     * waiting on it. Mirrors the recipient selection used when the batch was
+     * originally announced.
+     */
+    public function sendDispatchBatchCancelledNotification(RiderDispatchBatch $batch): array
+    {
+        $orders = $batch->orders()->get();
+        $orderCount = $orders->count();
+
+        $title = 'Bulk Dispatch Cancelled';
+        $body = $orderCount > 1
+            ? "Batch of {$orderCount} orders was cancelled and is no longer available."
+            : 'The delivery request was cancelled and is no longer available.';
+
+        $riders = DeliveryRider::query()
+            ->where('is_active', true)
+            ->whereHas('user', function ($query) {
+                $query->whereHas('devices', fn ($q) => $q->active()->hasFcmToken());
+            })
+            ->with('user');
+
+        if ($batch->target_rider_id) {
+            $riders->where('id', $batch->target_rider_id);
+        }
+
+        return $this->sendToUsers($riders->get()->pluck('user'), 'dispatch.batch.cancelled', 'dispatch', $title, $body, [
+            'batch_id' => (string) $batch->id,
+            'order_count' => (string) $orderCount,
+        ]);
+    }
+
     public function sendMessageNotification(User $recipient, string $senderName, string $preview): array
     {
         return $this->sendToUser($recipient, 'message.new', 'chat', 'New Message', $senderName.': '.$preview);

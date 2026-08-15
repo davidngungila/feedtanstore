@@ -406,6 +406,32 @@ class MarketingOfficerController extends Controller
     }
 
     /**
+     * Cancel a pending dispatch batch: release all of its orders back to the
+     * "needing rider assignment" pool and notify the targeted riders.
+     */
+    public function cancelBatch($id)
+    {
+        $batch = RiderDispatchBatch::with('requests')->findOrFail($id);
+
+        if ($batch->status !== 'pending') {
+            return redirect()->back()->with('error', 'Only pending batches can be cancelled.');
+        }
+
+        DB::transaction(function () use ($batch) {
+            $batch->update(['status' => 'cancelled']);
+
+            RiderDispatchRequest::where('dispatch_batch_id', $batch->id)
+                ->where('status', 'pending')
+                ->update(['status' => 'cancelled']);
+        });
+
+        $this->notifications->sendDispatchBatchCancelledNotification($batch);
+
+        return redirect()->route('marketing-officer.dispatch-batches')
+            ->with('success', "Batch #{$batch->id} cancelled. Its orders are available for a new dispatch.");
+    }
+
+    /**
      * Greedy proximity clustering of orders (centroid-based).
      *
      * @param  \Illuminate\Support\Collection<int, OnlineOrder>  $orders
