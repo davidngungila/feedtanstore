@@ -331,7 +331,7 @@ class MarketingOfficerController extends Controller
                     'status' => 'pending',
                     'created_by' => Auth::id(),
                     'target_rider_id' => $targetRiderId,
-                    'expires_at' => now()->addMinutes(45),
+                    'expires_at' => now()->addMinutes(5),
                     'notes' => $validated['notes'] ?? null,
                 ]);
 

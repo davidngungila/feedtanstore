@@ -919,7 +919,7 @@ Rules enforced by the backend:
 - A batch already **accepted** by another rider is not returned (disappears for
   everyone else).
 - A batch this rider has already **accepted or declined** is not returned.
-- Batches expire automatically after `expires_at` (~45 minutes) and are removed.
+- Batches expire automatically after `expires_at` (~5 minutes) and are removed.
 
 #### 4.9.2 Accept a Dispatch Batch
 
