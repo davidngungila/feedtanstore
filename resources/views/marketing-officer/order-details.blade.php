@@ -350,6 +350,32 @@
         @endif
     </div>
 
+    <div class="card rounded-2xl p-6 mb-6">
+        <div class="flex flex-wrap items-center justify-between gap-4 mb-4">
+            <div>
+                <h2 class="text-lg font-bold text-primary-900">Bulk Dispatch</h2>
+                <p class="text-sm text-gray-600">All orders needing rider assignment. Nearby orders are pre-selected and grouped into a single batch by location.</p>
+            </div>
+            @if(! $bulkOrders->isEmpty())
+            <div class="flex items-center gap-3">
+                <span class="text-sm text-gray-600">Selected: <strong id="selected-count">0</strong></span>
+                <button type="button" onclick="selectAll()" class="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50">Select All</button>
+                <button type="button" onclick="clearSelection()" class="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50">Clear</button>
+            </div>
+            @endif
+        </div>
+
+        @include('marketing-officer.partials.bulk-dispatch-form', [
+            'bulkOrders' => $bulkOrders,
+            'ordersForMap' => $ordersForMap,
+            'riders' => $riders,
+            'storeLat' => $storeLat,
+            'storeLng' => $storeLng,
+            'defaultRadius' => $defaultRadius,
+            'bulkCheckedIds' => $nearbyIds,
+        ])
+    </div>
+
     <div class="card rounded-2xl p-6">
         <h2 class="text-lg font-bold text-primary-900 mb-4">Update Order Status</h2>
         <form action="{{ route('marketing-officer.update-order-status', $order->id) }}" method="POST">

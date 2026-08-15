@@ -82,7 +82,61 @@ class MarketingOfficerController extends Controller
             ->where('online_order_id', $order->id)
             ->latest()
             ->first();
-        return view('marketing-officer.order-details', compact('order', 'dispatchRequest'));
+
+        // All orders currently needing rider assignment (same eligibility as the bulk dispatch page)
+        $bulkOrders = OnlineOrder::with('customer', 'items')
+            ->whereNull('delivery_rider_id')
+            ->where('status', 'confirmed')
+            ->where('packaging_status', 'completed')
+            ->where('reconciliation_status', 'completed')
+            ->whereNotNull('delivery_latitude')
+            ->whereNotNull('delivery_longitude')
+            ->whereDoesntHave('riderDispatchRequests', function ($q) {
+                $q->where('status', 'pending');
+            })
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        $riders = DeliveryRider::where('is_active', true)->orderBy('name')->get();
+
+        $store = StoreSetting::first();
+        $storeLat = $store->store_latitude ?? -3.3869;
+        $storeLng = $store->store_longitude ?? 36.6883;
+
+        $defaultRadius = 5.0;
+
+        // Auto-bulk: pre-check this order plus the other orders whose customers
+        // are within the cluster radius of this delivery point.
+        $nearbyIds = [];
+        if ($order->delivery_latitude !== null && $order->delivery_longitude !== null) {
+            foreach ($bulkOrders as $bulkOrder) {
+                $km = Geo::haversine(
+                    (float) $order->delivery_latitude,
+                    (float) $order->delivery_longitude,
+                    (float) $bulkOrder->delivery_latitude,
+                    (float) $bulkOrder->delivery_longitude
+                ) / 1000;
+
+                if ($km <= $defaultRadius) {
+                    $nearbyIds[] = $bulkOrder->id;
+                }
+            }
+        }
+
+        $ordersForMap = $bulkOrders->map(fn ($o) => [
+            'id' => $o->id,
+            'order_number' => $o->order_number,
+            'customer_name' => $o->customer_name,
+            'address' => $o->delivery_address,
+            'lat' => (float) $o->delivery_latitude,
+            'lng' => (float) $o->delivery_longitude,
+            'total' => (float) $o->total,
+        ])->values();
+
+        return view('marketing-officer.order-details', compact(
+            'order', 'dispatchRequest', 'bulkOrders', 'riders', 'storeLat', 'storeLng',
+            'defaultRadius', 'nearbyIds', 'ordersForMap'
+        ));
     }
 
     public function updateOrderStatus(Request $request, $id)
