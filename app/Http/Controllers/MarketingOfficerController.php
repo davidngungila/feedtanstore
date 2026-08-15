@@ -95,10 +95,11 @@ class MarketingOfficerController extends Controller
         $defaultRadius = 5.0;
 
         // Auto-bulk: pre-check this order plus the other orders whose customers
-        // are within the cluster radius of this delivery point.
+        // are within the cluster radius of this delivery point. Orders without
+        // coordinates cannot be grouped, so they are never pre-selected.
         $nearbyIds = [];
         if ($order->delivery_latitude !== null && $order->delivery_longitude !== null) {
-            foreach ($bulkOrders as $bulkOrder) {
+            foreach ($bulkOrders->filter(fn ($o) => $o->delivery_latitude !== null && $o->delivery_longitude !== null) as $bulkOrder) {
                 $km = Geo::haversine(
                     (float) $order->delivery_latitude,
                     (float) $order->delivery_longitude,
@@ -110,8 +111,6 @@ class MarketingOfficerController extends Controller
                     $nearbyIds[] = $bulkOrder->id;
                 }
             }
-        } elseif ($bulkOrders->contains('id', $order->id)) {
-            $nearbyIds[] = $order->id;
         }
 
         $ordersForMap = $bulkOrders
@@ -309,23 +308,24 @@ class MarketingOfficerController extends Controller
         $radiusKm = (float) ($validated['radius_km'] ?? 5);
         $targetRiderId = $validated['rider_id'] ?? null;
 
-        // Orders with coordinates are clustered by proximity; orders without
-        // coordinates cannot be location-grouped, so each one becomes its own batch.
+        // Only orders with delivery coordinates can be location-grouped into a
+        // bulk batch. A batch is only created when it groups two or more orders;
+        // lone orders (no coordinates or too far from any other selected order)
+        // are excluded and must be dispatched individually.
         $withCoordinates = $eligible->filter(fn ($o) => $o->delivery_latitude !== null && $o->delivery_longitude !== null);
-        $withoutCoordinates = $eligible->filter(fn ($o) => $o->delivery_latitude === null || $o->delivery_longitude === null);
 
-        $clusters = $this->clusterOrders($withCoordinates, $radiusKm);
+        $clusters = array_values(array_filter(
+            $this->clusterOrders($withCoordinates, $radiusKm),
+            fn ($cluster) => count($cluster['orders']) > 1
+        ));
 
-        foreach ($withoutCoordinates as $order) {
-            $clusters[] = [
-                'centroid' => [(float) $order->delivery_latitude, (float) $order->delivery_longitude],
-                'orders' => [$order],
-            ];
+        if (empty($clusters)) {
+            return redirect()->back()->with('error', 'No bulk batch was created: none of the selected orders could be grouped with at least one other order by location. Dispatch the selected orders individually instead.');
         }
 
         $created = [];
 
-        DB::transaction(function () use ($clusters, $targetRiderId, $request, &$created) {
+        DB::transaction(function () use ($clusters, $targetRiderId, $validated, &$created) {
             foreach ($clusters as $cluster) {
                 $batch = RiderDispatchBatch::create([
                     'status' => 'pending',
@@ -357,7 +357,7 @@ class MarketingOfficerController extends Controller
             $this->notifications->sendDispatchBatchNotification($batch);
         }
 
-        $orderCount = $eligible->count();
+        $orderCount = collect($clusters)->sum(fn ($c) => count($c['orders']));
 
         return redirect()->route('marketing-officer.dispatch-batches')
             ->with('success', "Bulk dispatch created: ".count($created)." batch(es) covering {$orderCount} order(s). Riders can now accept.");

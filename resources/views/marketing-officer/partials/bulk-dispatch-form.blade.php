@@ -54,7 +54,7 @@
                 <label class="block text-sm font-medium text-gray-700 mb-1" for="radius_km">Cluster radius (km)</label>
                 <input type="number" step="0.5" min="1" max="100" name="radius_km" id="radius_km" value="{{ $defaultRadius }}"
                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
-                <p class="text-xs text-gray-500 mt-1">Orders whose customers are within this distance of each other are grouped into the same dispatch batch.</p>
+                <p class="text-xs text-gray-500 mt-1">Orders whose customers are within this distance of each other are grouped into the same dispatch batch. A batch is only created when it contains more than one order — lone orders must be dispatched individually.</p>
 
                 <div id="preview-container" class="mt-4 hidden">
                     <h3 class="text-sm font-semibold text-gray-800 mb-2">Suggested Batches</h3>
@@ -183,12 +183,14 @@
 
     window.previewBatches = function () {
         const radius = parseFloat(document.getElementById('radius_km').value) || 5;
-        const clusters = clusterSelected(radius);
+        const clusters = clusterSelected(radius).filter(c => c.orders.length > 1);
         const container = document.getElementById('preview-container');
         const list = document.getElementById('preview-list');
 
         if (clusters.length === 0) {
-            container.classList.add('hidden');
+            container.classList.remove('hidden');
+            list.innerHTML = '<div class="border border-amber-200 bg-amber-50 rounded-lg p-3 text-sm text-amber-700">No order can be grouped with at least one other within this radius. Dispatch the selected orders individually instead.</div>';
+            list.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             return;
         }
 
@@ -206,6 +208,22 @@
     };
 
     document.querySelectorAll('.order-checkbox').forEach(cb => cb.addEventListener('change', onSelectionChange));
+
+    document.getElementById('bulk-form').addEventListener('submit', function (e) {
+        const ids = selectedOrderIds();
+        if (ids.length < 2) {
+            e.preventDefault();
+            alert('Select at least two orders to create a bulk dispatch.');
+            return;
+        }
+
+        const radius = parseFloat(document.getElementById('radius_km').value) || 5;
+        const clusters = clusterSelected(radius);
+        if (!clusters.some(c => c.orders.length > 1)) {
+            e.preventDefault();
+            alert('None of the selected orders can be grouped with another by location. Dispatch them individually instead.');
+        }
+    });
 
     document.addEventListener('DOMContentLoaded', function () {
         initMap();
