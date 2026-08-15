@@ -84,18 +84,7 @@ class MarketingOfficerController extends Controller
             ->first();
 
         // All orders currently needing rider assignment (same eligibility as the bulk dispatch page)
-        $bulkOrders = OnlineOrder::with('customer', 'items')
-            ->whereNull('delivery_rider_id')
-            ->where('status', 'confirmed')
-            ->where('packaging_status', 'completed')
-            ->where('reconciliation_status', 'completed')
-            ->whereNotNull('delivery_latitude')
-            ->whereNotNull('delivery_longitude')
-            ->whereDoesntHave('riderDispatchRequests', function ($q) {
-                $q->where('status', 'pending');
-            })
-            ->orderBy('created_at', 'desc')
-            ->get();
+        $bulkOrders = $this->ordersNeedingAssignment();
 
         $riders = DeliveryRider::where('is_active', true)->orderBy('name')->get();
 
@@ -121,22 +110,41 @@ class MarketingOfficerController extends Controller
                     $nearbyIds[] = $bulkOrder->id;
                 }
             }
+        } elseif ($bulkOrders->contains('id', $order->id)) {
+            $nearbyIds[] = $order->id;
         }
 
-        $ordersForMap = $bulkOrders->map(fn ($o) => [
-            'id' => $o->id,
-            'order_number' => $o->order_number,
-            'customer_name' => $o->customer_name,
-            'address' => $o->delivery_address,
-            'lat' => (float) $o->delivery_latitude,
-            'lng' => (float) $o->delivery_longitude,
-            'total' => (float) $o->total,
-        ])->values();
+        $ordersForMap = $bulkOrders
+            ->filter(fn ($o) => $o->delivery_latitude !== null && $o->delivery_longitude !== null)
+            ->map(fn ($o) => [
+                'id' => $o->id,
+                'order_number' => $o->order_number,
+                'customer_name' => $o->customer_name,
+                'address' => $o->delivery_address,
+                'lat' => (float) $o->delivery_latitude,
+                'lng' => (float) $o->delivery_longitude,
+                'total' => (float) $o->total,
+            ])->values();
 
         return view('marketing-officer.order-details', compact(
             'order', 'dispatchRequest', 'bulkOrders', 'riders', 'storeLat', 'storeLng',
             'defaultRadius', 'nearbyIds', 'ordersForMap'
         ));
+    }
+
+    /**
+     * Orders in the "needs rider assignment" stage: fully packaged and
+     * reconciled, not yet assigned to any rider. This matches the stage that
+     * enables the single dispatch request flow.
+     */
+    private function ordersNeedingAssignment()
+    {
+        return OnlineOrder::with('customer', 'items')
+            ->whereNull('delivery_rider_id')
+            ->where('packaging_status', 'completed')
+            ->where('reconciliation_status', 'completed')
+            ->orderBy('created_at', 'desc')
+            ->get();
     }
 
     public function updateOrderStatus(Request $request, $id)
@@ -239,18 +247,7 @@ class MarketingOfficerController extends Controller
      */
     public function bulkDispatch(Request $request)
     {
-        $orders = OnlineOrder::with('customer', 'items')
-            ->whereNull('delivery_rider_id')
-            ->where('status', 'confirmed')
-            ->where('packaging_status', 'completed')
-            ->where('reconciliation_status', 'completed')
-            ->whereNotNull('delivery_latitude')
-            ->whereNotNull('delivery_longitude')
-            ->whereDoesntHave('riderDispatchRequests', function ($q) {
-                $q->where('status', 'pending');
-            })
-            ->orderBy('created_at', 'desc')
-            ->get();
+        $orders = $this->ordersNeedingAssignment();
 
         $riders = DeliveryRider::where('is_active', true)->orderBy('name')->get();
 
@@ -264,16 +261,19 @@ class MarketingOfficerController extends Controller
         // Orders pre-selected from the orders page (?order_ids[]=...)
         $preselected = collect($request->query('order_ids', []))->map(fn ($id) => (int) $id)->all();
 
-        // Map data precomputed so the view can pass a plain array to @json
-        $ordersForMap = $orders->map(fn ($o) => [
-            'id' => $o->id,
-            'order_number' => $o->order_number,
-            'customer_name' => $o->customer_name,
-            'address' => $o->delivery_address,
-            'lat' => (float) $o->delivery_latitude,
-            'lng' => (float) $o->delivery_longitude,
-            'total' => (float) $o->total,
-        ])->values();
+        // Map data precomputed so the view can pass a plain array to @json.
+        // Only orders with coordinates are plotted; the rest dispatch individually.
+        $ordersForMap = $orders
+            ->filter(fn ($o) => $o->delivery_latitude !== null && $o->delivery_longitude !== null)
+            ->map(fn ($o) => [
+                'id' => $o->id,
+                'order_number' => $o->order_number,
+                'customer_name' => $o->customer_name,
+                'address' => $o->delivery_address,
+                'lat' => (float) $o->delivery_latitude,
+                'lng' => (float) $o->delivery_longitude,
+                'total' => (float) $o->total,
+            ])->values();
 
         return view('marketing-officer.bulk-dispatch', compact(
             'orders', 'riders', 'store', 'storeLat', 'storeLng', 'defaultRadius', 'preselected', 'ordersForMap'
@@ -298,11 +298,8 @@ class MarketingOfficerController extends Controller
 
         $eligible = $orders->filter(function ($order) {
             return $order->delivery_rider_id === null
-                && $order->status === 'confirmed'
                 && $order->packaging_status === 'completed'
-                && $order->reconciliation_status === 'completed'
-                && $order->delivery_latitude !== null
-                && $order->delivery_longitude !== null;
+                && $order->reconciliation_status === 'completed';
         });
 
         if ($eligible->isEmpty()) {
@@ -311,7 +308,20 @@ class MarketingOfficerController extends Controller
 
         $radiusKm = (float) ($validated['radius_km'] ?? 5);
         $targetRiderId = $validated['rider_id'] ?? null;
-        $clusters = $this->clusterOrders($eligible, $radiusKm);
+
+        // Orders with coordinates are clustered by proximity; orders without
+        // coordinates cannot be location-grouped, so each one becomes its own batch.
+        $withCoordinates = $eligible->filter(fn ($o) => $o->delivery_latitude !== null && $o->delivery_longitude !== null);
+        $withoutCoordinates = $eligible->filter(fn ($o) => $o->delivery_latitude === null || $o->delivery_longitude === null);
+
+        $clusters = $this->clusterOrders($withCoordinates, $radiusKm);
+
+        foreach ($withoutCoordinates as $order) {
+            $clusters[] = [
+                'centroid' => [(float) $order->delivery_latitude, (float) $order->delivery_longitude],
+                'orders' => [$order],
+            ];
+        }
 
         $created = [];
 

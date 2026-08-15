@@ -6,7 +6,7 @@
 <div class="card rounded-2xl p-8 text-center">
     <i class="fas fa-box-open text-4xl text-gray-300 mb-4"></i>
     <h2 class="text-lg font-semibold text-gray-800 mb-1">No orders available for dispatch</h2>
-    <p class="text-gray-500 text-sm">Confirmed, packaged and reconciled orders without a rider and with delivery coordinates appear here.</p>
+    <p class="text-gray-500 text-sm">Packaged and reconciled orders awaiting a rider appear here.</p>
 </div>
 @else
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
@@ -25,7 +25,8 @@
             <div class="max-h-[480px] overflow-y-auto divide-y divide-gray-100">
                 @foreach($bulkOrders as $order)
                 @php
-                    $distanceKm = round(\App\Support\Geo::haversine($storeLat, $storeLng, (float)$order->delivery_latitude, (float)$order->delivery_longitude) / 1000, 1);
+                    $hasLocation = $order->delivery_latitude !== null && $order->delivery_longitude !== null;
+                    $distanceKm = $hasLocation ? round(\App\Support\Geo::haversine($storeLat, $storeLng, (float)$order->delivery_latitude, (float)$order->delivery_longitude) / 1000, 1) : null;
                     $checked = in_array($order->id, $bulkCheckedIds, true) ? 'checked' : '';
                 @endphp
                 <label class="flex items-start gap-3 px-4 py-3 hover:bg-gray-50 cursor-pointer order-row">
@@ -33,7 +34,7 @@
                     <div class="flex-1 min-w-0">
                         <div class="flex items-center justify-between gap-2">
                             <p class="font-semibold text-gray-900 text-sm">{{ $order->order_number }}</p>
-                            <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-blue-50 text-blue-700">{{ $distanceKm }} km</span>
+                            <span class="text-xs font-medium px-2 py-0.5 rounded-full {{ $hasLocation ? 'bg-blue-50 text-blue-700' : 'bg-gray-100 text-gray-600' }}">{{ $hasLocation ? $distanceKm.' km' : 'No location' }}</span>
                         </div>
                         <p class="text-sm text-gray-600 truncate">{{ $order->customer_name }} · {{ $order->customer_phone }}</p>
                         <p class="text-xs text-gray-500 truncate"><i class="fas fa-map-marker-alt mr-1"></i>{{ $order->delivery_address }}</p>

@@ -100,11 +100,8 @@
                     @foreach($orders as $order)
                     @php
                         $eligible = $order->delivery_rider_id === null
-                            && $order->status === 'confirmed'
                             && $order->packaging_status === 'completed'
-                            && $order->reconciliation_status === 'completed'
-                            && $order->delivery_latitude !== null
-                            && $order->delivery_longitude !== null;
+                            && $order->reconciliation_status === 'completed';
                     @endphp
                     <tr class="hover:bg-gray-50">
                         <td class="px-6 py-4">
