@@ -130,6 +130,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/dispatch/bulk', [\App\Http\Controllers\MarketingOfficerController::class, 'bulkDispatch'])->name('bulk-dispatch');
         Route::post('/dispatch/bulk/send', [\App\Http\Controllers\MarketingOfficerController::class, 'sendBulkDispatch'])->name('bulk-dispatch.send');
         Route::get('/dispatch/batches', [\App\Http\Controllers\MarketingOfficerController::class, 'batches'])->name('dispatch-batches');
+        Route::get('/dispatch/batches/{id}', [\App\Http\Controllers\MarketingOfficerController::class, 'batchDetails'])->name('dispatch-batch-details');
     });
     
     // Profile

@@ -376,6 +376,36 @@ class MarketingOfficerController extends Controller
     }
 
     /**
+     * Show the details of a single dispatch batch, including its orders,
+     * rider responses and a delivery map.
+     */
+    public function batchDetails($id)
+    {
+        $batch = RiderDispatchBatch::with('requests.order', 'acceptedRider', 'targetRider', 'creator', 'responses.rider')
+            ->findOrFail($id);
+
+        $orders = $batch->requests->pluck('order')->filter();
+
+        $store = StoreSetting::first();
+        $storeLat = $store->store_latitude ?? -3.3869;
+        $storeLng = $store->store_longitude ?? 36.6883;
+
+        $ordersForMap = $orders
+            ->filter(fn ($o) => $o->delivery_latitude !== null && $o->delivery_longitude !== null)
+            ->map(fn ($o) => [
+                'id' => $o->id,
+                'order_number' => $o->order_number,
+                'customer_name' => $o->customer_name,
+                'address' => $o->delivery_address,
+                'lat' => (float) $o->delivery_latitude,
+                'lng' => (float) $o->delivery_longitude,
+                'total' => (float) $o->total,
+            ])->values();
+
+        return view('marketing-officer.batch-details', compact('batch', 'orders', 'storeLat', 'storeLng', 'ordersForMap'));
+    }
+
+    /**
      * Greedy proximity clustering of orders (centroid-based).
      *
      * @param  \Illuminate\Support\Collection<int, OnlineOrder>  $orders

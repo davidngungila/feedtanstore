@@ -43,7 +43,7 @@
                     @forelse($batches as $batch)
                     <tr class="hover:bg-gray-50 align-top">
                         <td class="px-6 py-4">
-                            <p class="font-semibold text-gray-900">#{{ $batch->id }}</p>
+                            <a href="{{ route('marketing-officer.dispatch-batch-details', $batch->id) }}" class="font-semibold text-primary-600 hover:text-primary-800">#{{ $batch->id }}</a>
                             <p class="text-xs text-gray-500">{{ $batch->creator->name ?? 'Marketing Officer' }}</p>
                             @if($batch->notes)
                                 <p class="text-xs text-gray-500 mt-1 italic">{{ $batch->notes }}</p>
