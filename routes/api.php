@@ -88,6 +88,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/rider/dispatch-requests/{id}/accept', [DispatchRequestController::class, 'accept']);
     Route::post('/rider/dispatch-requests/{id}/decline', [DispatchRequestController::class, 'decline']);
 
+    // Bulk dispatch batches (multiple nearby orders grouped into one offer)
+    Route::get('/rider/dispatch-batches', [DispatchRequestController::class, 'batches']);
+    Route::post('/rider/dispatch-batches/{id}/accept', [DispatchRequestController::class, 'acceptBatch']);
+    Route::post('/rider/dispatch-batches/{id}/decline', [DispatchRequestController::class, 'declineBatch']);
+
     // Live trip tracking (Bolt/Uber style)
     Route::post('/tracking/location', [TrackingSessionController::class, 'storeLocation'])
         ->middleware('throttle:tracking-location');

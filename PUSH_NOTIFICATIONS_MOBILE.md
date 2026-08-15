@@ -302,6 +302,14 @@ Every notification carries these data keys:
 - `sent_at` — ISO timestamp
 - event-specific: `order_id`, `order_number`, `tracking_session_id`, etc.
 
+Batch notifications (`dispatch.batch.new`) add:
+- `batch_id` — dispatch batch id
+- `order_count`, `order_ids`, `order_numbers` — batch composition
+
+Tapping a batch notification opens the **Available** tab (batches are rendered
+there alongside single dispatch requests), and the app may deep-fetch
+`GET /api/rider/dispatch-batches` to show the freshest state.
+
 | Event | `type` | `screen` |
 |---|---|---|
 | New order | `order.new` | `order` |
@@ -314,6 +322,7 @@ Every notification carries these data keys:
 | Trip started / in progress | `trip.started` / `trip.in_progress` | `trip` |
 | Trip completed / cancelled | `trip.completed` / `trip.cancelled` | `trip` |
 | New dispatch request | `dispatch.request.new` | `dispatch` |
+| New dispatch batch | `dispatch.batch.new` | `dispatch` |
 | New message | `message.new` | `chat` |
 
 Routing logic:
@@ -358,6 +367,8 @@ void handlePayload(Map<String, dynamic> data) {
 - Payment state change → `payment.success` / `payment.failed`.
 - Marketing officer sends dispatch request → `dispatch.request.new` to
   **online** riders.
+- Marketing officer sends a bulk dispatch batch → `dispatch.batch.new` to the
+  batch's target rider or to **online** riders.
 
 ---
 

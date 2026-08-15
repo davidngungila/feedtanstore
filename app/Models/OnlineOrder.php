@@ -32,6 +32,10 @@ class OnlineOrder extends Model {
         return $this->belongsTo(User::class);
     }
 
+    public function riderDispatchRequests() {
+        return $this->hasMany(RiderDispatchRequest::class, 'online_order_id');
+    }
+
     public function statusHistory() {
         return $this->hasMany(OnlineOrderStatusHistory::class)->latest();
     }

@@ -10,6 +10,7 @@ class RiderDispatchRequest extends Model
 {
     protected $fillable = [
         'online_order_id',
+        'dispatch_batch_id',
         'status',
         'accepted_rider_id',
         'accepted_at',
@@ -24,6 +25,11 @@ class RiderDispatchRequest extends Model
     public function order(): BelongsTo
     {
         return $this->belongsTo(OnlineOrder::class, 'online_order_id');
+    }
+
+    public function dispatchBatch(): BelongsTo
+    {
+        return $this->belongsTo(RiderDispatchBatch::class, 'dispatch_batch_id');
     }
 
     public function acceptedRider(): BelongsTo

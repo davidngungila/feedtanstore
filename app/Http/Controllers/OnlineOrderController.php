@@ -208,9 +208,25 @@ class OnlineOrderController extends Controller
 
         $categories = \App\Models\Category::where('is_active', true)->get();
 
+        $deals = \App\Models\Product::where('is_active', true)
+            ->where('is_available_online', true)
+            ->where('quantity', '>', 0)
+            ->with(['category', 'images'])
+            ->orderBy('selling_price')
+            ->take(8)
+            ->get();
+
+        $featured = \App\Models\Product::where('is_active', true)
+            ->where('is_available_online', true)
+            ->where('quantity', '>', 0)
+            ->with(['category', 'images'])
+            ->inRandomOrder()
+            ->take(8)
+            ->get();
+
         $settings = \App\Models\StoreSetting::firstOrCreate();
 
-        return view('shop.index', compact('products', 'slides', 'categories', 'selectedCategory', 'settings'));
+        return view('shop.index', compact('products', 'slides', 'categories', 'selectedCategory', 'settings', 'deals', 'featured'));
     }
 
     public function showProduct(Product $product)

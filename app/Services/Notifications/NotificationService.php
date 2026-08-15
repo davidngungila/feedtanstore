@@ -4,6 +4,7 @@ namespace App\Services\Notifications;
 
 use App\Models\DeliveryRider;
 use App\Models\OnlineOrder;
+use App\Models\RiderDispatchBatch;
 use App\Models\RiderDispatchRequest;
 use App\Models\TrackingSession;
 use App\Models\User;
@@ -227,6 +228,48 @@ class NotificationService
         return $this->sendToUsers($riders->pluck('user'), 'dispatch.request.new', 'dispatch', $title, $body, [
             'order_id' => (string) ($order->id ?? ''),
             'order_number' => (string) ($order->order_number ?? ''),
+        ]);
+    }
+
+    /**
+     * Notify riders about a new bulk dispatch batch. When the batch targets a
+     * specific rider only that rider is notified; otherwise every active rider
+     * with a registered device token is notified.
+     */
+    public function sendDispatchBatchNotification(RiderDispatchBatch $batch): array
+    {
+        $orders = $batch->orders()->get();
+        $orderCount = $orders->count();
+
+        $title = $orderCount > 1
+            ? "Bulk Delivery — {$orderCount} orders"
+            : 'New Delivery Request';
+
+        $numbers = $orders->take(3)->pluck('order_number')->implode(', ');
+        if ($orderCount > 3) {
+            $numbers .= ' +'.($orderCount - 3).' more';
+        }
+
+        $body = $orderCount > 0
+            ? "{$numbers} are ready nearby — accept the batch to deliver them together."
+            : 'A new bulk delivery batch is available.';
+
+        $riders = DeliveryRider::query()
+            ->where('is_active', true)
+            ->whereHas('user', function ($query) {
+                $query->whereHas('devices', fn ($q) => $q->active()->hasFcmToken());
+            })
+            ->with('user');
+
+        if ($batch->target_rider_id) {
+            $riders->where('id', $batch->target_rider_id);
+        }
+
+        return $this->sendToUsers($riders->get()->pluck('user'), 'dispatch.batch.new', 'dispatch', $title, $body, [
+            'batch_id' => (string) $batch->id,
+            'order_count' => (string) $orderCount,
+            'order_ids' => $orders->pluck('id')->implode(','),
+            'order_numbers' => $orders->pluck('order_number')->implode(','),
         ]);
     }
 

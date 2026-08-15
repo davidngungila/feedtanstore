@@ -860,6 +860,169 @@ class OnlineOrder {
 }
 ```
 
+### 4.9 Bulk Dispatch Batches (multi-order offers)
+
+The marketing officer can send **one batch offer containing multiple orders** (all
+near the same area) instead of separate single-order requests. Riders see a
+batch card listing every order in the group; **the first rider to accept** takes
+**all** orders in the batch, and the batch disappears from everyone else's app.
+
+The app should **poll** `GET /rider/dispatch-batches` (e.g. every 10-30 seconds,
+or on the `dispatch.batch.new` push notification) so new batches appear live.
+
+#### 4.9.1 Get Pending Dispatch Batches
+
+| | |
+|---|---|
+| **Method** | `GET` |
+| **URL** | `{{base_url}}/rider/dispatch-batches` |
+| **Auth** | Bearer |
+
+Success **200**: array of pending batches, newest first. Only batches with
+`status = pending`, not yet expired, and not already accepted/declined by this
+rider are returned. Each batch includes its orders (with `items` and `customer`):
+
+```json
+[
+  {
+    "id": 3,
+    "status": "pending",
+    "target_rider_id": null,
+    "accepted_rider_id": null,
+    "accepted_at": null,
+    "expires_at": "2026-08-15T15:30:00.000000Z",
+    "notes": "Same neighborhood, single trip",
+    "order_count": 3,
+    "total_amount": 51000,
+    "order_numbers": ["ORD-BULK-001", "ORD-BULK-002", "ORD-BULK-003"],
+    "orders": [
+      {
+        "id": 108, "order_number": "ORD-BULK-001", "customer_name": "Jane Smith",
+        "customer_phone": "255711223344", "delivery_address": "123 Main St, Moshi",
+        "delivery_latitude": -3.35, "delivery_longitude": 36.68,
+        "status": "confirmed", "payment_status": "paid", "payment_method": "online",
+        "subtotal": 15000, "delivery_fee": 2000, "total": 17000,
+        "items": [ { "id": 1, "product_id": 1, "quantity": 2, "price": 7500, "total": 15000, "product": { "id": 1, "name": "Product Name" } } ],
+        "customer": { "id": 1, "name": "Jane Smith", "phone": "255711223344", "email": "jane@example.com" }
+      }
+    ],
+    "created_at": "...",
+    "updated_at": "..."
+  }
+]
+```
+
+Rules enforced by the backend:
+
+- A batch targeted at a **specific rider** (`target_rider_id` set) is returned
+  only to that rider; otherwise it is broadcast to all riders.
+- A batch already **accepted** by another rider is not returned (disappears for
+  everyone else).
+- A batch this rider has already **accepted or declined** is not returned.
+- Batches expire automatically after `expires_at` (~45 minutes) and are removed.
+
+#### 4.9.2 Accept a Dispatch Batch
+
+| | |
+|---|---|
+| **Method** | `POST` |
+| **URL** | `{{base_url}}/rider/dispatch-batches/{id}/accept` |
+| **Auth** | Bearer |
+
+Success **200** — the rider is assigned every pending order in the batch, each
+order moves to `out_for_delivery`, a tracking session is started per order, and
+the batch is marked accepted:
+
+```json
+{
+  "message": "Dispatch batch accepted. 3 orders assigned to you.",
+  "batch": { "id": 3, "status": "accepted", "order_count": 3 },
+  "order_count": 3,
+  "order_ids": [108, 109, 110],
+  "order_numbers": ["ORD-BULK-001", "ORD-BULK-002", "ORD-BULK-003"],
+  "tracking_session_ids": [41, 42, 43],
+  "skipped_order_ids": []
+}
+```
+
+- `skipped_order_ids` lists any batch order that could not be assigned (e.g.
+  already taken by another rider between listing and accepting). If every order
+  is skipped the backend responds **409** `{ "message": "Batch has no assignable orders left" }`
+  and cancels the batch.
+- If the batch was already handled by another rider: **409**
+  `{ "message": "This dispatch batch has already been accepted" }`.
+
+> **App behavior**: on success, play a notification, add all `order_ids` to
+> **My Orders → Active**, and offer to open navigation to the first delivery.
+
+#### 4.9.3 Decline a Dispatch Batch
+
+| | |
+|---|---|
+| **Method** | `POST` |
+| **URL** | `{{base_url}}/rider/dispatch-batches/{id}/decline` |
+| **Auth** | Bearer |
+
+Success **200**: `{ "message": "Dispatch batch declined" }`
+
+The batch stays pending for **other** riders but will not be shown to this rider
+again.
+
+> Note: single-order dispatch requests (`/rider/dispatch-requests`) and batches
+> are independent. Orders inside a pending batch do **not** also appear in the
+> single-request list.
+
+#### 4.9.4 Dart model
+
+```dart
+class DispatchBatchOrder {
+  final int id;
+  final String orderNumber, customerName, customerPhone, deliveryAddress;
+  final double? deliveryLatitude, deliveryLongitude;
+  final double subtotal, deliveryFee, total;
+  final int itemCount;
+  final String paymentMethod;
+
+  DispatchBatchOrder.fromJson(Map<String, dynamic> j)
+      : id = j['id'],
+        orderNumber = j['order_number'],
+        customerName = j['customer_name'],
+        customerPhone = j['customer_phone'],
+        deliveryAddress = j['delivery_address'] ?? '',
+        deliveryLatitude = j['delivery_latitude'] != null
+            ? (j['delivery_latitude'] as num).toDouble() : null,
+        deliveryLongitude = j['delivery_longitude'] != null
+            ? (j['delivery_longitude'] as num).toDouble() : null,
+        subtotal = (j['subtotal'] as num).toDouble(),
+        deliveryFee = (j['delivery_fee'] ?? 0).toDouble(),
+        total = (j['total'] as num).toDouble(),
+        itemCount = (j['items'] as List? ?? []).length,
+        paymentMethod = j['payment_method'] ?? '';
+}
+
+class DispatchBatch {
+  final int id;
+  final String status;
+  final int? targetRiderId;
+  final DateTime expiresAt;
+  final String? notes;
+  final int orderCount;
+  final double totalAmount;
+  final List<DispatchBatchOrder> orders;
+
+  DispatchBatch.fromJson(Map<String, dynamic> j)
+      : id = j['id'],
+        status = j['status'],
+        targetRiderId = j['target_rider_id'],
+        expiresAt = DateTime.parse(j['expires_at']),
+        notes = j['notes'],
+        orderCount = j['order_count'] ?? (j['orders'] as List? ?? []).length,
+        totalAmount = (j['total_amount'] ?? 0).toDouble(),
+        orders = (j['orders'] as List? ?? [])
+            .map((e) => DispatchBatchOrder.fromJson(e)).toList();
+}
+```
+
 ---
 
 ## 5. API Service Layer (Dio)
@@ -950,6 +1113,14 @@ class ApiService {
       (await (await _client()).post('/rider/dispatch-requests/$id/accept')).data;
   Future<Map<String, dynamic>> declineDispatchRequest(int id) async =>
       (await (await _client()).post('/rider/dispatch-requests/$id/decline')).data;
+
+  // ---- Dispatch Batches (multi-order offers) ----
+  Future<List<dynamic>> getDispatchBatches() async =>
+      (await (await _client()).get('/rider/dispatch-batches')).data as List;
+  Future<Map<String, dynamic>> acceptDispatchBatch(int id) async =>
+      (await (await _client()).post('/rider/dispatch-batches/$id/accept')).data;
+  Future<Map<String, dynamic>> declineDispatchBatch(int id) async =>
+      (await (await _client()).post('/rider/dispatch-batches/$id/decline')).data;
   Future<Map<String, dynamic>> getOrder(int id) async =>
       (await (await _client()).get('/rider/orders/$id')).data;
   Future<Map<String, dynamic>> acceptOrder(int id) async =>
@@ -1025,9 +1196,12 @@ Fetch `getPerformance()` + `getMyOrders()` in parallel. Cards:
 
 Format currency with `intl`: `NumberFormat.currency(locale: 'en_TZ', symbol: 'TZS', decimalDigits: 0)`.
 
-### 6.3 Available Orders (Dispatch Requests)
+### 6.3 Available Orders (Dispatch Requests & Batches)
 
-**Primary flow** (new): the marketing officer sends a **dispatch request** instead of assigning directly.
+**Primary flow** (new): the marketing officer sends a **dispatch request** or a
+**dispatch batch** instead of assigning directly.
+
+Single orders:
 - `GET /rider/dispatch-requests` (poll every ~15s, plus on app resume / FCM push) -> list of pending requests, each with the full `order` object.
 - Each card: order number, customer name, address, item count, subtotal + delivery fee + total, payment method badge, and an **expires in** countdown from `expires_at`.
 - **Accept** button -> confirm dialog -> `acceptDispatchRequest(id)`.
@@ -1035,7 +1209,16 @@ Format currency with `intl`: `NumberFormat.currency(locale: 'en_TZ', symbol: 'TZ
   - On 409 "already been handled": show the message and refresh the list (another rider won).
 - **Decline** button -> `declineDispatchRequest(id)` -> removes the card; the request stays pending for other riders.
 
-**Legacy flow**: `GET /rider/orders/available` still returns unassigned orders, but dispatch requests are the recommended path going forward.
+Bulk batches:
+- `GET /rider/dispatch-batches` (same polling cadence) -> list of pending batch offers.
+- Each batch card: "3 orders — 51,000 TZS", a compact list of `order_numbers` / customer names, an **expires in** countdown, and a total distance feel (addresses of the batch).
+- Tapping a batch card expands to show every order (reuse the order card layout from above, with a per-order payment badge and subtotal+delivery fee+total).
+- **Accept batch** button -> confirm dialog ("Accept all N orders?") -> `acceptDispatchBatch(id)`.
+  - Success: snackbar, add all returned `order_ids` to **My Orders → Active** with the returned `tracking_session_ids`, and prompt "Open navigation to first delivery?".
+  - On 409: show the message and refresh (another rider accepted the whole batch).
+- **Decline batch** button -> `declineDispatchBatch(id)` -> removes the card; the batch stays pending for other riders.
+
+**Legacy flow**: `GET /rider/orders/available` still returns unassigned orders, but dispatch requests and batches are the recommended paths going forward.
 
 ### 6.4 My Orders (Assigned)
 
@@ -1283,10 +1466,13 @@ Also enable background location capability in Xcode if tracking in the backgroun
 | 21 | GET | `/rider/dispatch-requests` | Bearer | Pending dispatch requests |
 | 22 | POST | `/rider/dispatch-requests/{id}/accept` | Bearer | Accept dispatch request |
 | 23 | POST | `/rider/dispatch-requests/{id}/decline` | Bearer | Decline dispatch request |
-| 24 | GET | `/terms-policies` | - | Terms & policies |
-| 25 | GET | `/rider-support` | - | Support contacts |
-| 26 | GET | `/realtime/riders` | - | All riders + locations |
-| 27 | GET | `/realtime/orders` | - | All orders with coords |
+| 24 | GET | `/rider/dispatch-batches` | Bearer | Pending bulk dispatch batches |
+| 25 | POST | `/rider/dispatch-batches/{id}/accept` | Bearer | Accept batch (assigns all orders) |
+| 26 | POST | `/rider/dispatch-batches/{id}/decline` | Bearer | Decline batch |
+| 27 | GET | `/terms-policies` | - | Terms & policies |
+| 28 | GET | `/rider-support` | - | Support contacts |
+| 29 | GET | `/realtime/riders` | - | All riders + locations |
+| 30 | GET | `/realtime/orders` | - | All orders with coords |
 
 ---
 

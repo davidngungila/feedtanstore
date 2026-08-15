@@ -5,11 +5,15 @@ namespace App\Http\Controllers;
 use App\Models\OnlineOrder;
 use App\Models\Customer;
 use App\Models\DeliveryRider;
+use App\Models\RiderDispatchBatch;
 use App\Models\RiderDispatchRequest;
+use App\Models\StoreSetting;
+use App\Support\Geo;
 use App\Services\Tracking\TrackingService;
 use App\Services\Notifications\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class MarketingOfficerController extends Controller
 {
@@ -132,7 +136,16 @@ class MarketingOfficerController extends Controller
             return redirect()->back()->with('error', 'A rider is already assigned to this order');
         }
 
-        // Cancel any previous pending request for this order
+        $alreadyInBatch = RiderDispatchRequest::where('online_order_id', $order->id)
+            ->whereNotNull('dispatch_batch_id')
+            ->where('status', 'pending')
+            ->exists();
+
+        if ($alreadyInBatch) {
+            return redirect()->back()->with('error', 'This order is already part of a bulk dispatch batch. Wait for the batch to be accepted or expire.');
+        }
+
+        // Cancel any previous pending request for this order (single or batch)
         RiderDispatchRequest::where('online_order_id', $order->id)
             ->where('status', 'pending')
             ->update(['status' => 'cancelled']);
@@ -164,6 +177,179 @@ class MarketingOfficerController extends Controller
             ->update(['status' => 'cancelled']);
 
         return redirect()->back()->with('success', 'Dispatch request cancelled. You can send a new one anytime.');
+    }
+
+    /**
+     * Bulk dispatch builder: pick several orders, group them by customer
+     * location proximity, and send them out as one (or more) batches.
+     */
+    public function bulkDispatch(Request $request)
+    {
+        $orders = OnlineOrder::with('customer', 'items')
+            ->whereNull('delivery_rider_id')
+            ->where('status', 'confirmed')
+            ->where('packaging_status', 'completed')
+            ->where('reconciliation_status', 'completed')
+            ->whereNotNull('delivery_latitude')
+            ->whereNotNull('delivery_longitude')
+            ->whereDoesntHave('riderDispatchRequests', function ($q) {
+                $q->where('status', 'pending');
+            })
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        $riders = DeliveryRider::where('is_active', true)->orderBy('name')->get();
+
+        $store = StoreSetting::first();
+        $storeLat = $store->store_latitude ?? -3.3869;
+        $storeLng = $store->store_longitude ?? 36.6883;
+
+        // Default radius used for clustering nearby customers (km)
+        $defaultRadius = 5.0;
+
+        // Orders pre-selected from the orders page (?order_ids[]=...)
+        $preselected = collect($request->query('order_ids', []))->map(fn ($id) => (int) $id)->all();
+
+        return view('marketing-officer.bulk-dispatch', compact(
+            'orders', 'riders', 'store', 'storeLat', 'storeLng', 'defaultRadius', 'preselected'
+        ));
+    }
+
+    /**
+     * Create bulk dispatch batches: cluster selected orders by proximity and
+     * broadcast each cluster as a single batch to riders.
+     */
+    public function sendBulkDispatch(Request $request)
+    {
+        $validated = $request->validate([
+            'order_ids' => 'required|array|min:1',
+            'order_ids.*' => 'exists:online_orders,id',
+            'radius_km' => 'nullable|numeric|min:1|max:100',
+            'rider_id' => 'nullable|exists:delivery_riders,id',
+            'notes' => 'nullable|string|max:500',
+        ]);
+
+        $orders = OnlineOrder::whereIn('id', $validated['order_ids'])->get();
+
+        $eligible = $orders->filter(function ($order) {
+            return $order->delivery_rider_id === null
+                && $order->status === 'confirmed'
+                && $order->packaging_status === 'completed'
+                && $order->reconciliation_status === 'completed'
+                && $order->delivery_latitude !== null
+                && $order->delivery_longitude !== null;
+        });
+
+        if ($eligible->isEmpty()) {
+            return redirect()->back()->with('error', 'None of the selected orders are eligible for dispatch.');
+        }
+
+        $radiusKm = (float) ($validated['radius_km'] ?? 5);
+        $targetRiderId = $validated['rider_id'] ?? null;
+        $clusters = $this->clusterOrders($eligible, $radiusKm);
+
+        $created = [];
+
+        DB::transaction(function () use ($clusters, $targetRiderId, $request, &$created) {
+            foreach ($clusters as $cluster) {
+                $batch = RiderDispatchBatch::create([
+                    'status' => 'pending',
+                    'created_by' => Auth::id(),
+                    'target_rider_id' => $targetRiderId,
+                    'expires_at' => now()->addMinutes(45),
+                    'notes' => $validated['notes'] ?? null,
+                ]);
+
+                foreach ($cluster['orders'] as $order) {
+                    // Cancel any previous pending dispatch request for this order
+                    RiderDispatchRequest::where('online_order_id', $order->id)
+                        ->where('status', 'pending')
+                        ->update(['status' => 'cancelled']);
+
+                    RiderDispatchRequest::create([
+                        'online_order_id' => $order->id,
+                        'dispatch_batch_id' => $batch->id,
+                        'status' => 'pending',
+                        'expires_at' => $batch->expires_at,
+                    ]);
+                }
+
+                $created[] = $batch;
+            }
+        });
+
+        foreach ($created as $batch) {
+            $this->notifications->sendDispatchBatchNotification($batch);
+        }
+
+        $orderCount = $eligible->count();
+
+        return redirect()->route('marketing-officer.dispatch-batches')
+            ->with('success', "Bulk dispatch created: ".count($created)." batch(es) covering {$orderCount} order(s). Riders can now accept.");
+    }
+
+    /**
+     * List all dispatch batches so the marketing officer can monitor acceptance.
+     */
+    public function batches()
+    {
+        $batches = RiderDispatchBatch::with('requests.order', 'acceptedRider', 'targetRider', 'creator')
+            ->orderBy('created_at', 'desc')
+            ->paginate(20);
+
+        return view('marketing-officer.batches', compact('batches'));
+    }
+
+    /**
+     * Greedy proximity clustering of orders (centroid-based).
+     *
+     * @param  \Illuminate\Support\Collection<int, OnlineOrder>  $orders
+     * @return array<int, array{centroid: array{0: float, 1: float}, orders: array<int, OnlineOrder>}>
+     */
+    private function clusterOrders($orders, float $radiusKm): array
+    {
+        $clusters = [];
+
+        foreach ($orders as $order) {
+            $lat = (float) $order->delivery_latitude;
+            $lng = (float) $order->delivery_longitude;
+
+            $placed = false;
+
+            foreach ($clusters as $index => $cluster) {
+                $distance = Geo::haversine(
+                    $cluster['centroid'][0],
+                    $cluster['centroid'][1],
+                    $lat,
+                    $lng
+                ) / 1000;
+
+                if ($distance <= $radiusKm) {
+                    $clusterOrders = $cluster['orders'];
+                    $clusterOrders[] = $order;
+
+                    $avgLat = collect($clusterOrders)->avg(fn ($o) => (float) $o->delivery_latitude);
+                    $avgLng = collect($clusterOrders)->avg(fn ($o) => (float) $o->delivery_longitude);
+
+                    $clusters[$index] = [
+                        'centroid' => [$avgLat, $avgLng],
+                        'orders' => $clusterOrders,
+                    ];
+
+                    $placed = true;
+                    break;
+                }
+            }
+
+            if (! $placed) {
+                $clusters[] = [
+                    'centroid' => [$lat, $lng],
+                    'orders' => [$order],
+                ];
+            }
+        }
+
+        return $clusters;
     }
 
     public function dispatchStatus($id)

@@ -112,6 +112,43 @@ no active trip; show accept/decline on a card.
 
 ---
 
+## 4b. Dispatch Batches (multi-order offers)
+
+Marketing officer can bundle several nearby orders into **one batch offer**. The
+first rider to accept takes **all** orders in the batch.
+
+| Method | Endpoint | Notes |
+|--------|----------|-------|
+| GET    | `/rider/dispatch-batches` | Pending batches not yet responded to / not taken; each includes `order_count`, `total_amount`, `order_numbers` and nested `orders` (with `items`, `customer`) |
+| POST   | `/rider/dispatch-batches/{id}/accept` | First-accept wins; assigns every pending order, sets each to `out_for_delivery`, starts a tracking session per order |
+| POST   | `/rider/dispatch-batches/{id}/decline` | Stays visible to other riders |
+
+Accept response `200`:
+```json
+{
+  "message": "Dispatch batch accepted. 3 orders assigned to you.",
+  "batch": { "id": 3, "status": "accepted", "order_count": 3 },
+  "order_count": 3,
+  "order_ids": [108, 109, 110],
+  "order_numbers": ["ORD-BULK-001", "ORD-BULK-002", "ORD-BULK-003"],
+  "tracking_session_ids": [41, 42, 43],
+  "skipped_order_ids": []
+}
+```
+
+Errors: `409` batch already accepted / no assignable orders left / order not
+ready. Rules: only `pending`, non-expired batches are listed; targeted batches
+(`target_rider_id`) are shown only to that rider; a batch already accepted or
+declined by this rider is hidden. Orders inside a pending batch do **not** also
+appear in `/rider/dispatch-requests`.
+
+Recommended UI: same poll loop as section 4 — a batch card shows the order count,
+combined total, order numbers/customers, an **expires in** countdown, and
+Accept/Decline; accepting adds all `order_ids` to **My Orders → Active** with the
+returned `tracking_session_ids`.
+
+---
+
 ## 5. Live Trip Tracking (Bolt/Uber style)
 
 ### 5.1 Trip statuses (`tracking_session.status`)
@@ -254,6 +291,7 @@ event-specific keys (`order_id`, `order_number`, `tracking_session_id`, ...).
 | Trip started / in progress | `trip.started` / `trip.in_progress` | `trip` |
 | Trip completed / cancelled | `trip.completed` / `trip.cancelled` | `trip` |
 | New dispatch request | `dispatch.request.new` | `dispatch` |
+| New dispatch batch | `dispatch.batch.new` | `dispatch` |
 | New message | `message.new` | `chat` |
 
 Wired triggers: `placeOrder` → `order.new`; rider accept (both `OrderController`
@@ -261,6 +299,9 @@ and `DispatchRequestController`) → `order.accepted` + `trip.accepted`;
 `TrackingService::transitionStatus` → trip event per status;
 `OrderController::updateStatus` → `dispatched`/`delivered`;
 `syncOrderPaymentState` → payment event on status change; marketing officer
-`sendDispatchRequest` → `dispatch.request.new` to **online** riders.
+`sendDispatchRequest` → `dispatch.request.new` to **online** riders;
+`sendDispatchBatchNotification` → `dispatch.batch.new` to the batch's target
+rider or to **online** riders (extras: `batch_id`, `order_count`, `order_ids`,
+`order_numbers`).
 
 
