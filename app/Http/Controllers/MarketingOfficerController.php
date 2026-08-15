@@ -210,8 +210,19 @@ class MarketingOfficerController extends Controller
         // Orders pre-selected from the orders page (?order_ids[]=...)
         $preselected = collect($request->query('order_ids', []))->map(fn ($id) => (int) $id)->all();
 
+        // Map data precomputed so the view can pass a plain array to @json
+        $ordersForMap = $orders->map(fn ($o) => [
+            'id' => $o->id,
+            'order_number' => $o->order_number,
+            'customer_name' => $o->customer_name,
+            'address' => $o->delivery_address,
+            'lat' => (float) $o->delivery_latitude,
+            'lng' => (float) $o->delivery_longitude,
+            'total' => (float) $o->total,
+        ])->values();
+
         return view('marketing-officer.bulk-dispatch', compact(
-            'orders', 'riders', 'store', 'storeLat', 'storeLng', 'defaultRadius', 'preselected'
+            'orders', 'riders', 'store', 'storeLat', 'storeLng', 'defaultRadius', 'preselected', 'ordersForMap'
         ));
     }
 

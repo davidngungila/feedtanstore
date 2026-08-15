@@ -116,15 +116,7 @@
 (function () {
     const storeLat = {{ $storeLat }};
     const storeLng = {{ $storeLng }};
-    const orders = @json($orders->map(fn ($o) => [
-        'id' => $o->id,
-        'order_number' => $o->order_number,
-        'customer_name' => $o->customer_name,
-        'address' => $o->delivery_address,
-        'lat' => (float) $o->delivery_latitude,
-        'lng' => (float) $o->delivery_longitude,
-        'total' => (float) $o->total,
-    ]));
+    const orders = @json($ordersForMap);
 
     let map = null;
     const markers = {};
