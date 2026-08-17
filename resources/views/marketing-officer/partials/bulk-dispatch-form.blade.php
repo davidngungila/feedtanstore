@@ -14,15 +14,15 @@
 
 <form action="{{ route('marketing-officer.bulk-dispatch.send') }}" method="POST" id="bulk-form">
     @csrf
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <!-- Orders to select -->
         <div class="lg:col-span-2 card rounded-2xl overflow-hidden">
-            <div class="p-4 border-b border-gray-200 flex items-center justify-between">
-                <h2 class="font-semibold text-gray-900">Orders Needing Rider Assignment</h2>
-                <span class="text-sm text-gray-500">{{ $bulkOrders->count() }} ready</span>
+            <div class="p-3 border-b border-gray-200 flex items-center justify-between">
+                <h2 class="font-semibold text-gray-900 text-sm">Orders Needing Rider Assignment</h2>
+                <span class="text-xs text-gray-500">{{ $bulkOrders->count() }} ready</span>
             </div>
-            <div id="order-map" class="w-full h-[320px] border-b border-gray-200"></div>
-            <div class="max-h-[480px] overflow-y-auto divide-y divide-gray-100">
+            <div id="order-map" class="w-full h-[220px] border-b border-gray-200"></div>
+            <div class="max-h-[320px] overflow-y-auto divide-y divide-gray-100">
                 @foreach($bulkOrders as $order)
                 @php
                     $hasLocation = $order->delivery_latitude !== null && $order->delivery_longitude !== null;
@@ -48,39 +48,39 @@
         </div>
 
         <!-- Dispatch settings -->
-        <div class="space-y-6">
-            <div class="card rounded-2xl p-6">
-                <h2 class="font-semibold text-gray-900 mb-4"><i class="fas fa-layer-group mr-2 text-primary-600"></i>Batch by Location</h2>
-                <label class="block text-sm font-medium text-gray-700 mb-1" for="radius_km">Cluster radius (km)</label>
+        <div class="space-y-4">
+            <div class="card rounded-2xl p-4">
+                <h2 class="font-semibold text-gray-900 mb-3 text-sm"><i class="fas fa-layer-group mr-2 text-primary-600"></i>Batch by Location</h2>
+                <label class="block text-xs font-medium text-gray-700 mb-1" for="radius_km">Cluster radius (km)</label>
                 <input type="number" step="0.5" min="1" max="100" name="radius_km" id="radius_km" value="{{ $defaultRadius }}"
-                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
-                <p class="text-xs text-gray-500 mt-1">Orders whose customers are within this distance of each other are grouped into the same dispatch batch. A batch is only created when it contains more than one order — lone orders must be dispatched individually.</p>
+                       class="w-full px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                <p class="text-[11px] text-gray-500 mt-1">Orders within this distance are grouped into the same batch.</p>
 
-                <div id="preview-container" class="mt-4 hidden">
-                    <h3 class="text-sm font-semibold text-gray-800 mb-2">Suggested Batches</h3>
+                <div id="preview-container" class="mt-3 hidden">
+                    <h3 class="text-xs font-semibold text-gray-800 mb-2">Suggested Batches</h3>
                     <div id="preview-list" class="space-y-2"></div>
                 </div>
             </div>
 
-            <div class="card rounded-2xl p-6">
-                <h2 class="font-semibold text-gray-900 mb-4"><i class="fas fa-motorcycle mr-2 text-primary-600"></i>Dispatch To</h2>
-                <label class="block text-sm font-medium text-gray-700 mb-1" for="rider_id">Rider</label>
-                <select name="rider_id" id="rider_id" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
-                    <option value="">All available riders (first to accept wins)</option>
+            <div class="card rounded-2xl p-4">
+                <h2 class="font-semibold text-gray-900 mb-3 text-sm"><i class="fas fa-motorcycle mr-2 text-primary-600"></i>Dispatch To</h2>
+                <label class="block text-xs font-medium text-gray-700 mb-1" for="rider_id">Rider</label>
+                <select name="rider_id" id="rider_id" class="w-full px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                    <option value="">All available riders</option>
                     @foreach($riders as $rider)
                         <option value="{{ $rider->id }}">{{ $rider->name }} ({{ $rider->vehicle_type ?? '—' }} {{ $rider->vehicle_plate ?? '' }})</option>
                     @endforeach
                 </select>
 
-                <label class="block text-sm font-medium text-gray-700 mt-4 mb-1" for="notes">Notes (optional)</label>
-                <textarea name="notes" id="notes" rows="3" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"></textarea>
+                <label class="block text-xs font-medium text-gray-700 mt-3 mb-1" for="notes">Notes</label>
+                <textarea name="notes" id="notes" rows="2" class="w-full px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500"></textarea>
             </div>
 
-            <button type="button" onclick="previewBatches()" class="w-full px-4 py-3 border border-primary-300 text-primary-700 rounded-lg text-sm font-medium hover:bg-primary-50 transition-colors">
-                <i class="fas fa-eye mr-2"></i>Preview Suggested Batches
+            <button type="button" onclick="previewBatches()" class="w-full px-4 py-2 border border-primary-300 text-primary-700 rounded-lg text-sm font-medium hover:bg-primary-50 transition-colors">
+                <i class="fas fa-eye mr-2"></i>Preview Batches
             </button>
-            <button type="submit" class="w-full bg-primary-600 hover:bg-primary-700 text-white px-4 py-3 rounded-lg text-sm font-medium transition-colors">
-                <i class="fas fa-paper-plane mr-2"></i>Dispatch Selected Orders
+            <button type="submit" class="w-full bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                <i class="fas fa-paper-plane mr-2"></i>Dispatch Selected
             </button>
         </div>
     </div>
