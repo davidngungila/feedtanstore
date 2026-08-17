@@ -344,6 +344,7 @@
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 <script>
 let userLocation = { lat: null, lng: null };
+let userLocationName = '';
 let checkoutMap = null;
 let checkoutMarker = null;
 let checkoutMapOther = null;
@@ -351,6 +352,20 @@ let checkoutMarkerOther = null;
 let selectedLocation = { lat: null, lng: null };
 let currentDeliveryFee = 0;
 let needDelivery = 'yes';
+
+async function reverseGeocode(lat, lng) {
+  try {
+    const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&addressdetails=1&zoom=18`);
+    const data = await res.json();
+    if (data && data.display_name) {
+      const parts = data.display_name.split(', ');
+      return parts.length > 3 ? parts.slice(0, 3).join(', ') : data.display_name;
+    }
+  } catch (e) {
+    console.error('Reverse geocode error:', e);
+  }
+  return `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+}
 
 function initCart() {
   const saved = localStorage.getItem('shopCart');
@@ -508,15 +523,16 @@ function detectLocation() {
 
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(
-      (position) => {
+      async (position) => {
         userLocation.lat = position.coords.latitude;
         userLocation.lng = position.coords.longitude;
-        document.getElementById('deliveryAddress').value = `Auto-detected: ${userLocation.lat.toFixed(6)}, ${userLocation.lng.toFixed(6)}`;
         coordsEl.textContent = `${userLocation.lat.toFixed(6)}, ${userLocation.lng.toFixed(6)}`;
-        statusEl.querySelector('span').textContent = '{{ __('Location detected!') }}';
-        statusEl.classList.remove('pending', 'error');
+        statusEl.querySelector('span').textContent = '{{ __('Location detected! Resolving address...') }}';
         initializeCheckoutMap();
         updateCheckoutMap(userLocation.lat, userLocation.lng);
+        userLocationName = await reverseGeocode(userLocation.lat, userLocation.lng);
+        document.getElementById('deliveryAddress').value = userLocationName;
+        statusEl.querySelector('span').textContent = '{{ __('Location detected!') }}';
         fetchDeliveryFee();
         setFieldError('deliveryAddress', '');
       },
@@ -766,7 +782,7 @@ function validateAddressIfNeeded() {
       setFieldError('deliveryAddress', '{{ __('Your location must be captured automatically for delivery.') }}');
       return false;
     }
-    document.getElementById('deliveryAddress').value = `Auto-detected location: ${userLocation.lat.toFixed(6)}, ${userLocation.lng.toFixed(6)}`;
+    document.getElementById('deliveryAddress').value = userLocationName || `${userLocation.lat.toFixed(6)}, ${userLocation.lng.toFixed(6)}`;
     setFieldError('deliveryAddress', '');
     return true;
   } else {
