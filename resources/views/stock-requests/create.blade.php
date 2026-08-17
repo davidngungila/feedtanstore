@@ -13,7 +13,7 @@
     <div class="card rounded-2xl p-6">
         <h1 class="text-2xl font-bold text-primary-900 mb-6">New Stock Request</h1>
 
-        <form action="{{ route('stock-requests.store') }}" method="POST">
+        <form action="{{ route('stock-requests.store') }}" method="POST" id="stockRequestForm">
             @csrf
             <div class="space-y-6">
                 <div>
@@ -427,15 +427,34 @@ document.addEventListener('click', function(e) {
 
 function showAvailableQty(select) {
     const opt = select.options[select.selectedIndex];
-    const p = select.closest('div').querySelector('.available-qty');
+    const wrapper = select.closest('.grid');
+    const p = wrapper.querySelector('.available-qty');
+    const qtyInput = wrapper.querySelector('input[type="number"]');
     if (!p) return;
     const qty = opt.getAttribute('data-quantity');
     if (qty !== null && qty !== undefined && select.value) {
         p.textContent = 'Available: ' + qty;
         p.className = 'available-qty text-xs mt-1 ' + (parseInt(qty) > 0 ? 'text-green-600' : 'text-red-600');
+        if (qtyInput) {
+            qtyInput.max = qty;
+            if (parseInt(qtyInput.value) > parseInt(qty)) qtyInput.value = qty;
+        }
     } else {
         p.textContent = '';
+        if (qtyInput) qtyInput.removeAttribute('max');
     }
 }
+
+document.getElementById('stockRequestForm').addEventListener('submit', function(e) {
+    document.querySelectorAll('.product-select').forEach(function(sel) {
+        const opt = sel.options[sel.selectedIndex];
+        if (!opt || !opt.value) return;
+        const max = parseInt(opt.getAttribute('data-quantity'));
+        const qtyInput = sel.closest('.grid').querySelector('input[type="number"]');
+        if (qtyInput && !isNaN(max) && parseInt(qtyInput.value) > max) {
+            qtyInput.value = max;
+        }
+    });
+});
 </script>
 @endsection
