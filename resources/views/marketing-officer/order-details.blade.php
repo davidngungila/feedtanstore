@@ -43,6 +43,12 @@
             <div>
                 <p class="text-sm text-gray-600">Delivery Address</p>
                 <p class="font-semibold">{{ $order->delivery_address }}</p>
+                @if($order->delivery_latitude && $order->delivery_longitude)
+                <p class="text-xs text-gray-500 mt-1">
+                    <i class="fas fa-map-marker-alt mr-1"></i>{{ $order->delivery_latitude }}, {{ $order->delivery_longitude }}
+                    <a href="https://www.google.com/maps?q={{ $order->delivery_latitude }},{{ $order->delivery_longitude }}" target="_blank" class="text-primary-600 hover:text-primary-800 ml-2"><i class="fas fa-external-link-alt"></i></a>
+                </p>
+                @endif
             </div>
             <div>
                 <p class="text-sm text-gray-600">Payment Method</p>
@@ -351,9 +357,9 @@
     </div>
 
     <div class="card rounded-2xl p-6 mb-6">
-        <div class="flex flex-wrap items-center justify-between gap-4 mb-4">
+        <div class="flex flex-wrap items-center justify-between gap-4 mb-4 cursor-pointer" onclick="document.getElementById('bulkDispatchBody').classList.toggle('hidden'); document.getElementById('bulkDispatchChevron').classList.toggle('rotate-180')">
             <div>
-                <h2 class="text-lg font-bold text-primary-900">Bulk Dispatch</h2>
+                <h2 class="text-lg font-bold text-primary-900">Bulk Dispatch <i id="bulkDispatchChevron" class="fas fa-chevron-down ml-2 text-sm transition-transform duration-200 rotate-180"></i></h2>
                 <p class="text-sm text-gray-600">All orders needing rider assignment. Nearby orders are pre-selected and grouped into a single batch by location.</p>
             </div>
             @if(! $bulkOrders->isEmpty())
@@ -365,6 +371,7 @@
             @endif
         </div>
 
+        <div id="bulkDispatchBody">
         @include('marketing-officer.partials.bulk-dispatch-form', [
             'bulkOrders' => $bulkOrders,
             'ordersForMap' => $ordersForMap,
@@ -374,6 +381,7 @@
             'defaultRadius' => $defaultRadius,
             'bulkCheckedIds' => $nearbyIds,
         ])
+        </div>
     </div>
 
     <div class="card rounded-2xl p-6">
