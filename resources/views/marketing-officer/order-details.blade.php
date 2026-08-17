@@ -46,7 +46,7 @@
                 @if($order->delivery_latitude && $order->delivery_longitude)
                 <p class="text-xs text-gray-500 mt-1">
                     <i class="fas fa-map-marker-alt mr-1"></i>{{ $order->delivery_latitude }}, {{ $order->delivery_longitude }}
-                    <a href="https://www.google.com/maps?q={{ $order->delivery_latitude }},{{ $order->delivery_longitude }}" target="_blank" class="text-primary-600 hover:text-primary-800 ml-2"><i class="fas fa-external-link-alt"></i></a>
+                    <a href="https://www.openstreetmap.org/?mlat={{ $order->delivery_latitude }}&mlon={{ $order->delivery_longitude }}#map=16/{{ $order->delivery_latitude }}/{{ $order->delivery_longitude }}" target="_blank" class="text-primary-600 hover:text-primary-800 ml-2"><i class="fas fa-external-link-alt"></i></a>
                 </p>
                 @endif
             </div>
