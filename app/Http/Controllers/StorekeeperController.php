@@ -87,12 +87,6 @@ class StorekeeperController extends Controller
         return view('storekeeper.purchase-order-show', compact('purchaseOrder'));
     }
 
-    public function suppliers()
-    {
-        $suppliers = Supplier::orderBy('name')->paginate(20);
-        return view('storekeeper.suppliers', compact('suppliers'));
-    }
-
     public function stockTransfers()
     {
         $transfers = \App\Models\StockTransfer::with(['items.product', 'fromLocation', 'toLocation', 'requester', 'approver'])
