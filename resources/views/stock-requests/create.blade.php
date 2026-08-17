@@ -17,12 +17,11 @@
             @csrf
             <div class="space-y-6">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Request Type *</label>
-                    <select name="request_type" id="request_type" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
-                        <option value="">Select Request Type</option>
-                        <option value="store_use">Store Use</option>
-                        <option value="online_order">Online Order</option>
-                    </select>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Request Type</label>
+                    <div class="px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-700">
+                        <i class="fas fa-store mr-2 text-primary-600"></i>Store Use
+                    </div>
+                    <input type="hidden" name="request_type" value="store_use">
                 </div>
 
                 <div id="online_order_section" class="hidden">
