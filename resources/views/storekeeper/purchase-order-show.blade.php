@@ -75,9 +75,6 @@
                     <tr>
                         <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Product</th>
                         <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Quantity</th>
-                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Unit Price</th>
-                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Discount</th>
-                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Total</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200">
@@ -88,36 +85,10 @@
                             <p class="text-sm text-gray-500">{{ $item->product->sku ?? '' }}</p>
                         </td>
                         <td class="px-6 py-4 text-sm text-gray-600">{{ $item->quantity }}</td>
-                        <td class="px-6 py-4 text-sm text-gray-600">TZS {{ number_format($item->unit_price, 0) }}</td>
-                        <td class="px-6 py-4 text-sm text-gray-600">TZS {{ number_format($item->discount ?? 0, 0) }}</td>
-                        <td class="px-6 py-4 text-sm text-gray-600">TZS {{ number_format($item->total, 0) }}</td>
                     </tr>
                     @endforeach
                 </tbody>
             </table>
-        </div>
-    </div>
-
-    <!-- Financial Summary -->
-    <div class="card rounded-2xl p-6 mt-6">
-        <h2 class="text-lg font-bold text-primary-900 mb-4">Financial Summary</h2>
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <div>
-                <p class="text-sm text-gray-600">Subtotal</p>
-                <p class="text-xl font-bold text-gray-900">TZS {{ number_format($purchaseOrder->subtotal ?? 0, 0) }}</p>
-            </div>
-            <div>
-                <p class="text-sm text-gray-600">Tax</p>
-                <p class="text-xl font-bold text-gray-900">TZS {{ number_format($purchaseOrder->tax ?? 0, 0) }}</p>
-            </div>
-            <div>
-                <p class="text-sm text-gray-600">Discount</p>
-                <p class="text-xl font-bold text-red-600">- TZS {{ number_format($purchaseOrder->discount ?? 0, 0) }}</p>
-            </div>
-            <div>
-                <p class="text-sm text-gray-600">Total</p>
-                <p class="text-xl font-bold text-primary-600">TZS {{ number_format($purchaseOrder->total ?? 0, 0) }}</p>
-            </div>
         </div>
     </div>
 </div>
