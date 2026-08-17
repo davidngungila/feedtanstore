@@ -84,7 +84,7 @@
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Quantity Requested *</label>
-                                    <input type="number" name="products[0][quantity_requested]" required min="1" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                                    <input type="number" name="products[0][quantity_requested]" required min="1" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500" oninput="clampQty(this)">
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
@@ -369,7 +369,7 @@ document.getElementById('online_order_id').addEventListener('change', function()
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Quantity Requested *</label>
-                        <input type="number" name="products[0][quantity_requested]" required min="1" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                        <input type="number" name="products[0][quantity_requested]" required min="1" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500" oninput="clampQty(this)">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
@@ -403,7 +403,7 @@ document.getElementById('add_product').addEventListener('click', function() {
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Quantity Requested *</label>
-                    <input type="number" name="products[${productIndex}][quantity_requested]" required min="1" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                        <input type="number" name="products[${productIndex}][quantity_requested]" required min="1" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500" oninput="clampQty(this)">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
@@ -442,6 +442,16 @@ function showAvailableQty(select) {
     } else {
         p.textContent = '';
         if (qtyInput) qtyInput.removeAttribute('max');
+    }
+}
+
+function clampQty(input) {
+    const max = parseInt(input.max);
+    if (!isNaN(max) && parseInt(input.value) > max) {
+        input.value = max;
+    }
+    if (parseInt(input.value) < 1) {
+        input.value = 1;
     }
 }
 
