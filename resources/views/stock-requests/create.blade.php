@@ -74,12 +74,13 @@
                             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Product *</label>
-                                    <select name="products[0][product_id]" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 product-select">
+                                    <select name="products[0][product_id]" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 product-select" onchange="showAvailableQty(this)">
                                         <option value="">Select Product</option>
                                         @foreach($products as $product)
-                                            <option value="{{ $product->id }}" data-quantity="{{ $product->quantity }}">{{ $product->name }} (Available: {{ $product->quantity }})</option>
+                                            <option value="{{ $product->id }}" data-quantity="{{ $product->quantity }}">{{ $product->name }}</option>
                                         @endforeach
                                     </select>
+                                    <p class="available-qty text-xs mt-1 text-gray-500"></p>
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Quantity Requested *</label>
@@ -358,12 +359,13 @@ document.getElementById('online_order_id').addEventListener('change', function()
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Product *</label>
-                        <select name="products[0][product_id]" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 product-select">
+                        <select name="products[0][product_id]" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 product-select" onchange="showAvailableQty(this)">
                             <option value="">Select Product</option>
                             @foreach($products as $product)
-                                <option value="{{ $product->id }}" data-quantity="{{ $product->quantity }}">{{ $product->name }} (Available: {{ $product->quantity }})</option>
+                                <option value="{{ $product->id }}" data-quantity="{{ $product->quantity }}">{{ $product->name }}</option>
                             @endforeach
                         </select>
+                        <p class="available-qty text-xs mt-1 text-gray-500"></p>
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Quantity Requested *</label>
@@ -391,12 +393,13 @@ document.getElementById('add_product').addEventListener('click', function() {
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Product *</label>
-                    <select name="products[${productIndex}][product_id]" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                    <select name="products[${productIndex}][product_id]" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500" onchange="showAvailableQty(this)">
                         <option value="">Select Product</option>
                         @foreach($products as $product)
-                            <option value="{{ $product->id }}" data-quantity="{{ $product->quantity }}">{{ $product->name }} (Available: {{ $product->quantity }})</option>
+                            <option value="{{ $product->id }}" data-quantity="{{ $product->quantity }}">{{ $product->name }}</option>
                         @endforeach
                     </select>
+                    <p class="available-qty text-xs mt-1 text-gray-500"></p>
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Quantity Requested *</label>
@@ -421,5 +424,18 @@ document.addEventListener('click', function(e) {
         e.target.closest('.product-item').remove();
     }
 });
+
+function showAvailableQty(select) {
+    const opt = select.options[select.selectedIndex];
+    const p = select.closest('div').querySelector('.available-qty');
+    if (!p) return;
+    const qty = opt.getAttribute('data-quantity');
+    if (qty !== null && qty !== undefined && select.value) {
+        p.textContent = 'Available: ' + qty;
+        p.className = 'available-qty text-xs mt-1 ' + (parseInt(qty) > 0 ? 'text-green-600' : 'text-red-600');
+    } else {
+        p.textContent = '';
+    }
+}
 </script>
 @endsection
