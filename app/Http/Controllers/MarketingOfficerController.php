@@ -69,7 +69,7 @@ class MarketingOfficerController extends Controller
 
     public function orders()
     {
-        $orders = OnlineOrder::with('rider', 'customer')
+        $orders = OnlineOrder::with('rider', 'customer', 'riderDispatchRequests.dispatchBatch.requests.order')
             ->orderBy('created_at', 'desc')
             ->paginate(20);
         return view('marketing-officer.orders', compact('orders'));

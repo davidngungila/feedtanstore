@@ -93,6 +93,7 @@
                         <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Total</th>
                         <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Status</th>
                         <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Rider</th>
+                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Batch</th>
                         <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Action</th>
                     </tr>
                 </thead>
@@ -102,6 +103,9 @@
                         $eligible = $order->delivery_rider_id === null
                             && $order->packaging_status === 'completed'
                             && $order->reconciliation_status === 'completed';
+                        $batchRequest = $order->riderDispatchRequests->where('dispatch_batch_id', '!=', null)->sortByDesc('created_at')->first();
+                        $batch = $batchRequest?->dispatchBatch;
+                        $batchOrders = $batch ? $batch->requests->pluck('order')->filter() : collect();
                     @endphp
                     <tr class="hover:bg-gray-50">
                         <td class="px-6 py-4">
@@ -132,9 +136,73 @@
                         </td>
                         <td class="px-6 py-4 text-sm text-gray-600">{{ $order->deliveryRider->name ?? 'Not Assigned' }}</td>
                         <td class="px-6 py-4">
+                            @if($batch)
+                                <button type="button" onclick="toggleBatch({{ $batch->id }})" class="inline-flex items-center gap-1.5 cursor-pointer group">
+                                    <span class="px-2 py-1 text-xs font-semibold rounded-full
+                                        {{ $batch->status == 'accepted' ? 'bg-green-100 text-green-700' :
+                                           ($batch->status == 'cancelled' ? 'bg-red-100 text-red-700' :
+                                           'bg-yellow-100 text-yellow-700') }}">
+                                        #{{ $batch->id }}
+                                        <i class="fas fa-chevron-down ml-1 text-[10px] transition-transform duration-200 group-hover:translate-y-0.5" id="batch-chevron-{{ $batch->id }}"></i>
+                                    </span>
+                                </button>
+                            @else
+                                <span class="text-gray-400 text-sm">—</span>
+                            @endif
+                        </td>
+                        <td class="px-6 py-4">
                             <a href="{{ route('marketing-officer.order-details', $order->id) }}" class="text-primary-600 hover:text-primary-700 text-sm font-medium">View</a>
                         </td>
                     </tr>
+                    @if($batch && $batchOrders->count() > 0)
+                    <tr id="batch-row-{{ $batch->id }}" class="hidden">
+                        <td colspan="9" class="px-6 py-0">
+                            <div class="bg-gray-50 border-t border-b border-gray-200 -mx-6 px-6 py-4">
+                                <div class="flex items-center justify-between mb-3">
+                                    <h4 class="text-sm font-semibold text-gray-700">
+                                        <i class="fas fa-layer-group mr-2 text-primary-600"></i>Batch #{{ $batch->id }}
+                                        <span class="ml-2 px-2 py-0.5 text-xs font-semibold rounded-full
+                                            {{ $batch->status == 'accepted' ? 'bg-green-100 text-green-700' :
+                                               ($batch->status == 'cancelled' ? 'bg-red-100 text-red-700' :
+                                               'bg-yellow-100 text-yellow-700') }}">
+                                            {{ ucfirst($batch->status) }}
+                                        </span>
+                                        @if($batch->acceptedRider)
+                                            <span class="ml-2 text-green-700 text-xs font-medium">
+                                                <i class="fas fa-motorcycle mr-1"></i>{{ $batch->acceptedRider->name }}
+                                            </span>
+                                        @endif
+                                    </h4>
+                                    <a href="{{ route('marketing-officer.dispatch-batch-details', $batch->id) }}" class="text-primary-600 hover:text-primary-700 text-xs font-medium">
+                                        View Batch <i class="fas fa-external-link-alt ml-1"></i>
+                                    </a>
+                                </div>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                                    @foreach($batchOrders as $batchOrder)
+                                    <div class="flex items-center justify-between bg-white rounded-lg px-3 py-2 border border-gray-200 {{ $batchOrder->id === $order->id ? 'ring-2 ring-primary-400' : '' }}">
+                                        <div class="flex items-center gap-2 min-w-0">
+                                            <span class="px-1.5 py-0.5 text-[10px] font-semibold rounded-full
+                                                {{ $batchOrder->status == 'delivered' ? 'bg-green-100 text-green-700' :
+                                                   ($batchOrder->status == 'pending' ? 'bg-yellow-100 text-yellow-700' :
+                                                   ($batchOrder->status == 'cancelled' ? 'bg-red-100 text-red-700' :
+                                                   ($batchOrder->status == 'confirmed' ? 'bg-blue-100 text-blue-700' :
+                                                   ($batchOrder->status == 'out_for_delivery' ? 'bg-indigo-100 text-indigo-700' :
+                                                   'bg-gray-100 text-gray-700')))) }}">
+                                                {{ strtoupper(substr($batchOrder->status, 0, 3)) }}
+                                            </span>
+                                            <div class="min-w-0">
+                                                <a href="{{ route('marketing-officer.order-details', $batchOrder->id) }}" class="text-xs font-semibold text-primary-600 hover:text-primary-800 truncate block">{{ $batchOrder->order_number }}</a>
+                                                <p class="text-[11px] text-gray-500 truncate">{{ $batchOrder->customer_name }}</p>
+                                            </div>
+                                        </div>
+                                        <span class="text-[10px] font-medium text-gray-500 whitespace-nowrap ml-2">TZS {{ number_format($batchOrder->total, 0) }}</span>
+                                    </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    @endif
                     @endforeach
                 </tbody>
             </table>
@@ -160,5 +228,21 @@
     document.querySelectorAll('.bulk-check').forEach(cb => cb.addEventListener('change', updateBulkCount));
     document.querySelectorAll('.bulk-check').forEach(cb => { if (cb.checked) updateBulkCount(); });
     updateBulkCount();
+
+    const expandedBatches = new Set();
+    function toggleBatch(batchId) {
+        const row = document.getElementById('batch-row-' + batchId);
+        const chevron = document.getElementById('batch-chevron-' + batchId);
+        if (!row) return;
+        if (expandedBatches.has(batchId)) {
+            row.classList.add('hidden');
+            expandedBatches.delete(batchId);
+            if (chevron) chevron.classList.remove('rotate-180');
+        } else {
+            row.classList.remove('hidden');
+            expandedBatches.add(batchId);
+            if (chevron) chevron.classList.add('rotate-180');
+        }
+    }
 </script>
 @endsection
