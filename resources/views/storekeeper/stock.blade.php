@@ -103,7 +103,7 @@
                             </span>
                         </td>
                         <td class="px-6 py-4">
-                            <a href="#" class="text-primary-600 hover:text-primary-700 text-sm font-medium">Reorder</a>
+                            <a href="{{ route('stock-requests.create') }}" class="text-primary-600 hover:text-primary-700 text-sm font-medium">Reorder</a>
                         </td>
                     </tr>
                     @endforeach
