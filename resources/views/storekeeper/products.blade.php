@@ -13,12 +13,12 @@
     <div class="card rounded-2xl p-6 mb-6">
         <div class="flex flex-col md:flex-row gap-4">
             <div class="flex-1">
-                <input type="text" placeholder="Search products..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500">
+                <input type="text" id="searchInput" placeholder="Search products..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500" oninput="filterProducts()">
             </div>
-            <select class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500">
+            <select id="categoryFilter" class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500" onchange="filterProducts()">
                 <option value="">All Categories</option>
                 @foreach($categories as $category)
-                    <option value="{{ $category->id }}">{{ $category->name }}</option>
+                    <option value="{{ $category->name }}">{{ $category->name }}</option>
                 @endforeach
             </select>
         </div>
@@ -38,9 +38,9 @@
                         <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Action</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-gray-200">
+                <tbody class="divide-y divide-gray-200" id="productsTableBody">
                     @foreach($products as $product)
-                    <tr class="hover:bg-gray-50">
+                    <tr class="hover:bg-gray-50 product-row" data-search="{{ strtolower($product->name . ' ' . $product->sku . ' ' . ($product->barcode ?? '') . ' ' . ($product->category->name ?? '')) }}" data-category="{{ $product->category->name ?? '' }}">
                         <td class="px-6 py-4">
                             <div class="flex items-center">
                                 <div class="flex-shrink-0 h-10 w-10">
@@ -82,4 +82,19 @@
         </div>
     </div>
 </div>
+
+<script>
+function filterProducts() {
+    const search = document.getElementById('searchInput').value.toLowerCase();
+    const category = document.getElementById('categoryFilter').value;
+    const rows = document.querySelectorAll('.product-row');
+    rows.forEach(row => {
+        const text = row.getAttribute('data-search');
+        const cat = row.getAttribute('data-category');
+        const matchSearch = !search || text.includes(search);
+        const matchCategory = !category || cat === category;
+        row.style.display = (matchSearch && matchCategory) ? '' : 'none';
+    });
+}
+</script>
 @endsection

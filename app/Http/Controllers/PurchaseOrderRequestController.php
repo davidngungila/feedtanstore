@@ -29,7 +29,6 @@ class PurchaseOrderRequestController extends Controller
         $request->validate([
             'product_id' => 'required|exists:products,id',
             'requested_quantity' => 'required|numeric|min:1',
-            'estimated_cost' => 'nullable|numeric|min:0',
             'reason' => 'nullable|string',
         ]);
 
@@ -37,7 +36,6 @@ class PurchaseOrderRequestController extends Controller
             'request_number' => PurchaseOrderRequest::generateRequestNumber(),
             'product_id' => $request->product_id,
             'requested_quantity' => $request->requested_quantity,
-            'estimated_cost' => $request->estimated_cost,
             'reason' => $request->reason,
             'status' => 'pending',
             'requested_by' => Auth::id(),

@@ -71,7 +71,6 @@
                         <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Request Number</th>
                         <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Product</th>
                         <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Quantity</th>
-                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Estimated Cost</th>
                         <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Status</th>
                         <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Supplier</th>
                         <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Date</th>
@@ -89,7 +88,6 @@
                             <p class="text-sm text-gray-500">{{ $request->product->sku }}</p>
                         </td>
                         <td class="px-6 py-4 text-sm text-gray-600">{{ $request->requested_quantity }} {{ $request->product->unit?->short_name ?? 'pcs' }}</td>
-                        <td class="px-6 py-4 text-sm text-gray-600">TZS {{ number_format($request->estimated_cost ?? 0, 0) }}</td>
                         <td class="px-6 py-4">
                             <span class="px-2 py-1 text-xs font-semibold rounded-full 
                                 {{ $request->status == 'processed' ? 'bg-green-100 text-green-700' : 
