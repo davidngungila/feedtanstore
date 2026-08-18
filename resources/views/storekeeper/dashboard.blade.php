@@ -141,12 +141,6 @@
                     <p class="font-semibold text-gray-800">Purchase Orders</p>
                 </div>
             </a>
-            <a href="{{ route('storekeeper.suppliers') }}" class="card rounded-xl p-4 hover:shadow-lg transition-shadow">
-                <div class="text-center">
-                    <i class="fas fa-truck text-3xl text-blue-600 mb-2"></i>
-                    <p class="font-semibold text-gray-800">Suppliers</p>
-                </div>
-            </a>
         </div>
     </div>
 </div>
