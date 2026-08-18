@@ -14,8 +14,6 @@ return new class extends Migration
         Schema::table('journal_entries', function (Blueprint $table) {
             if (!Schema::hasColumn('journal_entries', 'journal_number')) {
                 $table->string('journal_number')->unique()->nullable()->after('id');
-            } else {
-                $table->string('journal_number')->unique()->nullable()->change();
             }
             if (!Schema::hasColumn('journal_entries', 'entry_date')) {
                 $table->date('entry_date')->after('journal_number');
