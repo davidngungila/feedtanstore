@@ -108,6 +108,10 @@ class StockRequestController extends Controller
 
     public function approve(Request $request, $stockRequest)
     {
+        if (!in_array(Auth::user()->role, ['admin', 'manager'])) {
+            abort(403, 'Only admin or manager can approve stock requests.');
+        }
+
         $stockRequest = StockRequest::findOrFail($stockRequest);
         
         // Update stock request status to approved (but don't issue stock yet)
@@ -180,6 +184,10 @@ class StockRequestController extends Controller
 
     public function reject($stockRequest)
     {
+        if (!in_array(Auth::user()->role, ['admin', 'manager'])) {
+            abort(403, 'Only admin or manager can reject stock requests.');
+        }
+
         $stockRequest = StockRequest::findOrFail($stockRequest);
         $stockRequest->status = 'rejected';
         $stockRequest->approved_by = Auth::id();

@@ -96,7 +96,7 @@
         </div>
     </div>
 
-    @if($stockRequest->status === 'pending' && (Auth::user()->role === 'storekeeper' || Auth::user()->role === 'admin' || Auth::user()->role === 'manager'))
+    @if($stockRequest->status === 'pending' && in_array(Auth::user()->role, ['admin', 'manager']))
     <div class="card rounded-2xl p-6 mt-6">
         <h2 class="text-lg font-bold text-primary-900 mb-4">Approve Stock Request</h2>
         <div class="flex justify-end gap-3">
