@@ -242,27 +242,8 @@ function updateMapWithOrder(lat, lng, customerName, address, orderId) {
     }
 }
 
-document.getElementById('request_type').addEventListener('change', function() {
-    const onlineOrderSection = document.getElementById('online_order_section');
-    const onlineOrderSelect = document.getElementById('online_order_id');
-    const orderDetailsSection = document.getElementById('order_details_section');
-    
-    if (this.value === 'online_order') {
-        onlineOrderSection.classList.remove('hidden');
-        onlineOrderSelect.setAttribute('required', 'required');
-    } else {
-        onlineOrderSection.classList.add('hidden');
-        onlineOrderSelect.removeAttribute('required');
-        onlineOrderSelect.value = '';
-        orderDetailsSection.classList.add('hidden');
-    }
-});
-
 // Auto-select order if pre-selected
 if (preSelectedOrderId) {
-    document.getElementById('request_type').value = 'online_order';
-    document.getElementById('request_type').dispatchEvent(new Event('change'));
-    
     const onlineOrderSelect = document.getElementById('online_order_id');
     onlineOrderSelect.value = preSelectedOrderId;
     onlineOrderSelect.dispatchEvent(new Event('change'));
