@@ -13,25 +13,36 @@
     
     <div class="card rounded-2xl p-6 mb-6">
         <div class="flex flex-col md:flex-row items-start md:items-center justify-between mb-6 gap-4">
-            <h2 class="text-xl font-bold text-primary-900">{{ $sale->invoice_number }}</h2>
+            <div>
+                <h2 class="text-xl font-bold text-primary-900">{{ $sale->invoice_number }}</h2>
+                @if($sale->tra_status == 'posted')
+                    <span class="inline-flex items-center mt-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-800">
+                        <i class="fas fa-check-circle mr-1"></i>Posted to TRA
+                    </span>
+                @else
+                    <span class="inline-flex items-center mt-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-800">
+                        <i class="fas fa-clock mr-1"></i>Not posted to TRA
+                    </span>
+                @endif
+            </div>
             <div class="flex flex-wrap gap-2">
                 <a href="{{ route('sales.receipts.download', $sale) }}" class="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 flex items-center">
-                    <i class="fas fa-download mr-2"></i>Download PDF
+                    <i class="fas fa-download mr-2"></i>PDF
                 </a>
                 <a href="{{ route('sales.receipts.print', $sale) }}" target="_blank" class="px-4 py-2 border border-gray-300 rounded-lg flex items-center">
-                    <i class="fas fa-print mr-2"></i>Print
+                    <i class="fas fa-print mr-2"></i>Invoice
                 </a>
-                <a href="{{ route('sales.receipts.efd-print', $sale) }}" target="_blank" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center">
+                <button onclick="printEfdReceipt({{ $sale->id }})" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center">
                     <i class="fas fa-receipt mr-2"></i>EFD Receipt
-                </a>
-                <button onclick="postSaleToTra({{ $sale->id }})" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center">
+                </button>
+                @if($sale->tra_status != 'posted')
+                <button onclick="postSaleToTra({{ $sale->id }})" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center" id="postTraBtn">
                     <i class="fas fa-cloud-upload-alt mr-2"></i>Post to TRA
                 </button>
-
-                <a href="{{ route('sales.new') }}" class="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 flex items-center">
-                    <i class="fas fa-plus mr-2"></i>New Sale
+                @endif
+                <a href="{{ route('sales.receipts') }}" class="px-4 py-2 border border-gray-300 rounded-lg flex items-center">
+                    <i class="fas fa-arrow-left mr-2"></i>Back
                 </a>
-                <a href="{{ route('sales.history') }}" class="px-4 py-2 border border-gray-300 rounded-lg flex items-center">Back</a>
             </div>
         </div>
 
@@ -39,6 +50,9 @@
             <div>
                 <p class="text-sm text-gray-500 mb-1">Customer</p>
                 <p class="font-medium">{{ $sale->customer->name ?? 'Walk-in Customer' }}</p>
+                @if($sale->customer && $sale->customer->tin_number)
+                    <p class="text-xs text-gray-400">TIN: {{ $sale->customer->tin_number }}</p>
+                @endif
             </div>
             <div>
                 <p class="text-sm text-gray-500 mb-1">Date</p>
@@ -52,16 +66,18 @@
                 <p class="text-sm text-gray-500 mb-1">Status</p>
                 <span class="badge {{ $sale->status == 'completed' ? 'badge-green' : 'badge-red' }}">{{ ucfirst($sale->status) }}</span>
             </div>
-            @if($sale->tra_status)
-            <div>
-                <p class="text-sm text-gray-500 mb-1">TRA Status</p>
-                <span class="badge {{ $sale->tra_status == 'posted' ? 'badge-green' : 'badge-yellow' }}">{{ ucfirst($sale->tra_status) }}</span>
-            </div>
-            @endif
             @if($sale->tra_receipt_number)
             <div>
                 <p class="text-sm text-gray-500 mb-1">TRA Receipt #</p>
                 <p class="font-medium">{{ $sale->tra_receipt_number }}</p>
+            </div>
+            @endif
+            @if($sale->tra_verification_link)
+            <div>
+                <p class="text-sm text-gray-500 mb-1">TRA Verification</p>
+                <a href="{{ $sale->tra_verification_link }}" target="_blank" class="font-medium text-blue-600 hover:text-blue-800 text-sm break-all">
+                    {{ $sale->tra_verification_link }}
+                </a>
             </div>
             @endif
             @if($sale->discount_id && $sale->discountApplied)
@@ -78,18 +94,34 @@
                     <thead>
                         <tr class="border-b">
                             <th class="text-left py-2">Product</th>
-                            <th class="text-left py-2">Qty</th>
-                            <th class="text-left py-2">Price</th>
-                            <th class="text-left py-2">Total</th>
+                            <th class="text-left py-2">Tax Code</th>
+                            <th class="text-right py-2">Qty</th>
+                            <th class="text-right py-2">Price</th>
+                            <th class="text-right py-2">VAT</th>
+                            <th class="text-right py-2">Total</th>
                         </tr>
                     </thead>
                     <tbody>
+                        @php $taxPercent = 18; @endphp
                         @foreach($sale->items as $item)
+                        @php
+                            $taxCode = (int) ($item->product->tax_code ?? 1);
+                            $itemAmt = round((float) $item->total, 2);
+                            $itemVat = $taxCode == 1 ? round($itemAmt * $taxPercent / (100 + $taxPercent), 2) : 0;
+                        @endphp
                         <tr class="border-b border-gray-100">
-                            <td class="py-3">{{ $item->product->name ?? 'Product Not Found' }}</td>
-                            <td class="py-3">{{ $item->quantity }}</td>
-                            <td class="py-3">TZS {{ number_format($item->unit_price, 2) }}</td>
-                            <td class="py-3">TZS {{ number_format($item->total, 2) }}</td>
+                            <td class="py-3">
+                                {{ $item->product->name ?? 'Product Not Found' }}
+                            </td>
+                            <td class="py-3">
+                                <span class="text-xs px-1.5 py-0.5 rounded {{ $taxCode == 1 ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600' }}">
+                                    {{ $taxCode == 1 ? '18%' : ($taxCode == 3 ? '0% ZR' : ($taxCode == 4 ? 'SR' : 'Exempt')) }}
+                                </span>
+                            </td>
+                            <td class="py-3 text-right">{{ $item->quantity }}</td>
+                            <td class="py-3 text-right">TZS {{ number_format($item->unit_price, 2) }}</td>
+                            <td class="py-3 text-right text-gray-500">{{ $itemVat > 0 ? number_format($itemVat, 2) : '-' }}</td>
+                            <td class="py-3 text-right font-medium">TZS {{ number_format($item->total, 2) }}</td>
                         </tr>
                         @endforeach
                     </tbody>
@@ -98,27 +130,40 @@
         </div>
 
         <div class="flex flex-col items-end gap-2 mb-6">
-            <div class="flex justify-between w-64">
+            <div class="flex justify-between w-72">
                 <span class="text-gray-600">Subtotal:</span>
                 <span>TZS {{ number_format($sale->subtotal, 2) }}</span>
             </div>
-            <div class="flex justify-between w-64">
-                <span class="text-gray-600">Tax:</span>
-                <span>TZS {{ number_format($sale->tax, 2) }}</span>
+            @php
+                $totalVat = 0;
+                foreach ($sale->items as $item) {
+                    $tc = (int) ($item->product->tax_code ?? 1);
+                    if ($tc == 1) {
+                        $totalVat += round((float) $item->total * 18 / 118, 2);
+                    }
+                }
+            @endphp
+            @if($totalVat > 0)
+            <div class="flex justify-between w-72">
+                <span class="text-gray-600">VAT (18%):</span>
+                <span>TZS {{ number_format($totalVat, 2) }}</span>
             </div>
-            <div class="flex justify-between w-64 text-red-600">
+            @endif
+            @if($sale->discount > 0)
+            <div class="flex justify-between w-72 text-red-600">
                 <span>Discount:</span>
                 <span>-TZS {{ number_format($sale->discount, 2) }}</span>
             </div>
-            <div class="flex justify-between w-64 text-lg font-bold border-t pt-2">
+            @endif
+            <div class="flex justify-between w-72 text-lg font-bold border-t pt-2">
                 <span>Total:</span>
                 <span>TZS {{ number_format($sale->total, 2) }}</span>
             </div>
-            <div class="flex justify-between w-64">
+            <div class="flex justify-between w-72">
                 <span class="text-gray-600">Paid:</span>
                 <span>TZS {{ number_format($sale->paid, 2) }}</span>
             </div>
-            <div class="flex justify-between w-64">
+            <div class="flex justify-between w-72">
                 <span class="text-gray-600">Change:</span>
                 <span>TZS {{ number_format($sale->change, 2) }}</span>
             </div>
@@ -141,9 +186,50 @@
 </div>
 
 <script>
-async function postSaleToTra(saleId) {
+function postSaleToTra(saleId) {
     if (!confirm('Post this receipt to TRA?')) return;
     
+    const btn = document.getElementById('postTraBtn');
+    if (btn) {
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Posting...';
+        btn.disabled = true;
+    }
+    
+    fetch('/sales/receipts/post-to-tra', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Accept': 'application/json',
+        },
+        body: JSON.stringify({ sale_id: saleId })
+    })
+    .then(r => r.json())
+    .then(result => {
+        if (result.success) {
+            location.reload();
+        } else {
+            alert('TRA posting failed: ' + (result.error || 'Unknown error'));
+            if (btn) {
+                btn.innerHTML = '<i class="fas fa-cloud-upload-alt mr-2"></i>Post to TRA';
+                btn.disabled = false;
+            }
+        }
+    })
+    .catch(e => {
+        alert('Error: ' + e.message);
+        if (btn) {
+            btn.innerHTML = '<i class="fas fa-cloud-upload-alt mr-2"></i>Post to TRA';
+            btn.disabled = false;
+        }
+    });
+}
+
+function printEfdReceipt(saleId) {
+    postSaleToTraAndPrint(saleId);
+}
+
+async function postSaleToTraAndPrint(saleId) {
     try {
         const response = await fetch('/sales/receipts/post-to-tra', {
             method: 'POST',
@@ -155,12 +241,30 @@ async function postSaleToTra(saleId) {
             body: JSON.stringify({ sale_id: saleId })
         });
         const result = await response.json();
-        if (result.success) {
-            alert('Successfully posted to TRA!\nVerification: ' + (result.verification_link || 'N/A'));
-            location.reload();
-        } else {
-            alert('TRA posting failed: ' + (result.error || 'Unknown error'));
+        if (!result.success) {
+            alert('TRA posting failed: ' + (result.error || 'Unknown error') + '\n\nPlease check TRA VFD settings.');
+            return;
         }
+        
+        // Even if duplicate (already posted), print the EFD receipt
+        const iframe = document.createElement('iframe');
+        iframe.style.position = 'fixed';
+        iframe.style.right = '0';
+        iframe.style.bottom = '0';
+        iframe.style.width = '0';
+        iframe.style.height = '0';
+        iframe.style.border = '0';
+        iframe.src = '/sales/receipts/' + saleId + '/efd-print';
+        document.body.appendChild(iframe);
+        
+        iframe.onload = function() {
+            setTimeout(() => {
+                iframe.contentWindow.print();
+                setTimeout(() => {
+                    document.body.removeChild(iframe);
+                }, 500);
+            }, 500);
+        };
     } catch (e) {
         alert('Error: ' + e.message);
     }

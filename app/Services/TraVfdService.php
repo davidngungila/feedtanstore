@@ -229,14 +229,18 @@ class TraVfdService
             // Parse XML response
             $result = $this->parseResponse($body);
 
-            if ($result['command_code'] == '502') {
-                // Success - receipt posted
+            $commandCode = $result['command_code'];
+
+            // 502 = Success, 59 = Duplicate (already posted - still success)
+            if ($commandCode == '502' || $commandCode == '59') {
+                $isDuplicate = ($commandCode == '59');
                 $verificationLink = $result['verification_link'] ?? '';
                 $qrCode = $result['qr_code'] ?? '';
+                $receiptNumber = $result['receipt_number'] ?? $sale->invoice_number;
 
                 // Save TRA response to sale
                 $sale->update([
-                    'tra_receipt_number' => $result['receipt_number'] ?? $sale->invoice_number,
+                    'tra_receipt_number' => $receiptNumber,
                     'tra_verification_link' => $verificationLink,
                     'tra_qr_code' => $qrCode,
                     'tra_status' => 'posted',
@@ -244,17 +248,19 @@ class TraVfdService
 
                 return [
                     'success' => true,
+                    'duplicate' => $isDuplicate,
+                    'message' => $isDuplicate ? 'Receipt was already posted to TRA' : 'Receipt posted to TRA successfully',
                     'verification_link' => $verificationLink,
                     'qr_code' => $qrCode,
-                    'receipt_number' => $result['receipt_number'] ?? $sale->invoice_number,
+                    'receipt_number' => $receiptNumber,
                     'raw_response' => $body,
                 ];
             } else {
-                $errorMsg = $this->getErrorMessage($result['command_code']);
+                $errorMsg = $this->getErrorMessage($commandCode);
                 return [
                     'success' => false,
                     'error' => $errorMsg,
-                    'command_code' => $result['command_code'],
+                    'command_code' => $commandCode,
                     'raw_response' => $body,
                 ];
             }

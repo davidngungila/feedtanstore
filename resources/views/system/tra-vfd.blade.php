@@ -149,7 +149,7 @@ async function testTraConnection() {
     resultDiv.classList.remove('hidden');
     xmlPreview.classList.add('hidden');
     resultContent.className = 'p-4 rounded-xl bg-blue-50 border border-blue-200';
-    resultContent.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Saving settings and posting to TRA...';
+    resultContent.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Saving settings and testing connection to TRA...';
     
     try {
         // First save the settings
@@ -164,10 +164,9 @@ async function testTraConnection() {
             }
         });
         
-        // Wait a moment for settings to save
         await new Promise(r => setTimeout(r, 500));
         
-        // Get XML preview first
+        // Get XML preview
         const xmlResponse = await fetch('/sales/receipts/1/tra-xml', {
             headers: { 'Accept': 'text/xml' }
         });
@@ -177,7 +176,7 @@ async function testTraConnection() {
             xmlPreview.classList.remove('hidden');
         }
         
-        // Then post to TRA
+        // Post to TRA
         const testResponse = await fetch('/sales/receipts/post-to-tra', {
             method: 'POST',
             headers: {
@@ -191,15 +190,29 @@ async function testTraConnection() {
         const result = await testResponse.json();
         
         if (result.success) {
+            const receiptNum = result.receipt_number || 'N/A';
+            const verifyLink = result.verification_link || '';
+            const isDuplicate = result.duplicate || false;
+            
+            let html = '<div class="flex items-start gap-3">';
+            html += '<i class="fas fa-check-circle text-green-600 mt-1 text-lg"></i>';
+            html += '<div>';
+            html += '<p class="font-semibold text-green-800">' + (isDuplicate ? 'Already Posted' : 'Posted Successfully!') + '</p>';
+            html += '<p class="text-sm text-green-700 mt-1">TRA Receipt #: <strong>' + receiptNum + '</strong></p>';
+            if (verifyLink) {
+                html += '<p class="text-sm text-green-700 mt-1">Verification: <a href="' + verifyLink + '" target="_blank" class="underline hover:text-green-900">' + verifyLink + '</a></p>';
+            }
+            html += '</div></div>';
+            
             resultContent.className = 'p-4 rounded-xl bg-green-50 border border-green-200';
-            resultContent.innerHTML = '<i class="fas fa-check-circle text-green-600 mr-2"></i><strong>Success!</strong> Posted to TRA. Verification: ' + (result.verification_link || 'N/A');
+            resultContent.innerHTML = html;
         } else {
             resultContent.className = 'p-4 rounded-xl bg-yellow-50 border border-yellow-200';
-            resultContent.innerHTML = '<i class="fas fa-exclamation-triangle text-yellow-600 mr-2"></i><strong>TRA Error:</strong> ' + (result.error || 'Unknown response');
+            resultContent.innerHTML = '<div class="flex items-start gap-3"><i class="fas fa-exclamation-triangle text-yellow-600 mt-1"></i><div><p class="font-semibold text-yellow-800">TRA Error</p><p class="text-sm text-yellow-700 mt-1">' + (result.error || 'Unknown response') + '</p></div></div>';
         }
     } catch (e) {
         resultContent.className = 'p-4 rounded-xl bg-red-50 border border-red-200';
-        resultContent.innerHTML = '<i class="fas fa-times-circle text-red-600 mr-2"></i><strong>Error:</strong> ' + e.message;
+        resultContent.innerHTML = '<div class="flex items-start gap-3"><i class="fas fa-times-circle text-red-600 mt-1"></i><div><p class="font-semibold text-red-800">Connection Error</p><p class="text-sm text-red-700 mt-1">' + e.message + '</p></div></div>';
     }
 }
 </script>

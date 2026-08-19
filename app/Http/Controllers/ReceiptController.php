@@ -122,6 +122,19 @@ class ReceiptController extends Controller {
         $sale->load(['customer', 'user', 'items.product']);
 
         $traService = new TraVfdService();
+
+        // If already posted, return cached result
+        if ($sale->tra_status === 'posted' && !empty($sale->tra_receipt_number)) {
+            return response()->json([
+                'success' => true,
+                'duplicate' => true,
+                'message' => 'Receipt was already posted to TRA',
+                'receipt_number' => $sale->tra_receipt_number,
+                'verification_link' => $sale->tra_verification_link ?? '',
+                'qr_code' => $sale->tra_qr_code ?? '',
+            ]);
+        }
+
         $result = $traService->postReceipt($sale);
 
         return response()->json($result);
