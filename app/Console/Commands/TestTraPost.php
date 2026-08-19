@@ -30,6 +30,7 @@ class TestTraPost extends Command
         $this->info("Sale: {$sale->invoice_number}");
         $this->info("Tax Rate: {$taxPercent}%");
         $this->info("Tax Enabled: " . ($settings->tax_enabled ? 'Yes' : 'No'));
+        $this->info("GC: " . ($settings->tra_gc ?? 1) . " | DC: " . ($settings->tra_dc ?? 1) . " | ZNUM: " . ($settings->tra_znum ?? date('Ymd')));
         $this->line("");
 
         $traService = new TraVfdService();

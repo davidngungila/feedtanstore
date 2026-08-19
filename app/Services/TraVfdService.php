@@ -124,7 +124,6 @@ class TraVfdService
         $ccard = '0.00';
         $emoney = '0.00';
         $invoice = '0.00';
-        $gc = '0.00';
 
         switch ($sale->payment_method ?? 'cash') {
             case 'cash':
@@ -140,12 +139,14 @@ class TraVfdService
             case 'credit':
                 $invoice = $grossAmt;
                 break;
-            case 'gc':
-                $gc = $grossAmt;
-                break;
             default:
                 $cash = $grossAmt;
         }
+
+        // Fiscal counters from store_settings
+        $gc = (int) ($settings->tra_gc ?? 1);
+        $dc = (int) ($settings->tra_dc ?? 1);
+        $znum = $settings->tra_znum ?? date('Ymd');
 
         // Date/time in East Africa timezone (EAT = UTC+3)
         $dateTime = now('Africa/Nairobi')->format('Y/m/d H:i:s');
@@ -159,6 +160,9 @@ class TraVfdService
             . "<cusname>{$cusName}</cusname>"
             . "<custTIN>{$custTIN}</custTIN>"
             . "<custVRN>{$custVRN}</custVRN>"
+            . "<RCNUM>{$gc}</RCNUM>"
+            . "<DC>{$dc}</DC>"
+            . "<ZNUM>{$znum}</ZNUM>"
             . "<permitNum>{$permitNum}</permitNum>"
             . "<vatAmt>{$vatAmt}</vatAmt>"
             . "<grossAmt>{$grossAmt}</grossAmt>"
@@ -166,7 +170,6 @@ class TraVfdService
             . "<CHEQUE>{$cheque}</CHEQUE>"
             . "<CCARD>{$ccard}</CCARD>"
             . "<EMONEY>{$emoney}</EMONEY>"
-            . "<GC>{$gc}</GC>"
             . "<INVOICE>{$invoice}</INVOICE>"
             . "<DateTime>{$dateTime}</DateTime>";
 
@@ -260,13 +263,21 @@ class TraVfdService
                     $receiptNumber = $sale->invoice_number;
                 }
 
-                // Save TRA response to sale
+                // Save TRA response to sale (including the GC/DC/ZNUM used)
                 $sale->update([
                     'tra_receipt_number' => $receiptNumber,
                     'tra_verification_link' => $verificationLink,
                     'tra_qr_code' => $qrCode,
                     'tra_status' => 'posted',
+                    'tra_gc_used' => (int) ($this->settings->tra_gc ?? 1),
+                    'tra_dc_used' => (int) ($this->settings->tra_dc ?? 1),
+                    'tra_znum_used' => $this->settings->tra_znum ?? date('Ymd'),
                 ]);
+
+                // Increment fiscal counters only on new posts (not duplicates)
+                if (!$isDuplicate) {
+                    $this->incrementCounters();
+                }
 
                 return [
                     'success' => true,
@@ -421,5 +432,42 @@ class TraVfdService
     public function getSettings(): ?StoreSetting
     {
         return $this->settings;
+    }
+
+    /**
+     * Increment fiscal counters after successful TRA post
+     * GC: Global Counter - always increments, never resets
+     * DC: Daily Counter - resets to 1 each new day
+     * ZNUM: Date counter - YYYYMMDD format, updates daily
+     */
+    private function incrementCounters(): void
+    {
+        $settings = StoreSetting::first();
+        if (!$settings) return;
+
+        $today = date('Y-m-d');
+        $todayYmd = date('Ymd');
+        $lastDcDate = $settings->tra_dc_date;
+
+        $newGc = (int) ($settings->tra_gc ?? 0) + 1;
+        $newDc = (int) ($settings->tra_dc ?? 0) + 1;
+
+        // Reset DC if it's a new day
+        if ($lastDcDate !== $today) {
+            $newDc = 1;
+        }
+
+        $settings->update([
+            'tra_gc' => $newGc,
+            'tra_dc' => $newDc,
+            'tra_znum' => $todayYmd,
+            'tra_dc_date' => $today,
+        ]);
+
+        Log::info('TRA VFD Counters Updated', [
+            'gc' => $newGc,
+            'dc' => $newDc,
+            'znum' => $todayYmd,
+        ]);
     }
 }

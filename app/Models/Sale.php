@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Sale extends Model {
     use SoftDeletes;
-    protected $fillable = ['invoice_number', 'customer_id', 'user_id', 'shift_id', 'discount_id', 'subtotal', 'tax', 'discount', 'total', 'paid', 'change', 'payment_method', 'type', 'status', 'notes', 'cancellation_reason', 'cash_drawer_session_id', 'tra_receipt_number', 'tra_verification_link', 'tra_qr_code', 'tra_status'];
+    protected $fillable = ['invoice_number', 'customer_id', 'user_id', 'shift_id', 'discount_id', 'subtotal', 'tax', 'discount', 'total', 'paid', 'change', 'payment_method', 'type', 'status', 'notes', 'cancellation_reason', 'cash_drawer_session_id', 'tra_receipt_number', 'tra_verification_link', 'tra_qr_code', 'tra_status', 'tra_gc_used', 'tra_dc_used', 'tra_znum_used'];
 
     public function customer() {
         return $this->belongsTo(Customer::class);

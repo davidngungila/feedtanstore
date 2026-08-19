@@ -100,6 +100,33 @@
         </div>
     </div>
 
+    <!-- Fiscal Counters -->
+    <div class="card rounded-2xl p-6 mb-6">
+        <div class="flex items-center justify-between mb-6">
+            <h2 class="text-xl font-bold text-primary-900">Fiscal Counters</h2>
+        </div>
+        <div class="bg-gray-50 rounded-xl p-4 mb-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="text-center">
+                    <p class="text-xs text-gray-500 uppercase tracking-wide">Global Counter (GC)</p>
+                    <p class="text-3xl font-bold text-primary-900">{{ $settings->tra_gc ?? 1 }}</p>
+                    <p class="text-xs text-gray-400 mt-1">Increments with each receipt</p>
+                </div>
+                <div class="text-center">
+                    <p class="text-xs text-gray-500 uppercase tracking-wide">Daily Counter (DC)</p>
+                    <p class="text-3xl font-bold text-primary-900">{{ $settings->tra_dc ?? 1 }}</p>
+                    <p class="text-xs text-gray-400 mt-1">Resets each day</p>
+                </div>
+                <div class="text-center">
+                    <p class="text-xs text-gray-500 uppercase tracking-wide">Z Report (ZNUM)</p>
+                    <p class="text-3xl font-bold text-primary-900">{{ $settings->tra_znum ?? date('Ymd') }}</p>
+                    <p class="text-xs text-gray-400 mt-1">YYYYMMDD format</p>
+                </div>
+            </div>
+        </div>
+        <p class="text-sm text-gray-500">Counters auto-increment after each successful TRA posting. Do not modify unless you know what you're doing.</p>
+    </div>
+
     <!-- Tax Code Reference -->
     <div class="card rounded-2xl p-6">
         <h2 class="text-xl font-bold text-primary-900 mb-4">Product Tax Codes Reference</h2>

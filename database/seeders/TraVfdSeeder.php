@@ -15,14 +15,25 @@ class TraVfdSeeder extends Seeder
      */
     public function run(): void
     {
-        StoreSetting::where('id', 1)->update([
-            // TRA VFD API Settings (Test Environment)
+        $update = [
+            // TRA VFD API Settings
             'tra_api_endpoint' => 'http://162.55.181.173:8080/TRA_VFD/Operations',
             'tra_api_username' => '0756880647',
             'tra_api_password' => 'israel_',
             'tra_tin_number' => '110781512',
             'tra_vfd_serial' => '03TZ843010734',
             'tra_licence' => '3V7+fwCPqFZf54roeksJ//ZQMLkBNs07d1z/Cm03lI8lA2FpnOGCdKwZCr7s0oSb',
-        ]);
+        ];
+
+        // Only set fiscal counters if not already set (preserve existing values)
+        $settings = StoreSetting::first();
+        if ($settings && empty($settings->tra_gc)) {
+            $update['tra_gc'] = 1;
+            $update['tra_dc'] = 1;
+            $update['tra_znum'] = date('Ymd');
+            $update['tra_dc_date'] = date('Y-m-d');
+        }
+
+        StoreSetting::where('id', 1)->update($update);
     }
 }

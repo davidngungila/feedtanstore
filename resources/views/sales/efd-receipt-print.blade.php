@@ -248,6 +248,11 @@
             @endif
             <p><span class="label">Cashier:</span> <span class="value">{{ $sale->user->name ?? '-' }}</span></p>
             <p><span class="label">Payment:</span> <span class="value">{{ strtoupper($sale->payment_method ?? 'CASH') }}</span></p>
+            @if($sale->tra_status == 'posted')
+                <p><span class="label">GC:</span> <span class="value">{{ $sale->tra_gc_used ?? '-' }}</span></p>
+                <p><span class="label">DC:</span> <span class="value">{{ $sale->tra_dc_used ?? '-' }}</span></p>
+                <p><span class="label">ZNUM:</span> <span class="value">{{ $sale->tra_znum_used ?? '-' }}</span></p>
+            @endif
         </div>
         
         <div class="items">
