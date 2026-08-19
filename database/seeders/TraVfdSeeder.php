@@ -22,7 +22,7 @@ class TraVfdSeeder extends Seeder
             'tra_api_password' => 'israel_',
             'tra_tin_number' => '110781512',
             'tra_vfd_serial' => '03TZ843010734',
-            'tra_licence' => 'h+gv4ID1qS0mml7hOkWUu/ZQMLkBNs07d1z/Cm03lI8pRyd5U6+RYXT8F6A35jAY8YfZUzElKaz9d0tsnkyJafowKFnPOapBGcpW5kzgPOA=',
+            'tra_licence' => '3V7+fwCPqFZf54roeksJ//ZQMLkBNs07d1z/Cm03lI8lA2FpnOGCdKwZCr7s0oSb',
         ]);
     }
 }

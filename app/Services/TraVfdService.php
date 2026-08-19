@@ -60,18 +60,36 @@ class TraVfdService
         $settings = $this->settings;
         $items = $sale->items()->with('product')->get();
 
-        // Build items XML
+        $taxRate = ($settings->tax_rate ?? 18) / 100;
+        $taxEnabled = $settings->tax_enabled ?? false;
+
+        // Build items XML and calculate per-item VAT
         $itemsXml = '';
         $itemIndex = 1;
+        $totalVatAmt = 0;
+        $totalItemAmt = 0;
+
         foreach ($items as $item) {
             $product = $item->product;
             $taxCode = $this->getTraTaxCode($product->tax_code ?? 1);
             $desc = $this->escapeXml($product->name ?? 'Item');
             $qty = (int) $item->quantity;
-            $price = number_format($item->unit_price, 2, '.', '');
-            $amt = number_format($item->total, 2, '.', '');
+            $price = round($item->unit_price, 2);
+            $amt = round($item->total, 2);
 
-            $itemsXml .= "<ITEM><ID>{$itemIndex}</ID><DESC>{$desc}</DESC><QTY>{$qty}</QTY><TAXCODE>{$taxCode}</TAXCODE><PRICE>{$price}</PRICE><AMT>{$amt}</AMT></ITEM>";
+            // Calculate per-item VAT (only for standard rated = tax code 1)
+            $itemVat = 0;
+            if ($taxEnabled && $taxCode == 1) {
+                $itemVat = round($amt * $taxRate, 2);
+            }
+
+            $totalVatAmt += $itemVat;
+            $totalItemAmt += $amt;
+
+            $priceStr = number_format($price, 2, '.', '');
+            $amtStr = number_format($amt, 2, '.', '');
+
+            $itemsXml .= "<ITEM><ID>{$itemIndex}</ID><DESC>{$desc}</DESC><QTY>{$qty}</QTY><TAXCODE>{$taxCode}</TAXCODE><PRICE>{$priceStr}</PRICE><AMT>{$amtStr}</AMT></ITEM>";
             $itemIndex++;
         }
 
@@ -85,15 +103,10 @@ class TraVfdService
 
         $custVRN = $customer->vrn_number ?? 'null';
 
-        // Calculate VAT amount (18% standard rate)
-        $vatAmt = number_format($sale->tax ?? 0, 2, '.', '');
-        if (($sale->tax ?? 0) == 0 && $settings->tax_enabled) {
-            // If tax is 0 but tax is enabled, calculate from total
-            $totalExclVat = ($sale->total ?? 0) / 1.18;
-            $vatAmt = number_format(($sale->total ?? 0) - $totalExclVat, 2, '.', '');
-        }
-
-        $grossAmt = number_format($sale->total ?? 0, 2, '.', '');
+        // VAT amount = sum of per-item VAT calculations
+        $vatAmt = number_format($totalVatAmt, 2, '.', '');
+        // Gross amount = items total + VAT (amount inclusive of VAT)
+        $grossAmt = number_format($totalItemAmt + $totalVatAmt, 2, '.', '');
 
         // Payment breakdown
         $cash = '0.00';

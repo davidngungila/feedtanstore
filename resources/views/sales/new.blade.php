@@ -661,8 +661,12 @@ function printReceipt() {
 
 function printEfdReceipt() {
     if (currentSaleId) {
-        // First post to TRA, then print EFD receipt
-        postToTra(currentSaleId).then(() => {
+        postToTra(currentSaleId).then((result) => {
+            if (!result.success) {
+                alert('TRA posting failed: ' + (result.error || 'Unknown error') + '\n\nPlease check TRA VFD settings and try again.');
+                return;
+            }
+            
             const iframe = document.createElement('iframe');
             iframe.style.position = 'fixed';
             iframe.style.right = '0';
