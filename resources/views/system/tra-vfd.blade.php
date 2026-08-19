@@ -87,12 +87,15 @@
             <div id="testResultContent" class="p-4 rounded-xl"></div>
         </div>
 
+        <div id="xmlPreview" class="hidden mb-4">
+            <div class="bg-gray-900 text-green-400 rounded-xl p-4 font-mono text-xs overflow-x-auto max-h-96 overflow-y-auto">
+                <pre id="xmlContent"></pre>
+            </div>
+        </div>
+
         <div class="flex gap-3">
             <button onclick="testTraConnection()" class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition">
                 <i class="fas fa-plug mr-2"></i>Test Connection
-            </button>
-            <button onclick="previewXml()" class="px-6 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-semibold transition">
-                <i class="fas fa-code mr-2"></i>Preview XML (Sale #1)
             </button>
         </div>
     </div>
@@ -140,13 +143,16 @@
 async function testTraConnection() {
     const resultDiv = document.getElementById('testResult');
     const resultContent = document.getElementById('testResultContent');
+    const xmlPreview = document.getElementById('xmlPreview');
+    const xmlContent = document.getElementById('xmlContent');
     
     resultDiv.classList.remove('hidden');
+    xmlPreview.classList.add('hidden');
     resultContent.className = 'p-4 rounded-xl bg-blue-50 border border-blue-200';
-    resultContent.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Testing connection to TRA VFD API...';
+    resultContent.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Saving settings and posting to TRA...';
     
     try {
-        // First save the settings via the correct update route
+        // First save the settings
         const form = document.querySelector('form');
         const formData = new FormData(form);
         
@@ -158,7 +164,20 @@ async function testTraConnection() {
             }
         });
         
-        // Then test by posting to TRA
+        // Wait a moment for settings to save
+        await new Promise(r => setTimeout(r, 500));
+        
+        // Get XML preview first
+        const xmlResponse = await fetch('/sales/receipts/1/tra-xml', {
+            headers: { 'Accept': 'text/xml' }
+        });
+        if (xmlResponse.ok) {
+            const xmlText = await xmlResponse.text();
+            xmlContent.textContent = xmlText;
+            xmlPreview.classList.remove('hidden');
+        }
+        
+        // Then post to TRA
         const testResponse = await fetch('/sales/receipts/post-to-tra', {
             method: 'POST',
             headers: {
@@ -173,19 +192,15 @@ async function testTraConnection() {
         
         if (result.success) {
             resultContent.className = 'p-4 rounded-xl bg-green-50 border border-green-200';
-            resultContent.innerHTML = '<i class="fas fa-check-circle text-green-600 mr-2"></i><strong>Success!</strong> ' + (result.message || 'Connection working');
+            resultContent.innerHTML = '<i class="fas fa-check-circle text-green-600 mr-2"></i><strong>Success!</strong> Posted to TRA. Verification: ' + (result.verification_link || 'N/A');
         } else {
             resultContent.className = 'p-4 rounded-xl bg-yellow-50 border border-yellow-200';
-            resultContent.innerHTML = '<i class="fas fa-exclamation-triangle text-yellow-600 mr-2"></i><strong>Response:</strong> ' + (result.error || result.message || 'Unknown response');
+            resultContent.innerHTML = '<i class="fas fa-exclamation-triangle text-yellow-600 mr-2"></i><strong>TRA Error:</strong> ' + (result.error || 'Unknown response');
         }
     } catch (e) {
         resultContent.className = 'p-4 rounded-xl bg-red-50 border border-red-200';
         resultContent.innerHTML = '<i class="fas fa-times-circle text-red-600 mr-2"></i><strong>Error:</strong> ' + e.message;
     }
-}
-
-function previewXml() {
-    window.open('/sales/receipts/1/tra-xml', '_blank');
 }
 </script>
 @endsection

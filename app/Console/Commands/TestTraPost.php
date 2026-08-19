@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Models\Sale;
+use App\Models\StoreSetting;
 use App\Services\TraVfdService;
 use Illuminate\Console\Command;
 
@@ -21,13 +22,16 @@ class TestTraPost extends Command
             return 1;
         }
 
-        $this->info("=== TRA VFD Test Post ===");
+        $settings = StoreSetting::first();
+        $taxPercent = (int) ($settings->tax_rate ?? 18);
+        if ($taxPercent <= 0) $taxPercent = 18;
+
+        $this->info("=== TRA VFD Test Post (v" . TraVfdService::VERSION . ") ===");
         $this->info("Sale: {$sale->invoice_number}");
-        $this->info("Total: {$sale->total}");
-        $this->info("Items: {$sale->items->count()}");
+        $this->info("Tax Rate: {$taxPercent}%");
+        $this->info("Tax Enabled: " . ($settings->tax_enabled ? 'Yes' : 'No'));
         $this->line("");
 
-        // Show XML that will be sent
         $traService = new TraVfdService();
 
         if (!$traService->isConfigured()) {
@@ -35,10 +39,29 @@ class TestTraPost extends Command
             return 1;
         }
 
+        // Show per-item VAT breakdown
+        $this->info("=== Per-Item VAT Breakdown ===");
+        $totalVat = 0.00;
+        $totalGross = 0.00;
+        foreach ($sale->items as $item) {
+            $product = $item->product;
+            $taxCode = (int) ($product->tax_code ?? 1);
+            $amt = round((float) $item->total, 2);
+            $itemVat = 0.00;
+            if ($taxCode == 1) {
+                $itemVat = round($amt * $taxPercent / (100 + $taxPercent), 2);
+            }
+            $totalVat += $itemVat;
+            $totalGross += $amt;
+            $this->line("  Item: {$product->name} | TaxCode: {$taxCode} | AMT: {$amt} | VAT: {$itemVat}");
+        }
+        $this->info("  Total VAT (sum): " . round($totalVat, 2));
+        $this->info("  Total Gross (sum): " . round($totalGross, 2));
+        $this->line("");
+
         $this->info("Posting to TRA...");
         $this->line("");
 
-        // Show XML
         $xml = $traService->buildXml($sale);
         $this->line("=== XML Payload ===");
         $this->line($xml);

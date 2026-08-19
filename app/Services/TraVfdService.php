@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\Log;
 
 class TraVfdService
 {
+    public const VERSION = '2.0.0';
+    
     private ?StoreSetting $settings;
     private string $endpoint;
     private string $username;
@@ -35,7 +37,7 @@ class TraVfdService
 
     /**
      * Map product tax_code to TRA tax code
-     * 1=18% Standard, 3=0% Zero rated, 4=0% Special Relief, 5=0% Exempted
+     * 1-18%(Standard Rated), 3-0%(Zero rated), 4-0%(Special Relief), 5-0%(Exempted)
      */
     private function getTraTaxCode(int $productTaxCode): int
     {
@@ -60,10 +62,14 @@ class TraVfdService
         $settings = $this->settings;
         $items = $sale->items()->with('product')->get();
 
+        // Default to 18% if tax_rate is 0 or null
         $taxPercent = (int) ($settings->tax_rate ?? 18);
+        if ($taxPercent <= 0) {
+            $taxPercent = 18;
+        }
 
         // Build items XML and calculate per-item VAT
-        // Our selling prices are VAT-inclusive. TRA expects VAT-inclusive amounts
+        // Selling prices are VAT-inclusive. TRA expects VAT-inclusive amounts
         // in <PRICE> and <AMT>. VAT is extracted: AMT * rate / (100 + rate)
         $itemsXml = '';
         $itemIndex = 1;
@@ -72,13 +78,13 @@ class TraVfdService
 
         foreach ($items as $item) {
             $product = $item->product;
-            $taxCode = $this->getTraTaxCode($product->tax_code ?? 1);
+            $taxCode = $this->getTraTaxCode((int) ($product->tax_code ?? 1));
             $desc = $this->escapeXml($product->name ?? 'Item');
             $qty = (int) $item->quantity;
 
             // Selling prices are already VAT-inclusive, use as-is
-            $price = round($item->unit_price, 2);
-            $amt = round($item->total, 2);
+            $price = round((float) $item->unit_price, 2);
+            $amt = round((float) $item->total, 2);
 
             // Extract VAT from inclusive amount using TRA formula
             // VAT = AMT * 18 / 118
@@ -199,7 +205,7 @@ class TraVfdService
 
         $xml = $this->buildXml($sale);
 
-        Log::info('TRA VFD Posting', [
+        Log::info('TRA VFD Posting v' . self::VERSION, [
             'sale_id' => $sale->id,
             'invoice' => $sale->invoice_number,
             'endpoint' => $this->endpoint,
@@ -347,8 +353,8 @@ class TraVfdService
             '121' => 'Incorrect date supplied',
             '119' => 'Previous date provided',
             '120' => 'Future date provided',
-            '115' => 'Items VAT amount summation does not match provided total VAT amount',
-            '116' => 'Items amount summation does not match provided total amount',
+            '115' => 'Items VAT amount summation does not match with the Provided Total VAT Amount',
+            '116' => 'Items amount summation does not match with the Provided Total Amount',
             '117' => 'Invalid Tax Code',
             '59' => 'Duplicate - Receipt/Invoice number has been signed already',
             '555' => 'Incorrect XML format',
