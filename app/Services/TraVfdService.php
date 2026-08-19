@@ -60,35 +60,48 @@ class TraVfdService
         $settings = $this->settings;
         $items = $sale->items()->with('product')->get();
 
-        $taxRate = ($settings->tax_rate ?? 18) / 100;
+        $taxPercent = (int) ($settings->tax_rate ?? 18);
+        // For TRA: inclusive multiplier = (100 + rate) / 100 e.g. 1.18 for 18%
+        $inclusiveMultiplier = (100 + $taxPercent) / 100;
 
         // Build items XML and calculate per-item VAT
-        // Always calculate VAT based on each product's tax_code for TRA
+        // Our system stores VAT-exclusive prices. TRA expects VAT-inclusive amounts
+        // in <PRICE> and <AMT>. TRA validates VAT as: AMT * rate / (100 + rate).
         $itemsXml = '';
         $itemIndex = 1;
-        $totalVatAmt = 0;
-        $totalItemAmt = 0;
+        $totalVatAmt = 0.00;
+        $totalGrossAmt = 0.00;
 
         foreach ($items as $item) {
             $product = $item->product;
             $taxCode = $this->getTraTaxCode($product->tax_code ?? 1);
             $desc = $this->escapeXml($product->name ?? 'Item');
             $qty = (int) $item->quantity;
-            $price = round($item->unit_price, 2);
-            $amt = round($item->total, 2);
 
-            // Calculate per-item VAT based on tax code (prices are VAT-exclusive)
-            // Tax code 1 = 18% standard rated, others = 0%
-            $itemVat = 0.00;
+            // Our stored price is VAT-exclusive
+            $exclusivePrice = round($item->unit_price, 2);
+            $exclusiveAmt = round($item->total, 2);
+
             if ($taxCode == 1) {
-                $itemVat = round($amt * $taxRate, 2);
+                // Standard rated (18%): convert to VAT-inclusive for TRA
+                $inclusiveAmt = round($exclusiveAmt * $inclusiveMultiplier, 2);
+                $inclusivePrice = round($exclusivePrice * $inclusiveMultiplier, 2);
+
+                // VAT per item: TRA calculates as AMT * 18 / 118
+                // We calculate identically to avoid rounding mismatch
+                $itemVat = round($inclusiveAmt * $taxPercent / (100 + $taxPercent), 2);
+            } else {
+                // Zero rated / exempt / special relief: no VAT, price = amount
+                $inclusiveAmt = $exclusiveAmt;
+                $inclusivePrice = $exclusivePrice;
+                $itemVat = 0.00;
             }
 
             $totalVatAmt += $itemVat;
-            $totalItemAmt += $amt;
+            $totalGrossAmt += $inclusiveAmt;
 
-            $priceStr = number_format($price, 2, '.', '');
-            $amtStr = number_format($amt, 2, '.', '');
+            $priceStr = number_format($inclusivePrice, 2, '.', '');
+            $amtStr = number_format($inclusiveAmt, 2, '.', '');
 
             $itemsXml .= "<ITEM><ID>{$itemIndex}</ID><DESC>{$desc}</DESC><QTY>{$qty}</QTY><TAXCODE>{$taxCode}</TAXCODE><PRICE>{$priceStr}</PRICE><AMT>{$amtStr}</AMT></ITEM>";
             $itemIndex++;
@@ -106,8 +119,8 @@ class TraVfdService
 
         // vatAmt = exact sum of per-item rounded VAT (never recalculate independently)
         $vatAmt = number_format(round($totalVatAmt, 2), 2, '.', '');
-        // grossAmt = items total + VAT sum (amount inclusive of VAT)
-        $grossAmt = number_format(round($totalItemAmt + $totalVatAmt, 2), 2, '.', '');
+        // grossAmt = sum of all VAT-inclusive item amounts
+        $grossAmt = number_format(round($totalGrossAmt, 2), 2, '.', '');
 
         // Payment breakdown
         $cash = '0.00';
