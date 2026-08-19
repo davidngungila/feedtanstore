@@ -90,21 +90,23 @@ class ReceiptController extends Controller {
         $sale->load(['customer', 'user', 'items.product']);
 
         $settings = StoreSetting::first();
+        $taxPercent = (int) ($settings->tax_rate ?? 18);
+        if ($taxPercent <= 0) $taxPercent = 18;
 
-        // Calculate VAT amount
+        // Calculate per-item VAT (inclusive extraction)
         $vatAmount = 0;
-        if ($settings->tax_enabled) {
-            $taxRate = $settings->tax_rate ?? 18;
-            $totalInclVat = $sale->total ?? 0;
-            $totalExclVat = $totalInclVat / (1 + ($taxRate / 100));
-            $vatAmount = $totalInclVat - $totalExclVat;
+        foreach ($sale->items as $item) {
+            $taxCode = (int) ($item->product->tax_code ?? 1);
+            $amt = round((float) $item->total, 2);
+            if ($taxCode == 1) {
+                $vatAmount += round($amt * $taxPercent / (100 + $taxPercent), 2);
+            }
         }
+        $vatAmount = round($vatAmount, 2);
 
-        // Use TRA verification link and QR if posted
         $verificationLink = $sale->tra_verification_link ?? '';
         $qrCode = $sale->tra_qr_code ?? '';
 
-        // If TRA verification link exists but no QR image, generate QR from the link
         if (!empty($verificationLink) && empty($qrCode)) {
             $qrCodeSvg = \QrCode::size(120)->generate($verificationLink);
             $qrCode = 'data:image/svg+xml;base64,' . base64_encode($qrCodeSvg);
