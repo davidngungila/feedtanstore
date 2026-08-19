@@ -61,9 +61,9 @@ class TraVfdService
         $items = $sale->items()->with('product')->get();
 
         $taxRate = ($settings->tax_rate ?? 18) / 100;
-        $taxEnabled = $settings->tax_enabled ?? false;
 
         // Build items XML and calculate per-item VAT
+        // Always calculate VAT based on each product's tax_code for TRA
         $itemsXml = '';
         $itemIndex = 1;
         $totalVatAmt = 0;
@@ -77,9 +77,10 @@ class TraVfdService
             $price = round($item->unit_price, 2);
             $amt = round($item->total, 2);
 
-            // Calculate per-item VAT (only for standard rated = tax code 1)
-            $itemVat = 0;
-            if ($taxEnabled && $taxCode == 1) {
+            // Calculate per-item VAT based on tax code (prices are VAT-exclusive)
+            // Tax code 1 = 18% standard rated, others = 0%
+            $itemVat = 0.00;
+            if ($taxCode == 1) {
                 $itemVat = round($amt * $taxRate, 2);
             }
 
@@ -103,10 +104,10 @@ class TraVfdService
 
         $custVRN = $customer->vrn_number ?? 'null';
 
-        // VAT amount = sum of per-item VAT calculations
-        $vatAmt = number_format($totalVatAmt, 2, '.', '');
-        // Gross amount = items total + VAT (amount inclusive of VAT)
-        $grossAmt = number_format($totalItemAmt + $totalVatAmt, 2, '.', '');
+        // vatAmt = exact sum of per-item rounded VAT (never recalculate independently)
+        $vatAmt = number_format(round($totalVatAmt, 2), 2, '.', '');
+        // grossAmt = items total + VAT sum (amount inclusive of VAT)
+        $grossAmt = number_format(round($totalItemAmt + $totalVatAmt, 2), 2, '.', '');
 
         // Payment breakdown
         $cash = '0.00';

@@ -38,6 +38,12 @@ class TestTraPost extends Command
         $this->info("Posting to TRA...");
         $this->line("");
 
+        // Show XML
+        $xml = $traService->buildXml($sale);
+        $this->line("=== XML Payload ===");
+        $this->line($xml);
+        $this->line("");
+
         $result = $traService->postReceipt($sale);
 
         if ($result['success']) {
