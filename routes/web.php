@@ -22,6 +22,7 @@ Route::get('/', [\App\Http\Controllers\OnlineOrderController::class, 'shop'])->n
 // Public verify route
 Route::get('/sales/receipts/{sale}/verify', [\App\Http\Controllers\ReceiptController::class, 'verify'])->name('sales.receipts.verify');
 Route::get('/sales/receipts/{sale}/download', [\App\Http\Controllers\ReceiptController::class, 'download'])->name('sales.receipts.download');
+Route::get('/sales/receipts/{sale}/efd-print', [\App\Http\Controllers\ReceiptController::class, 'efdPrint'])->name('sales.receiptsefd-print');
 
 // Public Shop Routes
 Route::get('/sitemap.xml', function (\Illuminate\Http\Request $request) {
@@ -167,6 +168,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/receipts', [\App\Http\Controllers\ReceiptController::class, 'index'])->name('receipts');
         Route::get('/receipts/{sale}', [\App\Http\Controllers\ReceiptController::class, 'show'])->name('receipts.show');
         Route::get('/receipts/{sale}/print', [\App\Http\Controllers\ReceiptController::class, 'print'])->name('receipts.print');
+        Route::post('/receipts/post-to-tra', [\App\Http\Controllers\ReceiptController::class, 'postToTra'])->name('receipts.post-to-tra');
+        Route::get('/receipts/{sale}/tra-xml', [\App\Http\Controllers\ReceiptController::class, 'traXmlPreview'])->name('receipts.tra-xml');
         Route::get('/shifts', [\App\Http\Controllers\ShiftController::class, 'index'])->name('shifts');
         Route::post('/shifts/open', [\App\Http\Controllers\ShiftController::class, 'open'])->name('shifts.open');
         Route::post('/shifts/{shift}/close', [\App\Http\Controllers\ShiftController::class, 'close'])->name('shifts.close');
@@ -747,6 +750,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/barcode', [\App\Http\Controllers\StoreSettingController::class, 'barcode'])->name('barcode');
         Route::get('/communication', [\App\Http\Controllers\StoreSettingController::class, 'communication'])->name('communication');
         Route::get('/vfd', [\App\Http\Controllers\StoreSettingController::class, 'vfd'])->name('vfd');
+        Route::get('/tra-vfd', [\App\Http\Controllers\StoreSettingController::class, 'traVfd'])->name('tra-vfd');
         Route::get('/backup', [\App\Http\Controllers\StoreSettingController::class, 'backup'])->name('backup');
         Route::get('/database', [\App\Http\Controllers\StoreSettingController::class, 'database'])->name('database');
         Route::get('/logs', [\App\Http\Controllers\StoreSettingController::class, 'logs'])->name('logs');

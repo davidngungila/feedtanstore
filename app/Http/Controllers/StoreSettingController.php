@@ -84,6 +84,13 @@ class StoreSettingController extends Controller
             'vfd_stop_bits' => 'nullable|integer|in:1,2',
             'vfd_parity' => 'nullable|string|in:none,odd,even',
             'vfd_protocol' => 'nullable|string|in:esc_at,form_feed,esc_at_home,clear_display,pos,epson,simple',
+            // TRA VFD fields
+            'tra_api_endpoint' => 'nullable|url|max:500',
+            'tra_api_username' => 'nullable|string|max:255',
+            'tra_api_password' => 'nullable|string|max:255',
+            'tra_tin_number' => 'nullable|string|max:20',
+            'tra_vfd_serial' => 'nullable|string|max:50',
+            'tra_licence' => 'nullable|string|max:1000',
         ]);
 
         $data = $request->all();
@@ -237,6 +244,12 @@ class StoreSettingController extends Controller
     {
         $settings = StoreSetting::firstOrCreate();
         return view('system.vfd', compact('settings'));
+    }
+
+    public function traVfd()
+    {
+        $settings = StoreSetting::firstOrCreate();
+        return view('system.tra-vfd', compact('settings'));
     }
 
     public function testVfd(Request $request)

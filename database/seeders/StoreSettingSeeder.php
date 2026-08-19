@@ -74,6 +74,13 @@ class StoreSettingSeeder extends Seeder
                 'vfd_stop_bits' => 1,
                 'vfd_parity' => 'none',
                 'vfd_protocol' => 'esc_at',
+                // TRA VFD API Settings (Test Environment)
+                'tra_api_endpoint' => 'http://162.55.181.173:8080/TRA_VFD/Operations',
+                'tra_api_username' => '0756880647',
+                'tra_api_password' => 'israel_',
+                'tra_tin_number' => '110781512',
+                'tra_vfd_serial' => '03TZ843010734',
+                'tra_licence' => 'h+gv4ID1qS0mml7hOkWUu/ZQMLkBNs07d1z/Cm03lI8pRyd5U6+RYXT8F6A35jAY8YfZUzElKaz9d0tsnkyJafowKFnPOapBGcpW5kzgPOA=',
             ]
         );
     }

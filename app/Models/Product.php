@@ -28,6 +28,7 @@ class Product extends Model
         'image',
         'is_active',
         'is_available_online',
+        'tax_code',
     ];
 
     protected static function boot()

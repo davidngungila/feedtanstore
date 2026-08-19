@@ -21,6 +21,12 @@
                 <a href="{{ route('sales.receipts.print', $sale) }}" target="_blank" class="px-4 py-2 border border-gray-300 rounded-lg flex items-center">
                     <i class="fas fa-print mr-2"></i>Print
                 </a>
+                <a href="{{ route('sales.receiptsefd-print', $sale) }}" target="_blank" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center">
+                    <i class="fas fa-receipt mr-2"></i>EFD Receipt
+                </a>
+                <button onclick="postSaleToTra({{ $sale->id }})" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center">
+                    <i class="fas fa-cloud-upload-alt mr-2"></i>Post to TRA
+                </button>
 
                 <a href="{{ route('sales.new') }}" class="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 flex items-center">
                     <i class="fas fa-plus mr-2"></i>New Sale
@@ -46,6 +52,18 @@
                 <p class="text-sm text-gray-500 mb-1">Status</p>
                 <span class="badge {{ $sale->status == 'completed' ? 'badge-green' : 'badge-red' }}">{{ ucfirst($sale->status) }}</span>
             </div>
+            @if($sale->tra_status)
+            <div>
+                <p class="text-sm text-gray-500 mb-1">TRA Status</p>
+                <span class="badge {{ $sale->tra_status == 'posted' ? 'badge-green' : 'badge-yellow' }}">{{ ucfirst($sale->tra_status) }}</span>
+            </div>
+            @endif
+            @if($sale->tra_receipt_number)
+            <div>
+                <p class="text-sm text-gray-500 mb-1">TRA Receipt #</p>
+                <p class="font-medium">{{ $sale->tra_receipt_number }}</p>
+            </div>
+            @endif
             @if($sale->discount_id && $sale->discountApplied)
             <div>
                 <p class="text-sm text-gray-500 mb-1">Discount Applied</p>
@@ -121,4 +139,31 @@
         @endif
     </div>
 </div>
+
+<script>
+async function postSaleToTra(saleId) {
+    if (!confirm('Post this receipt to TRA?')) return;
+    
+    try {
+        const response = await fetch('/receipts/post-to-tra', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json',
+            },
+            body: JSON.stringify({ sale_id: saleId })
+        });
+        const result = await response.json();
+        if (result.success) {
+            alert('Successfully posted to TRA!\nVerification: ' + (result.verification_link || 'N/A'));
+            location.reload();
+        } else {
+            alert('TRA posting failed: ' + (result.error || 'Unknown error'));
+        }
+    } catch (e) {
+        alert('Error: ' + e.message);
+    }
+}
+</script>
 @endsection

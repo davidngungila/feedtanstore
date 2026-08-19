@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Sale;
+use App\Models\StoreSetting;
+use App\Services\TraVfdService;
 use Dompdf\Dompdf;
 use Illuminate\Http\Request;
 
@@ -78,5 +80,63 @@ class ReceiptController extends Controller {
         $qrCodeBase64 = 'data:image/svg+xml;base64,' . base64_encode($qrCodeSvg);
         
         return view('sales.receipt-print', compact('sale', 'qrCodeBase64'));
+    }
+
+    /**
+     * Print EFD receipt for a sale
+     */
+    public function efdPrint($id) {
+        $sale = Sale::withTrashed()->findOrFail($id);
+        $sale->load(['customer', 'user', 'items.product']);
+
+        $settings = StoreSetting::first();
+
+        // Calculate VAT amount
+        $vatAmount = 0;
+        if ($settings->tax_enabled) {
+            $taxRate = $settings->tax_rate ?? 18;
+            $totalInclVat = $sale->total ?? 0;
+            $totalExclVat = $totalInclVat / (1 + ($taxRate / 100));
+            $vatAmount = $totalInclVat - $totalExclVat;
+        }
+
+        // Use TRA verification link and QR if posted
+        $verificationLink = $sale->tra_verification_link ?? '';
+        $qrCode = $sale->tra_qr_code ?? '';
+
+        // If not posted to TRA yet, generate a local QR code
+        if (empty($qrCode) && empty($verificationLink)) {
+            $qrCodeSvg = \QrCode::size(120)->generate(route('sales.receipts.verify', $sale));
+            $qrCode = 'data:image/svg+xml;base64,' . base64_encode($qrCodeSvg);
+        }
+
+        return view('salesefd-receipt-print', compact('sale', 'settings', 'vatAmount', 'verificationLink', 'qrCode'));
+    }
+
+    /**
+     * Post receipt to TRA and return result
+     */
+    public function postToTra(Request $request) {
+        $saleId = $request->input('sale_id');
+        $sale = Sale::withTrashed()->findOrFail($saleId);
+        $sale->load(['customer', 'user', 'items.product']);
+
+        $traService = new TraVfdService();
+        $result = $traService->postReceipt($sale);
+
+        return response()->json($result);
+    }
+
+    /**
+     * Generate XML preview for a sale (for debugging)
+     */
+    public function traXmlPreview($id) {
+        $sale = Sale::withTrashed()->findOrFail($id);
+        $sale->load(['customer', 'user', 'items.product']);
+
+        $traService = new TraVfdService();
+        $xml = $traService->buildXml($sale);
+
+        return response($xml)->header('Content-Type', 'text/xml');
     }
 }

@@ -280,7 +280,10 @@
             </div>
             <div class="flex flex-col sm:flex-row gap-3">
                 <button onclick="printReceipt()" class="flex-1 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold text-lg">
-                    <i class="fas fa-print mr-2"></i>Print Receipt
+                    <i class="fas fa-print mr-2"></i>Invoice
+                </button>
+                <button onclick="printEfdReceipt()" class="flex-1 py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl font-semibold text-lg">
+                    <i class="fas fa-receipt mr-2"></i>EFD Receipt
                 </button>
                 <button onclick="newSale()" class="flex-1 py-3 bg-primary-600 hover:bg-primary-700 text-white rounded-xl font-semibold text-lg">
                     <i class="fas fa-plus mr-2"></i>New Sale
@@ -1679,6 +1682,8 @@ function completeSale() {
                                 // Auto-print receipt after showing success modal
                                 setTimeout(() => {
                                     if (currentSaleId) {
+                                        // Post to TRA and auto-print invoice
+                                        postToTra(currentSaleId);
                                         printReceipt();
                                     }
                                 }, 1000);
@@ -1730,6 +1735,63 @@ function printReceipt() {
                 }, 500);
             }, 500);
         };
+    }
+}
+
+function printEfdReceipt() {
+    if (currentSaleId) {
+        const wasFullscreen = !!document.fullscreenElement;
+        
+        // First post to TRA, then print EFD receipt
+        postToTra(currentSaleId).then(() => {
+            const iframe = document.createElement('iframe');
+            iframe.style.position = 'fixed';
+            iframe.style.right = '0';
+            iframe.style.bottom = '0';
+            iframe.style.width = '0';
+            iframe.style.height = '0';
+            iframe.style.border = '0';
+            iframe.src = '/sales/receipts/' + currentSaleId + '/efd-print';
+            document.body.appendChild(iframe);
+            
+            iframe.onload = function() {
+                setTimeout(() => {
+                    iframe.contentWindow.print();
+                    setTimeout(() => {
+                        document.body.removeChild(iframe);
+                        if (wasFullscreen && !document.fullscreenElement) {
+                            document.documentElement.requestFullscreen().catch(err => {
+                                console.log('Failed to re-enter fullscreen:', err);
+                            });
+                        }
+                    }, 500);
+                }, 500);
+            };
+        });
+    }
+}
+
+async function postToTra(saleId) {
+    try {
+        const response = await fetch('/receipts/post-to-tra', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                'Accept': 'application/json',
+            },
+            body: JSON.stringify({ sale_id: saleId })
+        });
+        const result = await response.json();
+        if (result.success) {
+            console.log('TRA posting successful:', result);
+        } else {
+            console.warn('TRA posting failed:', result.error);
+        }
+        return result;
+    } catch (e) {
+        console.error('TRA posting error:', e);
+        return { success: false, error: e.message };
     }
 }
 
