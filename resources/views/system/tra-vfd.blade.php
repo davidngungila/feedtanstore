@@ -146,11 +146,11 @@ async function testTraConnection() {
     resultContent.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Testing connection to TRA VFD API...';
     
     try {
-        // First save the settings
+        // First save the settings via the correct update route
         const form = document.querySelector('form');
         const formData = new FormData(form);
         
-        const response = await fetch('{{ route("system.tra-vfd") }}', {
+        await fetch('{{ route("system.update") }}', {
             method: 'POST',
             body: formData,
             headers: {
@@ -158,7 +158,7 @@ async function testTraConnection() {
             }
         });
         
-        // Then test by posting to a test endpoint
+        // Then test by posting to TRA
         const testResponse = await fetch('/sales/receipts/post-to-tra', {
             method: 'POST',
             headers: {
