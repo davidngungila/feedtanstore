@@ -69,7 +69,7 @@
             @if($sale->tra_receipt_number)
             <div>
                 <p class="text-sm text-gray-500 mb-1">TRA Receipt #</p>
-                <p class="font-medium">{{ $sale->tra_receipt_number }}</p>
+                <p class="font-medium">{{ $sale->tra_receipt_number ?: $sale->invoice_number }}</p>
             </div>
             @endif
             @if($sale->tra_verification_link)

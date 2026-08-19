@@ -244,7 +244,16 @@ class TraVfdService
                 $isDuplicate = ($commandCode == '59');
                 $verificationLink = $result['verification_link'] ?? '';
                 $qrCode = $result['qr_code'] ?? '';
-                $receiptNumber = $result['receipt_number'] ?? $sale->invoice_number;
+                $receiptNumber = $result['receipt_number'] ?? '';
+
+                // If receipt number not in response, extract from verification link
+                if (empty($receiptNumber) && !empty($verificationLink)) {
+                    $parts = explode('/', rtrim($verificationLink, '/'));
+                    $receiptNumber = end($parts) ?: $sale->invoice_number;
+                }
+                if (empty($receiptNumber)) {
+                    $receiptNumber = $sale->invoice_number;
+                }
 
                 // Save TRA response to sale
                 $sale->update([

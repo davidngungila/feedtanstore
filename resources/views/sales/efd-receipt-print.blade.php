@@ -239,7 +239,7 @@
         </div>
         
         <div class="details">
-            <p><span class="label">Receipt #:</span> <span class="value">{{ $sale->tra_receipt_number ?? $sale->invoice_number }}</span></p>
+            <p><span class="label">Receipt #:</span> <span class="value">{{ $sale->tra_receipt_number ?: $sale->invoice_number }}</span></p>
             <p><span class="label">Invoice #:</span> <span class="value">{{ $sale->invoice_number }}</span></p>
             <p><span class="label">Date:</span> <span class="value">{{ $sale->created_at->format('d/m/Y H:i') }}</span></p>
             <p><span class="label">Customer:</span> <span class="value">{{ $sale->customer->name ?? 'Walk-in Customer' }}</span></p>
