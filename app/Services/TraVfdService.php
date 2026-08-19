@@ -124,6 +124,7 @@ class TraVfdService
         $ccard = '0.00';
         $emoney = '0.00';
         $invoice = '0.00';
+        $gc = '0.00';
 
         switch ($sale->payment_method ?? 'cash') {
             case 'cash':
@@ -138,6 +139,9 @@ class TraVfdService
                 break;
             case 'credit':
                 $invoice = $grossAmt;
+                break;
+            case 'gc':
+                $gc = $grossAmt;
                 break;
             default:
                 $cash = $grossAmt;
@@ -162,6 +166,7 @@ class TraVfdService
             . "<CHEQUE>{$cheque}</CHEQUE>"
             . "<CCARD>{$ccard}</CCARD>"
             . "<EMONEY>{$emoney}</EMONEY>"
+            . "<GC>{$gc}</GC>"
             . "<INVOICE>{$invoice}</INVOICE>"
             . "<DateTime>{$dateTime}</DateTime>";
 
