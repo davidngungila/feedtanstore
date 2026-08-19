@@ -687,7 +687,7 @@ function printEfdReceipt() {
 
 async function postToTra(saleId) {
     try {
-        const response = await fetch('/receipts/post-to-tra', {
+        const response = await fetch('/sales/receipts/post-to-tra', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

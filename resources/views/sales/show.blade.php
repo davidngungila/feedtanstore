@@ -21,7 +21,7 @@
                 <a href="{{ route('sales.receipts.print', $sale) }}" target="_blank" class="px-4 py-2 border border-gray-300 rounded-lg flex items-center">
                     <i class="fas fa-print mr-2"></i>Print
                 </a>
-                <a href="{{ route('sales.receiptsefd-print', $sale) }}" target="_blank" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center">
+                <a href="{{ route('sales.receipts.efd-print', $sale) }}" target="_blank" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center">
                     <i class="fas fa-receipt mr-2"></i>EFD Receipt
                 </a>
                 <button onclick="postSaleToTra({{ $sale->id }})" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center">
@@ -145,7 +145,7 @@ async function postSaleToTra(saleId) {
     if (!confirm('Post this receipt to TRA?')) return;
     
     try {
-        const response = await fetch('/receipts/post-to-tra', {
+        const response = await fetch('/sales/receipts/post-to-tra', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

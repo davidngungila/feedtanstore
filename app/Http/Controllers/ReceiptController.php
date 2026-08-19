@@ -110,7 +110,7 @@ class ReceiptController extends Controller {
             $qrCode = 'data:image/svg+xml;base64,' . base64_encode($qrCodeSvg);
         }
 
-        return view('salesefd-receipt-print', compact('sale', 'settings', 'vatAmount', 'verificationLink', 'qrCode'));
+        return view('sales.efd-receipt-print', compact('sale', 'settings', 'vatAmount', 'verificationLink', 'qrCode'));
     }
 
     /**

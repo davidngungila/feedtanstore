@@ -22,7 +22,7 @@ Route::get('/', [\App\Http\Controllers\OnlineOrderController::class, 'shop'])->n
 // Public verify route
 Route::get('/sales/receipts/{sale}/verify', [\App\Http\Controllers\ReceiptController::class, 'verify'])->name('sales.receipts.verify');
 Route::get('/sales/receipts/{sale}/download', [\App\Http\Controllers\ReceiptController::class, 'download'])->name('sales.receipts.download');
-Route::get('/sales/receipts/{sale}/efd-print', [\App\Http\Controllers\ReceiptController::class, 'efdPrint'])->name('sales.receiptsefd-print');
+Route::get('/sales/receipts/{sale}/efd-print', [\App\Http\Controllers\ReceiptController::class, 'efdPrint'])->name('sales.receipts.efd-print');
 
 // Public Shop Routes
 Route::get('/sitemap.xml', function (\Illuminate\Http\Request $request) {

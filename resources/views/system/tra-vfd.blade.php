@@ -159,7 +159,7 @@ async function testTraConnection() {
         });
         
         // Then test by posting to a test endpoint
-        const testResponse = await fetch('/receipts/post-to-tra', {
+        const testResponse = await fetch('/sales/receipts/post-to-tra', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -185,7 +185,7 @@ async function testTraConnection() {
 }
 
 function previewXml() {
-    window.open('/receipts/1/tra-xml', '_blank');
+    window.open('/sales/receipts/1/tra-xml', '_blank');
 }
 </script>
 @endsection
