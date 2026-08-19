@@ -301,7 +301,7 @@
         </div>
         @endif
         
-        @if(!empty($verificationLink))
+        @if($sale->tra_status == 'posted')
         <div class="fiscal-info">
             EFD fiscal receipt - Posted to TRA
         </div>

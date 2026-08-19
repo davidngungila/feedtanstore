@@ -229,6 +229,14 @@ class TraVfdService
             // Parse XML response
             $result = $this->parseResponse($body);
 
+            Log::info('TRA VFD Parsed Response', [
+                'command_code' => $result['command_code'],
+                'verification_link' => $result['verification_link'],
+                'qr_code' => $result['qr_code'],
+                'receipt_number' => $result['receipt_number'],
+                'raw_body' => $body,
+            ]);
+
             $commandCode = $result['command_code'];
 
             // 502 = Success, 59 = Duplicate (already posted - still success)
@@ -290,52 +298,68 @@ class TraVfdService
         ];
 
         try {
-            // Remove any BOM or whitespace before XML
             $xml = trim($xml, "\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0A\x0B\x0C\x0D\x0E\x0F\x20");
             
-            // Try to parse as XML
             libxml_use_internal_errors(true);
             $doc = new \DOMDocument();
             $doc->loadXML($xml);
             libxml_clear_errors();
 
-            // Get Command_Code
             $commandCodeNodes = $doc->getElementsByTagName('Command_Code');
             if ($commandCodeNodes->length > 0) {
                 $result['command_code'] = $commandCodeNodes->item(0)->nodeValue;
             }
 
-            // Get Verification Link (may be in different tags depending on API version)
-            $linkNodes = $doc->getElementsByTagName('VerificationLink');
-            if ($linkNodes->length > 0) {
-                $result['verification_link'] = $linkNodes->item(0)->nodeValue;
-            } else {
-                // Try alternate tag name
-                $linkNodes = $doc->getElementsByTagName('Link');
-                if ($linkNodes->length > 0) {
-                    $result['verification_link'] = $linkNodes->item(0)->nodeValue;
+            // Try multiple tag names for verification link
+            foreach (['VerificationLink', 'Link', 'VerLink', 'verificationlink', 'VerifyLink'] as $tag) {
+                $nodes = $doc->getElementsByTagName($tag);
+                if ($nodes->length > 0 && !empty(trim($nodes->item(0)->nodeValue))) {
+                    $result['verification_link'] = trim($nodes->item(0)->nodeValue);
+                    break;
                 }
             }
 
-            // Get QR Code URL
-            $qrNodes = $doc->getElementsByTagName('QRCode');
-            if ($qrNodes->length > 0) {
-                $result['qr_code'] = $qrNodes->item(0)->nodeValue;
-            } else {
-                $qrNodes = $doc->getElementsByTagName('QR');
-                if ($qrNodes->length > 0) {
-                    $result['qr_code'] = $qrNodes->item(0)->nodeValue;
+            // Try multiple tag names for QR code
+            foreach (['QRCode', 'QR', 'qr', 'qrcode', 'QRUrl'] as $tag) {
+                $nodes = $doc->getElementsByTagName($tag);
+                if ($nodes->length > 0 && !empty(trim($nodes->item(0)->nodeValue))) {
+                    $result['qr_code'] = trim($nodes->item(0)->nodeValue);
+                    break;
                 }
             }
 
-            // Get Receipt Number
-            $receiptNodes = $doc->getElementsByTagName('ReceiptNum');
-            if ($receiptNodes->length > 0) {
-                $result['receipt_number'] = $receiptNodes->item(0)->nodeValue;
+            // Try multiple tag names for receipt number
+            foreach (['ReceiptNum', 'ReceiptNo', 'ReceiptNumber', 'receiptnum', 'RctNum'] as $tag) {
+                $nodes = $doc->getElementsByTagName($tag);
+                if ($nodes->length > 0 && !empty(trim($nodes->item(0)->nodeValue))) {
+                    $result['receipt_number'] = trim($nodes->item(0)->nodeValue);
+                    break;
+                }
+            }
+
+            // Regex fallback if XML parsing failed or tags not found
+            if (empty($result['command_code'])) {
+                if (preg_match('/<Command_Code>(\d+)<\/Command_Code>/', $xml, $m)) {
+                    $result['command_code'] = $m[1];
+                }
+            }
+            if (empty($result['verification_link'])) {
+                if (preg_match('/<(?:VerificationLink|Link|VerLink)>([^<]+)<\/(?:VerificationLink|Link|VerLink)>/i', $xml, $m)) {
+                    $result['verification_link'] = trim($m[1]);
+                }
+            }
+            if (empty($result['qr_code'])) {
+                if (preg_match('/<(?:QRCode|QR|qr)>([^<]+)<\/(?:QRCode|QR|qr)>/i', $xml, $m)) {
+                    $result['qr_code'] = trim($m[1]);
+                }
+            }
+            if (empty($result['receipt_number'])) {
+                if (preg_match('/<(?:ReceiptNum|ReceiptNo|ReceiptNumber|RctNum)>([^<]+)<\/(?:ReceiptNum|ReceiptNo|ReceiptNumber|RctNum)>/i', $xml, $m)) {
+                    $result['receipt_number'] = trim($m[1]);
+                }
             }
         } catch (\Exception $e) {
             Log::error('TRA VFD XML Parse Error', ['error' => $e->getMessage()]);
-            // If XML parsing fails, try to extract command code with regex
             if (preg_match('/<Command_Code>(\d+)<\/Command_Code>/', $xml, $matches)) {
                 $result['command_code'] = $matches[1];
             }
