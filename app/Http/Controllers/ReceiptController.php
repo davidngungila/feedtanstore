@@ -104,9 +104,9 @@ class ReceiptController extends Controller {
         $verificationLink = $sale->tra_verification_link ?? '';
         $qrCode = $sale->tra_qr_code ?? '';
 
-        // If not posted to TRA yet, generate a local QR code
-        if (empty($qrCode) && empty($verificationLink)) {
-            $qrCodeSvg = \QrCode::size(120)->generate(route('sales.receipts.verify', $sale));
+        // If TRA verification link exists but no QR image, generate QR from the link
+        if (!empty($verificationLink) && empty($qrCode)) {
+            $qrCodeSvg = \QrCode::size(120)->generate($verificationLink);
             $qrCode = 'data:image/svg+xml;base64,' . base64_encode($qrCodeSvg);
         }
 

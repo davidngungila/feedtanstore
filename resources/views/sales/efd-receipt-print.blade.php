@@ -291,8 +291,6 @@
         <div class="qr-code">
             @if(!empty($qrCode))
                 <img src="{{ $qrCode }}" alt="TRA QR Code" style="max-width: 120px; height: auto;">
-            @elseif(!empty($verificationLink))
-                <img src="https://api.qrserver.com/v1/create-qr-code/?size=120x120&data={{ urlencode($verificationLink) }}" alt="TRA QR Code" style="max-width: 120px; height: auto;">
             @endif
             @if(!empty($verificationLink))
                 <div class="verification-link">
@@ -303,9 +301,15 @@
         </div>
         @endif
         
+        @if(!empty($verificationLink))
         <div class="fiscal-info">
             EFD fiscal receipt - Posted to TRA
         </div>
+        @else
+        <div class="fiscal-info" style="border-color: #cc0000; color: #cc000;">
+            NOT YET POSTED TO TRA - Post via Sales Details
+        </div>
+        @endif
         
         <div class="footer">
             <p>Thank you for your purchase!</p>
