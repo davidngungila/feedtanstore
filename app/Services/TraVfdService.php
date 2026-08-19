@@ -143,11 +143,6 @@ class TraVfdService
                 $cash = $grossAmt;
         }
 
-        // Fiscal counters from store_settings
-        $gc = (int) ($settings->tra_gc ?? 1);
-        $dc = (int) ($settings->tra_dc ?? 1);
-        $znum = $settings->tra_znum ?? date('Ymd');
-
         // Date/time in East Africa timezone (EAT = UTC+3)
         $dateTime = now('Africa/Nairobi')->format('Y/m/d H:i:s');
 
@@ -160,9 +155,6 @@ class TraVfdService
             . "<cusname>{$cusName}</cusname>"
             . "<custTIN>{$custTIN}</custTIN>"
             . "<custVRN>{$custVRN}</custVRN>"
-            . "<RCNUM>{$gc}</RCNUM>"
-            . "<DC>{$dc}</DC>"
-            . "<ZNUM>{$znum}</ZNUM>"
             . "<permitNum>{$permitNum}</permitNum>"
             . "<vatAmt>{$vatAmt}</vatAmt>"
             . "<grossAmt>{$grossAmt}</grossAmt>"
@@ -412,6 +404,7 @@ class TraVfdService
             '116' => 'Items amount summation does not match with the Provided Total Amount',
             '117' => 'Invalid Tax Code',
             '59' => 'Duplicate - Receipt/Invoice number has been signed already',
+            '438' => 'Invalid RCNUM/DC/ZNUM - These fields are not supported by this TRA endpoint',
             '555' => 'Incorrect XML format',
         ];
 
