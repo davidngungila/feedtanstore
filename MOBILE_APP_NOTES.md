@@ -119,7 +119,7 @@ first rider to accept takes **all** orders in the batch.
 
 | Method | Endpoint | Notes |
 |--------|----------|-------|
-| GET    | `/rider/dispatch-batches` | Pending batches not yet responded to / not taken; each includes `order_count`, `total_amount`, `order_numbers` and nested `orders` (with `items`, `customer`) |
+| GET    | `/rider/dispatch-batches` | Pending batches not yet responded to / not taken; each includes `batch_number`, `order_count`, `total_amount`, `order_numbers` and nested `orders` (with `items`, `customer`) |
 | POST   | `/rider/dispatch-batches/{id}/accept` | First-accept wins; assigns every pending order, sets each to `out_for_delivery`, starts a tracking session per order |
 | POST   | `/rider/dispatch-batches/{id}/decline` | Stays visible to other riders |
 
@@ -127,7 +127,8 @@ Accept response `200`:
 ```json
 {
   "message": "Dispatch batch accepted. 3 orders assigned to you.",
-  "batch": { "id": 3, "status": "accepted", "order_count": 3 },
+  "batch_id": 3,
+  "batch_number": "BTCH-20260820-0001",
   "order_count": 3,
   "order_ids": [108, 109, 110],
   "order_numbers": ["ORD-BULK-001", "ORD-BULK-002", "ORD-BULK-003"],

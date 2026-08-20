@@ -886,6 +886,7 @@ rider are returned. Each batch includes its orders (with `items` and `customer`)
 [
   {
     "id": 3,
+    "batch_number": "BTCH-20260820-0001",
     "status": "pending",
     "target_rider_id": null,
     "accepted_rider_id": null,
@@ -936,7 +937,8 @@ the batch is marked accepted:
 ```json
 {
   "message": "Dispatch batch accepted. 3 orders assigned to you.",
-  "batch": { "id": 3, "status": "accepted", "order_count": 3 },
+  "batch_id": 3,
+  "batch_number": "BTCH-20260820-0001",
   "order_count": 3,
   "order_ids": [108, 109, 110],
   "order_numbers": ["ORD-BULK-001", "ORD-BULK-002", "ORD-BULK-003"],
@@ -1002,22 +1004,27 @@ class DispatchBatchOrder {
 
 class DispatchBatch {
   final int id;
+  final String batchNumber;
   final String status;
   final int? targetRiderId;
   final DateTime expiresAt;
   final String? notes;
   final int orderCount;
   final double totalAmount;
+  final List<String> orderNumbers;
   final List<DispatchBatchOrder> orders;
 
   DispatchBatch.fromJson(Map<String, dynamic> j)
       : id = j['id'],
+        batchNumber = j['batch_number'] ?? '',
         status = j['status'],
         targetRiderId = j['target_rider_id'],
         expiresAt = DateTime.parse(j['expires_at']),
         notes = j['notes'],
         orderCount = j['order_count'] ?? (j['orders'] as List? ?? []).length,
         totalAmount = (j['total_amount'] ?? 0).toDouble(),
+        orderNumbers = (j['order_numbers'] as List? ?? [])
+            .map((e) => e.toString()).toList(),
         orders = (j['orders'] as List? ?? [])
             .map((e) => DispatchBatchOrder.fromJson(e)).toList();
 }

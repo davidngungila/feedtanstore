@@ -195,6 +195,7 @@ class DispatchRequestController extends Controller
 
             return [
                 'id' => $batch->id,
+                'batch_number' => $batch->batch_number,
                 'status' => $batch->status,
                 'target_rider_id' => $batch->target_rider_id,
                 'notes' => $batch->notes,
@@ -202,6 +203,7 @@ class DispatchRequestController extends Controller
                 'created_at' => $batch->created_at,
                 'order_count' => $orders->count(),
                 'total_amount' => $orders->sum(fn ($o) => (float) $o->total),
+                'order_numbers' => $orders->pluck('order_number'),
                 'orders' => $orders,
             ];
         })->values());
@@ -315,9 +317,11 @@ class DispatchRequestController extends Controller
             return response()->json([
                 'message' => 'Dispatch batch accepted. '.count($assigned).' order(s) assigned to you.',
                 'batch_id' => $batch->id,
+                'batch_number' => $batch->batch_number,
                 'order_count' => count($assigned),
                 'skipped_order_ids' => $skipped,
                 'order_ids' => collect($assigned)->pluck('id'),
+                'order_numbers' => collect($assigned)->pluck('order_number'),
                 'orders' => $assigned,
                 'tracking_session_ids' => collect($sessions)->pluck('id'),
             ]);

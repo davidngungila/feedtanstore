@@ -1022,6 +1022,41 @@ OR
 }
 ```
 
+### DispatchBatch Model
+```json
+{
+  "id": "integer",
+  "batch_number": "string (format: BTCH-YYYYMMDD-0001)",
+  "status": "string (pending|accepted|cancelled)",
+  "target_rider_id": "integer|null",
+  "accepted_rider_id": "integer|null",
+  "accepted_at": "datetime|null",
+  "expires_at": "datetime|null",
+  "notes": "string|null",
+  "order_count": "integer",
+  "total_amount": "float",
+  "order_numbers": "array of strings",
+  "orders": "array of OnlineOrder",
+  "created_at": "datetime",
+  "updated_at": "datetime"
+}
+```
+
+### DispatchBatchAcceptResponse Model
+```json
+{
+  "message": "string",
+  "batch_id": "integer",
+  "batch_number": "string (format: BTCH-YYYYMMDD-0001)",
+  "order_count": "integer",
+  "order_ids": "array of integers",
+  "order_numbers": "array of strings",
+  "tracking_session_ids": "array of integers",
+  "skipped_order_ids": "array of integers",
+  "orders": "array of OnlineOrder"
+}
+```
+
 ---
 
 ## Flutter Implementation Example

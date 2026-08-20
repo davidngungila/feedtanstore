@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 class RiderDispatchBatch extends Model
 {
     protected $fillable = [
+        'batch_number',
         'status',
         'created_by',
         'target_rider_id',
@@ -23,6 +24,35 @@ class RiderDispatchBatch extends Model
         'accepted_at' => 'datetime',
         'expires_at' => 'datetime',
     ];
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($batch) {
+            if (empty($batch->batch_number)) {
+                $batch->batch_number = static::generateBatchNumber();
+            }
+        });
+    }
+
+    public static function generateBatchNumber(): string
+    {
+        $date = now()->format('Ymd');
+        $prefix = "BTCH-{$date}-";
+
+        $lastBatch = static::where('batch_number', 'like', "{$prefix}%")
+            ->orderBy('id', 'desc')
+            ->first();
+
+        $sequence = 1;
+        if ($lastBatch) {
+            $lastSequence = (int) substr($lastBatch->batch_number, -4);
+            $sequence = $lastSequence + 1;
+        }
+
+        return $prefix . str_pad($sequence, 4, '0', STR_PAD_LEFT);
+    }
 
     public function requests(): HasMany
     {
