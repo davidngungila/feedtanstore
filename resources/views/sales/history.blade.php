@@ -74,6 +74,9 @@
                             <a href="{{ route('sales.receipts.print', $sale) }}" class="text-primary-600 hover:text-primary-800" title="Print" target="_blank">
                                 <i class="fas fa-print"></i>
                             </a>
+                            <a href="{{ route('sales.receipts.efd-print', $sale) }}" class="text-blue-600 hover:text-blue-800" title="Print EFD" target="_blank">
+                                <i class="fas fa-file-invoice"></i>
+                            </a>
 
                             @if($sale->status == 'completed')
                             <a href="{{ route('sales.returns') }}?sale={{ $sale->id }}" class="text-yellow-600 hover:text-yellow-800" title="Return">
