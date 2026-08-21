@@ -38,11 +38,29 @@ class TraVfdService
     /**
      * Map product tax_code to TRA tax code
      * 1-18%(Standard Rated), 3-0%(Zero rated), 4-0%(Special Relief), 5-0%(Exempted)
+     * C-0%(Non-VAT Registered Seller)
      */
     private function getTraTaxCode(int $productTaxCode): int
     {
         $validCodes = [1, 3, 4, 5];
         return in_array($productTaxCode, $validCodes) ? $productTaxCode : 1;
+    }
+
+    /**
+     * Get the appropriate TRA tax code based on seller's VAT registration status
+     * Returns 'C' (0%) for non-VAT registered sellers, otherwise uses product tax code
+     */
+    private function getEffectiveTaxCode(int $productTaxCode): string
+    {
+        // Check if seller (store) is VAT registered
+        $isVatRegistered = (bool) ($this->settings->vat_registered ?? false);
+
+        if (!$isVatRegistered) {
+            return 'C'; // Non-VAT registered seller uses tax code C (0%)
+        }
+
+        $validCodes = [1, 3, 4, 5];
+        return in_array($productTaxCode, $validCodes) ? (string) $productTaxCode : '1';
     }
 
     /**
@@ -62,7 +80,10 @@ class TraVfdService
         $settings = $this->settings;
         $items = $sale->items()->with('product')->get();
 
-        // Default to 18% if tax_rate is 0 or null
+        // Check if seller (store) is VAT registered
+        $isVatRegistered = (bool) ($settings->vat_registered ?? false);
+
+        // Get tax rate from settings (default 18%)
         $taxPercent = (int) ($settings->tax_rate ?? 18);
         if ($taxPercent <= 0) {
             $taxPercent = 18;
@@ -78,7 +99,8 @@ class TraVfdService
 
         foreach ($items as $item) {
             $product = $item->product;
-            $taxCode = $this->getTraTaxCode((int) ($product->tax_code ?? 1));
+            $productTaxCode = (int) ($product->tax_code ?? 1);
+            $taxCode = $this->getEffectiveTaxCode($productTaxCode);
             $desc = $this->escapeXml($product->name ?? 'Item');
             $qty = (int) $item->quantity;
 
@@ -87,11 +109,13 @@ class TraVfdService
             $amt = round((float) $item->total, 2);
 
             // Extract VAT from inclusive amount using TRA formula
-            // VAT = AMT * 18 / 118
+            // For non-VAT registered sellers (tax code C), VAT rate is 0%
+            // For VAT registered sellers with standard rated goods (tax code 1), VAT = AMT * rate / (100 + rate)
             $itemVat = 0.00;
-            if ($taxCode == 1) {
+            if ($taxCode === '1') {
                 $itemVat = round($amt * $taxPercent / (100 + $taxPercent), 2);
             }
+            // For tax codes 3, 4, 5 (zero rated, special relief, exempted) and C (non-VAT registered), VAT is 0
 
             $totalVatAmt += $itemVat;
             $totalGrossAmt += $amt;

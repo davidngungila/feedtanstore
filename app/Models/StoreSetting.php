@@ -27,6 +27,8 @@ class StoreSetting extends Model
         'tra_tin_number',
         'tra_vfd_serial',
         'tra_licence',
+        'vrn_number',
+        'vat_registered',
         'tra_gc',
         'tra_dc',
         'tra_znum',
@@ -107,6 +109,7 @@ class StoreSetting extends Model
         'delivery_zone_config' => 'array',
         'sitemap_search_engine_status' => 'array',
         'sitemap_last_generated_at' => 'datetime',
+        'vat_registered' => 'boolean',
     ];
 
     /**
