@@ -134,21 +134,6 @@
                 <span class="text-gray-600">Subtotal:</span>
                 <span>TZS {{ number_format($sale->subtotal, 2) }}</span>
             </div>
-            @php
-                $totalVat = 0;
-                foreach ($sale->items as $item) {
-                    $tc = (int) ($item->product->tax_code ?? 1);
-                    if ($tc == 1) {
-                        $totalVat += round((float) $item->total * 18 / 118, 2);
-                    }
-                }
-            @endphp
-            @if($totalVat > 0)
-            <div class="flex justify-between w-72">
-                <span class="text-gray-600">VAT (18%):</span>
-                <span>TZS {{ number_format($totalVat, 2) }}</span>
-            </div>
-            @endif
             @if($sale->discount > 0)
             <div class="flex justify-between w-72 text-red-600">
                 <span>Discount:</span>

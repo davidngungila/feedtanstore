@@ -336,11 +336,11 @@
         <!-- ===== TAX SUMMARY (compact) ===== -->
         <div class="tax-summary">
             <span class="label">Receipt Verification</span><span class="value">{{ $sale->tra_verification_code ?? '-' }}</span>
-            <span class="label">TOTAL TAX</span><span class="value">{{ number_format($vatAmount, 2) }}</span>
-            <span class="label">Exclusive of Tax</span><span class="value">{{ number_format($sale->subtotal - $vatAmount, 2) }}</span>
+            <span class="label">TOTAL TAX</span><span class="value">0.00</span>
+            <span class="label">Exclusive of Tax</span><span class="value">{{ number_format($sale->subtotal, 2) }}</span>
             <span class="label">DISCOUNT</span><span class="value">{{ number_format($sale->discount, 2) }}</span>
             <span class="label">Inclusive of Tax</span><span class="value">{{ number_format($sale->total, 2) }}</span>
-            <span class="label">Tax Rate EX 0%</span><span class="value">{{ number_format($vatAmount, 2) }}</span>
+            <span class="label">Tax Rate EX 0%</span><span class="value">0.00</span>
         </div>
 
         <!-- ===== QR CODE ===== -->

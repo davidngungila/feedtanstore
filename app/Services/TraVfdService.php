@@ -79,18 +79,10 @@ class TraVfdService
         $settings = $this->settings;
         $items = $sale->items()->with('product')->get();
 
-        // Check if seller (store) is VAT registered
-        $isVatRegistered = (bool) ($settings->vat_registered ?? false);
+        // Store is NOT VAT registered - always use 0% VAT (tax code 5 = Exempted)
+        // VAT is never calculated or charged
 
-        // Get tax rate from settings (default 18%)
-        $taxPercent = (int) ($settings->tax_rate ?? 18);
-        if ($taxPercent <= 0) {
-            $taxPercent = 18;
-        }
-
-        // Build items XML and calculate per-item VAT
-        // Selling prices are VAT-inclusive. TRA expects VAT-inclusive amounts
-        // in <PRICE> and <AMT>. VAT is extracted: AMT * rate / (100 + rate)
+        // Build items XML - VAT is always 0
         $itemsXml = '';
         $itemIndex = 1;
         $totalVatAmt = 0.00;
@@ -98,29 +90,24 @@ class TraVfdService
 
         foreach ($items as $item) {
             $product = $item->product;
-            $productTaxCode = (int) ($product->tax_code ?? 1);
-            $taxCode = $this->getEffectiveTaxCode($productTaxCode);
             $desc = $this->escapeXml($product->name ?? 'Item');
             $qty = (int) $item->quantity;
 
-            // Selling prices are already VAT-inclusive, use as-is
+            // Selling prices are VAT-inclusive (but VAT = 0 since not registered)
             $price = round((float) $item->unit_price, 2);
             $amt = round((float) $item->total, 2);
 
-            // Extract VAT from inclusive amount using TRA formula
-            // For non-VAT registered sellers (tax code C), VAT rate is 0%
-            // For VAT registered sellers with standard rated goods (tax code 1), VAT = AMT * rate / (100 + rate)
+            // VAT is always 0 for non-VAT registered seller
             $itemVat = 0.00;
-            if ($taxCode === '1') {
-                $itemVat = round($amt * $taxPercent / (100 + $taxPercent), 2);
-            }
-            // For tax codes 3, 4, 5 (zero rated, special relief, exempted) and C (non-VAT registered), VAT is 0
 
             $totalVatAmt += $itemVat;
             $totalGrossAmt += $amt;
 
             $priceStr = number_format($price, 2, '.', '');
             $amtStr = number_format($amt, 2, '.', '');
+
+            // Use tax code 5 (Exempted) for all items since not VAT registered
+            $taxCode = '5';
 
             $itemsXml .= "<ITEM><ID>{$itemIndex}</ID><DESC>{$desc}</DESC><QTY>{$qty}</QTY><TAXCODE>{$taxCode}</TAXCODE><PRICE>{$priceStr}</PRICE><AMT>{$amtStr}</AMT></ITEM>";
             $itemIndex++;

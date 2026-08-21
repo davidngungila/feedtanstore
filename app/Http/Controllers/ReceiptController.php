@@ -89,34 +89,8 @@ class ReceiptController extends Controller {
         $sale = Sale::withTrashed()->findOrFail($id);
         $sale->load(['customer', 'user', 'items.product']);
 
-        $settings = StoreSetting::first();
-        $taxPercent = (int) ($settings->tax_rate ?? 18);
-        if ($taxPercent <= 0) $taxPercent = 18;
-
-        // Check if seller (store) is VAT registered
-        $isVatRegistered = (bool) ($settings->vat_registered ?? false);
-
-        // Calculate per-item VAT (inclusive extraction)
-        // For non-VAT registered sellers, VAT is 0% (tax code 5 - Exempted)
+        // Store is NOT VAT registered - VAT is always 0
         $vatAmount = 0;
-        foreach ($sale->items as $item) {
-            $productTaxCode = (int) ($item->product->tax_code ?? 1);
-            
-            // Determine effective tax code based on VAT registration
-            if (!$isVatRegistered) {
-                $taxCode = '5'; // Non-VAT registered seller uses tax code 5 (Exempted - 0%)
-            } else {
-                $validCodes = [1, 3, 4, 5];
-                $taxCode = in_array($productTaxCode, $validCodes) ? (string) $productTaxCode : '1';
-            }
-            
-            $amt = round((float) $item->total, 2);
-            if ($taxCode === '1') {
-                $vatAmount += round($amt * $taxPercent / (100 + $taxPercent), 2);
-            }
-            // For tax codes 3, 4, 5 (zero rated, special relief, exempted), VAT is 0
-        }
-        $vatAmount = round($vatAmount, 2);
 
         $verificationLink = $sale->tra_verification_link ?? '';
         $qrCode = $sale->tra_qr_code ?? '';
