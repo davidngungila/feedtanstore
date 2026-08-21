@@ -690,9 +690,15 @@ function printEfdReceipt() {
 }
 
 async function postToTra(saleId) {
-    // Show confirmation dialog before posting to TRA
-    const confirmed = confirm('Are you sure you want to post this sale to TRA?');
-    if (!confirmed) {
+    // First confirmation dialog
+    const firstConfirmed = confirm('Are you sure you want to post this sale to TRA?');
+    if (!firstConfirmed) {
+        return { success: false, error: 'TRA posting cancelled by user' };
+    }
+
+    // Second confirmation dialog
+    const secondConfirmed = confirm('Are you REALLY sure you want to post this sale to TRA? This action cannot be undone.');
+    if (!secondConfirmed) {
         return { success: false, error: 'TRA posting cancelled by user' };
     }
 
