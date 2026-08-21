@@ -1740,54 +1740,99 @@ function printReceipt() {
 
 function printEfdReceipt() {
     if (currentSaleId) {
-        const wasFullscreen = !!document.fullscreenElement;
-        
-        postToTra(currentSaleId).then((result) => {
-            if (!result.success) {
-                alert('TRA posting failed: ' + (result.error || 'Unknown error') + '\n\nPlease check TRA VFD settings and try again.');
-                return;
-            }
-            
-            const iframe = document.createElement('iframe');
-            iframe.style.position = 'fixed';
-            iframe.style.right = '0';
-            iframe.style.bottom = '0';
-            iframe.style.width = '0';
-            iframe.style.height = '0';
-            iframe.style.border = '0';
-            iframe.src = '/sales/receipts/' + currentSaleId + '/efd-print';
-            document.body.appendChild(iframe);
-            
-            iframe.onload = function() {
-                setTimeout(() => {
-                    iframe.contentWindow.print();
-                    setTimeout(() => {
-                        document.body.removeChild(iframe);
-                        if (wasFullscreen && !document.fullscreenElement) {
-                            document.documentElement.requestFullscreen().catch(err => {
-                                console.log('Failed to re-enter fullscreen:', err);
+        // Show SweetAlert confirmation before posting to TRA
+        if (window.Swal) {
+            Swal.fire({
+                title: 'Post to TRA?',
+                text: 'Are you sure you want to post this sale to TRA and print the EFD receipt?',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#16a34a',
+                cancelButtonColor: '#dc2626',
+                confirmButtonText: 'Yes, post it!',
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const wasFullscreen = !!document.fullscreenElement;
+                    
+                    postToTra(currentSaleId).then((result) => {
+                        if (!result.success) {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'TRA posting failed',
+                                text: result.error || 'Unknown error',
+                                confirmButtonColor: '#16a34a'
                             });
+                            return;
                         }
-                    }, 500);
-                }, 500);
-            };
-        });
+                        
+                        const iframe = document.createElement('iframe');
+                        iframe.style.position = 'fixed';
+                        iframe.style.right = '0';
+                        iframe.style.bottom = '0';
+                        iframe.style.width = '0';
+                        iframe.style.height = '0';
+                        iframe.style.border = '0';
+                        iframe.src = '/sales/receipts/' + currentSaleId + '/efd-print';
+                        document.body.appendChild(iframe);
+                        
+                        iframe.onload = function() {
+                            setTimeout(() => {
+                                iframe.contentWindow.print();
+                                setTimeout(() => {
+                                    document.body.removeChild(iframe);
+                                    if (wasFullscreen && !document.fullscreenElement) {
+                                        document.documentElement.requestFullscreen().catch(err => {
+                                            console.log('Fullscreen request failed:', err);
+                                        });
+                                    }
+                                }, 500);
+                            }, 500);
+                        };
+                    });
+                }
+            });
+        } else {
+            // Fallback to regular confirm if SweetAlert not available
+            if (confirm('Are you sure you want to post this sale to TRA and print the EFD receipt?')) {
+                const wasFullscreen = !!document.fullscreenElement;
+                
+                postToTra(currentSaleId).then((result) => {
+                    if (!result.success) {
+                        alert('TRA posting failed: ' + (result.error || 'Unknown error') + '\n\nPlease check TRA VFD settings and try again.');
+                        return;
+                    }
+                    
+                    const iframe = document.createElement('iframe');
+                    iframe.style.position = 'fixed';
+                    iframe.style.right = '0';
+                    iframe.style.bottom = '0';
+                    iframe.style.width = '0';
+                    iframe.style.height = '0';
+                    iframe.style.border = '0';
+                    iframe.src = '/sales/receipts/' + currentSaleId + '/efd-print';
+                    document.body.appendChild(iframe);
+                    
+                    iframe.onload = function() {
+                        setTimeout(() => {
+                            iframe.contentWindow.print();
+                            setTimeout(() => {
+                                document.body.removeChild(iframe);
+                                if (wasFullscreen && !document.fullscreenElement) {
+                                    document.documentElement.requestFullscreen().catch(err => {
+                                        console.log('Fullscreen request failed:', err);
+                                    });
+                                }
+                            }, 500);
+                        }, 500);
+                    };
+                });
+            }
+        }
     }
 }
 
 async function postToTra(saleId) {
-    // First confirmation dialog
-    const firstConfirmed = confirm('Are you sure you want to post this sale to TRA?');
-    if (!firstConfirmed) {
-        return { success: false, error: 'TRA posting cancelled by user' };
-    }
-
-    // Second confirmation dialog
-    const secondConfirmed = confirm('Are you REALLY sure you want to post this sale to TRA? This action cannot be undone.');
-    if (!secondConfirmed) {
-        return { success: false, error: 'TRA posting cancelled by user' };
-    }
-
     try {
         const response = await fetch('/sales/receipts/post-to-tra', {
             method: 'POST',
@@ -1800,7 +1845,6 @@ async function postToTra(saleId) {
         });
         const result = await response.json();
         if (result.success) {
-            alert('Sale posted to TRA successfully!');
             console.log('TRA posting successful:', result);
         } else {
             console.warn('TRA posting failed:', result.error);

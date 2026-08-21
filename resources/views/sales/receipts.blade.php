@@ -91,14 +91,6 @@
 
 <script>
 function postSaleToTra(saleId, btn) {
-    // First confirmation dialog
-    const firstConfirmed = confirm('Are you sure you want to post this sale to TRA?');
-    if (!firstConfirmed) return;
-
-    // Second confirmation dialog
-    const secondConfirmed = confirm('Are you REALLY sure you want to post this sale to TRA? This action cannot be undone.');
-    if (!secondConfirmed) return;
-    
     if (btn) {
         btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
         btn.disabled = true;

@@ -187,14 +187,6 @@
 
 <script>
 function postSaleToTra(saleId) {
-    // First confirmation dialog
-    const firstConfirmed = confirm('Are you sure you want to post this sale to TRA?');
-    if (!firstConfirmed) return;
-
-    // Second confirmation dialog
-    const secondConfirmed = confirm('Are you REALLY sure you want to post this sale to TRA? This action cannot be undone.');
-    if (!secondConfirmed) return;
-    
     const btn = document.getElementById('postTraBtn');
     if (btn) {
         btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Posting...';
@@ -233,19 +225,28 @@ function postSaleToTra(saleId) {
 }
 
 function printEfdReceipt(saleId) {
-    // Ask for confirmation before posting to TRA
-    if (!confirm('Are you sure you want to post this sale to TRA and print the EFD receipt?')) {
-        return; // User clicked Cancel - do nothing
+    // Show SweetAlert confirmation before posting to TRA
+    if (window.Swal) {
+        Swal.fire({
+            title: 'Post to TRA?',
+            text: 'Are you sure you want to post this sale to TRA and print the EFD receipt?',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#16a34a',
+            cancelButtonColor: '#dc2626',
+            confirmButtonText: 'Yes, post it!',
+            cancelButtonText: 'Cancel'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                postSaleToTraAndPrint(saleId);
+            }
+        });
+    } else {
+        // Fallback to regular confirm if SweetAlert not available
+        if (confirm('Are you sure you want to post this sale to TRA and print the EFD receipt?')) {
+            postSaleToTraAndPrint(saleId);
+        }
     }
-    
-    // Find the EFD Receipt button and show loading state
-    const btn = event?.target?.closest('button') || document.querySelector('button[onclick*="printEfdReceipt"]');
-    if (btn) {
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Posting...';
-        btn.disabled = true;
-    }
-    
-    postSaleToTraAndPrint(saleId, btn);
 }
 
 async function postSaleToTraAndPrint(saleId) {
