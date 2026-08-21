@@ -3,472 +3,364 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EFD Receipt {{ $sale->invoice_number }}</title>
+    <title>EFD Receipt · {{ $sale->invoice_number }}</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap');
-        
+        /* ----- base & reset ----- */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         body {
             font-family: 'Courier New', Courier, monospace;
-            font-size: 11px;
-            line-height: 1.3;
-            color: #000000;
-            font-weight: 700;
-            padding: 10px;
+            background: #f5f5f5;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 24px 16px;
         }
-        
+
+        .receipt-wrapper {
+            max-width: 380px;
+            width: 100%;
+            background: white;
+            padding: 18px 16px 12px;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+        }
+
+        /* ----- typography & spacing (all bold, clean) ----- */
         .receipt {
-            max-width: 280px;
-            margin: 0 auto;
+            font-size: 10.5px;
+            line-height: 1.4;
+            color: #000;
+            font-weight: 700;
         }
-        
-        .header {
+
+        .receipt .thin {
+            font-weight: 500;
+        }
+
+        .receipt .center {
+            text-align: center;
+        }
+
+        .receipt .border-dash {
+            border-bottom: 1.5px dashed #222;
+        }
+
+        .receipt .border-solid {
+            border-bottom: 1.5px solid #000;
+        }
+
+        .receipt .mt-1 { margin-top: 6px; }
+        .receipt .mb-1 { margin-bottom: 6px; }
+        .receipt .py-1 { padding-top: 6px; padding-bottom: 6px; }
+        .receipt .pb-1 { padding-bottom: 6px; }
+
+        /* ----- header / store ----- */
+        .store-header {
             text-align: center;
             margin-bottom: 8px;
-            padding-bottom: 8px;
-            border-bottom: 2px dashed #000000;
         }
-        
-        .header h1 {
+
+        .store-header .logo {
+            max-width: 110px;
+            margin: 0 auto 4px;
+            filter: grayscale(1) brightness(0);
+            display: block;
+        }
+
+        .store-header h1 {
             font-size: 16px;
-            font-weight: 700;
-            color: #000000;
-            margin-bottom: 2px;
-            letter-spacing: 1px;
+            letter-spacing: 0.5px;
         }
-        
-        .header p {
-            color: #000000;
+
+        .store-header p {
             font-size: 10px;
             font-weight: 500;
-            margin: 1px 0;
-        }
-        
-        .legal-header {
-            text-align: center;
-            font-size: 10px;
-            margin-bottom: 5px;
-            border-bottom: 1px solid #000;
-            padding-bottom: 5px;
-        }
-        
-        .store-info {
-            text-align: center;
-            margin-bottom: 8px;
-            padding-bottom: 5px;
-            border-bottom: 1px dashed #000;
-        }
-        
-        .store-info h1 {
-            font-size: 14px;
-            font-weight: 700;
-            margin-bottom: 2px;
-        }
-        
-        .store-info p {
-            font-size: 10px;
-            margin: 1px 0;
-        }
-        
-        .details {
-            margin: 8px 0;
-            padding: 6px 0;
-            border-bottom: 1px dashed #000000;
-        }
-        
-        .details p {
-            margin: 3px 0;
-            font-size: 11px;
-        }
-        
-        .details .label {
-            color: #000000;
-            font-weight: 600;
-        }
-        
-        .details .value {
-            font-weight: 700;
-            color: #000000;
-        }
-        
-        .fiscal-data {
-            margin: 5px 0;
-            padding: 5px;
-            border: 1px solid #000;
-            font-size: 9px;
-        }
-        
-        .fiscal-data-row {
-            display: flex;
             margin: 2px 0;
         }
-        
-        .fiscal-label {
-            width: 120px;
-            font-weight: 700;
+
+        /* ----- detail grid (two-column) ----- */
+        .detail-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2px 8px;
+            padding: 6px 0;
+            border-bottom: 1.5px dashed #222;
+            margin-bottom: 6px;
         }
-        
-        .fiscal-value {
-            flex: 1;
-            font-weight: 700;
-        }
-        
-        .items {
-            margin: 8px 0;
-            padding-bottom: 8px;
-            border-bottom: 1px dashed #000000;
-        }
-        
-        .item-row {
-            margin: 6px 0;
-        }
-        
-        .item-name {
-            font-weight: 700;
-            color: #000000;
-            font-size: 11px;
-        }
-        
-        .item-details {
-            color: #000000;
-            font-size: 10px;
+
+        .detail-grid .label {
             font-weight: 600;
+            opacity: 0.8;
+        }
+
+        .detail-grid .value {
+            font-weight: 700;
+            text-align: right;
+        }
+
+        .detail-grid .full {
+            grid-column: 1 / -1;
+        }
+
+        /* ----- items (clean list) ----- */
+        .items-list {
+            margin: 6px 0 8px;
+            border-bottom: 1.5px dashed #222;
+            padding-bottom: 6px;
+        }
+
+        .item-row {
             display: flex;
             justify-content: space-between;
+            padding: 3px 0;
+            border-bottom: 1px dotted #ccc;
         }
-        
-        .items-table {
-            margin: 5px 0;
-            border-collapse: collapse;
+
+        .item-row:last-child {
+            border-bottom: none;
+        }
+
+        .item-name {
+            font-weight: 700;
+            flex: 2;
+        }
+
+        .item-meta {
+            font-weight: 600;
+            text-align: right;
+            flex: 1;
+        }
+
+        /* ----- totals (clean) ----- */
+        .totals {
+            margin: 6px 0 8px;
+        }
+
+        .totals .line {
+            display: flex;
+            justify-content: space-between;
+            padding: 2px 0;
+        }
+
+        .totals .total-amount {
+            font-size: 14px;
+            border-top: 2px solid #000;
+            padding-top: 6px;
+            margin-top: 4px;
+        }
+
+        /* ----- EFD mini table (compact) ----- */
+        .efd-table {
             width: 100%;
+            border-collapse: collapse;
             font-size: 9px;
+            margin: 6px 0;
         }
-        
-        .items-table th,
-        .items-table td {
+
+        .efd-table th,
+        .efd-table td {
             border: 1px solid #000;
-            padding: 2px 4px;
+            padding: 3px 4px;
             text-align: left;
         }
-        
-        .items-table th {
+
+        .efd-table th {
             background: #000;
             color: #fff;
             font-weight: 700;
         }
-        
-        .items-table .qty,
-        .items-table .price,
-        .items-table .type {
+
+        .efd-table .center {
             text-align: center;
         }
-        
-        .totals {
-            margin: 8px 0;
+
+        /* ----- tax summary (grid) ----- */
+        .tax-summary {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2px 12px;
+            font-size: 9.5px;
+            padding: 6px 0;
+            border-top: 1px solid #000;
+            margin-top: 4px;
         }
-        
-        .totals p {
-            display: flex;
-            justify-content: space-between;
-            margin: 3px 0;
-            font-size: 11px;
+
+        .tax-summary .label {
+            font-weight: 600;
         }
-        
-        .totals .value {
+
+        .tax-summary .value {
             font-weight: 700;
-            color: #000000;
+            text-align: right;
         }
-        
-        .totals .total-amount {
-            font-size: 13px;
-            font-weight: 700;
-            color: #000000;
-            padding-top: 6px;
-            margin-top: 6px;
-            border-top: 2px solid #000000;
-        }
-        
-        .totals-section {
-            margin: 5px 0;
-            font-size: 9px;
-        }
-        
-        .totals-row {
-            display: flex;
-            justify-content: space-between;
-            margin: 2px 0;
-        }
-        
-        .verification-section {
-            margin: 5px 0;
-            padding: 5px;
-            border: 1px solid #000;
+
+        /* ----- QR & footer ----- */
+        .qr-area {
             text-align: center;
-            font-size: 9px;
+            padding: 8px 0 4px;
         }
-        
-        .qr-code {
-            text-align: center;
-            margin-top: 10px;
-            padding-top: 10px;
-            border-top: 1px dashed #000;
-        }
-        
-        .qr-code img {
-            max-width: 100px;
+
+        .qr-area img {
+            max-width: 90px;
             height: auto;
         }
-        
+
         .legal-footer {
             text-align: center;
-            margin-top: 5px;
-            padding-top: 5px;
+            font-size: 9px;
+            padding: 6px 0 2px;
             border-top: 1px solid #000;
+            margin-top: 6px;
+            letter-spacing: 0.3px;
+        }
+
+        .thankyou {
+            text-align: center;
             font-size: 10px;
+            padding-top: 4px;
+            border-top: 1.5px dashed #222;
+            margin-top: 6px;
         }
-        
-        .footer {
-            text-align: center;
-            margin-top: 10px;
-            padding-top: 10px;
-            border-top: 2px dashed #000000;
-        }
-        
-        .footer p {
-            color: #000000;
-            font-size: 11px;
-            font-weight: 500;
-            margin: 2px 0;
-        }
-        
-        .print-button {
-            margin: 20px auto;
+
+        /* ----- print button ----- */
+        .print-btn {
+            margin-top: 20px;
             text-align: center;
         }
-        
-        .print-button button {
-            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+
+        .print-btn button {
+            background: #1e293b;
             color: white;
             border: none;
-            padding: 12px 32px;
+            padding: 12px 36px;
             font-size: 14px;
             font-weight: 600;
-            border-radius: 8px;
+            border-radius: 40px;
             cursor: pointer;
-            font-family: 'Manrope', sans-serif;
-            transition: transform 0.2s, box-shadow 0.2s;
+            font-family: 'Manrope', system-ui, sans-serif;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            transition: all 0.2s;
         }
-        
-        .print-button button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(34, 197, 94, 0.4);
+
+        .print-btn button:hover {
+            background: #0f172a;
+            transform: scale(1.01);
         }
-        
+
+        /* ----- print overrides ----- */
         @media print {
-            .print-button {
-                display: none;
-            }
             body {
+                background: white;
                 padding: 0;
+            }
+            .receipt-wrapper {
+                box-shadow: none;
+                border-radius: 0;
+                padding: 8px 12px;
+                max-width: 100%;
+            }
+            .print-btn {
+                display: none;
             }
         }
     </style>
 </head>
 <body>
+<div class="receipt-wrapper">
     <div class="receipt">
-        <div class="header">
-            <img src="https://feedtanstore.com/feedtanstorelogo.png" alt="FEEDTAN STORE" style="max-width: 120px; margin: 0 auto 6px auto; filter: grayscale(100%) brightness(0);">
-            <h1>{{ $settings->store_name ?? 'FEEDTAN STORE' }}</h1>
+
+        <!-- ===== HEADER ===== -->
+        <div class="store-header border-dash pb-1 mb-1">
+            <img class="logo" src="https://feedtanstore.com/feedtanstorelogo.png" alt="FEEDTAN STORE">
             <p>{{ $settings->store_address ?? 'Moshi, Tanzania' }}</p>
-            <p>{{ $settings->store_phone ?? '' }}</p>
-            <p>TIN: {{ $settings->tra_tin_number ?? '' }}</p>
+            <p>{{ $settings->store_phone ?? '' }} · TIN: {{ $settings->tra_tin_number ?? '' }}</p>
         </div>
-        
-        <div class="details">
-            <p><span class="label">Invoice #:</span> <span class="value">{{ $sale->invoice_number }}</span></p>
-            <p><span class="label">Date:</span> <span class="value">{{ $sale->created_at->format('d/m/Y H:i') }}</span></p>
-            <p><span class="label">Customer:</span> <span class="value">{{ $sale->customer->name ?? 'Walk-in Customer' }}</span></p>
+
+        <!-- ===== DETAILS (grid) ===== -->
+        <div class="detail-grid">
+            <span class="label">Invoice</span><span class="value">{{ $sale->invoice_number }}</span>
+            <span class="label">Date</span><span class="value">{{ $sale->created_at->format('d/m/Y H:i') }}</span>
+            <span class="label">Customer</span><span class="value">{{ $sale->customer->name ?? 'Walk-in' }}</span>
             @if($sale->customer && $sale->customer->tin_number)
-                <p><span class="label">Cust TIN:</span> <span class="value">{{ $sale->customer->tin_number }}</span></p>
+                <span class="label">Cust TIN</span><span class="value">{{ $sale->customer->tin_number }}</span>
             @endif
-            <p><span class="label">Cashier:</span> <span class="value">{{ $sale->user->name ?? '-' }}</span></p>
-            <p><span class="label">Payment:</span> <span class="value">{{ strtoupper($sale->payment_method ?? 'CASH') }}</span></p>
+            <span class="label">Cashier</span><span class="value">{{ $sale->user->name ?? '-' }}</span>
+            <span class="label">Payment</span><span class="value">{{ strtoupper($sale->payment_method ?? 'CASH') }}</span>
         </div>
-        
-        <div class="items">
+
+        <!-- ===== ITEMS ===== -->
+        <div class="items-list">
             @foreach($sale->items as $item)
                 <div class="item-row">
-                    <div class="item-name">{{ $item->product->name ?? 'Product' }}</div>
-                    <div class="item-details">
-                        <span>{{ $item->quantity }} x {{ number_format($item->unit_price, 2) }}</span>
-                        <span>{{ number_format($item->total, 2) }}</span>
-                    </div>
+                    <span class="item-name">{{ $item->product->name ?? 'Product' }}</span>
+                    <span class="item-meta">{{ $item->quantity }} × {{ number_format($item->unit_price, 2) }} = {{ number_format($item->total, 2) }}</span>
                 </div>
             @endforeach
         </div>
-        
+
+        <!-- ===== TOTALS ===== -->
         <div class="totals">
-            <p><span>Subtotal :</span><span class="value">{{ number_format($sale->subtotal, 2) }}</span></p>
+            <div class="line"><span>Subtotal</span><span>{{ number_format($sale->subtotal, 2) }}</span></div>
             @if($sale->discount > 0)
-            <p><span>Discount :</span><span class="value">-{{ number_format($sale->discount, 2) }}</span></p>
+                <div class="line"><span>Discount</span><span>-{{ number_format($sale->discount, 2) }}</span></div>
             @endif
-            <p class="total-amount"><span>TOTAL :</span><span class="value">{{ number_format($sale->total, 2) }}</span></p>
-            <div style="border-top: 1px dashed #000000; margin: 6px 0;"></div>
-            <p><span>Paid :</span><span class="value">{{ number_format($sale->paid, 2) }}</span></p>
-            <p><span>Change :</span><span class="value">{{ number_format($sale->change, 2) }}</span></p>
+            <div class="line total-amount"><span>TOTAL</span><span>{{ number_format($sale->total, 2) }}</span></div>
+            <div class="line" style="border-top:1px dashed #222;padding-top:4px;margin-top:2px;"><span>Paid</span><span>{{ number_format($sale->paid, 2) }}</span></div>
+            <div class="line"><span>Change</span><span>{{ number_format($sale->change, 2) }}</span></div>
         </div>
-        
-        <div class="legal-header">
-            *** END OF LEGAL RECEIPT ***
-        </div>
-        
-        <div class="legal-header">
-            ****** START OF LEGAL RECEIPT ***
-        </div>
-        
-        <div class="store-info">
-            <h1>{{ $settings->store_name ?? 'FEEDTAN STORE GROUP' }}</h1>
-            <p>{{ $settings->store_address ?? 'MOSHI CBD' }}</p>
-            <p>{{ $settings->tra_tin_number ?? '205713018' }}</p>
-            <p>VFD Serial: {{ $settings->tra_vfd_serial ?? '' }}</p>
-        </div>
-        
-        <div class="fiscal-data">
-            <div class="fiscal-data-row">
-                <span class="fiscal-label">Normal</span>
-                <span class="fiscal-value">{{ $sale->tra_znum_used ?? '-' }}</span>
-            </div>
-            <div class="fiscal-data-row">
-                <span class="fiscal-label">VFD Serial</span>
-                <span class="fiscal-value">{{ $settings->tra_vfd_serial ?? '' }}</span>
-            </div>
-            <div class="fiscal-data-row">
-                <span class="fiscal-label">TIN</span>
-                <span class="fiscal-value">{{ $settings->tra_tin_number ?? '' }}</span>
-            </div>
-            <div class="fiscal-data-row">
-                <span class="fiscal-label">Date</span>
-                <span class="fiscal-value">{{ $sale->created_at->format('d/m/Y H:i:s') }}</span>
-            </div>
-            <div class="fiscal-data-row">
-                <span class="fiscal-label">Region</span>
-                <span class="fiscal-value">KILIMANJARO</span>
-            </div>
-            <div class="fiscal-data-row">
-                <span class="fiscal-label">VRN</span>
-                <span class="fiscal-value">{{ $settings->tra_vrn ?? '-' }}</span>
-            </div>
-            <div class="fiscal-data-row">
-                <span class="fiscal-label">Serial Number</span>
-                <span class="fiscal-value">{{ $settings->tra_vfd_serial ?? '' }}</span>
-            </div>
-            <div class="fiscal-data-row">
-                <span class="fiscal-label">UIN</span>
-                <span class="fiscal-value">{{ $sale->tra_uin ?? '-' }}</span>
-            </div>
-            <div class="fiscal-data-row">
-                <span class="fiscal-label">Tax Officer</span>
-                <span class="fiscal-value">TIN</span>
-            </div>
-            <div class="fiscal-data-row">
-                <span class="fiscal-label">Customer Name</span>
-                <span class="fiscal-value">{{ $sale->customer->name ?? 'WALK-IN' }}</span>
-            </div>
-            <div class="fiscal-data-row">
-                <span class="fiscal-label">Customer ID Type</span>
-                <span class="fiscal-value">{{ $sale->customer && $sale->customer->id_type ? strtoupper($sale->customer->id_type) : '-' }}</span>
-            </div>
-            <div class="fiscal-data-row">
-                <span class="fiscal-label">Customer ID</span>
-                <span class="fiscal-value">{{ $sale->customer && $sale->customer->id_number ? $sale->customer->id_number : '-' }}</span>
-            </div>
-            <div class="fiscal-data-row">
-                <span class="fiscal-label">Customer Mobile</span>
-                <span class="fiscal-value">{{ $sale->customer && $sale->customer->phone ? $sale->customer->phone : 'NIL' }}</span>
-            </div>
-            <div class="fiscal-data-row">
-                <span class="fiscal-label">Receipt Number</span>
-                <span class="fiscal-value">{{ $sale->tra_receipt_number ?: $sale->invoice_number }}</span>
-            </div>
-            <div class="fiscal-data-row">
-                <span class="fiscal-label">Receipt DateTime</span>
-                <span class="fiscal-value">{{ $sale->created_at->format('d/m/Y H:i:s') }}</span>
-            </div>
-        </div>
-        
-        <table class="items-table">
+
+        <!-- ===== EFD TABLE (items + tax) ===== -->
+        <table class="efd-table">
             <thead>
-                <tr>
-                    <th>Item Desc</th>
-                    <th class="qty">Quantity</th>
-                    <th class="price">Price</th>
-                    <th class="type">Type</th>
-                </tr>
+                <tr><th>Item Desc</th><th class="center">Qty</th><th class="center">Price</th><th class="center">Type</th></tr>
             </thead>
             <tbody>
                 @foreach($sale->items as $item)
                 <tr>
                     <td>{{ $item->product->name ?? 'Product' }}</td>
-                    <td class="qty">{{ $item->quantity }}</td>
-                    <td class="price">{{ number_format($item->unit_price, 2) }}</td>
-                    <td class="type">EX</td>
+                    <td class="center">{{ $item->quantity }}</td>
+                    <td class="center">{{ number_format($item->unit_price, 2) }}</td>
+                    <td class="center">EX</td>
                 </tr>
                 @endforeach
             </tbody>
         </table>
-        
-        <div class="totals-section">
-            <div class="totals-row">
-                <span>Receipt Verification Code</span>
-                <span>{{ $sale->tra_verification_code ?? '-' }}</span>
-            </div>
-            <div class="totals-row">
-                <span>TOTAL TAX</span>
-                <span>{{ number_format($vatAmount, 2) }}</span>
-            </div>
-            <div class="totals-row">
-                <span>TOTAL EXCLUSIVE OF TAX</span>
-                <span>{{ number_format($sale->subtotal - $vatAmount, 2) }}</span>
-            </div>
-            <div class="totals-row">
-                <span>DISCOUNT</span>
-                <span>{{ number_format($sale->discount, 2) }}</span>
-            </div>
-            <div class="totals-row">
-                <span>TOTAL INCLUSIVE OF TAX</span>
-                <span>{{ number_format($sale->total, 2) }}</span>
-            </div>
-            <div class="totals-row">
-                <span>TAX RATE EX - 0 %</span>
-                <span>{{ number_format($vatAmount, 2) }}</span>
-            </div>
+
+        <!-- ===== TAX SUMMARY (compact) ===== -->
+        <div class="tax-summary">
+            <span class="label">Receipt Verification</span><span class="value">{{ $sale->tra_verification_code ?? '-' }}</span>
+            <span class="label">TOTAL TAX</span><span class="value">{{ number_format($vatAmount, 2) }}</span>
+            <span class="label">Exclusive of Tax</span><span class="value">{{ number_format($sale->subtotal - $vatAmount, 2) }}</span>
+            <span class="label">DISCOUNT</span><span class="value">{{ number_format($sale->discount, 2) }}</span>
+            <span class="label">Inclusive of Tax</span><span class="value">{{ number_format($sale->total, 2) }}</span>
+            <span class="label">Tax Rate EX 0%</span><span class="value">{{ number_format($vatAmount, 2) }}</span>
         </div>
-        
+
+        <!-- ===== QR CODE ===== -->
         @if(!empty($qrCode))
-        <div class="qr-code">
+        <div class="qr-area">
             <img src="{{ $qrCode }}" alt="TRA QR Code">
         </div>
         @endif
-        
-        <div class="legal-footer">
-            *** END OF LEGAL RECEIPT ***
+
+        <!-- ===== LEGAL END & THANK YOU ===== -->
+        <div class="legal-footer">*** END OF LEGAL RECEIPT ***</div>
+        <div class="thankyou">
+            Thank you for your purchase!<br>Please come again!
         </div>
-        
-        <div class="footer">
-            <p>Thank you for your purchase!</p>
-            <p>Please come again!</p>
-        </div>
-    </div>
-    
-    <div class="print-button">
-        <button onclick="window.print()">
-            Print EFD Receipt
-        </button>
-    </div>
+
+    </div> <!-- /receipt -->
+</div> <!-- /receipt-wrapper -->
+
+<!-- ===== PRINT BUTTON ===== -->
+<div class="print-btn">
+    <button onclick="window.print()">🖨️ Print EFD Receipt</button>
+</div>
+
 </body>
 </html>
