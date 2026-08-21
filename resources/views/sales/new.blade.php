@@ -690,6 +690,12 @@ function printEfdReceipt() {
 }
 
 async function postToTra(saleId) {
+    // Show confirmation dialog before posting to TRA
+    const confirmed = confirm('Are you sure you want to post this sale to TRA?');
+    if (!confirmed) {
+        return { success: false, error: 'TRA posting cancelled by user' };
+    }
+
     try {
         const response = await fetch('/sales/receipts/post-to-tra', {
             method: 'POST',

@@ -67,6 +67,15 @@
                               placeholder="Paste your TRA VFD licence key here"
                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">{{ old('tra_licence', $settings->tra_licence) }}</textarea>
                 </div>
+
+                <div class="md:col-span-2">
+                    <label class="flex items-center gap-3">
+                        <input type="checkbox" name="vat_registered" value="1" {{ $settings->vat_registered ? 'checked' : '' }} 
+                               class="w-5 h-5 text-primary-600 border-gray-300 rounded focus:ring-primary-500">
+                        <span class="text-sm font-medium text-gray-700">VAT Registered</span>
+                    </label>
+                    <p class="text-xs text-gray-500 mt-1 ml-8">Enable if your business is registered for VAT. If disabled, all sales will use tax code 5 (Exempted - 0% VAT).</p>
+                </div>
             </div>
 
             <div class="flex justify-end">
