@@ -182,11 +182,6 @@ class TraVfdService
             'permitNum' => $permitNum,
         ]);
 
-        // Get fiscal counters
-        $gc = (int) ($settings->tra_gc ?? 1);
-        $dc = (int) ($settings->tra_dc ?? 1);
-        $znum = $settings->tra_znum ?? date('Ymd');
-
         $dataXml = "<ITEMS>{$itemsXml}</ITEMS>"
             . "<Serial_num>{$this->vfdSerial}</Serial_num>"
             . "<TIN_num>{$this->tinNumber}</TIN_num>"
@@ -197,9 +192,6 @@ class TraVfdService
             . "<permitNum>{$permitNum}</permitNum>"
             . "<vatAmt>{$vatAmt}</vatAmt>"
             . "<grossAmt>{$grossAmt}</grossAmt>"
-            . "<GC>{$gc}</GC>"
-            . "<DC>{$dc}</DC>"
-            . "<ZNUM>{$znum}</ZNUM>"
             . "<CASH>{$cash}</CASH>"
             . "<CHEQUE>{$cheque}</CHEQUE>"
             . "<CCARD>{$ccard}</CCARD>"
