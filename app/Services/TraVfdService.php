@@ -177,6 +177,11 @@ class TraVfdService
         // Ensure it's numeric
         $permitNum = preg_replace('/[^0-9]/', '', $permitNum);
 
+        Log::info('TRA VFD permitNum', [
+            'original_invoice' => $sale->invoice_number,
+            'permitNum' => $permitNum,
+        ]);
+
         $dataXml = "<ITEMS>{$itemsXml}</ITEMS>"
             . "<Serial_num>{$this->vfdSerial}</Serial_num>"
             . "<TIN_num>{$this->tinNumber}</TIN_num>"
