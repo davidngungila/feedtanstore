@@ -26,22 +26,22 @@
                 @endif
             </div>
             <div class="flex flex-wrap gap-2">
-                <a href="{{ route('sales.receipts.download', $sale) }}" class="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 flex items-center whitespace-nowrap">
-                    <i class="fas fa-download mr-2"></i>PDF
+                <a href="{{ route('sales.receipts.download', $sale) }}" class="px-3 py-1.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 flex items-center whitespace-nowrap text-xs">
+                    <i class="fas fa-download mr-1.5"></i>PDF
                 </a>
-                <a href="{{ route('sales.receipts.print', $sale) }}" target="_blank" class="px-4 py-2 border border-gray-300 rounded-lg flex items-center whitespace-nowrap">
-                    <i class="fas fa-print mr-2"></i>Invoice
+                <a href="{{ route('sales.receipts.print', $sale) }}" target="_blank" class="px-3 py-1.5 border border-gray-300 rounded-lg flex items-center whitespace-nowrap text-xs">
+                    <i class="fas fa-print mr-1.5"></i>Invoice
                 </a>
-                <button onclick="printEfdReceipt({{ $sale->id }})" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center whitespace-nowrap">
-                    <i class="fas fa-receipt mr-2"></i>EFD Receipt
+                <button onclick="printEfdReceipt({{ $sale->id }})" class="px-3 py-1.5 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center whitespace-nowrap text-xs">
+                    <i class="fas fa-receipt mr-1.5"></i>EFD Receipt
                 </button>
                 @if($sale->tra_status != 'posted')
-                <button onclick="postSaleToTra({{ $sale->id }})" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center whitespace-nowrap" id="postTraBtn">
-                    <i class="fas fa-cloud-upload-alt mr-2"></i>Post to TRA
+                <button onclick="postSaleToTra({{ $sale->id }})" class="px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center whitespace-nowrap text-xs" id="postTraBtn">
+                    <i class="fas fa-cloud-upload-alt mr-1.5"></i>Post to TRA
                 </button>
                 @endif
-                <a href="{{ route('sales.receipts') }}" class="px-4 py-2 border border-gray-300 rounded-lg flex items-center whitespace-nowrap">
-                    <i class="fas fa-arrow-left mr-2"></i>Back
+                <a href="{{ route('sales.receipts') }}" class="px-3 py-1.5 border border-gray-300 rounded-lg flex items-center whitespace-nowrap text-xs">
+                    <i class="fas fa-arrow-left mr-1.5"></i>Back
                 </a>
             </div>
         </div>
