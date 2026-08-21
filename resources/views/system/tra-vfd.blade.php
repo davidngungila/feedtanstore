@@ -212,6 +212,21 @@ async function testTraConnection() {
             xmlPreview.classList.remove('hidden');
         }
         
+        // Confirm before posting to TRA
+        const firstConfirmed = confirm('Are you sure you want to post this test sale to TRA?');
+        if (!firstConfirmed) {
+            resultContent.className = 'p-4 rounded-xl bg-yellow-50 border border-yellow-200';
+            resultContent.innerHTML = '<div class="flex items-start gap-3"><i class="fas fa-exclamation-triangle text-yellow-600 mt-1"></i><div><p class="font-semibold text-yellow-800">TRA posting cancelled</p><p class="text-sm text-yellow-700 mt-1">Test posting was cancelled by user.</p></div></div>';
+            return;
+        }
+
+        const secondConfirmed = confirm('Are you REALLY sure you want to post this test sale to TRA? This action cannot be undone.');
+        if (!secondConfirmed) {
+            resultContent.className = 'p-4 rounded-xl bg-yellow-50 border border-yellow-200';
+            resultContent.innerHTML = '<div class="flex items-start gap-3"><i class="fas fa-exclamation-triangle text-yellow-600 mt-1"></i><div><p class="font-semibold text-yellow-800">TRA posting cancelled</p><p class="text-sm text-yellow-700 mt-1">Test posting was cancelled by user.</p></div></div>';
+            return;
+        }
+        
         // Post to TRA
         const testResponse = await fetch('/sales/receipts/post-to-tra', {
             method: 'POST',
