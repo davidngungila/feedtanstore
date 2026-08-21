@@ -185,8 +185,34 @@
     </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 function postSaleToTra(saleId) {
+    // Show SweetAlert confirmation before posting to TRA
+    if (window.Swal) {
+        Swal.fire({
+            title: 'Post to TRA?',
+            text: 'Are you sure you want to post this sale to TRA?',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#16a34a',
+            cancelButtonColor: '#dc2626',
+            confirmButtonText: 'Yes, post it!',
+            cancelButtonText: 'Cancel'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                postSaleToTraInternal(saleId);
+            }
+        });
+    } else {
+        // Fallback to regular confirm if SweetAlert not available
+        if (confirm('Are you sure you want to post this sale to TRA?')) {
+            postSaleToTraInternal(saleId);
+        }
+    }
+}
+
+function postSaleToTraInternal(saleId) {
     const btn = document.getElementById('postTraBtn');
     if (btn) {
         btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Posting...';
@@ -205,10 +231,34 @@ function postSaleToTra(saleId) {
     .then(r => r.json())
     .then(result => {
         if (result.success) {
-            alert('Sale posted to TRA successfully!');
-            location.reload();
+            // Use SweetAlert for success if available
+            if (window.Swal) {
+                Swal.fire({
+                    title: 'Success!',
+                    text: 'Sale posted to TRA successfully!',
+                    icon: 'success',
+                    confirmButtonColor: '#16a34a',
+                    confirmButtonText: 'OK'
+                }).then(() => {
+                    location.reload();
+                });
+            } else {
+                alert('Sale posted to TRA successfully!');
+                location.reload();
+            }
         } else {
-            alert('TRA posting failed: ' + (result.error || 'Unknown error'));
+            // Use SweetAlert for error if available
+            if (window.Swal) {
+                Swal.fire({
+                    title: 'TRA Error',
+                    text: 'TRA posting failed: ' + (result.error || 'Unknown error'),
+                    icon: 'error',
+                    confirmButtonColor: '#dc2626',
+                    confirmButtonText: 'OK'
+                });
+            } else {
+                alert('TRA posting failed: ' + (result.error || 'Unknown error'));
+            }
             if (btn) {
                 btn.innerHTML = '<i class="fas fa-cloud-upload-alt mr-2"></i>Post to TRA';
                 btn.disabled = false;
@@ -216,7 +266,18 @@ function postSaleToTra(saleId) {
         }
     })
     .catch(e => {
-        alert('Error: ' + e.message);
+        // Use SweetAlert for error if available
+        if (window.Swal) {
+            Swal.fire({
+                title: 'Error',
+                text: e.message,
+                icon: 'error',
+                confirmButtonColor: '#dc2626',
+                confirmButtonText: 'OK'
+            });
+        } else {
+            alert('Error: ' + e.message);
+        }
         if (btn) {
             btn.innerHTML = '<i class="fas fa-cloud-upload-alt mr-2"></i>Post to TRA';
             btn.disabled = false;
@@ -286,8 +347,21 @@ async function postSaleToTraAndPrint(saleId) {
             }, 500);
         };
     } catch (e) {
-        alert('Error: ' + e.message);
+        // Use SweetAlert for error if available
+        if (window.Swal) {
+            Swal.fire({
+                title: 'Error',
+                text: e.message,
+                icon: 'error',
+                confirmButtonColor: '#dc2626',
+                confirmButtonText: 'OK'
+            });
+        } else {
+            alert('Error: ' + e.message);
+        }
     }
 }
 </script>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 @endsection
