@@ -89,6 +89,8 @@ class ReceiptController extends Controller {
         $sale = Sale::withTrashed()->findOrFail($id);
         $sale->load(['customer', 'user', 'items.product']);
 
+        $settings = StoreSetting::first();
+
         // Store is NOT VAT registered - VAT is always 0
         $vatAmount = 0;
 
