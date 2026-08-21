@@ -169,7 +169,13 @@ class TraVfdService
         // Date/time in East Africa timezone (EAT = UTC+3)
         $dateTime = now('Africa/Nairobi')->format('Y/m/d H:i:s');
 
+        // TRA expects permitNum to be numeric only (no INV- prefix)
         $permitNum = $sale->invoice_number;
+        if (str_starts_with($permitNum, 'INV-')) {
+            $permitNum = substr($permitNum, 4); // Remove 'INV-' prefix
+        }
+        // Ensure it's numeric
+        $permitNum = preg_replace('/[^0-9]/', '', $permitNum);
 
         $dataXml = "<ITEMS>{$itemsXml}</ITEMS>"
             . "<Serial_num>{$this->vfdSerial}</Serial_num>"
@@ -426,6 +432,7 @@ class TraVfdService
             '115' => 'Items VAT amount summation does not match with the Provided Total VAT Amount',
             '116' => 'Items amount summation does not match with the Provided Total Amount',
             '117' => 'Invalid Tax Code',
+            '118' => 'Invalid Receipt Number / Invoice Number',
             '59' => 'Duplicate - Receipt/Invoice number has been signed already',
             '438' => 'Invalid RCNUM/DC/ZNUM - These fields are not supported by this TRA endpoint',
             '555' => 'Incorrect XML format',
