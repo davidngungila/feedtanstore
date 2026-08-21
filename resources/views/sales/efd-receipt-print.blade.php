@@ -27,6 +27,28 @@
             margin: 0 auto;
         }
         
+        .header {
+            text-align: center;
+            margin-bottom: 8px;
+            padding-bottom: 8px;
+            border-bottom: 2px dashed #000000;
+        }
+        
+        .header h1 {
+            font-size: 16px;
+            font-weight: 700;
+            color: #000000;
+            margin-bottom: 2px;
+            letter-spacing: 1px;
+        }
+        
+        .header p {
+            color: #000000;
+            font-size: 10px;
+            font-weight: 500;
+            margin: 1px 0;
+        }
+        
         .legal-header {
             text-align: center;
             font-size: 10px;
@@ -53,6 +75,27 @@
             margin: 1px 0;
         }
         
+        .details {
+            margin: 8px 0;
+            padding: 6px 0;
+            border-bottom: 1px dashed #000000;
+        }
+        
+        .details p {
+            margin: 3px 0;
+            font-size: 11px;
+        }
+        
+        .details .label {
+            color: #000000;
+            font-weight: 600;
+        }
+        
+        .details .value {
+            font-weight: 700;
+            color: #000000;
+        }
+        
         .fiscal-data {
             margin: 5px 0;
             padding: 5px;
@@ -73,6 +116,30 @@
         .fiscal-value {
             flex: 1;
             font-weight: 700;
+        }
+        
+        .items {
+            margin: 8px 0;
+            padding-bottom: 8px;
+            border-bottom: 1px dashed #000000;
+        }
+        
+        .item-row {
+            margin: 6px 0;
+        }
+        
+        .item-name {
+            font-weight: 700;
+            color: #000000;
+            font-size: 11px;
+        }
+        
+        .item-details {
+            color: #000000;
+            font-size: 10px;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
         }
         
         .items-table {
@@ -101,6 +168,31 @@
             text-align: center;
         }
         
+        .totals {
+            margin: 8px 0;
+        }
+        
+        .totals p {
+            display: flex;
+            justify-content: space-between;
+            margin: 3px 0;
+            font-size: 11px;
+        }
+        
+        .totals .value {
+            font-weight: 700;
+            color: #000000;
+        }
+        
+        .totals .total-amount {
+            font-size: 13px;
+            font-weight: 700;
+            color: #000000;
+            padding-top: 6px;
+            margin-top: 6px;
+            border-top: 2px solid #000000;
+        }
+        
         .totals-section {
             margin: 5px 0;
             font-size: 9px;
@@ -122,7 +214,9 @@
         
         .qr-code {
             text-align: center;
-            margin: 5px 0;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px dashed #000;
         }
         
         .qr-code img {
@@ -136,6 +230,20 @@
             padding-top: 5px;
             border-top: 1px solid #000;
             font-size: 10px;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 2px dashed #000000;
+        }
+        
+        .footer p {
+            color: #000000;
+            font-size: 11px;
+            font-weight: 500;
+            margin: 2px 0;
         }
         
         .print-button {
@@ -173,6 +281,48 @@
 </head>
 <body>
     <div class="receipt">
+        <div class="header">
+            <img src="https://feedtanstore.com/feedtanstorelogo.png" alt="FEEDTAN STORE" style="max-width: 120px; margin: 0 auto 6px auto; filter: grayscale(100%) brightness(0);">
+            <h1>{{ $settings->store_name ?? 'FEEDTAN STORE' }}</h1>
+            <p>{{ $settings->store_address ?? 'Moshi, Tanzania' }}</p>
+            <p>{{ $settings->store_phone ?? '' }}</p>
+            <p>TIN: {{ $settings->tra_tin_number ?? '' }}</p>
+        </div>
+        
+        <div class="details">
+            <p><span class="label">Invoice #:</span> <span class="value">{{ $sale->invoice_number }}</span></p>
+            <p><span class="label">Date:</span> <span class="value">{{ $sale->created_at->format('d/m/Y H:i') }}</span></p>
+            <p><span class="label">Customer:</span> <span class="value">{{ $sale->customer->name ?? 'Walk-in Customer' }}</span></p>
+            @if($sale->customer && $sale->customer->tin_number)
+                <p><span class="label">Cust TIN:</span> <span class="value">{{ $sale->customer->tin_number }}</span></p>
+            @endif
+            <p><span class="label">Cashier:</span> <span class="value">{{ $sale->user->name ?? '-' }}</span></p>
+            <p><span class="label">Payment:</span> <span class="value">{{ strtoupper($sale->payment_method ?? 'CASH') }}</span></p>
+        </div>
+        
+        <div class="items">
+            @foreach($sale->items as $item)
+                <div class="item-row">
+                    <div class="item-name">{{ $item->product->name ?? 'Product' }}</div>
+                    <div class="item-details">
+                        <span>{{ $item->quantity }} x {{ number_format($item->unit_price, 2) }}</span>
+                        <span>{{ number_format($item->total, 2) }}</span>
+                    </div>
+                </div>
+            @endforeach
+        </div>
+        
+        <div class="totals">
+            <p><span>Subtotal :</span><span class="value">{{ number_format($sale->subtotal, 2) }}</span></p>
+            @if($sale->discount > 0)
+            <p><span>Discount :</span><span class="value">-{{ number_format($sale->discount, 2) }}</span></p>
+            @endif
+            <p class="total-amount"><span>TOTAL :</span><span class="value">{{ number_format($sale->total, 2) }}</span></p>
+            <div style="border-top: 1px dashed #000000; margin: 6px 0;"></div>
+            <p><span>Paid :</span><span class="value">{{ number_format($sale->paid, 2) }}</span></p>
+            <p><span>Change :</span><span class="value">{{ number_format($sale->change, 2) }}</span></p>
+        </div>
+        
         <div class="legal-header">
             *** END OF LEGAL RECEIPT ***
         </div>
@@ -307,6 +457,11 @@
         
         <div class="legal-footer">
             *** END OF LEGAL RECEIPT ***
+        </div>
+        
+        <div class="footer">
+            <p>Thank you for your purchase!</p>
+            <p>Please come again!</p>
         </div>
     </div>
     
