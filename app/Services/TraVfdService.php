@@ -199,6 +199,10 @@ class TraVfdService
             . "<INVOICE>{$invoice}</INVOICE>"
             . "<DateTime>{$dateTime}</DateTime>";
 
+        Log::info('TRA VFD Full Data XML', [
+            'dataXml' => $dataXml,
+        ]);
+
         return $dataXml;
     }
 
@@ -238,6 +242,10 @@ class TraVfdService
         }
 
         $xml = $this->buildXml($sale);
+
+        Log::info('TRA VFD Full XML Request', [
+            'xml' => $xml,
+        ]);
 
         Log::info('TRA VFD Posting v' . self::VERSION, [
             'sale_id' => $sale->id,
