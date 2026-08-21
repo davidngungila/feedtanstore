@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EFD Receipt · {{ $sale->invoice_number }}</title>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
+        
         /* ----- base & reset ----- */
         * {
             margin: 0;
@@ -13,7 +15,7 @@
         }
 
         body {
-            font-family: 'Courier New', Courier, monospace;
+            font-family: 'Manrope', sans-serif;
             background: #f5f5f5;
             display: flex;
             flex-direction: column;
@@ -39,7 +41,7 @@
         }
 
         .receipt .thin {
-            font-weight: 500;
+            font-weight: 600;
         }
 
         .receipt .center {
