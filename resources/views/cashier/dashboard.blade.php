@@ -1776,6 +1776,18 @@ function printEfdReceipt() {
 }
 
 async function postToTra(saleId) {
+    // First confirmation dialog
+    const firstConfirmed = confirm('Are you sure you want to post this sale to TRA?');
+    if (!firstConfirmed) {
+        return { success: false, error: 'TRA posting cancelled by user' };
+    }
+
+    // Second confirmation dialog
+    const secondConfirmed = confirm('Are you REALLY sure you want to post this sale to TRA? This action cannot be undone.');
+    if (!secondConfirmed) {
+        return { success: false, error: 'TRA posting cancelled by user' };
+    }
+
     try {
         const response = await fetch('/sales/receipts/post-to-tra', {
             method: 'POST',
@@ -1788,6 +1800,7 @@ async function postToTra(saleId) {
         });
         const result = await response.json();
         if (result.success) {
+            alert('Sale posted to TRA successfully!');
             console.log('TRA posting successful:', result);
         } else {
             console.warn('TRA posting failed:', result.error);

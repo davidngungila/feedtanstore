@@ -26,21 +26,21 @@
                 @endif
             </div>
             <div class="flex flex-wrap gap-2">
-                <a href="{{ route('sales.receipts.download', $sale) }}" class="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 flex items-center">
+                <a href="{{ route('sales.receipts.download', $sale) }}" class="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 flex items-center whitespace-nowrap">
                     <i class="fas fa-download mr-2"></i>PDF
                 </a>
-                <a href="{{ route('sales.receipts.print', $sale) }}" target="_blank" class="px-4 py-2 border border-gray-300 rounded-lg flex items-center">
+                <a href="{{ route('sales.receipts.print', $sale) }}" target="_blank" class="px-4 py-2 border border-gray-300 rounded-lg flex items-center whitespace-nowrap">
                     <i class="fas fa-print mr-2"></i>Invoice
                 </a>
-                <button onclick="printEfdReceipt({{ $sale->id }})" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center">
+                <button onclick="printEfdReceipt({{ $sale->id }})" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center whitespace-nowrap">
                     <i class="fas fa-receipt mr-2"></i>EFD Receipt
                 </button>
                 @if($sale->tra_status != 'posted')
-                <button onclick="postSaleToTra({{ $sale->id }})" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center" id="postTraBtn">
+                <button onclick="postSaleToTra({{ $sale->id }})" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center whitespace-nowrap" id="postTraBtn">
                     <i class="fas fa-cloud-upload-alt mr-2"></i>Post to TRA
                 </button>
                 @endif
-                <a href="{{ route('sales.receipts') }}" class="px-4 py-2 border border-gray-300 rounded-lg flex items-center">
+                <a href="{{ route('sales.receipts') }}" class="px-4 py-2 border border-gray-300 rounded-lg flex items-center whitespace-nowrap">
                     <i class="fas fa-arrow-left mr-2"></i>Back
                 </a>
             </div>
@@ -187,7 +187,13 @@
 
 <script>
 function postSaleToTra(saleId) {
-    if (!confirm('Post this receipt to TRA?')) return;
+    // First confirmation dialog
+    const firstConfirmed = confirm('Are you sure you want to post this sale to TRA?');
+    if (!firstConfirmed) return;
+
+    // Second confirmation dialog
+    const secondConfirmed = confirm('Are you REALLY sure you want to post this sale to TRA? This action cannot be undone.');
+    if (!secondConfirmed) return;
     
     const btn = document.getElementById('postTraBtn');
     if (btn) {
@@ -207,6 +213,7 @@ function postSaleToTra(saleId) {
     .then(r => r.json())
     .then(result => {
         if (result.success) {
+            alert('Sale posted to TRA successfully!');
             location.reload();
         } else {
             alert('TRA posting failed: ' + (result.error || 'Unknown error'));
@@ -226,7 +233,19 @@ function postSaleToTra(saleId) {
 }
 
 function printEfdReceipt(saleId) {
-    postSaleToTraAndPrint(saleId);
+    // Ask for confirmation before posting to TRA
+    if (!confirm('Are you sure you want to post this sale to TRA and print the EFD receipt?')) {
+        return; // User clicked Cancel - do nothing
+    }
+    
+    // Find the EFD Receipt button and show loading state
+    const btn = event?.target?.closest('button') || document.querySelector('button[onclick*="printEfdReceipt"]');
+    if (btn) {
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Posting...';
+        btn.disabled = true;
+    }
+    
+    postSaleToTraAndPrint(saleId, btn);
 }
 
 async function postSaleToTraAndPrint(saleId) {

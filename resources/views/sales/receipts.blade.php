@@ -91,7 +91,13 @@
 
 <script>
 function postSaleToTra(saleId, btn) {
-    if (!confirm('Post this receipt to TRA?')) return;
+    // First confirmation dialog
+    const firstConfirmed = confirm('Are you sure you want to post this sale to TRA?');
+    if (!firstConfirmed) return;
+
+    // Second confirmation dialog
+    const secondConfirmed = confirm('Are you REALLY sure you want to post this sale to TRA? This action cannot be undone.');
+    if (!secondConfirmed) return;
     
     if (btn) {
         btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
@@ -110,6 +116,7 @@ function postSaleToTra(saleId, btn) {
     .then(r => r.json())
     .then(result => {
         if (result.success) {
+            alert('Sale posted to TRA successfully!');
             location.reload();
         } else {
             alert('TRA posting failed: ' + (result.error || 'Unknown error'));
