@@ -284,6 +284,16 @@
             <p><span>VAT (18%) :</span><span>{{ number_format($vatAmount, 2) }}</span></p>
             <p><span>Incl. VAT :</span><span>{{ number_format($sale->total, 2) }}</span></p>
         </div>
+        @elseif($settings->vat_registered ?? false)
+        <div class="vat-breakdown">
+            <p><span>VAT (0%) :</span><span>{{ number_format($vatAmount, 2) }}</span></p>
+            <p><span>Incl. VAT :</span><span>{{ number_format($sale->total, 2) }}</span></p>
+        </div>
+        @else
+        <div class="vat-breakdown">
+            <p><span>VAT (0%) :</span><span>{{ number_format($vatAmount, 2) }}</span></p>
+            <p><span>Incl. VAT :</span><span>{{ number_format($sale->total, 2) }}</span></p>
+        </div>
         @endif
         
         <div class="totals">
