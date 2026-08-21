@@ -20,7 +20,7 @@
                     <div>
                         <p class="text-sm font-semibold text-blue-800">PERG_TRA_VFD_API_v1.0.1</p>
                         <p class="text-sm text-blue-700 mt-1">This integration posts receipts to the Tanzania Revenue Authority (TRA) Electronic Fiscal Device (EFD) system. Configure your TRA registration details below.</p>
-                        <p class="text-sm text-blue-700 mt-1"><strong>Tax Codes:</strong> 1 = 18% Standard Rated, 3 = 0% Zero Rated, 4 = 0% Special Relief, 5 = 0% Exempted</p>
+                        <p class="text-sm text-blue-700 mt-1"><strong>Tax Codes:</strong> 1 = 18% Standard Rated, 3 = 0% Zero Rated, 4 = 0% Special Relief, 5 = 0% Exempted (used for non-VAT registered sellers)</p>
                     </div>
                 </div>
             </div>
@@ -157,7 +157,7 @@
                     </tr>
                     <tr class="border-b">
                         <td class="py-2 font-semibold">5</td>
-                        <td class="py-2">Exempted</td>
+                        <td class="py-2">Exempted (also used for non-VAT registered sellers)</td>
                         <td class="py-2">0%</td>
                     </tr>
                 </tbody>

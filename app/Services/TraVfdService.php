@@ -38,7 +38,6 @@ class TraVfdService
     /**
      * Map product tax_code to TRA tax code
      * 1-18%(Standard Rated), 3-0%(Zero rated), 4-0%(Special Relief), 5-0%(Exempted)
-     * C-0%(Non-VAT Registered Seller)
      */
     private function getTraTaxCode(int $productTaxCode): int
     {
@@ -48,7 +47,7 @@ class TraVfdService
 
     /**
      * Get the appropriate TRA tax code based on seller's VAT registration status
-     * Returns 'C' (0%) for non-VAT registered sellers, otherwise uses product tax code
+     * Returns '5' (Exempted - 0%) for non-VAT registered sellers, otherwise uses product tax code
      */
     private function getEffectiveTaxCode(int $productTaxCode): string
     {
@@ -56,7 +55,7 @@ class TraVfdService
         $isVatRegistered = (bool) ($this->settings->vat_registered ?? false);
 
         if (!$isVatRegistered) {
-            return 'C'; // Non-VAT registered seller uses tax code C (0%)
+            return '5'; // Non-VAT registered seller uses tax code 5 (Exempted - 0%)
         }
 
         $validCodes = [1, 3, 4, 5];

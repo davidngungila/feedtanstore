@@ -97,14 +97,14 @@ class ReceiptController extends Controller {
         $isVatRegistered = (bool) ($settings->vat_registered ?? false);
 
         // Calculate per-item VAT (inclusive extraction)
-        // For non-VAT registered sellers, VAT is 0% (tax code C)
+        // For non-VAT registered sellers, VAT is 0% (tax code 5 - Exempted)
         $vatAmount = 0;
         foreach ($sale->items as $item) {
             $productTaxCode = (int) ($item->product->tax_code ?? 1);
             
             // Determine effective tax code based on VAT registration
             if (!$isVatRegistered) {
-                $taxCode = 'C'; // Non-VAT registered seller uses 0%
+                $taxCode = '5'; // Non-VAT registered seller uses tax code 5 (Exempted - 0%)
             } else {
                 $validCodes = [1, 3, 4, 5];
                 $taxCode = in_array($productTaxCode, $validCodes) ? (string) $productTaxCode : '1';
@@ -114,7 +114,7 @@ class ReceiptController extends Controller {
             if ($taxCode === '1') {
                 $vatAmount += round($amt * $taxPercent / (100 + $taxPercent), 2);
             }
-            // For tax codes 3, 4, 5, C (zero rated, special relief, exempted, non-VAT registered), VAT is 0
+            // For tax codes 3, 4, 5 (zero rated, special relief, exempted), VAT is 0
         }
         $vatAmount = round($vatAmount, 2);
 
