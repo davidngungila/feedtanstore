@@ -68,7 +68,7 @@
                         $previouslyReceived = \App\Models\GrnItem::whereHas('goodsReceivedNote', function ($q) use ($purchaseOrder, $item) {
                             $q->where('purchase_order_id', $purchaseOrder->id)
                                 ->where('product_id', $item->product_id);
-                        })->sum('quantity_received');
+                        })->sum('quantity');
                         $remaining = $item->quantity - $previouslyReceived;
                     @endphp
                     <div class="product_item mb-6 p-4 border border-gray-200 rounded-lg {{ $remaining <= 0 ? 'bg-green-50' : '' }}">
