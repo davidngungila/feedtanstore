@@ -44,7 +44,7 @@
                     @if($purchaseOrders->count() > 0)
                         @foreach($purchaseOrders as $po)
                         <tr class="hover:bg-gray-50">
-                            <td class="px-6 py-4 font-semibold text-gray-900">{{ $po->order_number }}</td>
+                            <td class="px-6 py-4 font-semibold text-gray-900">{{ $po->po_number }}</td>
                             <td class="px-6 py-4 text-sm text-gray-600">{{ $po->supplier->name ?? 'N/A' }}</td>
                             <td class="px-6 py-4 text-sm text-gray-600">{{ $po->created_at->format('M d, Y') }}</td>
                             <td class="px-6 py-4">
