@@ -47,18 +47,23 @@
                             <td class="px-6 py-4 text-sm text-gray-600">{{ $po->supplier->name ?? 'N/A' }}</td>
                             <td class="px-6 py-4 text-sm text-gray-600">{{ $po->created_at->format('M d, Y') }}</td>
                             <td class="px-6 py-4">
-                                <span class="px-2 py-1 text-xs font-semibold rounded-full
-                                    @if($po->status == 'received') bg-green-100 text-green-700
-                                    @elseif($po->status == 'partial') bg-yellow-100 text-yellow-700
-                                    @elseif($po->status == 'approved') bg-blue-100 text-blue-700
-                                    @else bg-gray-100 text-gray-700
-                                    @endif">
-                                    {{ ucfirst($po->status) }}
-                                </span>
+                                <div class="flex items-center gap-2">
+                                    <span class="px-2 py-1 text-xs font-semibold rounded-full
+                                        @if($po->status == 'received') bg-green-100 text-green-700
+                                        @elseif($po->status == 'partial') bg-yellow-100 text-yellow-700
+                                        @elseif($po->approval_status == 'approved') bg-blue-100 text-blue-700
+                                        @else bg-gray-100 text-gray-700
+                                        @endif">
+                                        {{ ucfirst($po->status) }}
+                                    </span>
+                                    @if($po->approval_status == 'approved')
+                                    <span class="px-2 py-1 text-xs font-semibold rounded-full bg-purple-100 text-purple-700">Approved</span>
+                                    @endif
+                                </div>
                             </td>
                             <td class="px-6 py-4 text-sm text-gray-600">{{ $po->items->count() }}</td>
                             <td class="px-6 py-4">
-                                @if($po->status == 'approved' || $po->status == 'partial')
+                                @if($po->approval_status == 'approved' && $po->status != 'received')
                                 <a href="{{ route('storekeeper.stock-receiving.create', $po) }}"
                                    class="inline-flex items-center px-3 py-1.5 bg-primary-100 text-primary-700 text-sm font-medium rounded-lg hover:bg-primary-200 transition-colors">
                                     <i class="fas fa-truck-loading mr-1.5"></i>Receive
