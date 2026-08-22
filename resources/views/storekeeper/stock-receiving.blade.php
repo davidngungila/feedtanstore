@@ -60,11 +60,13 @@
                             <td class="px-6 py-4">
                                 @if($po->status == 'approved' || $po->status == 'partial')
                                 <a href="{{ route('storekeeper.stock-receiving.create', $po) }}"
-                                   class="text-primary-600 hover:text-primary-700 text-sm font-medium">
-                                    <i class="fas fa-truck-loading mr-1"></i>Receive Stock
+                                   class="inline-flex items-center px-3 py-1.5 bg-primary-100 text-primary-700 text-sm font-medium rounded-lg hover:bg-primary-200 transition-colors">
+                                    <i class="fas fa-truck-loading mr-1.5"></i>Receive
                                 </a>
                                 @else
-                                <span class="text-gray-400 text-sm">Completed</span>
+                                <span class="inline-flex items-center px-3 py-1.5 bg-green-100 text-green-700 text-sm font-medium rounded-lg">
+                                    <i class="fas fa-check-circle mr-1.5"></i>Completed
+                                </span>
                                 @endif
                             </td>
                         </tr>
