@@ -89,52 +89,7 @@ class MarketingOfficerController extends Controller
             ->latest()
             ->first();
 
-        // All orders currently needing rider assignment (same eligibility as the bulk dispatch page)
-        $bulkOrders = $this->ordersNeedingAssignment();
-
-        $riders = DeliveryRider::where('is_active', true)->orderBy('name')->get();
-
-        $store = StoreSetting::first();
-        $storeLat = $store->store_latitude ?? -3.3869;
-        $storeLng = $store->store_longitude ?? 36.6883;
-
-        $defaultRadius = 5.0;
-
-        // Auto-bulk: pre-check this order plus the other orders whose customers
-        // are within the cluster radius of this delivery point. Orders without
-        // coordinates cannot be grouped, so they are never pre-selected.
-        $nearbyIds = [];
-        if ($order->delivery_latitude !== null && $order->delivery_longitude !== null) {
-            foreach ($bulkOrders->filter(fn ($o) => $o->delivery_latitude !== null && $o->delivery_longitude !== null) as $bulkOrder) {
-                $km = Geo::haversine(
-                    (float) $order->delivery_latitude,
-                    (float) $order->delivery_longitude,
-                    (float) $bulkOrder->delivery_latitude,
-                    (float) $bulkOrder->delivery_longitude
-                ) / 1000;
-
-                if ($km <= $defaultRadius) {
-                    $nearbyIds[] = $bulkOrder->id;
-                }
-            }
-        }
-
-        $ordersForMap = $bulkOrders
-            ->filter(fn ($o) => $o->delivery_latitude !== null && $o->delivery_longitude !== null)
-            ->map(fn ($o) => [
-                'id' => $o->id,
-                'order_number' => $o->order_number,
-                'customer_name' => $o->customer_name,
-                'address' => $o->delivery_address,
-                'lat' => (float) $o->delivery_latitude,
-                'lng' => (float) $o->delivery_longitude,
-                'total' => (float) $o->total,
-            ])->values();
-
-        return view('marketing-officer.order-details', compact(
-            'order', 'dispatchRequest', 'bulkOrders', 'riders', 'storeLat', 'storeLng',
-            'defaultRadius', 'nearbyIds', 'ordersForMap'
-        ));
+        return view('marketing-officer.order-details', compact('order', 'dispatchRequest'));
     }
 
     /**
