@@ -34,10 +34,15 @@ class PurchaseOrderRequestController extends Controller
             'products.*.reason' => 'nullable|string',
         ]);
 
-        $requestNumber = PurchaseOrderRequest::generateRequestNumber();
+        $baseRequestNumber = PurchaseOrderRequest::generateRequestNumber();
         $createdCount = 0;
 
         foreach ($request->products as $index => $productData) {
+            // Add sequence suffix for bulk requests (e.g., POR-20260822-0001-1, POR-20260822-0001-2)
+            $requestNumber = count($request->products) > 1 
+                ? $baseRequestNumber . '-' . ($index + 1)
+                : $baseRequestNumber;
+
             PurchaseOrderRequest::create([
                 'request_number' => $requestNumber,
                 'product_id' => $productData['product_id'],
