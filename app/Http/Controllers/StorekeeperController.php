@@ -164,22 +164,26 @@ class StorekeeperController extends Controller
                 \Log::info('Creating GRN', ['poItem' => $poItem->id, 'receivedQty' => $receivedQty, 'supplier_id' => $purchaseOrder->supplier_id, 'product_id' => $poItem->product_id]);
 
                 // Create or update GRN for this item
-                $grn = \App\Models\GoodsReceivedNote::create([
-                    'purchase_order_id' => $purchaseOrder->id,
-                    'supplier_id' => $purchaseOrder->supplier_id,
-                    'product_id' => $poItem->product_id,
-                    'quantity_ordered' => $poItem->quantity,
-                    'quantity_received' => $receivedQty,
-                    'quantity_accepted' => $receivedQty,
-                    'quantity_rejected' => 0,
-                    'unit_cost' => $poItem->unit_price,
-                    'total_cost' => $receivedQty * $poItem->unit_price,
-                    'status' => 'accepted',
-                    'received_by' => Auth::id(),
-                    'notes' => $receivedData['notes'] ?? null,
-                ]);
-
-                \Log::info('GRN created', ['grn_id' => $grn->id]);
+                try {
+                    $grn = \App\Models\GoodsReceivedNote::create([
+                        'purchase_order_id' => $purchaseOrder->id,
+                        'supplier_id' => $purchaseOrder->supplier_id,
+                        'product_id' => $poItem->product_id,
+                        'quantity_ordered' => $poItem->quantity,
+                        'quantity_received' => $receivedQty,
+                        'quantity_accepted' => $receivedQty,
+                        'quantity_rejected' => 0,
+                        'unit_cost' => $poItem->unit_price,
+                        'total_cost' => $receivedQty * $poItem->unit_price,
+                        'status' => 'accepted',
+                        'received_by' => Auth::id(),
+                        'notes' => $receivedData['notes'] ?? null,
+                    ]);
+                    \Log::info('GRN created', ['grn_id' => $grn->id]);
+                } catch (\Exception $e) {
+                    \Log::error('GRN creation failed', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
+                    throw $e;
+                }
 
                 // Update product stock
                 $product = $poItem->product;
