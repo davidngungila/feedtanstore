@@ -60,62 +60,75 @@
         <div class="card rounded-2xl overflow-hidden">
             <div class="p-6 border-b border-gray-200">
                 <h2 class="text-lg font-bold text-primary-900">Items to Receive</h2>
-                <p class="text-sm text-gray-600 mt-1">Enter the quantity received for each item. Leave as 0 if not received.</p>
+                <p class="text-sm text-gray-600 mt-1">Enter the quantity received for each item. Set to 0 if not received.</p>
             </div>
-            <div class="overflow-x-auto">
-                <table class="w-full">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Product</th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Ordered</th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Previously Received</th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Remaining</th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Unit Price</th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Received Now</th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Notes</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-200">
-                        @foreach($purchaseOrder->items as $item)
-                            @php
-                                $previouslyReceived = \App\Models\GrnItem::whereHas('goodsReceivedNote', function ($q) use ($purchaseOrder, $item) {
-                                    $q->where('purchase_order_id', $purchaseOrder->id)
-                                        ->where('product_id', $item->product_id);
-                                })->sum('quantity_received');
-                                $remaining = $item->quantity - $previouslyReceived;
-                            @endphp
-                            <tr class="hover:bg-gray-50">
-                                <td class="px-6 py-4">
-                                    <p class="font-semibold text-gray-900">{{ $item->product->name }}</p>
-                                    <p class="text-sm text-gray-500">{{ $item->product->sku ?? '' }}</p>
-                                </td>
-                                <td class="px-6 py-4 text-sm text-gray-600">{{ $item->quantity }} {{ $item->product->unit->short_name ?? 'pcs' }}</td>
-                                <td class="px-6 py-4 text-sm text-gray-600">{{ $previouslyReceived }} {{ $item->product->unit->short_name ?? 'pcs' }}</td>
-                                <td class="px-6 py-4 text-sm font-medium {{ $remaining <= 0 ? 'text-green-600' : 'text-red-600' }}">{{ $remaining }} {{ $item->product->unit->short_name ?? 'pcs' }}</td>
-                                <td class="px-6 py-4 text-sm text-gray-600">TZS {{ number_format($item->unit_price, 0) }}</td>
-                                <td class="px-6 py-4">
-                                    <input type="number"
-                                           name="received_items[{{ $item->id }}][quantity]"
-                                           value="{{ $remaining > 0 ? $remaining : 0 }}"
-                                           min="0"
-                                           max="{{ $remaining > 0 ? $remaining : 0 }}"
-                                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-center"
-                                           @if($remaining <= 0) disabled @endif>
-                                    @if($remaining <= 0)
-                                        <input type="hidden" name="received_items[{{ $item->id }}][quantity]" value="0">
-                                    @endif
-                                </td>
-                                <td class="px-6 py-4">
-                                    <input type="text"
-                                           name="received_items[{{ $item->id }}][notes]"
-                                           placeholder="Optional notes..."
-                                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
-                                           @if($remaining <= 0) disabled @endif>
-                                </td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
+            <div class="p-6">
+                @foreach($purchaseOrder->items as $item)
+                    @php
+                        $previouslyReceived = \App\Models\GrnItem::whereHas('goodsReceivedNote', function ($q) use ($purchaseOrder, $item) {
+                            $q->where('purchase_order_id', $purchaseOrder->id)
+                                ->where('product_id', $item->product_id);
+                        })->sum('quantity_received');
+                        $remaining = $item->quantity - $previouslyReceived;
+                    @endphp
+                    <div class="product_item mb-6 p-4 border border-gray-200 rounded-lg {{ $remaining <= 0 ? 'bg-green-50' : '' }}">
+                        <div class="grid grid-cols-1 md:grid-cols-6 gap-4 mb-4">
+                            <div class="md:col-span-1">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Product *</label>
+                                <input type="hidden" name="received_items[{{ $item->id }}][product_id]" value="{{ $item->product_id }}">
+                                <div class="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed">
+                                    {{ $item->product->name }} ({{ $item->product->sku ?? 'N/A' }})
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Ordered</label>
+                                <input type="number" value="{{ $item->quantity }}" min="0" class="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed" readonly>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Previously Received</label>
+                                <input type="number" value="{{ $previouslyReceived }}" min="0" class="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed" readonly>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Remaining</label>
+                                <input type="number" value="{{ $remaining }}" min="0" class="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed {{ $remaining <= 0 ? 'text-green-600 font-medium' : 'text-red-600 font-medium' }}" readonly>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Receiving Now *</label>
+                                <input type="number"
+                                       name="received_items[{{ $item->id }}][quantity]"
+                                       value="{{ $remaining > 0 ? $remaining : 0 }}"
+                                       min="0"
+                                       max="{{ $remaining }}"
+                                       {{ $remaining <= 0 ? 'disabled' : 'required' }}
+                                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-center {{ $remaining <= 0 ? 'bg-gray-100' : '' }}">
+                                @if($remaining <= 0)
+                                    <input type="hidden" name="received_items[{{ $item->id }}][quantity]" value="0">
+                                @endif
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Unit Price</label>
+                                <input type="number" step="0.01" value="{{ $item->unit_price }}" class="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed" readonly>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                                <input type="text"
+                                       name="received_items[{{ $item->id }}][notes]"
+                                       placeholder="Optional notes..."
+                                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
+                                       {{ $remaining <= 0 ? 'disabled' : '' }}>
+                            </div>
+                            <div class="flex items-end">
+                                @if($remaining <= 0)
+                                <span class="px-4 py-2 bg-green-100 border border-green-300 rounded-lg text-green-800 font-medium text-sm">
+                                    <i class="fas fa-check-circle mr-1"></i>Fully Received
+                                </span>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                @endforeach
             </div>
 
             @if($purchaseOrder->status == 'partial')
