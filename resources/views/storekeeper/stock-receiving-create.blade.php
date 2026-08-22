@@ -33,7 +33,7 @@
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div>
                     <p class="text-sm text-gray-600">PO Number</p>
-                    <p class="font-semibold text-gray-900">{{ $purchaseOrder->order_number }}</p>
+                    <p class="font-semibold text-gray-900">{{ $purchaseOrder->po_number }}</p>
                 </div>
                 <div>
                     <p class="text-sm text-gray-600">Supplier</p>
