@@ -145,10 +145,25 @@
             <a href="{{ route('storekeeper.stock-receiving') }}" class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
                 Cancel
             </a>
-            <button type="submit" class="px-6 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors">
+            <button type="submit" id="submitBtn" class="px-6 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors">
                 <i class="fas fa-check mr-2"></i>Confirm Receive Stock
             </button>
         </div>
     </form>
 </div>
+
+<script>
+    document.getElementById('receive-form').addEventListener('submit', function(e) {
+        const submitBtn = document.getElementById('submitBtn');
+        if (submitBtn.disabled) {
+            e.preventDefault();
+            return false;
+        }
+        
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Processing...';
+        submitBtn.classList.remove('bg-primary-600', 'hover:bg-primary-700');
+        submitBtn.classList.add('bg-gray-400', 'cursor-not-allowed');
+    });
+</script>
 @endsection
