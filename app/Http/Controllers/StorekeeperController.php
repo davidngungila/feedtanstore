@@ -188,7 +188,7 @@ class StorekeeperController extends Controller
                 $totalReceived = \App\Models\GrnItem::whereHas('goodsReceivedNote', function ($q) use ($purchaseOrder, $poItem) {
                     $q->where('purchase_order_id', $purchaseOrder->id)
                         ->where('product_id', $poItem->product_id);
-                })->sum('quantity_received');
+                })->sum('quantity');
 
                 if ($totalReceived < $poItem->quantity) {
                     $allFullyReceived = false;
