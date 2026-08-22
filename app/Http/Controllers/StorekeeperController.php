@@ -130,6 +130,13 @@ class StorekeeperController extends Controller
 
     public function storeStockReceiving(Request $request, PurchaseOrder $purchaseOrder)
     {
+        \Log::info('storeStockReceiving START', [
+            'route_po_id' => $purchaseOrder->id,
+            'request_po_id' => $request->input('purchase_order_id'),
+            'received_items' => $request->input('received_items'),
+            'user' => auth()->id()
+        ]);
+        
         $request->validate([
             'received_items' => 'required|array',
             'received_items.*.quantity' => 'required|integer|min:0',
@@ -144,7 +151,9 @@ class StorekeeperController extends Controller
             $anyReceived = false;
 
             foreach ($request->received_items as $itemId => $receivedData) {
+                \Log::info('Processing item', ['itemId' => $itemId, 'data' => $receivedData]);
                 $poItem = $purchaseOrder->items()->where('id', $itemId)->first();
+                \Log::info('Found poItem', ['poItem' => $poItem ? $poItem->id : null, 'poItemsCount' => $purchaseOrder->items->count()]);
                 if (!$poItem) continue;
 
                 $receivedQty = $receivedData['quantity'];
