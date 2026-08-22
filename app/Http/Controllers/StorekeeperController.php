@@ -115,7 +115,8 @@ class StorekeeperController extends Controller
     public function stockReceiving()
     {
         $purchaseOrders = PurchaseOrder::with('supplier', 'items.product')
-            ->whereIn('status', ['approved', 'partial'])
+            ->where('approval_status', 'approved')
+            ->where('status', '!=', 'received')
             ->orderBy('created_at', 'desc')
             ->paginate(20);
         return view('storekeeper.stock-receiving', compact('purchaseOrders'));
