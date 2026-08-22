@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('page-title', 'Receive Stock - {{ $purchaseOrder->order_number }}')
+@section('page-title', 'Receive Stock - {{ $purchaseOrder->po_number }}')
 
 @section('content')
 <div class="animate-[fadeIn_0.4s_ease]">
