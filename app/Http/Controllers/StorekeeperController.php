@@ -130,8 +130,6 @@ class StorekeeperController extends Controller
 
     public function storeStockReceiving(Request $request, PurchaseOrder $purchaseOrder)
     {
-        \Log::info('storeStockReceiving called', ['all' => $request->all(), 'received_items' => $request->received_items ?? null]);
-        
         $request->validate([
             'received_items' => 'required|array',
             'received_items.*.quantity' => 'required|integer|min:0',

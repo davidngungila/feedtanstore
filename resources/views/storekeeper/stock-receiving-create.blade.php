@@ -10,7 +10,7 @@
                 <i class="fas fa-arrow-left mr-2"></i>Back to Stock Receiving
             </a>
             <h1 class="text-2xl font-bold text-primary-900 mt-2">Receive Stock</h1>
-            <p class="text-gray-600">PO: {{ $purchaseOrder->order_number }} - {{ $purchaseOrder->supplier->name }}</p>
+            <p class="text-gray-600">PO: {{ $purchaseOrder->po_number }} - {{ $purchaseOrder->supplier->name }}</p>
         </div>
     </div>
 
