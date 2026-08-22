@@ -159,7 +159,9 @@ class StorekeeperController extends Controller
                 $receivedQty = $receivedData['quantity'];
                 if ($receivedQty <= 0) continue;
 
-                $anyReceived = true;
+                \Log::info('GrnItem created', ['grn_id' => $grn->id]);
+
+                \Log::info('Creating GRN', ['poItem' => $poItem->id, 'receivedQty' => $receivedQty, 'supplier_id' => $purchaseOrder->supplier_id, 'product_id' => $poItem->product_id]);
 
                 // Create or update GRN for this item
                 $grn = \App\Models\GoodsReceivedNote::create([
@@ -176,6 +178,8 @@ class StorekeeperController extends Controller
                     'received_by' => Auth::id(),
                     'notes' => $receivedData['notes'] ?? null,
                 ]);
+
+                \Log::info('GRN created', ['grn_id' => $grn->id]);
 
                 // Update product stock
                 $product = $poItem->product;
