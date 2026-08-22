@@ -8,12 +8,14 @@ use App\Models\DeliveryRider;
 use App\Models\RiderDispatchBatch;
 use App\Models\RiderDispatchRequest;
 use App\Models\StoreSetting;
+use App\Models\User;
 use App\Support\Geo;
 use App\Services\Tracking\TrackingService;
 use App\Services\Notifications\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 
 class MarketingOfficerController extends Controller
 {
@@ -709,6 +711,50 @@ class MarketingOfficerController extends Controller
     {
         $riders = DeliveryRider::with('user')->orderBy('name')->paginate(20);
         return view('marketing-officer.riders', compact('riders'));
+    }
+
+    public function createRider()
+    {
+        return view('marketing-officer.riders-create');
+    }
+
+    public function storeRider(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email',
+            'password' => 'required|string|min:8',
+            'phone' => 'required|string|max:255',
+            'vehicle_type' => 'nullable|string|max:255',
+            'vehicle_plate' => 'nullable|string|max:255',
+            'is_active' => 'boolean'
+        ]);
+
+        \DB::beginTransaction();
+        try {
+            $user = User::create([
+                'name' => $request->name,
+                'email' => $request->email,
+                'password' => Hash::make($request->password),
+                'phone' => $request->phone,
+                'role' => 'rider',
+            ]);
+
+            DeliveryRider::create([
+                'name' => $request->name,
+                'phone' => $request->phone,
+                'vehicle_type' => $request->vehicle_type,
+                'vehicle_plate' => $request->vehicle_plate,
+                'is_active' => $request->has('is_active'),
+                'user_id' => $user->id,
+            ]);
+
+            \DB::commit();
+            return redirect()->route('marketing-officer.riders')->with('success', 'Delivery Rider created successfully!');
+        } catch (\Exception $e) {
+            \DB::rollBack();
+            return back()->with('error', 'Failed to create rider: ' . $e->getMessage());
+        }
     }
 
     public function riderDetails($id)

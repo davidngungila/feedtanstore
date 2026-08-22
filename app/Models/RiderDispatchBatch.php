@@ -39,7 +39,7 @@ class RiderDispatchBatch extends Model
     public static function generateBatchNumber(): string
     {
         $date = now()->format('Ymd');
-        $prefix = "BTCH-{$date}-";
+        $prefix = "DB-{$date}-";
 
         $lastBatch = static::where('batch_number', 'like', "{$prefix}%")
             ->orderBy('id', 'desc')

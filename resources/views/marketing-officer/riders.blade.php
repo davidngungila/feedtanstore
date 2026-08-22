@@ -5,7 +5,12 @@
 @section('content')
 <div class="animate-[fadeIn_0.4s_ease]">
     <div class="mb-6">
-        <h1 class="text-2xl font-bold text-primary-900">Delivery Riders</h1>
+        <div class="flex items-center justify-between">
+            <h1 class="text-2xl font-bold text-primary-900">Delivery Riders</h1>
+            <a href="{{ route('marketing-officer.riders.create') }}" class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg text-sm font-medium transition-colors">
+                <i class="fas fa-plus mr-2"></i>Add Rider
+            </a>
+        </div>
         <p class="text-gray-600">Manage delivery riders and assignments</p>
     </div>
 

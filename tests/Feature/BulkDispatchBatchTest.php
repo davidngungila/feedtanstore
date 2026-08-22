@@ -102,6 +102,7 @@ class BulkDispatchBatchTest extends TestCase
 
         Schema::create('rider_dispatch_batches', function ($table) {
             $table->id();
+            $table->string('batch_number', 30)->unique()->nullable()->after('id');
             $table->string('status')->default('pending');
             $table->foreignId('created_by')->nullable();
             $table->foreignId('target_rider_id')->nullable();

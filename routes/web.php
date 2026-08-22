@@ -126,6 +126,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/customers', [\App\Http\Controllers\MarketingOfficerController::class, 'customers'])->name('customers');
         Route::get('/customers/{id}', [\App\Http\Controllers\MarketingOfficerController::class, 'customerDetails'])->name('customer-details');
         Route::get('/riders', [\App\Http\Controllers\MarketingOfficerController::class, 'riders'])->name('riders');
+        Route::get('/riders/create', [\App\Http\Controllers\MarketingOfficerController::class, 'createRider'])->name('riders.create');
+        Route::post('/riders', [\App\Http\Controllers\MarketingOfficerController::class, 'storeRider'])->name('riders.store');
         Route::get('/riders/{id}', [\App\Http\Controllers\MarketingOfficerController::class, 'riderDetails'])->name('rider-details');
         Route::get('/dispatch/bulk', [\App\Http\Controllers\MarketingOfficerController::class, 'bulkDispatch'])->name('bulk-dispatch');
         Route::post('/dispatch/bulk/send', [\App\Http\Controllers\MarketingOfficerController::class, 'sendBulkDispatch'])->name('bulk-dispatch.send');
@@ -244,17 +246,6 @@ Route::middleware('auth')->group(function () {
         Route::post('/{stockRequest}/approve', [\App\Http\Controllers\StockRequestController::class, 'approve'])->name('approve');
         Route::post('/{stockRequest}/issue', [\App\Http\Controllers\StockRequestController::class, 'issue'])->name('issue');
         Route::post('/{stockRequest}/reject', [\App\Http\Controllers\StockRequestController::class, 'reject'])->name('reject');
-    });
-
-    // Marketing Requests
-    Route::prefix('marketing-requests')->name('marketing-requests.')->group(function () {
-        Route::get('/', [\App\Http\Controllers\MarketingRequestController::class, 'index'])->name('index');
-        Route::get('/create', [\App\Http\Controllers\MarketingRequestController::class, 'create'])->name('create');
-        Route::post('/', [\App\Http\Controllers\MarketingRequestController::class, 'store'])->name('store');
-        Route::get('/{marketingRequest}', [\App\Http\Controllers\MarketingRequestController::class, 'show'])->name('show');
-        Route::post('/{marketingRequest}/accept', [\App\Http\Controllers\MarketingRequestController::class, 'accept'])->name('accept');
-        Route::post('/{marketingRequest}/process', [\App\Http\Controllers\MarketingRequestController::class, 'process'])->name('process');
-        Route::post('/{marketingRequest}/reject', [\App\Http\Controllers\MarketingRequestController::class, 'reject'])->name('reject');
     });
 
     // Purchasing & Suppliers
