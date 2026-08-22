@@ -140,15 +140,15 @@
             </div>
             @endif
         </div>
-
-        <div class="mt-6 flex justify-end gap-3">
-            <a href="{{ route('storekeeper.stock-receiving') }}" class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
-                Cancel
-            </a>
-            <button type="submit" class="px-6 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors">
-                <i class="fas fa-check mr-2"></i>Confirm Receive Stock
-            </button>
-        </div>
     </form>
+
+    <div class="mt-6 flex justify-end gap-3">
+        <a href="{{ route('storekeeper.stock-receiving') }}" class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
+            Cancel
+        </a>
+        <button type="button" onclick="document.getElementById('receive-form').submit()" class="px-6 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors">
+            <i class="fas fa-check mr-2"></i>Confirm Receive Stock
+        </button>
+    </div>
 </div>
 @endsection
