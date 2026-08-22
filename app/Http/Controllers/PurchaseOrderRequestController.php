@@ -27,22 +27,30 @@ class PurchaseOrderRequestController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'product_id' => 'required|exists:products,id',
-            'requested_quantity' => 'required|numeric|min:1',
-            'reason' => 'nullable|string',
+            'reason' => 'required|string',
+            'products' => 'required|array|min:1',
+            'products.*.product_id' => 'required|exists:products,id',
+            'products.*.requested_quantity' => 'required|numeric|min:1',
+            'products.*.reason' => 'nullable|string',
         ]);
 
-        PurchaseOrderRequest::create([
-            'request_number' => PurchaseOrderRequest::generateRequestNumber(),
-            'product_id' => $request->product_id,
-            'requested_quantity' => $request->requested_quantity,
-            'reason' => $request->reason,
-            'status' => 'pending',
-            'requested_by' => Auth::id(),
-        ]);
+        $requestNumber = PurchaseOrderRequest::generateRequestNumber();
+        $createdCount = 0;
+
+        foreach ($request->products as $index => $productData) {
+            PurchaseOrderRequest::create([
+                'request_number' => $requestNumber,
+                'product_id' => $productData['product_id'],
+                'requested_quantity' => $productData['requested_quantity'],
+                'reason' => $productData['reason'] ?? $request->reason,
+                'status' => 'pending',
+                'requested_by' => Auth::id(),
+            ]);
+            $createdCount++;
+        }
 
         return redirect()->route('purchase-order-requests.index')
-            ->with('success', 'Purchase order request submitted successfully');
+            ->with('success', "Purchase order request submitted successfully with {$createdCount} product(s)");
     }
 
     public function show(PurchaseOrderRequest $purchaseOrderRequest)
