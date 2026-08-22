@@ -12,10 +12,14 @@ use App\Models\User;
 use App\Support\Geo;
 use App\Services\Tracking\TrackingService;
 use App\Services\Notifications\NotificationService;
+use App\Services\MessagingService;
+use App\Mail\RiderWelcomeEmail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 
 class MarketingOfficerController extends Controller
 {
@@ -723,24 +727,25 @@ class MarketingOfficerController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
-            'password' => 'required|string|min:8',
             'phone' => 'required|string|max:255',
             'vehicle_type' => 'nullable|string|max:255',
             'vehicle_plate' => 'nullable|string|max:255',
             'is_active' => 'boolean'
         ]);
 
+        $generatedPassword = Str::random(12);
+
         \DB::beginTransaction();
         try {
             $user = User::create([
                 'name' => $request->name,
                 'email' => $request->email,
-                'password' => Hash::make($request->password),
+                'password' => Hash::make($generatedPassword),
                 'phone' => $request->phone,
                 'role' => 'rider',
             ]);
 
-            DeliveryRider::create([
+            $rider = DeliveryRider::create([
                 'name' => $request->name,
                 'phone' => $request->phone,
                 'vehicle_type' => $request->vehicle_type,
@@ -750,7 +755,30 @@ class MarketingOfficerController extends Controller
             ]);
 
             \DB::commit();
-            return redirect()->route('marketing-officer.riders')->with('success', 'Delivery Rider created successfully!');
+
+            try {
+                Mail::to($user->email)->send(new RiderWelcomeEmail($rider->load('user'), $generatedPassword));
+            } catch (\Exception $e) {
+                \Log::error('Failed to send welcome email to rider', [
+                    'rider_id' => $rider->id,
+                    'email' => $user->email,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+
+            try {
+                $messagingService = new MessagingService();
+                $smsText = "Welcome to Feedtan Delivery Team, {$rider->name}! Your account is ready. Login with email: {$user->email} and password: {$generatedPassword}. Download the rider app to start delivering. Change password after first login.";
+                $messagingService->sendSms($request->phone, $smsText);
+            } catch (\Exception $e) {
+                \Log::error('Failed to send welcome SMS to rider', [
+                    'rider_id' => $rider->id,
+                    'phone' => $request->phone,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+
+            return redirect()->route('marketing-officer.riders')->with('success', 'Delivery Rider created successfully! Welcome email and SMS sent with login credentials.');
         } catch (\Exception $e) {
             \DB::rollBack();
             return back()->with('error', 'Failed to create rider: ' . $e->getMessage());
