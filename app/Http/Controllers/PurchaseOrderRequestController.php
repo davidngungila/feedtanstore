@@ -122,4 +122,71 @@ class PurchaseOrderRequestController extends Controller
 
         return back()->with('success', 'Purchase order processed successfully');
     }
+
+    public function receive(Request $request, PurchaseOrderRequest $purchaseOrderRequest)
+    {
+        if (!in_array($purchaseOrderRequest->status, ['pending', 'approved'])) {
+            return back()->with('error', 'This request cannot be received in its current status');
+        }
+
+        $request->validate([
+            'received_quantity' => 'required|numeric|min:1',
+            'notes' => 'nullable|string|max:500',
+        ]);
+
+        if ($request->received_quantity > $purchaseOrderRequest->requested_quantity) {
+            return back()->with('error', 'Received quantity cannot exceed requested quantity');
+        }
+
+        \DB::beginTransaction();
+        try {
+            // Create GRN for this request
+            $grnNumber = 'GRN-POR-' . date('YmdHis');
+
+            $grn = \App\Models\GoodsReceivedNote::create([
+                'grn_number' => $grnNumber,
+                'supplier_id' => $purchaseOrderRequest->supplier_id ?? null,
+                'purchase_order_id' => null,
+                'received_date' => now(),
+                'notes' => $request->notes ?? 'Received from Purchase Order Request: ' . $purchaseOrderRequest->request_number,
+                'total' => 0,
+                'status' => 'received',
+            ]);
+
+            $product = $purchaseOrderRequest->product;
+            $unitPrice = $product->cost_price ?? 0;
+            $total = $request->received_quantity * $unitPrice;
+
+            \App\Models\GrnItem::create([
+                'goods_received_note_id' => $grn->id,
+                'product_id' => $product->id,
+                'quantity_ordered' => $purchaseOrderRequest->requested_quantity,
+                'quantity_received' => $request->received_quantity,
+                'quantity_accepted' => $request->received_quantity,
+                'quantity_rejected' => 0,
+                'unit_cost' => $unitPrice,
+                'total_cost' => $total,
+            ]);
+
+            // Update product stock
+            $product->increment('quantity', $request->received_quantity);
+
+            // Update GRN total
+            $grn->update(['total' => $total]);
+
+            // Update request status
+            $purchaseOrderRequest->update([
+                'status' => 'received',
+                'processed_at' => now(),
+            ]);
+
+            \DB::commit();
+
+            return redirect()->route('storekeeper.purchase-order-requests.show', $purchaseOrderRequest)
+                ->with('success', 'Products received successfully! Stock updated and GRN created.');
+        } catch (\Exception $e) {
+            \DB::rollBack();
+            return back()->with('error', 'Failed to receive products: ' . $e->getMessage());
+        }
+    }
 }

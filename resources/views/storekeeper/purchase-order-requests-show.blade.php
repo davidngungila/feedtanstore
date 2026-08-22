@@ -49,7 +49,9 @@
         @if($purchaseOrderRequest->status === 'pending')
         <div class="border-t border-gray-200 pt-6">
             <h3 class="text-lg font-semibold text-gray-900 mb-4">Admin Actions</h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                
+                <!-- Approve & Assign Supplier -->
                 <form action="{{ route('storekeeper.purchase-order-requests.approve', $purchaseOrderRequest) }}" method="POST">
                     @csrf
                     @method('PUT')
@@ -71,6 +73,24 @@
                     </button>
                 </form>
 
+                <!-- Receive Products Directly -->
+                <form action="{{ route('storekeeper.purchase-order-requests.receive', $purchaseOrderRequest) }}" method="POST">
+                    @csrf
+                    @method('PUT')
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Received Quantity *</label>
+                        <input type="number" name="received_quantity" value="{{ $purchaseOrderRequest->requested_quantity }}" min="1" max="{{ $purchaseOrderRequest->requested_quantity }}" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                        <textarea name="notes" rows="2" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500" placeholder="Optional notes (e.g., batch number, condition)"></textarea>
+                    </div>
+                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium">
+                        <i class="fas fa-truck-loading mr-2"></i>Receive Products
+                    </button>
+                </form>
+
+                <!-- Reject -->
                 <form action="{{ route('storekeeper.purchase-order-requests.reject', $purchaseOrderRequest) }}" method="POST">
                     @csrf
                     @method('PUT')

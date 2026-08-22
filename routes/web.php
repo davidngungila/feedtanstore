@@ -103,6 +103,7 @@ Route::middleware('auth')->group(function () {
         Route::put('/purchase-order-requests/{purchaseOrderRequest}/approve', [\App\Http\Controllers\PurchaseOrderRequestController::class, 'approve'])->name('purchase-order-requests.approve');
         Route::put('/purchase-order-requests/{purchaseOrderRequest}/reject', [\App\Http\Controllers\PurchaseOrderRequestController::class, 'reject'])->name('purchase-order-requests.reject');
         Route::put('/purchase-order-requests/{purchaseOrderRequest}/process', [\App\Http\Controllers\PurchaseOrderRequestController::class, 'process'])->name('purchase-order-requests.process');
+        Route::put('/purchase-order-requests/{purchaseOrderRequest}/receive', [\App\Http\Controllers\PurchaseOrderRequestController::class, 'receive'])->name('purchase-order-requests.receive');
         
         // Stock Adjustment Routes
         Route::get('/stock-adjustments', [\App\Http\Controllers\StorekeeperController::class, 'stockAdjustments'])->name('stock-adjustments');
