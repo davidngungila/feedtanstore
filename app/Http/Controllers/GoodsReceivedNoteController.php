@@ -43,6 +43,33 @@ class GoodsReceivedNoteController extends Controller
         $products = Product::with('category')->get();
         $purchaseOrders = PurchaseOrder::with(['supplier', 'items.product'])->where('status', 'pending')->where('approval_status', 'approved')->whereNotNull('sent_at')->get();
         $selectedPurchaseOrder = null;
+        
+        // Pre-calculate previously received for all POs to include in option data
+        $purchaseOrdersWithReceived = [];
+        foreach ($purchaseOrders as $po) {
+            $itemsReceived = [];
+            foreach ($po->items as $poItem) {
+                $previouslyReceived = \App\Models\GrnItem::whereHas('goodsReceivedNote', function ($q) use ($po, $poItem) {
+                    $q->where('purchase_order_id', $po->id)
+                        ->where('product_id', $poItem->product_id);
+                })->sum('quantity_received');
+                $itemsReceived[$poItem->product_id] = [
+                    'ordered' => $poItem->quantity,
+                    'previously_received' => $previouslyReceived,
+                    'remaining' => $poItem->quantity - $previouslyReceived,
+                ];
+            }
+            $purchaseOrdersWithReceived[] = [
+                'id' => $po->id,
+                'po_number' => $po->po_number,
+                'supplier_id' => $po->supplier_id,
+                'supplier' => $po->supplier,
+                'items' => $po->items,
+                'items_received' => $itemsReceived,
+            ];
+        }
+        
+        $selectedPurchaseOrder = null;
         if (request()->has('purchase_order_id')) {
             $selectedPurchaseOrder = PurchaseOrder::with(['supplier', 'items.product.category'])->where('approval_status', 'approved')->whereNotNull('sent_at')->find(request()->purchase_order_id);
             if (!$selectedPurchaseOrder) {
@@ -50,7 +77,7 @@ class GoodsReceivedNoteController extends Controller
             }
         }
         $isStoreOfficer = auth()->user()->role === 'store_officer';
-        return view('purchasing.grn-create', compact('suppliers', 'products', 'purchaseOrders', 'selectedPurchaseOrder', 'isStoreOfficer'));
+        return view('purchasing.grn-create', compact('suppliers', 'products', 'purchaseOrders', 'purchaseOrdersWithReceived', 'selectedPurchaseOrder', 'isStoreOfficer'));
     }
 
     public function store(Request $request)

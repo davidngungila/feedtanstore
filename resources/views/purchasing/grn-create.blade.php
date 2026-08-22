@@ -32,6 +32,26 @@
             </div>
         @endif
 
+        @if($selectedPurchaseOrder)
+        @php
+            // Calculate previously received quantities for each PO item
+            $poItemsReceived = [];
+            foreach ($selectedPurchaseOrder->items as $poItem) {
+                $previouslyReceived = \App\Models\GrnItem::whereHas('goodsReceivedNote', function ($q) use ($selectedPurchaseOrder, $poItem) {
+                    $q->where('purchase_order_id', $selectedPurchaseOrder->id)
+                        ->where('product_id', $poItem->product_id);
+                })->sum('quantity_received');
+                $remaining = $poItem->quantity - $previouslyReceived;
+                $poItemsReceived[$poItem->product_id] = [
+                    'ordered' => $poItem->quantity,
+                    'previously_received' => $previouslyReceived,
+                    'remaining' => $remaining,
+                    'unit_price' => $poItem->unit_price,
+                ];
+            }
+        @endphp
+@endif
+
         <form action="{{ route('purchasing.grn.store') }}" method="POST">
             @csrf
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
@@ -40,8 +60,8 @@
                     <label class="block text-sm font-medium text-gray-700 mb-1">Purchase Order *</label>
                     <select name="purchase_order_id" id="purchase_order_select" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 {{ $selectedPurchaseOrder ? 'bg-gray-100 cursor-not-allowed' : '' }}" {{ $selectedPurchaseOrder ? 'disabled' : '' }}>
                         <option value="">Select Purchase Order</option>
-                        @foreach($purchaseOrders as $po)
-                            <option value="{{ $po->id }}" data-po="{{ json_encode($po) }}" {{ old('purchase_order_id') == $po->id || ($selectedPurchaseOrder && $selectedPurchaseOrder->id == $po->id) ? 'selected' : '' }}>{{ $po->po_number }} - {{ $po->supplier->name ?? 'N/A' }}</option>
+                        @foreach($purchaseOrdersWithReceived as $po)
+                            <option value="{{ $po['id'] }}" data-po="{{ json_encode($po) }}" {{ old('purchase_order_id') == $po['id'] || ($selectedPurchaseOrder && $selectedPurchaseOrder->id == $po['id']) ? 'selected' : '' }}>{{ $po['po_number'] }} - {{ $po['supplier']->name ?? 'N/A' }}</option>
                         @endforeach
                     </select>
                     @if($selectedPurchaseOrder)
@@ -371,8 +391,16 @@ function addProductItemListeners(item) {
 }
 
 function addProductItemFromPo(productData, orderedQuantity, unitPrice) {
-    const container = document.getElementById('products_container');
     const isStoreOfficer = {{ $isStoreOfficer ? 'true' : 'false' }};
+    
+    // Get previously received data from PHP
+    const previouslyReceivedData = @json($poItemsReceived ?? []);
+    const productIdKey = productData ? String(productData.id) : '';
+    const receivedInfo = previouslyReceivedData[productIdKey] || { ordered: orderedQuantity, previously_received: 0, remaining: orderedQuantity };
+    
+    const previouslyReceived = receivedInfo.previously_received;
+    const remaining = Math.max(0, receivedInfo.remaining);
+    const container = document.getElementById('products_container');
     
     // Extract product details directly from productData
     const productId = productData ? productData.id : '';
@@ -388,7 +416,7 @@ function addProductItemFromPo(productData, orderedQuantity, unitPrice) {
     
     const template = `
         <div class="product_item mb-6 p-4 border border-gray-200 rounded-lg">
-            <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-4">
+            <div class="grid grid-cols-1 md:grid-cols-6 gap-4 mb-4">
                 <div class="md:col-span-1">
                     <label class="block text-sm font-medium text-gray-700 mb-1">Product *</label>
                     <input type="hidden" name="products[${productIndex}][product_id]" value="${productId}">
@@ -397,12 +425,21 @@ function addProductItemFromPo(productData, orderedQuantity, unitPrice) {
                     </div>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Ordered Qty *</label>
-                    <input type="number" value="${orderedQuantity}" min="1" class="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed" readonly>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Ordered</label>
+                    <input type="number" value="${receivedInfo.ordered}" min="0" class="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed" readonly>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Received Qty *</label>
-                    <input type="number" name="products[${productIndex}][quantity]" value="${orderedQuantity}" min="1" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 product_quantity">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Previously Received</label>
+                    <input type="number" value="${previouslyReceived}" min="0" class="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed" readonly>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Remaining</label>
+                    <input type="number" value="${remaining}" min="0" class="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed" readonly>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Receiving Now *</label>
+                    <input type="number" name="products[${productIndex}][quantity]" value="${remaining > 0 ? remaining : 0}" min="0" max="${remaining}" ${remaining <= 0 ? 'disabled' : 'required'} class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 product_quantity">
+                    ${remaining <= 0 ? `<input type="hidden" name="products[${productIndex}][quantity]" value="0">` : ''}
                 </div>
                 ${!isStoreOfficer ? `
                 <div>
