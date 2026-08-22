@@ -159,8 +159,6 @@ class StorekeeperController extends Controller
                 $receivedQty = $receivedData['quantity'];
                 if ($receivedQty <= 0) continue;
 
-                \Log::info('GrnItem created', ['grn_id' => $grn->id]);
-
                 \Log::info('Creating GRN', ['poItem' => $poItem->id, 'receivedQty' => $receivedQty, 'supplier_id' => $purchaseOrder->supplier_id, 'product_id' => $poItem->product_id]);
 
                 // Create or update GRN for this item
