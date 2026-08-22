@@ -19,6 +19,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Str;
 
 class MarketingOfficerController extends Controller
@@ -697,6 +698,7 @@ class MarketingOfficerController extends Controller
 
             \DB::commit();
 
+            // Send email synchronously (log driver writes to file immediately)
             try {
                 Mail::to($user->email)->send(new RiderWelcomeEmail($rider->load('user'), $generatedPassword));
             } catch (\Exception $e) {
@@ -707,12 +709,23 @@ class MarketingOfficerController extends Controller
                 ]);
             }
 
+            // Send SMS in background to avoid blocking response
             try {
                 $messagingService = new MessagingService();
                 $smsText = "Welcome to Feedtan Delivery Team, {$rider->name}! Your account is ready. Login with email: {$user->email} and password: {$generatedPassword}. Download the rider app to start delivering. Change password after first login.";
-                $messagingService->sendSms($request->phone, $smsText);
+                // Use queue to send SMS asynchronously
+                \Illuminate\Support\Facades\Queue::afterResponse(function () use ($messagingService, $request, $smsText) {
+                    try {
+                        $messagingService->sendSms($request->phone, $smsText);
+                    } catch (\Exception $e) {
+                        \Log::error('Failed to send welcome SMS to rider (background)', [
+                            'phone' => $request->phone,
+                            'error' => $e->getMessage(),
+                        ]);
+                    }
+                });
             } catch (\Exception $e) {
-                \Log::error('Failed to send welcome SMS to rider', [
+                \Log::error('Failed to queue welcome SMS for rider', [
                     'rider_id' => $rider->id,
                     'phone' => $request->phone,
                     'error' => $e->getMessage(),
