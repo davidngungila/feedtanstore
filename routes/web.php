@@ -100,6 +100,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/purchase-order-requests/create', [\App\Http\Controllers\PurchaseOrderRequestController::class, 'create'])->name('purchase-order-requests.create');
         Route::post('/purchase-order-requests', [\App\Http\Controllers\PurchaseOrderRequestController::class, 'store'])->name('purchase-order-requests.store');
         Route::get('/purchase-order-requests/{purchaseOrderRequest}', [\App\Http\Controllers\PurchaseOrderRequestController::class, 'show'])->name('purchase-order-requests.show');
+        Route::put('/purchase-order-requests/{purchaseOrderRequest}/approve', [\App\Http\Controllers\PurchaseOrderRequestController::class, 'approve'])->name('purchase-order-requests.approve');
+        Route::put('/purchase-order-requests/{purchaseOrderRequest}/reject', [\App\Http\Controllers\PurchaseOrderRequestController::class, 'reject'])->name('purchase-order-requests.reject');
+        Route::put('/purchase-order-requests/{purchaseOrderRequest}/process', [\App\Http\Controllers\PurchaseOrderRequestController::class, 'process'])->name('purchase-order-requests.process');
         
         // Stock Adjustment Routes
         Route::get('/stock-adjustments', [\App\Http\Controllers\StorekeeperController::class, 'stockAdjustments'])->name('stock-adjustments');

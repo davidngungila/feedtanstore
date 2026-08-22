@@ -15,7 +15,7 @@ class PurchaseOrderRequestController extends Controller
         $requests = PurchaseOrderRequest::with('product', 'requester', 'supplier')
             ->orderBy('created_at', 'desc')
             ->paginate(20);
-        return view('purchase-order-requests.index', compact('requests'));
+        return view('storekeeper.purchase-order-requests', compact('requests'));
     }
 
     public function create()
@@ -54,14 +54,15 @@ class PurchaseOrderRequestController extends Controller
             $createdCount++;
         }
 
-        return redirect()->route('purchase-order-requests.index')
+        return redirect()->route('purchase-order-requests')
             ->with('success', "Purchase order request submitted successfully with {$createdCount} product(s)");
     }
 
     public function show(PurchaseOrderRequest $purchaseOrderRequest)
     {
         $purchaseOrderRequest->load('product', 'requester', 'approver', 'supplier');
-        return view('purchase-order-requests.show', compact('purchaseOrderRequest'));
+        $suppliers = \App\Models\Supplier::where('is_active', true)->get();
+        return view('storekeeper.purchase-order-requests-show', compact('purchaseOrderRequest', 'suppliers'));
     }
 
     public function approve(Request $request, PurchaseOrderRequest $purchaseOrderRequest)
