@@ -310,14 +310,8 @@
                     <div class="p-4 bg-gray-50 border border-gray-200 rounded-lg">
                         <p class="text-sm text-gray-600 mb-4">
                             <i class="fas fa-info-circle mr-2 text-primary-600"></i>
-                            Send a dispatch request to all available riders. The first rider to accept is assigned immediately.
+                            Use the Bulk Dispatch section below to send this order as a dispatch batch. Select this order and click "Dispatch Selected" to create a batch.
                         </p>
-                        <form action="{{ route('marketing-officer.send-dispatch-request', $order->id) }}" method="POST">
-                            @csrf
-                            <button type="submit" class="w-full bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
-                                <i class="fas fa-paper-plane mr-2"></i>Send Dispatch Request
-                            </button>
-                        </form>
                     </div>
                 @endif
             </div>

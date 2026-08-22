@@ -183,13 +183,13 @@
 
     window.previewBatches = function () {
         const radius = parseFloat(document.getElementById('radius_km').value) || 5;
-        const clusters = clusterSelected(radius).filter(c => c.orders.length > 1);
+        const clusters = clusterSelected(radius);
         const container = document.getElementById('preview-container');
         const list = document.getElementById('preview-list');
 
         if (clusters.length === 0) {
             container.classList.remove('hidden');
-            list.innerHTML = '<div class="border border-amber-200 bg-amber-50 rounded-lg p-3 text-sm text-amber-700">No order can be grouped with at least one other within this radius. Dispatch the selected orders individually instead.</div>';
+            list.innerHTML = '<div class="border border-amber-200 bg-amber-50 rounded-lg p-3 text-sm text-amber-700">No orders selected.</div>';
             list.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             return;
         }
@@ -211,18 +211,14 @@
 
     document.getElementById('bulk-form').addEventListener('submit', function (e) {
         const ids = selectedOrderIds();
-        if (ids.length < 2) {
+        if (ids.length < 1) {
             e.preventDefault();
-            alert('Select at least two orders to create a bulk dispatch.');
+            alert('Select at least one order to create a dispatch batch.');
             return;
         }
 
         const radius = parseFloat(document.getElementById('radius_km').value) || 5;
         const clusters = clusterSelected(radius);
-        if (!clusters.some(c => c.orders.length > 1)) {
-            e.preventDefault();
-            alert('None of the selected orders can be grouped with another by location. Dispatch them individually instead.');
-        }
     });
 
     document.addEventListener('DOMContentLoaded', function () {

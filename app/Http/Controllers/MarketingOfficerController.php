@@ -187,54 +187,6 @@ class MarketingOfficerController extends Controller
         return redirect()->back()->with('success', 'Rider assigned successfully');
     }
 
-    public function sendDispatchRequest($id)
-    {
-        $order = OnlineOrder::findOrFail($id);
-
-        if ($order->packaging_status !== 'completed') {
-            return redirect()->back()->with('error', 'Cannot send dispatch request until packaging is completed');
-        }
-
-        if ($order->reconciliation_status !== 'completed') {
-            return redirect()->back()->with('error', 'Cannot send dispatch request until reconciliation is completed');
-        }
-
-        if ($order->delivery_rider_id) {
-            return redirect()->back()->with('error', 'A rider is already assigned to this order');
-        }
-
-        $alreadyInBatch = RiderDispatchRequest::where('online_order_id', $order->id)
-            ->whereNotNull('dispatch_batch_id')
-            ->where('status', 'pending')
-            ->exists();
-
-        if ($alreadyInBatch) {
-            return redirect()->back()->with('error', 'This order is already part of a bulk dispatch batch. Wait for the batch to be accepted or expire.');
-        }
-
-        // Cancel any previous pending request for this order (single or batch)
-        RiderDispatchRequest::where('online_order_id', $order->id)
-            ->where('status', 'pending')
-            ->update(['status' => 'cancelled']);
-
-        RiderDispatchRequest::create([
-            'online_order_id' => $order->id,
-            'status' => 'pending',
-            'expires_at' => now()->addMinutes(30),
-        ]);
-
-        $dispatch = RiderDispatchRequest::where('online_order_id', $order->id)
-            ->where('status', 'pending')
-            ->latest()
-            ->first();
-
-        if ($dispatch) {
-            $this->notifications->sendDispatchRequestNotification($dispatch);
-        }
-
-        return redirect()->back()->with('success', 'Dispatch request sent to all available riders. Waiting for a rider to accept.');
-    }
-
     public function cancelDispatchRequest($id)
     {
         $order = OnlineOrder::findOrFail($id);
@@ -337,7 +289,7 @@ class MarketingOfficerController extends Controller
                     'status' => 'pending',
                     'created_by' => Auth::id(),
                     'target_rider_id' => $targetRiderId,
-                    'expires_at' => now()->addMinutes(5),
+                    'expires_at' => now()->addMinutes(10),
                     'notes' => $validated['notes'] ?? null,
                 ]);
 
@@ -359,11 +311,45 @@ class MarketingOfficerController extends Controller
             }
         });
 
+        // Handle single orders that weren't clustered (orders without coordinates or alone)
+        $clusteredOrderIds = collect($clusters)->flatten(1)->pluck('id')->toArray();
+        $singleOrders = $eligible->filter(function ($order) use ($clusteredOrderIds) {
+            return !in_array($order->id, $clusteredOrderIds);
+        });
+
+        if ($singleOrders->isNotEmpty()) {
+            DB::transaction(function () use ($singleOrders, $targetRiderId, $validated, &$created) {
+                foreach ($singleOrders as $order) {
+                    $batch = RiderDispatchBatch::create([
+                        'status' => 'pending',
+                        'created_by' => Auth::id(),
+                        'target_rider_id' => $targetRiderId,
+                        'expires_at' => now()->addMinutes(10),
+                        'notes' => $validated['notes'] ?? null,
+                    ]);
+
+                    // Cancel any previous pending dispatch request for this order
+                    RiderDispatchRequest::where('online_order_id', $order->id)
+                        ->where('status', 'pending')
+                        ->update(['status' => 'cancelled']);
+
+                    RiderDispatchRequest::create([
+                        'online_order_id' => $order->id,
+                        'dispatch_batch_id' => $batch->id,
+                        'status' => 'pending',
+                        'expires_at' => $batch->expires_at,
+                    ]);
+
+                    $created[] = $batch;
+                }
+            });
+        }
+
         foreach ($created as $batch) {
             $this->notifications->sendDispatchBatchNotification($batch);
         }
 
-        $orderCount = collect($clusters)->sum(fn ($c) => count($c['orders']));
+        $orderCount = collect($clusters)->sum(fn ($c) => count($c['orders'])) + $singleOrders->count();
 
         return redirect()->route('marketing-officer.dispatch-batches')
             ->with('success', "Bulk dispatch created: ".count($created)." batch(es) covering {$orderCount} order(s). Riders can now accept.");

@@ -114,7 +114,6 @@ Route::middleware('auth')->group(function () {
         Route::get('/orders/{id}', [\App\Http\Controllers\MarketingOfficerController::class, 'orderDetails'])->name('order-details');
         Route::put('/orders/{id}/status', [\App\Http\Controllers\MarketingOfficerController::class, 'updateOrderStatus'])->name('update-order-status');
         Route::put('/orders/{id}/assign-rider', [\App\Http\Controllers\MarketingOfficerController::class, 'assignRider'])->name('assign-rider');
-        Route::post('/orders/{id}/send-dispatch-request', [\App\Http\Controllers\MarketingOfficerController::class, 'sendDispatchRequest'])->name('send-dispatch-request');
         Route::post('/orders/{id}/cancel-dispatch-request', [\App\Http\Controllers\MarketingOfficerController::class, 'cancelDispatchRequest'])->name('cancel-dispatch-request');
         Route::get('/orders/{id}/dispatch-status', [\App\Http\Controllers\MarketingOfficerController::class, 'dispatchStatus'])->name('dispatch-status');
         Route::put('/orders/{id}/packaging-status', [\App\Http\Controllers\MarketingOfficerController::class, 'updatePackagingStatus'])->name('update-packaging-status');
