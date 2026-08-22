@@ -36,7 +36,6 @@
                         <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Order Date</th>
                         <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Status</th>
                         <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Items</th>
-                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Total</th>
                         <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Action</th>
                     </tr>
                 </thead>
@@ -58,7 +57,6 @@
                                 </span>
                             </td>
                             <td class="px-6 py-4 text-sm text-gray-600">{{ $po->items->count() }}</td>
-                            <td class="px-6 py-4 text-sm text-gray-600">TZS {{ number_format($po->items->sum(fn($i) => $i->quantity * $i->unit_price), 0) }}</td>
                             <td class="px-6 py-4">
                                 @if($po->status == 'approved' || $po->status == 'partial')
                                 <a href="{{ route('storekeeper.stock-receiving.create', $po) }}"
@@ -73,7 +71,7 @@
                         @endforeach
                     @else
                         <tr>
-                            <td colspan="7" class="px-6 py-12 text-center text-gray-500">
+                            <td colspan="6" class="px-6 py-12 text-center text-gray-500">
                                 <i class="fas fa-inbox text-4xl mb-4 text-gray-300"></i>
                                 <p class="font-medium">No pending purchase orders</p>
                                 <p class="text-sm">All approved orders have been received</p>
