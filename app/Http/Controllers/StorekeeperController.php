@@ -9,6 +9,7 @@ use App\Models\PurchaseOrder;
 use App\Models\Supplier;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class StorekeeperController extends Controller
 {
@@ -109,5 +110,109 @@ class StorekeeperController extends Controller
             ->orderBy('created_at', 'desc')
             ->paginate(20);
         return view('storekeeper.stock-adjustments', compact('adjustments'));
+    }
+
+    public function stockReceiving()
+    {
+        $purchaseOrders = PurchaseOrder::with('supplier', 'items.product')
+            ->whereIn('status', ['approved', 'partial'])
+            ->orderBy('created_at', 'desc')
+            ->paginate(20);
+        return view('storekeeper.stock-receiving', compact('purchaseOrders'));
+    }
+
+    public function createStockReceiving(PurchaseOrder $purchaseOrder)
+    {
+        $purchaseOrder->load(['supplier', 'items.product', 'items.product.unit']);
+        return view('storekeeper.stock-receiving-create', compact('purchaseOrder'));
+    }
+
+    public function storeStockReceiving(Request $request, PurchaseOrder $purchaseOrder)
+    {
+        $request->validate([
+            'received_items' => 'required|array',
+            'received_items.*.quantity' => 'required|integer|min:0',
+            'received_items.*.notes' => 'nullable|string|max:500',
+        ]);
+
+        DB::beginTransaction();
+        try {
+            $purchaseOrder->load('items.product');
+
+            $allFullyReceived = true;
+            $anyReceived = false;
+
+            foreach ($request->received_items as $itemId => $receivedData) {
+                $poItem = $purchaseOrder->items()->where('id', $itemId)->first();
+                if (!$poItem) continue;
+
+                $receivedQty = $receivedData['quantity'];
+                if ($receivedQty <= 0) continue;
+
+                $anyReceived = true;
+
+                // Create or update GRN for this item
+                $grn = \App\Models\GoodsReceivedNote::create([
+                    'purchase_order_id' => $purchaseOrder->id,
+                    'supplier_id' => $purchaseOrder->supplier_id,
+                    'product_id' => $poItem->product_id,
+                    'quantity_ordered' => $poItem->quantity,
+                    'quantity_received' => $receivedQty,
+                    'quantity_accepted' => $receivedQty,
+                    'quantity_rejected' => 0,
+                    'unit_cost' => $poItem->unit_price,
+                    'total_cost' => $receivedQty * $poItem->unit_price,
+                    'status' => 'accepted',
+                    'received_by' => Auth::id(),
+                    'notes' => $receivedData['notes'] ?? null,
+                ]);
+
+                // Update product stock
+                $product = $poItem->product;
+                $product->increment('quantity', $receivedQty);
+
+                // Update GRN item
+                \App\Models\GrnItem::create([
+                    'goods_received_note_id' => $grn->id,
+                    'product_id' => $poItem->product_id,
+                    'quantity_ordered' => $poItem->quantity,
+                    'quantity_received' => $receivedQty,
+                    'quantity_accepted' => $receivedQty,
+                    'quantity_rejected' => 0,
+                    'unit_cost' => $poItem->unit_price,
+                    'total_cost' => $receivedQty * $poItem->unit_price,
+                ]);
+
+                // Check if fully received
+                $totalReceived = \App\Models\GrnItem::whereHas('goodsReceivedNote', function ($q) use ($purchaseOrder, $poItem) {
+                    $q->where('purchase_order_id', $purchaseOrder->id)
+                        ->where('product_id', $poItem->product_id);
+                })->sum('quantity_received');
+
+                if ($totalReceived < $poItem->quantity) {
+                    $allFullyReceived = false;
+                }
+            }
+
+            if (!$anyReceived) {
+                DB::rollBack();
+                return back()->with('error', 'No items were received. Please enter quantities greater than 0.');
+            }
+
+            // Update purchase order status
+            if ($allFullyReceived) {
+                $purchaseOrder->update(['status' => 'received']);
+            } else {
+                $purchaseOrder->update(['status' => 'partial']);
+            }
+
+            DB::commit();
+
+            return redirect()->route('storekeeper.stock-receiving')
+                ->with('success', 'Stock received successfully! Purchase order status updated to ' . ($allFullyReceived ? 'Received' : 'Partial'));
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Failed to receive stock: ' . $e->getMessage());
+        }
     }
 }

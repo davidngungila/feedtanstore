@@ -105,6 +105,11 @@ Route::middleware('auth')->group(function () {
         Route::get('/stock-adjustments', [\App\Http\Controllers\StorekeeperController::class, 'stockAdjustments'])->name('stock-adjustments');
         Route::get('/stock-adjustments/create', [\App\Http\Controllers\StockAdjustmentController::class, 'create'])->name('stock-adjustments.create');
         Route::post('/stock-adjustments', [\App\Http\Controllers\StockAdjustmentController::class, 'store'])->name('stock-adjustments.store');
+
+        // Stock Receiving Routes
+        Route::get('/stock-receiving', [\App\Http\Controllers\StorekeeperController::class, 'stockReceiving'])->name('stock-receiving');
+        Route::get('/stock-receiving/create/{purchaseOrder}', [\App\Http\Controllers\StorekeeperController::class, 'createStockReceiving'])->name('stock-receiving.create');
+        Route::post('/stock-receiving', [\App\Http\Controllers\StorekeeperController::class, 'storeStockReceiving'])->name('stock-receiving.store');
     });
 
     // Marketing Officer Routes
