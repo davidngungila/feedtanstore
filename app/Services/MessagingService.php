@@ -68,7 +68,7 @@ class MessagingService
                 ];
             }
 
-            $response = Http::withHeaders([
+$response = Http::timeout(10)->withHeaders([
                 'Authorization' => 'Bearer ' . $this->apiKey,
                 'Content-Type' => 'application/json',
                 'Accept' => 'application/json',
