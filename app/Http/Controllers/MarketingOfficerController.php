@@ -9,6 +9,7 @@ use App\Models\RiderDispatchBatch;
 use App\Models\RiderDispatchRequest;
 use App\Models\StoreSetting;
 use App\Models\User;
+use App\Models\CommunicationProfile;
 use App\Support\Geo;
 use App\Services\Tracking\TrackingService;
 use App\Services\Notifications\NotificationService;
@@ -698,9 +699,35 @@ class MarketingOfficerController extends Controller
 
             \DB::commit();
 
-            // Send email synchronously (log driver writes to file immediately)
+            // Send welcome email using configured email profile (same as online booking)
             try {
-                Mail::to($user->email)->send(new RiderWelcomeEmail($rider->load('user'), $generatedPassword));
+                $emailProfile = CommunicationProfile::where('type', 'email')->where('is_active', true)->first();
+                $mailer = 'smtp'; // Default to smtp
+                if ($emailProfile) {
+                    try {
+                        config([
+                            'mail.mailers.test_smtp' => [
+                                'transport' => 'smtp',
+                                'host' => $emailProfile->smtp_host,
+                                'port' => $emailProfile->smtp_port,
+                                'encryption' => $emailProfile->smtp_encryption,
+                                'username' => $emailProfile->smtp_username,
+                                'password' => $emailProfile->smtp_password,
+                                'timeout' => 30,
+                                'local_domain' => null,
+                            ],
+                            'mail.from' => [
+                                'address' => $emailProfile->email_from_address,
+                                'name' => $emailProfile->email_from_name,
+                            ],
+                        ]);
+                        $mailer = 'test_smtp';
+                    } catch (\Exception $configError) {
+                        \Log::error('Failed to configure custom email profile for rider: ' . $configError->getMessage(), ['exception' => $configError]);
+                        $mailer = 'smtp';
+                    }
+                }
+                Mail::mailer($mailer)->to($user->email)->send(new RiderWelcomeEmail($rider->load('user'), $generatedPassword));
             } catch (\Exception $e) {
                 \Log::error('Failed to send welcome email to rider', [
                     'rider_id' => $rider->id,
@@ -709,21 +736,23 @@ class MarketingOfficerController extends Controller
                 ]);
             }
 
-            // Send SMS in background to avoid blocking response
+            // Send welcome SMS using configured SMS profile (same as online booking)
             try {
-                $messagingService = new MessagingService();
-                $smsText = "Welcome to Feedtan Delivery Team, {$rider->name}! Your account is ready. Login with email: {$user->email} and password: {$generatedPassword}. Download the rider app to start delivering. Change password after first login.";
-                // Use queue to send SMS asynchronously
-                \Illuminate\Support\Facades\Queue::afterResponse(function () use ($messagingService, $request, $smsText) {
-                    try {
-                        $messagingService->sendSms($request->phone, $smsText);
-                    } catch (\Exception $e) {
-                        \Log::error('Failed to send welcome SMS to rider (background)', [
-                            'phone' => $request->phone,
-                            'error' => $e->getMessage(),
-                        ]);
-                    }
-                });
+                $smsProfile = CommunicationProfile::where('type', 'sms')->where('is_active', true)->first();
+                if ($smsProfile) {
+                    $smsText = "Welcome to Feedtan Delivery Team, {$rider->name}! Your account is ready. Login with email: {$user->email} and password: {$generatedPassword}. Download the rider app to start delivering. Change password after first login.";
+                    $messagingService = new MessagingService($smsProfile->sms_api_key, $smsProfile->messaging_sender_id, false);
+                    \Illuminate\Support\Facades\Queue::afterResponse(function () use ($messagingService, $request, $smsText) {
+                        try {
+                            $messagingService->sendSms($request->phone, $smsText);
+                        } catch (\Exception $e) {
+                            \Log::error('Failed to send welcome SMS to rider (background)', [
+                                'phone' => $request->phone,
+                                'error' => $e->getMessage(),
+                            ]);
+                        }
+                    });
+                }
             } catch (\Exception $e) {
                 \Log::error('Failed to queue welcome SMS for rider', [
                     'rider_id' => $rider->id,
