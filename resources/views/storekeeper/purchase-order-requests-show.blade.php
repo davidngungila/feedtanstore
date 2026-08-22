@@ -5,7 +5,7 @@
 @section('content')
 <div class="animate-[fadeIn_0.4s_ease]">
     <div class="mb-6">
-        <a href="{{ route('purchase-order-requests') }}" class="text-primary-600 hover:text-primary-800 font-medium">
+        <a href="{{ route('storekeeper.purchase-order-requests') }}" class="text-primary-600 hover:text-primary-800 font-medium">
             <i class="fas fa-arrow-left mr-2"></i>Back to Requests
         </a>
     </div>
@@ -50,7 +50,7 @@
         <div class="border-t border-gray-200 pt-6">
             <h3 class="text-lg font-semibold text-gray-900 mb-4">Admin Actions</h3>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <form action="{{ route('purchase-order-requests.approve', $purchaseOrderRequest) }}" method="POST">
+                <form action="{{ route('storekeeper.purchase-order-requests.approve', $purchaseOrderRequest) }}" method="POST">
                     @csrf
                     @method('PUT')
                     <div class="mb-4">
@@ -71,7 +71,7 @@
                     </button>
                 </form>
 
-                <form action="{{ route('purchase-order-requests.reject', $purchaseOrderRequest) }}" method="POST">
+                <form action="{{ route('storekeeper.purchase-order-requests.reject', $purchaseOrderRequest) }}" method="POST">
                     @csrf
                     @method('PUT')
                     <div class="mb-4">
@@ -94,7 +94,7 @@
                     <i class="fas fa-check-circle mr-2"></i>
                     This request is approved and assigned to {{ $purchaseOrderRequest->supplier->name ?? 'supplier' }}.
                 </p>
-                <form action="{{ route('purchase-order-requests.process', $purchaseOrderRequest) }}" method="POST">
+                <form action="{{ route('storekeeper.purchase-order-requests.process', $purchaseOrderRequest) }}" method="POST">
                     @csrf
                     @method('PUT')
                     <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium">
