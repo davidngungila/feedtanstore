@@ -83,9 +83,21 @@ class StorekeeperController extends Controller
 
     public function showPurchaseOrder($id)
     {
-        $purchaseOrder = PurchaseOrder::with(['supplier', 'items.product', 'createdBy', 'approvedBy'])
+        $purchaseOrder = PurchaseOrder::with(['supplier', 'items.product', 'items.product.unit', 'createdBy', 'approvedBy'])
             ->findOrFail($id);
-        return view('storekeeper.purchase-order-show', compact('purchaseOrder'));
+
+        $purchaseOrder->load(['goodsReceivedNotes' => function ($q) {
+            $q->with('items.product')->orderBy('received_date', 'desc');
+        }]);
+
+        $receivedByProduct = \App\Models\GrnItem::whereHas('goodsReceivedNote', function ($q) use ($purchaseOrder) {
+            $q->where('purchase_order_id', $purchaseOrder->id);
+        })
+            ->selectRaw('product_id, SUM(quantity) as total_received')
+            ->groupBy('product_id')
+            ->pluck('total_received', 'product_id');
+
+        return view('storekeeper.purchase-order-show', compact('purchaseOrder', 'receivedByProduct'));
     }
 
     public function stockTransfers()
