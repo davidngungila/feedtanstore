@@ -974,6 +974,8 @@
       </div>
 
       <!-- Employees & HR -->
+      @php($hrRole = Auth::user()?->role)
+      @if(\App\Support\Permissions::allows($hrRole, 'hr', 'read') || \App\Support\Permissions::allows($hrRole, 'hr', 'update'))
       <div>
         <button @click="toggleSection('hr')" class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-all duration-150 {{ request()->routeIs('hr.*') ? 'bg-white/10 text-white' : 'text-primary-200 hover:bg-white/10 hover:text-white' }}">
           <div class="flex items-center gap-3">
@@ -983,6 +985,7 @@
           <i x-show="!sidebarCollapsed" :class="activeSection === 'hr'?'fa-solid fa-chevron-up':'fa-solid fa-chevron-down'" class="text-[10px] text-primary-400"></i>
         </button>
         <div :class="activeSection === 'hr'?'max-h-[2000px]':'max-h-0'" class="overflow-hidden transition-all duration-300 ml-3" x-show="!sidebarCollapsed">
+          @if(\App\Support\Permissions::allows($hrRole, 'hr', 'read'))
           <a href="{{ route('hr.employees') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('hr.employees') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
             <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
             Employees
@@ -1003,10 +1006,13 @@
             <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
             Activity Logs
           </a>
+          @endif
         </div>
       </div>
+      @endif
 
       <!-- Security & Control -->
+      @if(in_array($hrRole, ['admin', 'manager']))
       <div>
         <button @click="toggleSection('security')" class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-all duration-150 {{ request()->routeIs('security.*') ? 'bg-white/10 text-white' : 'text-primary-200 hover:bg-white/10 hover:text-white' }}">
           <div class="flex items-center gap-3">
@@ -1016,6 +1022,7 @@
           <i x-show="!sidebarCollapsed" :class="activeSection === 'security'?'fa-solid fa-chevron-up':'fa-solid fa-chevron-down'" class="text-[10px] text-primary-400"></i>
         </button>
         <div :class="activeSection === 'security'?'max-h-[2000px]':'max-h-0'" class="overflow-hidden transition-all duration-300 ml-3" x-show="!sidebarCollapsed">
+          @if($hrRole === 'admin')
           <a href="{{ route('security.users') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('security.users') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
             <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
             User Accounts
@@ -1024,10 +1031,12 @@
             <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
             Access Control
           </a>
+          @endif
           <a href="{{ route('security.audit') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('security.audit') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
             <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
             Audit Logs
           </a>
+          @if($hrRole === 'admin')
           <a href="{{ route('security.logins') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('security.logins') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
             <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
             Login History
@@ -1040,8 +1049,10 @@
             <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
             Security Settings
           </a>
+          @endif
         </div>
       </div>
+      @endif
 
       <!-- Reports -->
       <div x-data="{ open: {{ request()->routeIs('reports.*') ? 'true' : 'false' }} }">

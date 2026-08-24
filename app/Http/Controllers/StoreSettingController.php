@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\StoreSetting;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\File;
@@ -228,6 +229,10 @@ class StoreSettingController extends Controller
 
     public function clearLogs()
     {
+        if (!Auth::check() || Auth::user()->role !== 'admin') {
+            abort(403, 'Unauthorized. Only administrators can manage system logs.');
+        }
+
         try {
             $logPath = storage_path('logs');
             $files = File::files($logPath);
@@ -238,6 +243,41 @@ class StoreSettingController extends Controller
         } catch (\Exception $e) {
             return back()->with('error', 'Error clearing logs: ' . $e->getMessage());
         }
+    }
+
+    public function viewLog(Request $request)
+    {
+        if (!Auth::check() || Auth::user()->role !== 'admin') {
+            abort(403, 'Unauthorized. Only administrators can view system logs.');
+        }
+
+        $request->validate(['file' => 'required|string']);
+
+        $name = basename($request->input('file'));
+        if (!preg_match('/^[A-Za-z0-9._-]+$/', $name)) {
+            abort(400, 'Invalid log file name.');
+        }
+
+        $path = realpath(storage_path('logs/' . $name));
+        if (!$path || !str_starts_with($path, realpath(storage_path('logs')))) {
+            abort(404, 'Log file not found.');
+        }
+
+        $size = filesize($path);
+        $handle = fopen($path, 'r');
+        $tailSize = 200 * 1024;
+        fseek($handle, max(0, $size - $tailSize));
+        $content = stream_get_contents($handle);
+        fclose($handle);
+
+        if ($size > $tailSize) {
+            $content = "… (showing the last 200 KB of " . number_format($size / 1024, 1) . " KB)\n\n" . $content;
+        }
+
+        return response()->json([
+            'name' => $name,
+            'content' => $content,
+        ]);
     }
 
     public function vfd()

@@ -568,11 +568,15 @@ Route::middleware('auth')->group(function () {
 
         // Roles & Permissions
         Route::get('/roles', [\App\Http\Controllers\HRController::class, 'roles'])->name('roles');
+        Route::post('/roles/save', [\App\Http\Controllers\HRController::class, 'saveRoles'])->name('roles.save');
 
         // Attendance
         Route::get('/attendance', [\App\Http\Controllers\HRController::class, 'attendance'])->name('attendance');
         Route::post('/attendance/check-in', [\App\Http\Controllers\HRController::class, 'checkIn'])->name('attendance.check-in');
         Route::post('/attendance/check-out', [\App\Http\Controllers\HRController::class, 'checkOut'])->name('attendance.check-out');
+        Route::post('/attendance', [\App\Http\Controllers\HRController::class, 'storeAttendance'])->name('attendance.store');
+        Route::put('/attendance/{id}', [\App\Http\Controllers\HRController::class, 'updateAttendance'])->name('attendance.update');
+        Route::delete('/attendance/{id}', [\App\Http\Controllers\HRController::class, 'destroyAttendance'])->name('attendance.destroy');
 
         // Work Shifts
         Route::get('/shifts', [\App\Http\Controllers\HRController::class, 'shifts'])->name('shifts');
@@ -780,6 +784,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/backup/create', [\App\Http\Controllers\StoreSettingController::class, 'createBackup'])->name('backup.create');
         Route::get('/backup/download/{filename}', [\App\Http\Controllers\StoreSettingController::class, 'downloadBackup'])->name('backup.download');
         Route::post('/logs/clear', [\App\Http\Controllers\StoreSettingController::class, 'clearLogs'])->name('logs.clear');
+        Route::get('/logs/view', [\App\Http\Controllers\StoreSettingController::class, 'viewLog'])->name('logs.view');
         
         // Communication Profiles
         Route::get('/communication-profiles', [\App\Http\Controllers\CommunicationProfileController::class, 'index'])->name('communication-profiles');

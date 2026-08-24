@@ -3,12 +3,24 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Support\Permissions;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Auth;
 
 class UserController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware(function ($request, $next) {
+            if (!Auth::check() || Auth::user()->role !== 'admin') {
+                abort(403, 'Unauthorized. Only administrators can manage user accounts.');
+            }
+            return $next($request);
+        });
+    }
+
     public function index()
     {
         $users = User::all();
@@ -27,7 +39,7 @@ class UserController extends Controller
             'email' => 'required|email|unique:users,email',
             'password' => 'required|min:6',
             'phone' => 'nullable|string',
-            'role' => 'required|string'
+            'role' => 'required|in:' . implode(',', Permissions::ROLES)
         ]);
 
         $userData = $request->all();
@@ -55,7 +67,7 @@ class UserController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,' . $id,
             'phone' => 'nullable|string',
-            'role' => 'required|string',
+            'role' => 'required|in:' . implode(',', Permissions::ROLES),
             'password' => 'nullable|min:6'
         ]);
 
