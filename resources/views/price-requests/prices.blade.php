@@ -9,8 +9,8 @@
             <h1 class="text-2xl font-bold text-primary-900">Price Management</h1>
             <p class="text-gray-600">Manage prices for all products used in sales — a product can hold multiple prices, but only one is active at a time.</p>
         </div>
-        <form method="GET" action="{{ route('price-requests.prices') }}" class="flex gap-2">
-            <input type="text" name="search" value="{{ $search }}" placeholder="Search name, SKU or barcode..." class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+        <form method="GET" action="{{ route('price-requests.prices') }}" id="searchForm" class="flex gap-2">
+            <input type="text" name="search" id="searchInput" value="{{ $search }}" autocomplete="off" placeholder="Type to filter by name, SKU or barcode..." class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 min-w-[280px]">
             <button type="submit" class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg"><i class="fas fa-search"></i></button>
         </form>
     </div>
@@ -226,5 +226,21 @@ function closeActivateModal() {
 document.getElementById('activateCancel').addEventListener('click', closeActivateModal);
 activateModal.addEventListener('click', function (e) { if (e.target === activateModal) closeActivateModal(); });
 document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !activateModal.classList.contains('hidden')) closeActivateModal(); });
+
+const searchInput = document.getElementById('searchInput');
+let searchTimer = null;
+searchInput.addEventListener('input', function () {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(function () {
+        const params = new URLSearchParams(window.location.search);
+        if (searchInput.value) {
+            params.set('search', searchInput.value);
+        } else {
+            params.delete('search');
+        }
+        params.delete('page');
+        window.location.assign('{{ route('price-requests.prices') }}' + (params.toString() ? '?' + params.toString() : ''));
+    }, 400);
+});
 </script>
 @endsection
