@@ -224,19 +224,24 @@
                     @csrf
                     @method('PUT')
                     <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Supplier *</label>
-                        <select name="supplier_id" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
-                            <option value="">Select Supplier</option>
-                            @foreach($suppliers as $supplier)
-                                <option value="{{ $supplier->id }}" {{ $purchaseOrderRequest->supplier_id == $supplier->id ? 'selected' : '' }}>{{ $supplier->name }}</option>
-                            @endforeach
-                        </select>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Supplier</label>
+                        @if($purchaseOrderRequest->supplier)
+                            <div class="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-800">
+                                <i class="fas fa-truck mr-2 text-gray-400"></i>{{ $purchaseOrderRequest->supplier->name }}
+                            </div>
+                            <p class="text-xs text-gray-500 mt-1">Set on the request. To change it, use "Edit Request" before approving.</p>
+                        @else
+                            <div class="px-4 py-2 bg-yellow-50 border border-yellow-200 rounded-lg text-sm text-yellow-800">
+                                <i class="fas fa-exclamation-triangle mr-2"></i>No supplier assigned yet
+                            </div>
+                            <p class="text-xs text-gray-500 mt-1">Use "Edit Request" to choose a supplier first.</p>
+                        @endif
                     </div>
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
                         <textarea name="admin_notes" rows="2" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500" placeholder="Optional admin notes"></textarea>
                     </div>
-                    <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium">
+                    <button type="submit" {{ $purchaseOrderRequest->supplier ? '' : 'disabled' }} class="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg font-medium">
                         <i class="fas fa-check mr-2"></i>Approve &amp; Send to Supplier
                     </button>
                 </form>

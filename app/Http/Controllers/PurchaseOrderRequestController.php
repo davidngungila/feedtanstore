@@ -265,15 +265,20 @@ class PurchaseOrderRequestController extends Controller
         }
 
         $request->validate([
-            'supplier_id' => 'required|exists:suppliers,id',
             'admin_notes' => 'nullable|string',
         ]);
+
+        // Supplier is taken from the request itself (set when submitted / edited) — no re-selection on approval
+        if (!$purchaseOrderRequest->supplier_id) {
+            return back()->with('error', 'No supplier is assigned to this request. Edit the request first and choose a supplier before approving.');
+        }
+
+        $supplierId = $purchaseOrderRequest->supplier_id;
 
         \DB::beginTransaction();
         try {
             $purchaseOrderRequest->update([
                 'status' => 'approved',
-                'supplier_id' => $request->supplier_id,
                 'approved_by' => Auth::id(),
                 'approved_at' => now(),
                 'admin_notes' => $request->admin_notes,
@@ -287,7 +292,7 @@ class PurchaseOrderRequestController extends Controller
 
             $po = \App\Models\PurchaseOrder::create([
                 'po_number' => 'PO-' . date('YmdHis'),
-                'supplier_id' => $request->supplier_id,
+                'supplier_id' => $supplierId,
                 'order_date' => now(),
                 'notes' => 'Created from Purchase Order Request: ' . $purchaseOrderRequest->request_number
                     . ($request->admin_notes ? ' | Notes: ' . $request->admin_notes : ''),
