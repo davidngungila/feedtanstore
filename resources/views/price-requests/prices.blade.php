@@ -167,6 +167,29 @@
     </div>
 </div>
 
+{{-- Activate price confirmation modal --}}
+<div id="activateModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden">
+        <div class="p-6">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
+                    <i class="fas fa-tag text-green-600"></i>
+                </div>
+                <h3 class="text-lg font-bold text-primary-900" id="activateModalTitle">Update Selling Price</h3>
+            </div>
+            <p class="text-gray-700 mb-2">Are you sure you want to update the price in <span id="activateProductName" class="font-bold text-primary-900"></span>?</p>
+            <p class="text-sm text-gray-600 mb-1">New selling price: <span id="activateNewPrice" class="font-bold text-green-700"></span></p>
+            <p class="text-xs text-gray-500 mb-5" id="activateHint">Sales will switch to this price immediately and all other prices for this product become inactive.</p>
+            <form id="activateForm" action="" method="POST" class="flex justify-end gap-3">
+                @csrf
+                @method('PUT')
+                <button type="button" id="activateCancel" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">Cancel</button>
+                <button type="submit" id="activateConfirm" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors">Yes, Update Price</button>
+            </form>
+        </div>
+    </div>
+</div>
+
 <script>
 function toggleAddPrice(productId) {
     const panel = document.getElementById('add-price-' + productId);
@@ -204,27 +227,4 @@ document.getElementById('activateCancel').addEventListener('click', closeActivat
 activateModal.addEventListener('click', function (e) { if (e.target === activateModal) closeActivateModal(); });
 document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !activateModal.classList.contains('hidden')) closeActivateModal(); });
 </script>
-
-{{-- Activate price confirmation modal --}}
-<div id="activateModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
-    <div class="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden">
-        <div class="p-6">
-            <div class="flex items-center gap-3 mb-4">
-                <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
-                    <i class="fas fa-tag text-green-600"></i>
-                </div>
-                <h3 class="text-lg font-bold text-primary-900" id="activateModalTitle">Update Selling Price</h3>
-            </div>
-            <p class="text-gray-700 mb-2">Are you sure you want to update the price in <span id="activateProductName" class="font-bold text-primary-900"></span>?</p>
-            <p class="text-sm text-gray-600 mb-1">New selling price: <span id="activateNewPrice" class="font-bold text-green-700"></span></p>
-            <p class="text-xs text-gray-500 mb-5" id="activateHint">Sales will switch to this price immediately and all other prices for this product become inactive.</p>
-            <form id="activateForm" action="" method="POST" class="flex justify-end gap-3">
-                @csrf
-                @method('PUT')
-                <button type="button" id="activateCancel" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">Cancel</button>
-                <button type="submit" id="activateConfirm" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors">Yes, Update Price</button>
-            </form>
-        </div>
-    </div>
-</div>
 @endsection
