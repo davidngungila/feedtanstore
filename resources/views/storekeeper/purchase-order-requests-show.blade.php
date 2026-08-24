@@ -49,8 +49,10 @@
         @if($purchaseOrderRequest->status === 'pending')
         <div class="border-t border-gray-200 pt-6">
             <h3 class="text-lg font-semibold text-gray-900 mb-4">Admin Actions</h3>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                
+            @php $isAdminOrManager = in_array(Auth::user()->role, ['admin', 'manager']); @endphp
+            <div class="grid grid-cols-1 {{ $isAdminOrManager ? 'md:grid-cols-3' : 'md:grid-cols-2' }} gap-4">
+
+                @if($isAdminOrManager)
                 <!-- Approve & Assign Supplier -->
                 <form action="{{ route('storekeeper.purchase-order-requests.approve', $purchaseOrderRequest) }}" method="POST">
                     @csrf
@@ -72,6 +74,7 @@
                         <i class="fas fa-check mr-2"></i>Approve & Assign Supplier
                     </button>
                 </form>
+                @endif
 
                 <!-- Receive Products Directly -->
                 <form action="{{ route('storekeeper.purchase-order-requests.receive', $purchaseOrderRequest) }}" method="POST">

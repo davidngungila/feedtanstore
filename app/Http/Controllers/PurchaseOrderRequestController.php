@@ -67,6 +67,10 @@ class PurchaseOrderRequestController extends Controller
 
     public function approve(Request $request, PurchaseOrderRequest $purchaseOrderRequest)
     {
+        if (!in_array(Auth::user()->role, ['admin', 'manager'])) {
+            return back()->with('error', 'Unauthorized. Only admins and managers can approve requests');
+        }
+
         if ($purchaseOrderRequest->status !== 'pending') {
             return back()->with('error', 'This request has already been processed');
         }
