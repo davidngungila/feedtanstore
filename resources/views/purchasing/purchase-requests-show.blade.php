@@ -216,33 +216,44 @@
 
         @if($purchaseOrderRequest->status === 'pending')
             @if($isAdminOrManager)
+            @php
+                $missingSuppliers = $orderItems->filter(fn ($i) => $i->status === 'pending' && !$i->supplier_id);
+                $canApprove = $orderItems->where('status', 'pending')->isNotEmpty() && $missingSuppliers->isEmpty();
+            @endphp
             <div class="border-t border-gray-200 pt-6">
                 <h3 class="text-lg font-semibold text-gray-900 mb-1">Actions</h3>
-                <p class="text-sm text-gray-500 mb-4">Approving creates the Purchase Order and sends it to the supplier automatically. Receiving becomes available after approval.</p>
+                <p class="text-sm text-gray-500 mb-4">Approving creates one Purchase Order per supplier and sends each automatically with only their own products. Receiving becomes available after approval.</p>
+
+                {{-- Supplier split preview --}}
+                <div class="mb-4 p-4 bg-gray-50 rounded-xl">
+                    <p class="text-xs font-semibold text-gray-700 uppercase tracking-wide mb-2">Order will be sent to</p>
+                    @foreach($orderItems->where('status', 'pending')->groupBy('supplier_id') as $supplierId => $group)
+                        <div class="flex items-start gap-2 text-sm py-1">
+                            @if($supplierId)
+                                <i class="fas fa-truck text-primary-500 mt-0.5"></i>
+                                <p><span class="font-semibold">{{ $group->first()->supplier->name }}</span>
+                                    <span class="text-gray-500">— {{ $group->pluck('product.name')->implode(', ') }}</span></p>
+                            @else
+                                <i class="fas fa-exclamation-triangle text-yellow-500 mt-0.5"></i>
+                                <p class="text-yellow-800"><span class="font-semibold">No supplier assigned:</span> {{ $group->pluck('product.name')->implode(', ') }}</p>
+                            @endif
+                        </div>
+                    @endforeach
+                    @if($missingSuppliers->isNotEmpty())
+                        <p class="text-xs text-red-600 mt-2"><i class="fas fa-ban mr-1"></i>Assign a supplier to every product (via Edit Request) before approving.</p>
+                    @endif
+                </div>
+
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <form action="{{ route('purchasing.purchase-requests.approve', $purchaseOrderRequest) }}" method="POST">
                     @csrf
                     @method('PUT')
                     <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Supplier</label>
-                        @if($purchaseOrderRequest->supplier)
-                            <div class="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-800">
-                                <i class="fas fa-truck mr-2 text-gray-400"></i>{{ $purchaseOrderRequest->supplier->name }}
-                            </div>
-                            <p class="text-xs text-gray-500 mt-1">Set on the request. To change it, use "Edit Request" before approving.</p>
-                        @else
-                            <div class="px-4 py-2 bg-yellow-50 border border-yellow-200 rounded-lg text-sm text-yellow-800">
-                                <i class="fas fa-exclamation-triangle mr-2"></i>No supplier assigned yet
-                            </div>
-                            <p class="text-xs text-gray-500 mt-1">Use "Edit Request" to choose a supplier first.</p>
-                        @endif
-                    </div>
-                    <div class="mb-4">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
                         <textarea name="admin_notes" rows="2" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500" placeholder="Optional admin notes"></textarea>
                     </div>
-                    <button type="submit" {{ $purchaseOrderRequest->supplier ? '' : 'disabled' }} class="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg font-medium">
-                        <i class="fas fa-check mr-2"></i>Approve &amp; Send to Supplier
+                    <button type="submit" {{ $canApprove ? '' : 'disabled' }} onclick="return confirm('Approve and send this order to the selected supplier(s)?')" class="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg font-medium">
+                        <i class="fas fa-check mr-2"></i>Approve &amp; Send to Suppliers
                     </button>
                 </form>
 

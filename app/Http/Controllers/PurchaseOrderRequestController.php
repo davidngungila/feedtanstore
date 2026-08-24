@@ -260,7 +260,16 @@ class PurchaseOrderRequestController extends Controller
             return back()->with('error', 'Unauthorized. Only admins and managers can approve requests');
         }
 
-        if ($purchaseOrderRequest->status !== 'pending') {
+        $baseNumber = preg_replace('/-\d+$/', '', $purchaseOrderRequest->request_number);
+
+        // Approve the WHOLE order submission (all pending products in the group)
+        $items = PurchaseOrderRequest::with('product')
+            ->where('request_number', 'like', $baseNumber . '%')
+            ->where('status', 'pending')
+            ->orderBy('request_number')
+            ->get();
+
+        if ($items->isEmpty()) {
             return back()->with('error', 'This request has already been processed');
         }
 
@@ -268,64 +277,83 @@ class PurchaseOrderRequestController extends Controller
             'admin_notes' => 'nullable|string',
         ]);
 
-        // Supplier is taken from the request itself (set when submitted / edited) — no re-selection on approval
-        if (!$purchaseOrderRequest->supplier_id) {
-            return back()->with('error', 'No supplier is assigned to this request. Edit the request first and choose a supplier before approving.');
+        // Every product must have its own selected supplier before anything is sent
+        $missingSuppliers = $items->filter(fn ($item) => !$item->supplier_id);
+        if ($missingSuppliers->isNotEmpty()) {
+            return back()->with('error', 'Assign a supplier to every product before approving. Missing supplier for: '
+                . $missingSuppliers->pluck('product.name')->implode(', ')
+                . '. Use "Edit Request" to set suppliers.');
         }
-
-        $supplierId = $purchaseOrderRequest->supplier_id;
 
         \DB::beginTransaction();
         try {
-            $purchaseOrderRequest->update([
-                'status' => 'approved',
-                'approved_by' => Auth::id(),
-                'approved_at' => now(),
-                'admin_notes' => $request->admin_notes,
-            ]);
+            // Group items by supplier — each supplier gets a separate PO with ONLY their items
+            $posCreated = 0;
+            foreach ($items->groupBy('supplier_id') as $supplierId => $supplierItems) {
+                $subtotal = 0;
+                $lines = [];
 
-            // Auto-create Purchase Order and send it to the supplier
-            $unitPrice = ($purchaseOrderRequest->estimated_cost !== null && $purchaseOrderRequest->requested_quantity > 0)
-                ? round($purchaseOrderRequest->estimated_cost / $purchaseOrderRequest->requested_quantity, 2)
-                : ($purchaseOrderRequest->product->cost_price ?? 0);
-            $total = round($unitPrice * $purchaseOrderRequest->requested_quantity, 2);
+                foreach ($supplierItems as $item) {
+                    $unitPrice = ($item->estimated_cost !== null && $item->requested_quantity > 0)
+                        ? round($item->estimated_cost / $item->requested_quantity, 2)
+                        : ($item->product->cost_price ?? 0);
+                    $total = round($unitPrice * $item->requested_quantity, 2);
+                    $subtotal += $total;
 
-            $po = \App\Models\PurchaseOrder::create([
-                'po_number' => 'PO-' . date('YmdHis'),
-                'supplier_id' => $supplierId,
-                'order_date' => now(),
-                'notes' => 'Created from Purchase Order Request: ' . $purchaseOrderRequest->request_number
-                    . ($request->admin_notes ? ' | Notes: ' . $request->admin_notes : ''),
-                'subtotal' => $total,
-                'tax' => 0,
-                'discount' => 0,
-                'total' => $total,
-                'status' => 'pending',
-                'created_by' => Auth::id(),
-                'approval_status' => 'approved',
-                'approved_by' => Auth::id(),
-                'approved_at' => now(),
-                'sent_at' => now(),
-                'sent_by' => Auth::id(),
-            ]);
+                    $lines[] = ['item' => $item, 'unitPrice' => $unitPrice, 'total' => $total];
+                }
 
-            $po->items()->create([
-                'product_id' => $purchaseOrderRequest->product_id,
-                'quantity' => $purchaseOrderRequest->requested_quantity,
-                'unit_price' => $unitPrice,
-                'total' => $total,
-            ]);
+                $po = \App\Models\PurchaseOrder::create([
+                    'po_number' => 'PO-' . date('YmdHis') . '-' . $supplierId,
+                    'supplier_id' => $supplierId,
+                    'order_date' => now(),
+                    'notes' => 'Created from Purchase Order Request(s): ' . $supplierItems->pluck('request_number')->implode(', ')
+                        . ($request->admin_notes ? ' | Notes: ' . $request->admin_notes : ''),
+                    'subtotal' => round($subtotal, 2),
+                    'tax' => 0,
+                    'discount' => 0,
+                    'total' => round($subtotal, 2),
+                    'status' => 'pending',
+                    'created_by' => Auth::id(),
+                    'approval_status' => 'approved',
+                    'approved_by' => Auth::id(),
+                    'approved_at' => now(),
+                    'sent_at' => now(),
+                    'sent_by' => Auth::id(),
+                ]);
 
-            // Automatically send to supplier (email/SMS notifications)
-            \App\Jobs\SendPurchaseOrderNotifications::dispatch($po);
+                foreach ($lines as $line) {
+                    $po->items()->create([
+                        'product_id' => $line['item']->product_id,
+                        'quantity' => $line['item']->requested_quantity,
+                        'unit_price' => $line['unitPrice'],
+                        'total' => $line['total'],
+                    ]);
+                }
+
+                // Automatically send this PO to ITS supplier (email/SMS notifications)
+                \App\Jobs\SendPurchaseOrderNotifications::dispatch($po);
+
+                // Mark all of this supplier's request items as approved
+                foreach ($supplierItems as $item) {
+                    $item->update([
+                        'status' => 'approved',
+                        'approved_by' => Auth::id(),
+                        'approved_at' => now(),
+                        'admin_notes' => $request->admin_notes,
+                    ]);
+                }
+
+                $posCreated++;
+            }
 
             \DB::commit();
+
+            return back()->with('success', "Approved! {$posCreated} purchase order(s) created — each sent to its own selected supplier.");
         } catch (\Exception $e) {
             \DB::rollBack();
             return back()->with('error', 'Failed to approve and send to supplier: ' . $e->getMessage());
         }
-
-        return back()->with('success', 'Request approved! Purchase Order created and automatically sent to supplier.');
     }
 
     public function reject(Request $request, PurchaseOrderRequest $purchaseOrderRequest)
