@@ -52,7 +52,7 @@
         @endphp
 @endif
 
-        <form action="{{ route('purchasing.grn.store') }}" method="POST">
+        <form action="{{ route('purchasing.grn.store') }}" method="POST" id="grnMainForm">
             @csrf
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <input type="hidden" name="supplier_id" id="supplier_id_input" value="{{ old('supplier_id') ?? ($selectedPurchaseOrder ? $selectedPurchaseOrder->supplier_id : '') }}">
@@ -142,6 +142,10 @@
                             <input type="hidden" name="products[0][selling_price]" value="0">
                             @endif
                             <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Batch Number</label>
+                                <input type="text" name="products[0][batch_number]" maxlength="100" placeholder="Auto-generated if left blank" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                            </div>
+                            <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Expiry Date <span class="expiry-required text-red-500 hidden">*</span></label>
                                 <input type="date" name="products[0][expiry_date]" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 product_expiry_date">
                                 <span class="expiry-hint text-xs text-gray-500 hidden">Required for this product category</span>
@@ -177,11 +181,39 @@
                 <a href="{{ route('purchasing.grn') }}" class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
                     Cancel
                 </a>
-                <button type="submit" class="px-6 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors">
+                <button type="button" onclick="openGrnModal()" class="px-6 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors">
                     Create GRN
                 </button>
             </div>
         </form>
+    </div>
+</div>
+
+{{-- Confirm GRN Modal --}}
+<div id="grnModal" class="hidden fixed inset-0 z-50 overflow-y-auto" role="dialog" aria-modal="true">
+    <div class="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity" onclick="closeGrnModal()"></div>
+    <div class="flex min-h-full items-center justify-center p-4">
+        <div class="relative bg-white rounded-2xl shadow-xl max-w-md w-full p-6 animate-[fadeIn_0.2s_ease]">
+            <button type="button" onclick="closeGrnModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors">
+                <i class="fas fa-times text-lg"></i>
+            </button>
+            <div class="flex items-start gap-4 mb-6">
+                <div class="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0">
+                    <i class="fas fa-truck-loading text-emerald-600 text-xl"></i>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold text-primary-900">Confirm Receipt</h3>
+                    <p class="text-sm text-gray-500 mt-1">Confirm receipt of <span id="grnProductCount" class="font-semibold text-gray-900"></span>? Stock will be updated and a GRN created.</p>
+                    <p class="text-xs text-gray-400 mt-2">Batch numbers will be generated automatically where left blank.</p>
+                </div>
+            </div>
+            <div class="flex justify-end gap-3">
+                <button type="button" onclick="closeGrnModal()" class="px-5 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">Cancel</button>
+                <button type="submit" form="grnSubmitForm" id="grnConfirmBtn" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-medium transition-colors">
+                    <i class="fas fa-check mr-2"></i>Yes, Confirm Receipt
+                </button>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -473,6 +505,10 @@ function addProductItemFromPo(productData, orderedQuantity, unitPrice) {
                 <input type="hidden" name="products[${productIndex}][selling_price]" value="${productSellingPrice}">
                 `}
                 <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Batch Number</label>
+                    <input type="text" name="products[${productIndex}][batch_number]" maxlength="100" placeholder="Auto-generated if left blank" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                </div>
+                <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Expiry Date <span class="expiry-required text-red-500 hidden">*</span></label>
                     <input type="date" name="products[${productIndex}][expiry_date]" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 product_expiry_date">
                     <span class="expiry-hint text-xs text-gray-500 hidden">Required for this product category</span>
@@ -561,6 +597,10 @@ function addProductItem(productId, quantity, unitPrice) {
                     <input type="number" step="0.01" name="products[${productIndex}][selling_price]" value="${selectedProduct ? selectedProduct.selling_price : 0}" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 product_selling_price">
                 </div>
                 <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Batch Number</label>
+                    <input type="text" name="products[${productIndex}][batch_number]" maxlength="100" placeholder="Auto-generated if left blank" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                </div>
+                <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Expiry Date</label>
                     <input type="date" name="products[${productIndex}][expiry_date]" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
                 </div>
@@ -601,5 +641,44 @@ document.getElementById('products_container').addEventListener('click', function
         e.target.closest('.product_item').remove();
     }
 });
+
+// Confirm GRN modal
+function openGrnModal() {
+    const mainForm = document.getElementById('grnMainForm');
+    const items = mainForm.querySelectorAll('.product_item');
+    let count = 0;
+    items.forEach(function (item) {
+        const qtyInput = item.querySelector('.product_quantity');
+        if (qtyInput && parseFloat(qtyInput.value) > 0 && !qtyInput.disabled) count++;
+    });
+    if (count === 0) {
+        alert('Add at least one product with quantity greater than 0.');
+        return;
+    }
+    document.getElementById('grnProductCount').textContent = count + ' product' + (count > 1 ? 's' : '');
+    // Clone all named fields from the main form into the submit form
+    const target = document.getElementById('grnSubmitForm');
+    target.innerHTML = '';
+    mainForm.querySelectorAll('input, textarea, select').forEach(function (el) {
+        if (el.name && !el.disabled && el.type !== 'submit') {
+            const clone = el.cloneNode(true);
+            clone.removeAttribute('id');
+            target.appendChild(clone);
+        }
+    });
+    document.getElementById('grnModal').classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+}
+function closeGrnModal() {
+    document.getElementById('grnModal').classList.add('hidden');
+    document.body.style.overflow = '';
+}
+document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') closeGrnModal();
+});
 </script>
+
+<form action="{{ route('purchasing.grn.store') }}" method="POST" id="grnSubmitForm" class="hidden">
+    @csrf
+</form>
 @endsection

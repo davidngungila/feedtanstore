@@ -96,6 +96,8 @@ class GoodsReceivedNoteController extends Controller
             'products.*.product_id' => 'required|exists:products,id',
             'products.*.quantity' => 'required|numeric|min:1',
             'products.*.unit_price' => 'required|numeric|min:0',
+            'products.*.selling_price' => 'nullable|numeric|min:0',
+            'products.*.batch_number' => 'nullable|string|max:100',
             'products.*.expiry_date' => 'nullable|date',
         ]);
 
@@ -136,7 +138,12 @@ class GoodsReceivedNoteController extends Controller
 
         foreach ($request->products as $productData) {
             $itemTotal = $productData['quantity'] * $productData['unit_price'];
-            
+
+            // Batch number is generated automatically when not provided
+            $batchNumber = !empty($productData['batch_number'])
+                ? $productData['batch_number']
+                : Product::generateBatchNumber($productData['product_id']);
+
             $grnItem = $grn->items()->create([
                 'product_id' => $productData['product_id'],
                 'quantity' => $productData['quantity'],
@@ -145,13 +152,21 @@ class GoodsReceivedNoteController extends Controller
                 'expiry_date' => $productData['expiry_date'] ?? null,
             ]);
 
-            // Update product quantity, cost price, and selling price
+            // Update product quantity, cost price, selling price, batch for tracking
             $product = Product::find($productData['product_id']);
+
+            // Auto-create a barcode for the product if it does not have one yet
+            if (!$product->barcode) {
+                $product->update(['barcode' => Product::generateUniqueBarcode()]);
+            }
+
             $product->increment('quantity', $productData['quantity']);
-            $product->update([
+            $product->update(array_filter([
                 'cost_price' => $productData['unit_price'],
-                'selling_price' => $productData['selling_price'],
-            ]);
+                'selling_price' => $productData['selling_price'] ?? null,
+                'batch_number' => $batchNumber,
+                'expiry_date' => $productData['expiry_date'] ?? null,
+            ], fn ($v) => $v !== null && $v !== ''));
         }
 
         // If purchase order is linked, mark it as received
