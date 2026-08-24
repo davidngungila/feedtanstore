@@ -291,7 +291,6 @@
             @endif
         @endif
 
-        @if($purchaseOrderRequest->status === 'approved')
         @php $receivableItems = $orderItems->where('status', 'approved'); @endphp
         @if($receivableItems->isNotEmpty())
         <div class="border-t border-gray-200 pt-6" id="receive-section">
