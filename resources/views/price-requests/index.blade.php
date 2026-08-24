@@ -260,44 +260,6 @@
     </div>
 </div>
 
-<script>
-const setPriceModal = document.getElementById('setPriceModal');
-const approvePriceModal = document.getElementById('approvePriceModal');
-
-function openSetPriceModal() {
-    const select = document.getElementById('set_price_product');
-    const newPriceInput = document.querySelector('#setPriceForm input[name="new_price"]');
-    if (!select.value || !newPriceInput.value) {
-        select.required && !select.value ? select.reportValidity() : newPriceInput.reportValidity();
-        return;
-    }
-    const current = select.options[select.selectedIndex].dataset.price;
-    document.getElementById('setPriceProductName').textContent = select.options[select.selectedIndex].textContent.split('(current')[0].trim();
-    document.getElementById('setPriceCurrent').textContent = 'TZS ' + Number(current).toFixed(2);
-    document.getElementById('setPriceNew').textContent = 'TZS ' + Number(newPriceInput.value).toFixed(2);
-    setPriceModal.classList.remove('hidden');
-}
-document.getElementById('setPriceCancel').addEventListener('click', function () { setPriceModal.classList.add('hidden'); });
-setPriceModal.addEventListener('click', function (e) { if (e.target === setPriceModal) setPriceModal.classList.add('hidden'); });
-document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape') {
-        if (!setPriceModal.classList.contains('hidden')) setPriceModal.classList.add('hidden');
-        if (approvePriceModal && !approvePriceModal.classList.contains('hidden')) approvePriceModal.classList.add('hidden');
-    }
-});
-
-function openApprovePriceModal(btn) {
-    document.getElementById('approvePriceForm').action = btn.dataset.action;
-    document.getElementById('approvePriceProductName').textContent = btn.dataset.product;
-    document.getElementById('approvePriceNew').textContent = 'TZS ' + btn.dataset.price;
-    approvePriceModal.classList.remove('hidden');
-}
-document.getElementById('approvePriceCancel').addEventListener('click', function () { approvePriceModal.classList.add('hidden'); });
-if (approvePriceModal) {
-    approvePriceModal.addEventListener('click', function (e) { if (e.target === approvePriceModal) approvePriceModal.classList.add('hidden'); });
-}
-</script>
-
 {{-- Approve pending price confirmation modal --}}
 <div id="approvePriceModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
     <div class="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden">
@@ -320,5 +282,41 @@ if (approvePriceModal) {
         </div>
     </div>
 </div>
+
+<script>
+const setPriceModal = document.getElementById('setPriceModal');
+
+function openSetPriceModal() {
+    const select = document.getElementById('set_price_product');
+    const newPriceInput = document.querySelector('#setPriceForm input[name="new_price"]');
+    if (!select.value || !newPriceInput.value) {
+        select.required && !select.value ? select.reportValidity() : newPriceInput.reportValidity();
+        return;
+    }
+    const current = select.options[select.selectedIndex].dataset.price;
+    document.getElementById('setPriceProductName').textContent = select.options[select.selectedIndex].textContent.split('(current')[0].trim();
+    document.getElementById('setPriceCurrent').textContent = 'TZS ' + Number(current).toFixed(2);
+    document.getElementById('setPriceNew').textContent = 'TZS ' + Number(newPriceInput.value).toFixed(2);
+    setPriceModal.classList.remove('hidden');
+}
+document.getElementById('setPriceCancel').addEventListener('click', function () { setPriceModal.classList.add('hidden'); });
+setPriceModal.addEventListener('click', function (e) { if (e.target === setPriceModal) setPriceModal.classList.add('hidden'); });
+const approvePriceModal = document.getElementById('approvePriceModal');
+document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') {
+        if (!setPriceModal.classList.contains('hidden')) setPriceModal.classList.add('hidden');
+        if (!approvePriceModal.classList.contains('hidden')) approvePriceModal.classList.add('hidden');
+    }
+});
+
+function openApprovePriceModal(btn) {
+    document.getElementById('approvePriceForm').action = btn.dataset.action;
+    document.getElementById('approvePriceProductName').textContent = btn.dataset.product;
+    document.getElementById('approvePriceNew').textContent = 'TZS ' + btn.dataset.price;
+    approvePriceModal.classList.remove('hidden');
+}
+document.getElementById('approvePriceCancel').addEventListener('click', function () { approvePriceModal.classList.add('hidden'); });
+approvePriceModal.addEventListener('click', function (e) { if (e.target === approvePriceModal) approvePriceModal.classList.add('hidden'); });
+</script>
 @endif
 @endsection
