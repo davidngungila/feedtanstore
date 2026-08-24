@@ -10,7 +10,7 @@
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Alpine.js -->
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" onerror="var s=document.createElement('script');s.defer=true;s.src='https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js';document.head.appendChild(s);"></script>
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
     <!-- Font Awesome -->
@@ -259,12 +259,13 @@
 }" class="flex h-screen overflow-hidden">
 
   <!-- Loading Overlay -->
-  <div x-show="loading" x-transition:enter="transition-opacity duration-300"
+  <div id="globalLoadingOverlay" x-show="loading" x-transition:enter="transition-opacity duration-300"
        x-transition:enter-start="opacity-0"
        x-transition:enter-end="opacity-100"
        x-transition:leave="transition-opacity duration-300"
        x-transition:leave-start="opacity-100"
        x-transition:leave-end="opacity-0"
+       style="display:none;"
        class="fixed inset-0 z-[9999] bg-white/80 backdrop-blur-md flex items-center justify-center">
     <div class="text-center">
       <div class="relative mx-auto mb-4 flex h-24 w-24 items-center justify-center">
@@ -292,10 +293,10 @@
       <!-- Sidebar Header -->
       <div class="flex items-center justify-between p-4 border-b border-white/20 border-t-2 border-primary-600 flex-shrink-0 bg-white">
         <div class="flex items-center gap-3" x-show="!sidebarCollapsed || window.innerWidth<1024">
-          <img src="https://feedtanstore.com/feedtanstorelogo.png" alt="FEEDTAN STORE" class="w-full h-12 rounded-lg flex-shrink-0 object-contain" style="max-width: 180px;">
+          <img src="{{ asset('feedtanstorelogo.png') }}" alt="FEEDTAN STORE" class="w-full h-12 rounded-lg flex-shrink-0 object-contain" style="max-width: 180px;">
         </div>
         <div x-show="sidebarCollapsed && window.innerWidth>=1024" class="w-10 h-10 rounded-lg flex items-center justify-center mx-auto">
-          <img src="https://feedtanstore.com/feedtanstorelogo.png" alt="FEEDTAN STORE" class="w-full h-full rounded-lg object-contain">
+          <img src="{{ asset('feedtanstorelogo.png') }}" alt="FEEDTAN STORE" class="w-full h-full rounded-lg object-contain">
         </div>
         <button @click="sidebarCollapsed=!sidebarCollapsed" class="text-primary-300 hover:text-white transition-colors hidden lg:block">
           <i :class="sidebarCollapsed?'fa-solid fa-chevron-right':'fa-solid fa-chevron-left'" class="text-xs"></i>
@@ -407,10 +408,10 @@
       <!-- Sidebar Header -->
       <div class="flex items-center justify-between p-4 border-b border-white/20 border-t-2 border-primary-600 flex-shrink-0 bg-white">
         <div class="flex items-center gap-3" x-show="!sidebarCollapsed || window.innerWidth<1024">
-          <img src="https://feedtanstore.com/feedtanstorelogo.png" alt="FEEDTAN STORE" class="w-full h-12 rounded-lg flex-shrink-0 object-contain" style="max-width: 180px;">
+          <img src="{{ asset('feedtanstorelogo.png') }}" alt="FEEDTAN STORE" class="w-full h-12 rounded-lg flex-shrink-0 object-contain" style="max-width: 180px;">
         </div>
         <div x-show="sidebarCollapsed && window.innerWidth>=1024" class="w-10 h-10 rounded-lg flex items-center justify-center mx-auto">
-          <img src="https://feedtanstore.com/feedtanstorelogo.png" alt="FEEDTAN STORE" class="w-full h-full rounded-lg object-contain">
+          <img src="{{ asset('feedtanstorelogo.png') }}" alt="FEEDTAN STORE" class="w-full h-full rounded-lg object-contain">
         </div>
         <button @click="sidebarCollapsed=!sidebarCollapsed" class="text-primary-300 hover:text-white transition-colors hidden lg:block">
           <i :class="sidebarCollapsed?'fa-solid fa-chevron-right':'fa-solid fa-chevron-left'" class="text-xs"></i>
@@ -483,10 +484,10 @@
       <!-- Sidebar Header -->
       <div class="flex items-center justify-between p-4 border-b border-white/20 border-t-2 border-primary-600 flex-shrink-0 bg-white">
         <div class="flex items-center gap-3" x-show="!sidebarCollapsed || window.innerWidth<1024">
-          <img src="https://feedtanstore.com/feedtanstorelogo.png" alt="FEEDTAN STORE" class="w-full h-12 rounded-lg flex-shrink-0 object-contain" style="max-width: 180px;">
+          <img src="{{ asset('feedtanstorelogo.png') }}" alt="FEEDTAN STORE" class="w-full h-12 rounded-lg flex-shrink-0 object-contain" style="max-width: 180px;">
         </div>
         <div x-show="sidebarCollapsed && window.innerWidth>=1024" class="w-10 h-10 rounded-lg flex items-center justify-center mx-auto">
-          <img src="https://feedtanstore.com/feedtanstorelogo.png" alt="FEEDTAN STORE" class="w-full h-full rounded-lg object-contain">
+          <img src="{{ asset('feedtanstorelogo.png') }}" alt="FEEDTAN STORE" class="w-full h-full rounded-lg object-contain">
         </div>
         <button @click="sidebarCollapsed=!sidebarCollapsed" class="text-primary-300 hover:text-white transition-colors hidden lg:block">
           <i :class="sidebarCollapsed?'fa-solid fa-chevron-right':'fa-solid fa-chevron-left'" class="text-xs"></i>
@@ -556,10 +557,10 @@
     <!-- Sidebar Header -->
     <div class="flex items-center justify-between p-4 border-b border-white/20 border-t-2 border-primary-600 flex-shrink-0 bg-white">
       <div class="flex items-center gap-3" x-show="!sidebarCollapsed || window.innerWidth<1024">
-        <img src="https://feedtanstore.com/feedtanstorelogo.png" alt="FEEDTAN STORE" class="w-full h-12 rounded-lg flex-shrink-0 object-contain" style="max-width: 180px;">
+        <img src="{{ asset('feedtanstorelogo.png') }}" alt="FEEDTAN STORE" class="w-full h-12 rounded-lg flex-shrink-0 object-contain" style="max-width: 180px;">
       </div>
       <div x-show="sidebarCollapsed && window.innerWidth>=1024" class="w-10 h-10 rounded-lg flex items-center justify-center mx-auto">
-        <img src="https://feedtanstore.com/feedtanstorelogo.png" alt="FEEDTAN STORE" class="w-full h-full rounded-lg object-contain">
+        <img src="{{ asset('feedtanstorelogo.png') }}" alt="FEEDTAN STORE" class="w-full h-full rounded-lg object-contain">
       </div>
       <button @click="sidebarCollapsed=!sidebarCollapsed" class="text-primary-300 hover:text-white transition-colors hidden lg:block">
         <i :class="sidebarCollapsed?'fa-solid fa-chevron-right':'fa-solid fa-chevron-left'" class="text-xs"></i>
@@ -1694,7 +1695,7 @@
         <!-- Cashier Navbar -->
         <div class="w-full flex items-center justify-between sidebar-bg text-white px-4 py-3 border-t-2 border-primary-600">
           <div class="flex items-center gap-4 bg-white px-3 py-2 rounded-lg">
-            <img src="https://feedtanstore.com/feedtanstorelogo.png" alt="FEEDTAN STORE" class="h-10 object-contain">
+            <img src="{{ asset('feedtanstorelogo.png') }}" alt="FEEDTAN STORE" class="h-10 object-contain">
           </div>
           <div class="flex items-center gap-2 sm:gap-4">
             <div class="hidden sm:flex items-center gap-2 text-sm">
@@ -1744,6 +1745,7 @@
     let alpineComponent;
     
     // Wait until Alpine is initialized
+    let alpineTries = 0;
     const checkAlpine = () => {
       const mainEl = document.querySelector('[x-data]');
       if (mainEl && mainEl._x_dataStack && mainEl._x_dataStack[0]) {
@@ -1777,6 +1779,13 @@
           }
         }, 10000); // Hide after 10 seconds max
       } else {
+        alpineTries++;
+        if (alpineTries > 50) {
+          // Alpine failed to initialize — force-hide the overlay so the site stays usable
+          const overlay = document.getElementById('globalLoadingOverlay');
+          if (overlay) overlay.style.setProperty('display', 'none', 'important');
+          return;
+        }
         setTimeout(checkAlpine, 100); // Try again in 100ms
       }
     };
