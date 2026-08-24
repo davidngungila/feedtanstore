@@ -11,29 +11,29 @@ use Illuminate\Support\Facades\Auth;
 
 class UserController extends Controller
 {
-    public function __construct()
+    protected function ensureAdmin(): void
     {
-        $this->middleware(function ($request, $next) {
-            if (!Auth::check() || Auth::user()->role !== 'admin') {
-                abort(403, 'Unauthorized. Only administrators can manage user accounts.');
-            }
-            return $next($request);
-        });
+        if (!Auth::check() || Auth::user()->role !== 'admin') {
+            abort(403, 'Unauthorized. Only administrators can manage user accounts.');
+        }
     }
 
     public function index()
     {
+        $this->ensureAdmin();
         $users = User::all();
         return view('security.users', compact('users'));
     }
 
     public function create()
     {
+        $this->ensureAdmin();
         return view('security.create-user');
     }
 
     public function store(Request $request)
     {
+        $this->ensureAdmin();
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
@@ -55,12 +55,14 @@ class UserController extends Controller
 
     public function edit($id)
     {
+        $this->ensureAdmin();
         $user = User::findOrFail($id);
         return view('security.edit-user', compact('user'));
     }
 
     public function update(Request $request, $id)
     {
+        $this->ensureAdmin();
         $user = User::findOrFail($id);
         
         $request->validate([
@@ -91,12 +93,14 @@ class UserController extends Controller
 
     public function show($id)
     {
+        $this->ensureAdmin();
         $user = User::with(['actionLogs', 'loginHistory', 'devices'])->findOrFail($id);
         return view('security.show-user', compact('user'));
     }
 
     public function destroy($id)
     {
+        $this->ensureAdmin();
         $user = User::findOrFail($id);
         
         if ($user->profile_image) {
