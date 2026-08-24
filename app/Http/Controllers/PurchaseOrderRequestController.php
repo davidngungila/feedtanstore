@@ -164,12 +164,9 @@ class PurchaseOrderRequestController extends Controller
             \App\Models\GrnItem::create([
                 'goods_received_note_id' => $grn->id,
                 'product_id' => $product->id,
-                'quantity_ordered' => $purchaseOrderRequest->requested_quantity,
-                'quantity_received' => $request->received_quantity,
-                'quantity_accepted' => $request->received_quantity,
-                'quantity_rejected' => 0,
-                'unit_cost' => $unitPrice,
-                'total_cost' => $total,
+                'quantity' => $request->received_quantity,
+                'unit_price' => $unitPrice,
+                'total' => $total,
             ]);
 
             // Update product stock

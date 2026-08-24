@@ -65,10 +65,10 @@
             <div class="p-6">
                 @foreach($purchaseOrder->items as $item)
                     @php
-                        $previouslyReceived = \App\Models\GrnItem::whereHas('goodsReceivedNote', function ($q) use ($purchaseOrder, $item) {
-                            $q->where('purchase_order_id', $purchaseOrder->id)
-                                ->where('product_id', $item->product_id);
-                        })->sum('quantity');
+                        $previouslyReceived = \App\Models\GrnItem::where('product_id', $item->product_id)
+                            ->whereHas('goodsReceivedNote', function ($q) use ($purchaseOrder) {
+                                $q->where('purchase_order_id', $purchaseOrder->id);
+                            })->sum('quantity');
                         $remaining = $item->quantity - $previouslyReceived;
                     @endphp
                     <div class="product_item mb-6 p-4 border border-gray-200 rounded-lg {{ $remaining <= 0 ? 'bg-green-50' : '' }}">
