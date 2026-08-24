@@ -21,7 +21,8 @@ class PurchaseOrderRequestController extends Controller
     public function create()
     {
         $products = Product::where('is_active', true)->orderBy('name')->get();
-        return view('storekeeper.purchase-order-requests-create', compact('products'));
+        $suppliers = Supplier::where('is_active', true)->orderBy('name')->get();
+        return view('storekeeper.purchase-order-requests-create', compact('products', 'suppliers'));
     }
 
     public function store(Request $request)
@@ -31,6 +32,8 @@ class PurchaseOrderRequestController extends Controller
             'products' => 'required|array|min:1',
             'products.*.product_id' => 'required|exists:products,id',
             'products.*.requested_quantity' => 'required|numeric|min:1',
+            'products.*.supplier_id' => 'nullable|exists:suppliers,id',
+            'products.*.estimated_unit_price' => 'nullable|numeric|min:0',
             'products.*.reason' => 'nullable|string',
         ]);
 
@@ -39,14 +42,20 @@ class PurchaseOrderRequestController extends Controller
 
         foreach ($request->products as $index => $productData) {
             // Add sequence suffix for bulk requests (e.g., POR-20260822-0001-1, POR-20260822-0001-2)
-            $requestNumber = count($request->products) > 1 
+            $requestNumber = count($request->products) > 1
                 ? $baseRequestNumber . '-' . ($index + 1)
                 : $baseRequestNumber;
+
+            $unitPrice = $productData['estimated_unit_price'] ?? null;
 
             PurchaseOrderRequest::create([
                 'request_number' => $requestNumber,
                 'product_id' => $productData['product_id'],
                 'requested_quantity' => $productData['requested_quantity'],
+                'supplier_id' => $productData['supplier_id'] ?? null,
+                'estimated_cost' => ($unitPrice !== null && $unitPrice !== '')
+                    ? round($productData['requested_quantity'] * $unitPrice, 2)
+                    : null,
                 'reason' => $productData['reason'] ?? $request->reason,
                 'status' => 'pending',
                 'requested_by' => Auth::id(),
@@ -135,6 +144,7 @@ class PurchaseOrderRequestController extends Controller
 
         $request->validate([
             'received_quantity' => 'required|numeric|min:1',
+            'unit_price' => 'required|numeric|min:0',
             'notes' => 'nullable|string|max:500',
         ]);
 
@@ -158,7 +168,7 @@ class PurchaseOrderRequestController extends Controller
             ]);
 
             $product = $purchaseOrderRequest->product;
-            $unitPrice = $product->cost_price ?? 0;
+            $unitPrice = $request->unit_price;
             $total = $request->received_quantity * $unitPrice;
 
             \App\Models\GrnItem::create([
@@ -169,8 +179,9 @@ class PurchaseOrderRequestController extends Controller
                 'total' => $total,
             ]);
 
-            // Update product stock
+            // Update product stock and cost price
             $product->increment('quantity', $request->received_quantity);
+            $product->update(['cost_price' => $unitPrice]);
 
             // Update GRN total
             $grn->update(['total' => $total]);

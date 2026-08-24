@@ -159,6 +159,7 @@ class StorekeeperController extends Controller
         $request->validate([
             'received_items' => 'required|array',
             'received_items.*.quantity' => 'required|integer|min:0',
+            'received_items.*.unit_price' => 'nullable|numeric|min:0',
             'received_items.*.notes' => 'nullable|string|max:500',
         ]);
 
@@ -190,13 +191,17 @@ class StorekeeperController extends Controller
                     return back()->with('error', "Quantity for {$poItem->product->name} exceeds the remaining {$remaining}.");
                 }
 
-                $itemTotal = $receivedQty * $poItem->unit_price;
+                $unitPrice = (isset($receivedData['unit_price']) && $receivedData['unit_price'] !== '' && $receivedData['unit_price'] !== null)
+                    ? $receivedData['unit_price']
+                    : $poItem->unit_price;
+
+                $itemTotal = round($receivedQty * $unitPrice, 2);
                 $totalCost += $itemTotal;
 
                 $grnItemsToCreate[] = [
                     'po_item' => $poItem,
                     'quantity' => $receivedQty,
-                    'unit_price' => $poItem->unit_price,
+                    'unit_price' => $unitPrice,
                     'total' => $itemTotal,
                 ];
 
@@ -237,6 +242,7 @@ class StorekeeperController extends Controller
                 ]);
 
                 $poItem->product->increment('quantity', $row['quantity']);
+                $poItem->product->update(['cost_price' => $row['unit_price']]);
             }
 
             // A PO is fully received only when every item's cumulative received

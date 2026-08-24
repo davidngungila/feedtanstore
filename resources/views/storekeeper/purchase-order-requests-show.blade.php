@@ -39,6 +39,18 @@
                 <p class="text-sm text-gray-600">Requested Date</p>
                 <p class="font-semibold">{{ $purchaseOrderRequest->created_at->format('M d, Y H:i') }}</p>
             </div>
+            @if($purchaseOrderRequest->supplier)
+            <div>
+                <p class="text-sm text-gray-600">Requested Supplier</p>
+                <p class="font-semibold">{{ $purchaseOrderRequest->supplier->name }}</p>
+            </div>
+            @endif
+            @if($purchaseOrderRequest->estimated_cost !== null)
+            <div>
+                <p class="text-sm text-gray-600">Estimated Cost</p>
+                <p class="font-semibold">{{ number_format($purchaseOrderRequest->estimated_cost, 2) }}</p>
+            </div>
+            @endif
         </div>
 
         <div class="mb-6">
@@ -81,6 +93,10 @@
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Received Quantity *</label>
                         <input type="number" name="received_quantity" value="{{ $purchaseOrderRequest->requested_quantity }}" min="1" max="{{ $purchaseOrderRequest->requested_quantity }}" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Unit Price *</label>
+                        <input type="number" name="unit_price" step="0.01" min="0" value="{{ $purchaseOrderRequest->product->cost_price ?? 0 }}" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500" placeholder="Price per unit received">
                     </div>
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
