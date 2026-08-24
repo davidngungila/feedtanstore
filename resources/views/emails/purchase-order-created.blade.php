@@ -180,12 +180,20 @@
                     <div class="po-info">
                         <div class="info-grid">
                             <div class="info-item">
+                                <div class="info-label">Purchase Order Number</div>
+                                <div class="info-value">{{ $purchaseOrder->po_number }}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">Order Date</div>
+                                <div class="info-value">{{ $purchaseOrder->order_date->format('d M Y') }}</div>
+                            </div>
+                            <div class="info-item">
                                 <div class="info-label">Supplier</div>
                                 <div class="info-value">{{ $purchaseOrder->supplier->name }}</div>
                             </div>
                             <div class="info-item">
-                                <div class="info-label">Expected Date</div>
-                                <div class="info-value">{{ $purchaseOrder->expected_date ? $purchaseOrder->expected_date->format('d M Y') : '-' }}</div>
+                                <div class="info-label">Expected Delivery Date</div>
+                                <div class="info-value">{{ $purchaseOrder->expected_date ? $purchaseOrder->expected_date->format('d M Y') : 'To be confirmed' }}</div>
                             </div>
                         </div>
                     </div>
@@ -195,18 +203,23 @@
                         <thead>
                             <tr>
                                 <th>Product</th>
-                                <th>Quantity</th>
-                                <th>Unit Price</th>
-                                <th>Total</th>
+                                <th style="text-align: center;">Quantity</th>
+                                <th style="text-align: right;">Unit Price (TZS)</th>
+                                <th style="text-align: right;">Total (TZS)</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach ($purchaseOrder->items as $item)
                             <tr>
-                                <td>{{ $item->product->name }}</td>
-                                <td>{{ number_format($item->quantity) }}</td>
-                                <td>{{ number_format($item->unit_price, 2) }}</td>
-                                <td>{{ number_format($item->total, 2) }}</td>
+                                <td>
+                                    {{ $item->product->name }}
+                                    @if ($item->product->sku)
+                                        <br><span style="font-size: 12px; color: #6b7280;">SKU: {{ $item->product->sku }}</span>
+                                    @endif
+                                </td>
+                                <td style="text-align: center;">{{ number_format($item->quantity) }} {{ $item->product->unit->short_name ?? '' }}</td>
+                                <td style="text-align: right;">{{ number_format($item->unit_price, 2) }}</td>
+                                <td style="text-align: right;">{{ number_format($item->total, 2) }}</td>
                             </tr>
                             @endforeach
                         </tbody>
@@ -215,23 +228,23 @@
                     <!-- Total -->
                     <div class="total-section">
                         <div class="total-item">
-                            <span class="total-label">Subtotal</span>
+                            <span class="total-label">Subtotal (TZS)</span>
                             <span class="total-value">{{ number_format($purchaseOrder->subtotal, 2) }}</span>
                         </div>
                         @if ($purchaseOrder->tax > 0)
                         <div class="total-item">
-                            <span class="total-label">Tax</span>
+                            <span class="total-label">Tax (TZS)</span>
                             <span class="total-value">{{ number_format($purchaseOrder->tax, 2) }}</span>
                         </div>
                         @endif
                         @if ($purchaseOrder->discount > 0)
                         <div class="total-item">
-                            <span class="total-label">Discount</span>
+                            <span class="total-label">Discount (TZS)</span>
                             <span class="total-value">-{{ number_format($purchaseOrder->discount, 2) }}</span>
                         </div>
                         @endif
                         <div class="total-item grand-total">
-                            <span class="total-label">Total</span>
+                            <span class="total-label">Grand Total (TZS)</span>
                             <span class="total-value">{{ number_format($purchaseOrder->total, 2) }}</span>
                         </div>
                     </div>

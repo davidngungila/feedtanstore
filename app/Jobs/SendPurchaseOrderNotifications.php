@@ -21,7 +21,7 @@ class SendPurchaseOrderNotifications implements ShouldQueue
      */
     public function __construct(PurchaseOrder $purchaseOrder)
     {
-        $this->purchaseOrder = $purchaseOrder->load(['supplier', 'items.product']);
+        $this->purchaseOrder = $purchaseOrder->load(['supplier', 'items.product.unit']);
     }
 
     /**

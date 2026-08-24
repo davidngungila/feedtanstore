@@ -5,7 +5,6 @@ namespace App\Mail;
 use App\Models\PurchaseOrder;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
-use Illuminate\Mail\Mailables\Attachment;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
@@ -21,7 +20,7 @@ class PurchaseOrderCreated extends Mailable
      */
     public function __construct(PurchaseOrder $purchaseOrder)
     {
-        $this->purchaseOrder = $purchaseOrder->load(['supplier', 'items.product']);
+        $this->purchaseOrder = $purchaseOrder->load(['supplier', 'items.product.unit']);
     }
 
     /**
@@ -45,24 +44,5 @@ class PurchaseOrderCreated extends Mailable
                 'purchaseOrder' => $this->purchaseOrder,
             ],
         );
-    }
-
-    /**
-     * Get the attachments for the message.
-     *
-     * @return array<int, Attachment>
-     */
-    public function attachments(): array
-    {
-        // Generate and attach PDF
-        $pdf = new \Dompdf\Dompdf();
-        $pdf->loadHtml(view('purchasing.orders-pdf', ['purchaseOrder' => $this->purchaseOrder])->render());
-        $pdf->setPaper('A4', 'portrait');
-        $pdf->render();
-        
-        return [
-            Attachment::fromData(fn () => $pdf->output(), $this->purchaseOrder->po_number . '.pdf')
-                ->withMime('application/pdf')
-        ];
     }
 }
