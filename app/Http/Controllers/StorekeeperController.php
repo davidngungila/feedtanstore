@@ -199,6 +199,11 @@ class StorekeeperController extends Controller
                     ? $receivedData['unit_price']
                     : $poItem->unit_price;
 
+                // Batch number is generated automatically when not provided
+                $batchNumber = !empty($receivedData['batch_number'])
+                    ? $receivedData['batch_number']
+                    : \App\Models\Product::generateBatchNumber($poItem->product_id);
+
                 $itemTotal = round($receivedQty * $unitPrice, 2);
                 $totalCost += $itemTotal;
 
@@ -207,23 +212,18 @@ class StorekeeperController extends Controller
                     'quantity' => $receivedQty,
                     'unit_price' => $unitPrice,
                     'total' => $itemTotal,
-                    'batch_number' => $receivedData['batch_number'] ?? null,
+                    'batch_number' => $batchNumber,
                     'expiry_date' => $receivedData['expiry_date'] ?? null,
                 ];
 
-                if (!empty($receivedData['notes']) || !empty($receivedData['batch_number']) || !empty($receivedData['expiry_date'])) {
-                    $parts = [];
-                    if (!empty($receivedData['batch_number'])) {
-                        $parts[] = 'Batch: ' . $receivedData['batch_number'];
-                    }
-                    if (!empty($receivedData['expiry_date'])) {
-                        $parts[] = 'Expiry: ' . $receivedData['expiry_date'];
-                    }
-                    if (!empty($receivedData['notes'])) {
-                        $parts[] = $receivedData['notes'];
-                    }
-                    $notesLines[] = "{$poItem->product->name}: " . implode(' | ', $parts);
+                $parts = ['Batch: ' . $batchNumber];
+                if (!empty($receivedData['expiry_date'])) {
+                    $parts[] = 'Expiry: ' . $receivedData['expiry_date'];
                 }
+                if (!empty($receivedData['notes'])) {
+                    $parts[] = $receivedData['notes'];
+                }
+                $notesLines[] = "{$poItem->product->name}: " . implode(' | ', $parts);
             }
 
             if (empty($grnItemsToCreate)) {
@@ -248,18 +248,24 @@ class StorekeeperController extends Controller
 
             foreach ($grnItemsToCreate as $row) {
                 $poItem = $row['po_item'];
+                $product = $poItem->product;
 
                 \App\Models\GrnItem::create([
                     'goods_received_note_id' => $grn->id,
-                    'product_id' => $poItem->product_id,
+                    'product_id' => $product->id,
                     'quantity' => $row['quantity'],
                     'unit_price' => $row['unit_price'],
                     'total' => $row['total'],
                     'expiry_date' => $row['expiry_date'],
                 ]);
 
-                $poItem->product->increment('quantity', $row['quantity']);
-                $poItem->product->update(array_filter([
+                // Auto-create a barcode for the product if it does not have one yet
+                if (!$product->barcode) {
+                    $product->update(['barcode' => \App\Models\Product::generateUniqueBarcode()]);
+                }
+
+                $product->increment('quantity', $row['quantity']);
+                $product->update(array_filter([
                     'cost_price' => $row['unit_price'],
                     'batch_number' => $row['batch_number'],
                     'expiry_date' => $row['expiry_date'],
@@ -371,6 +377,11 @@ class StorekeeperController extends Controller
             foreach ($request->products as $productData) {
                 $itemTotal = round($productData['quantity'] * $productData['unit_price'], 2);
 
+                // Batch number is generated automatically when not provided
+                $batchNumber = !empty($productData['batch_number'])
+                    ? $productData['batch_number']
+                    : \App\Models\Product::generateBatchNumber($productData['product_id']);
+
                 \App\Models\GrnItem::create([
                     'goods_received_note_id' => $grn->id,
                     'product_id' => $productData['product_id'],
@@ -381,11 +392,17 @@ class StorekeeperController extends Controller
                 ]);
 
                 $product = \App\Models\Product::find($productData['product_id']);
+
+                // Auto-create a barcode for the product if it does not have one yet
+                if (!$product->barcode) {
+                    $product->update(['barcode' => \App\Models\Product::generateUniqueBarcode()]);
+                }
+
                 $product->increment('quantity', $productData['quantity']);
                 $product->update(array_filter([
                     'cost_price' => $productData['unit_price'],
                     'selling_price' => $productData['selling_price'] ?? null,
-                    'batch_number' => $productData['batch_number'] ?? null,
+                    'batch_number' => $batchNumber,
                     'expiry_date' => $productData['expiry_date'] ?? null,
                 ], fn ($v) => $v !== null && $v !== ''));
             }

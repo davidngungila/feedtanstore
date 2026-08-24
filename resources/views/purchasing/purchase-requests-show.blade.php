@@ -314,7 +314,7 @@
                         <p class="text-xs">Supplier: {{ $item->supplier->name ?? '—' }}</p>
                     </div>
                 </div>
-                <form action="{{ route('purchasing.purchase-requests.receive', $item) }}" method="POST" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <form action="{{ route('purchasing.purchase-requests.receive', $item) }}" method="POST" id="receiveForm-{{ $item->id }}" class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     @csrf
                     @method('PUT')
                     <div>
@@ -327,7 +327,7 @@
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Batch Number</label>
-                        <input type="text" name="batch_number" maxlength="100" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500" placeholder="e.g., BATCH-2026-001">
+                        <input type="text" name="batch_number" maxlength="100" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500" placeholder="Auto-generated if left blank">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">
@@ -343,7 +343,7 @@
                         <input type="text" name="notes" maxlength="500" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500" placeholder="Optional delivery notes">
                     </div>
                     <div class="md:col-span-3">
-                        <button type="submit" onclick="return confirm('Confirm receipt of {{ addslashes($item->product->name) }}?')" class="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2 rounded-lg font-medium">
+                        <button type="button" onclick="openReceiveModal({{ $item->id }}, '{{ addslashes($item->product->name) }}')" class="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2 rounded-lg font-medium">
                             <i class="fas fa-truck-loading mr-2"></i>Receive This Product
                         </button>
                     </div>
@@ -413,6 +413,34 @@
     </div>
 </div>
 
+{{-- Receive Confirmation Modal --}}
+<div id="receiveModal" class="hidden fixed inset-0 z-50 overflow-y-auto" role="dialog" aria-modal="true">
+    <div class="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity" onclick="closeReceiveModal()"></div>
+    <div class="flex min-h-full items-center justify-center p-4">
+        <div class="relative bg-white rounded-2xl shadow-xl max-w-md w-full p-6 animate-[fadeIn_0.2s_ease]">
+            <button type="button" onclick="closeReceiveModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors">
+                <i class="fas fa-times text-lg"></i>
+            </button>
+            <div class="flex items-start gap-4 mb-6">
+                <div class="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0">
+                    <i class="fas fa-truck-loading text-emerald-600 text-xl"></i>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold text-primary-900">Confirm Receipt</h3>
+                    <p class="text-sm text-gray-500 mt-1">Confirm receipt of <span id="receiveProductName" class="font-semibold text-gray-900"></span>? Stock will be updated and a GRN created.</p>
+                    <p class="text-xs text-gray-400 mt-2">Batch number will be generated automatically if left blank.</p>
+                </div>
+            </div>
+            <div class="flex justify-end gap-3">
+                <button type="button" onclick="closeReceiveModal()" class="px-5 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">Cancel</button>
+                <button type="submit" id="receiveConfirmBtn" form="" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-medium transition-colors">
+                    <i class="fas fa-check mr-2"></i>Yes, Confirm Receipt
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
 function openApproveModal() {
     document.getElementById('approveModal').classList.remove('hidden');
@@ -422,8 +450,20 @@ function closeApproveModal() {
     document.getElementById('approveModal').classList.add('hidden');
     document.body.style.overflow = '';
 }
+let receiveFormId = null;
+function openReceiveModal(itemId, productName) {
+    receiveFormId = 'receiveForm-' + itemId;
+    document.getElementById('receiveProductName').textContent = productName;
+    document.getElementById('receiveConfirmBtn').setAttribute('form', receiveFormId);
+    document.getElementById('receiveModal').classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+}
+function closeReceiveModal() {
+    document.getElementById('receiveModal').classList.add('hidden');
+    document.body.style.overflow = '';
+}
 document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape') closeApproveModal();
+    if (e.key === 'Escape') { closeApproveModal(); closeReceiveModal(); }
 });
 </script>
 @endsection

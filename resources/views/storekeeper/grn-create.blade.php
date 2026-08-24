@@ -78,7 +78,7 @@
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Batch Number</label>
-                                <input type="text" name="products[0][batch_number]" maxlength="100" placeholder="e.g., BATCH-2026-001" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                                <input type="text" name="products[0][batch_number]" maxlength="100" placeholder="Auto-generated if left blank" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Expiry Date <span class="expiry-required text-red-500 hidden">*</span></label>
@@ -143,7 +143,7 @@ document.getElementById('add_product').addEventListener('click', function() {
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Batch Number</label>
-                    <input type="text" name="products[${productIndex}][batch_number]" maxlength="100" placeholder="e.g., BATCH-2026-001" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                    <input type="text" name="products[${productIndex}][batch_number]" maxlength="100" placeholder="Auto-generated if left blank" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Expiry Date <span class="expiry-required text-red-500 hidden">*</span></label>

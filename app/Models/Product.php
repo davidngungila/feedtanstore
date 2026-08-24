@@ -81,6 +81,20 @@ class Product extends Model
         return $slug;
     }
 
+    public static function generateUniqueBarcode(): string
+    {
+        do {
+            $barcode = now()->format('ymdHis') . random_int(1000, 9999);
+        } while (static::where('barcode', $barcode)->exists());
+
+        return $barcode;
+    }
+
+    public static function generateBatchNumber(?int $productId = null): string
+    {
+        return 'BATCH-' . date('Ymd') . '-P' . ($productId ?? 'X') . '-' . strtoupper(Str::random(4));
+    }
+
     protected $casts = [
         'expiry_date' => 'datetime',
         'is_active' => 'boolean',

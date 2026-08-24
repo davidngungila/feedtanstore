@@ -139,7 +139,7 @@
                                        name="received_items[{{ $item->id }}][batch_number]"
                                        maxlength="100"
                                        value="{{ $item->product->batch_number ?? '' }}"
-                                       placeholder="e.g., BATCH-2026-001"
+                                       placeholder="Auto-generated if left blank"
                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm">
                             </div>
                             <div>

@@ -418,6 +418,14 @@ class PurchaseOrderRequestController extends Controller
 
         \DB::beginTransaction();
         try {
+            // Batch number is generated automatically when not provided
+            $batchNumber = $request->batch_number ?: \App\Models\Product::generateBatchNumber($product->id);
+
+            // Auto-create a barcode for the product if it does not have one yet
+            if (!$product->barcode) {
+                $product->update(['barcode' => \App\Models\Product::generateUniqueBarcode()]);
+            }
+
             // Create GRN for this request
             $grnNumber = 'GRN-POR-' . date('YmdHis');
 
@@ -426,7 +434,7 @@ class PurchaseOrderRequestController extends Controller
                 'supplier_id' => $purchaseOrderRequest->supplier_id ?? null,
                 'purchase_order_id' => null,
                 'received_date' => now(),
-                'notes' => $request->notes ?? 'Received from Purchase Order Request: ' . $purchaseOrderRequest->request_number,
+                'notes' => trim(($request->notes ? $request->notes . "\n" : '') . "Batch: {$batchNumber}") ?: null,
                 'total' => 0,
                 'status' => 'received',
             ]);
@@ -448,7 +456,7 @@ class PurchaseOrderRequestController extends Controller
             $product->increment('quantity', $request->received_quantity);
             $product->update(array_filter([
                 'cost_price' => $unitPrice,
-                'batch_number' => $request->batch_number,
+                'batch_number' => $batchNumber,
                 'expiry_date' => $request->expiry_date,
             ], fn ($v) => $v !== null && $v !== ''));
 
