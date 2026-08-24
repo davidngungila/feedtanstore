@@ -96,6 +96,51 @@
     </div>
     @endif
 
+    {{-- Admin: pending price approvals from marketing officers --}}
+    @if($isAdmin && $pendingPrices->count())
+    <div class="card rounded-2xl p-6 mb-6 border-l-4 border-yellow-400">
+        <h3 class="text-lg font-semibold text-primary-900 mb-1"><i class="fas fa-clock text-yellow-500 mr-2"></i>Pending Price Approvals</h3>
+        <p class="text-sm text-gray-500 mb-4">New prices submitted by marketing officers — approve to make them the active selling price.</p>
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-4 py-2.5 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Product</th>
+                        <th class="px-4 py-2.5 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">New Price</th>
+                        <th class="px-4 py-2.5 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Current</th>
+                        <th class="px-4 py-2.5 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Label</th>
+                        <th class="px-4 py-2.5 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Submitted By</th>
+                        <th class="px-4 py-2.5 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Date</th>
+                        <th class="px-4 py-2.5 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200">
+                    @foreach($pendingPrices as $pendingPrice)
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-4 py-3 font-medium text-gray-900">{{ $pendingPrice->product->name ?? 'N/A' }}</td>
+                        <td class="px-4 py-3 font-bold text-green-700">TZS {{ number_format((float) $pendingPrice->price, 2) }}</td>
+                        <td class="px-4 py-3 text-sm text-gray-600">TZS {{ number_format((float) ($pendingPrice->product->selling_price ?? 0), 2) }}</td>
+                        <td class="px-4 py-3 text-sm text-gray-600">{{ $pendingPrice->label ?? '—' }}</td>
+                        <td class="px-4 py-3 text-sm text-gray-600">{{ $pendingPrice->creator->name ?? '—' }}</td>
+                        <td class="px-4 py-3 text-xs text-gray-500">{{ $pendingPrice->created_at->format('M d, Y H:i') }}</td>
+                        <td class="px-4 py-3 text-right whitespace-nowrap">
+                            <button type="button" data-action="{{ route('price-requests.prices.activate', $pendingPrice) }}" data-product="{{ $pendingPrice->product->name }}" data-price="{{ number_format((float) $pendingPrice->price, 2) }}" onclick="openApprovePriceModal(this)" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded-lg text-xs font-medium">
+                                <i class="fas fa-check mr-1"></i>Approve
+                            </button>
+                            <form action="{{ route('price-requests.prices.destroy', $pendingPrice) }}" method="POST" class="inline" onsubmit="return confirm('Reject and remove this price entry?')">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="bg-red-100 hover:bg-red-200 text-red-700 px-3 py-1.5 rounded-lg text-xs font-medium ml-1">Reject</button>
+                            </form>
+                        </td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+    </div>
+    @endif
+
     {{-- Requests table --}}
     <div class="card rounded-2xl overflow-hidden">
         <div class="px-6 py-4 border-b border-gray-200">
@@ -217,6 +262,7 @@
 
 <script>
 const setPriceModal = document.getElementById('setPriceModal');
+const approvePriceModal = document.getElementById('approvePriceModal');
 
 function openSetPriceModal() {
     const select = document.getElementById('set_price_product');
@@ -233,7 +279,46 @@ function openSetPriceModal() {
 }
 document.getElementById('setPriceCancel').addEventListener('click', function () { setPriceModal.classList.add('hidden'); });
 setPriceModal.addEventListener('click', function (e) { if (e.target === setPriceModal) setPriceModal.classList.add('hidden'); });
-document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !setPriceModal.classList.contains('hidden')) setPriceModal.classList.add('hidden'); });
+document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') {
+        if (!setPriceModal.classList.contains('hidden')) setPriceModal.classList.add('hidden');
+        if (approvePriceModal && !approvePriceModal.classList.contains('hidden')) approvePriceModal.classList.add('hidden');
+    }
+});
+
+function openApprovePriceModal(btn) {
+    document.getElementById('approvePriceForm').action = btn.dataset.action;
+    document.getElementById('approvePriceProductName').textContent = btn.dataset.product;
+    document.getElementById('approvePriceNew').textContent = 'TZS ' + btn.dataset.price;
+    approvePriceModal.classList.remove('hidden');
+}
+document.getElementById('approvePriceCancel').addEventListener('click', function () { approvePriceModal.classList.add('hidden'); });
+if (approvePriceModal) {
+    approvePriceModal.addEventListener('click', function (e) { if (e.target === approvePriceModal) approvePriceModal.classList.add('hidden'); });
+}
 </script>
+
+{{-- Approve pending price confirmation modal --}}
+<div id="approvePriceModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden">
+        <div class="p-6">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
+                    <i class="fas fa-check text-green-600"></i>
+                </div>
+                <h3 class="text-lg font-bold text-primary-900">Approve New Price</h3>
+            </div>
+            <p class="text-gray-700 mb-2">Approve the new price for <span id="approvePriceProductName" class="font-bold text-primary-900"></span>?</p>
+            <p class="text-sm text-gray-600 mb-1">New selling price: <span id="approvePriceNew" class="font-bold text-green-700"></span></p>
+            <p class="text-xs text-gray-500 mb-5">Sales will switch to this price immediately.</p>
+            <form id="approvePriceForm" action="" method="POST" class="flex justify-end gap-3">
+                @csrf
+                @method('PUT')
+                <button type="button" id="approvePriceCancel" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">Cancel</button>
+                <button type="submit" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors">Yes, Approve &amp; Activate</button>
+            </form>
+        </div>
+    </div>
+</div>
 @endif
 @endsection

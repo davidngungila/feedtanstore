@@ -34,7 +34,16 @@ class PriceRequestController extends Controller
 
         $products = Product::where('is_active', true)->orderBy('name')->get();
 
-        return view('price-requests.index', compact('requests', 'stats', 'products', 'isAdmin'));
+        // Prices submitted by marketing officers that await admin approval
+        $pendingPrices = collect();
+        if ($isAdmin) {
+            $pendingPrices = ProductPrice::with(['product', 'creator'])
+                ->where('pending_approval', true)
+                ->orderByDesc('created_at')
+                ->get();
+        }
+
+        return view('price-requests.index', compact('requests', 'stats', 'products', 'pendingPrices', 'isAdmin'));
     }
 
     /**
