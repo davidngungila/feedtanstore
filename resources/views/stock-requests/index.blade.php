@@ -31,7 +31,7 @@
                             @if($stockRequest->request_type === 'online_order')
                                 <span class="text-blue-600">Online Order</span>
                             @else
-                                <span class="text-purple-600">Store Use</span>
+                                <span class="text-purple-600">Shop</span>
                             @endif
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">

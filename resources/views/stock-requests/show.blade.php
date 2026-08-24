@@ -36,7 +36,7 @@
                     @if($stockRequest->request_type === 'online_order')
                         Online Order
                     @else
-                        Store Use
+                        Shop
                     @endif
                 </p>
             </div>
