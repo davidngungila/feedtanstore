@@ -223,7 +223,6 @@
         $activeSection = 'system';
     }
 @endphp
-@php($canLogout = $canLogout ?? false)
 <div x-data="{
     sidebarOpen: false,
     sidebarCollapsed: false,
@@ -976,8 +975,6 @@
       </div>
 
       <!-- Employees & HR -->
-      @php($hrRole = Auth::user()?->role)
-      @if(\App\Support\Permissions::allows($hrRole, 'hr', 'read') || \App\Support\Permissions::allows($hrRole, 'hr', 'update'))
       <div>
         <button @click="toggleSection('hr')" class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-all duration-150 {{ request()->routeIs('hr.*') ? 'bg-white/10 text-white' : 'text-primary-200 hover:bg-white/10 hover:text-white' }}">
           <div class="flex items-center gap-3">
@@ -987,7 +984,6 @@
           <i x-show="!sidebarCollapsed" :class="activeSection === 'hr'?'fa-solid fa-chevron-up':'fa-solid fa-chevron-down'" class="text-[10px] text-primary-400"></i>
         </button>
         <div :class="activeSection === 'hr'?'max-h-[2000px]':'max-h-0'" class="overflow-hidden transition-all duration-300 ml-3" x-show="!sidebarCollapsed">
-          @if(\App\Support\Permissions::allows($hrRole, 'hr', 'read'))
           <a href="{{ route('hr.employees') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('hr.employees') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
             <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
             Employees
@@ -1008,13 +1004,10 @@
             <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
             Activity Logs
           </a>
-          @endif
         </div>
       </div>
-      @endif
 
       <!-- Security & Control -->
-      @if(in_array($hrRole, ['admin', 'manager']))
       <div>
         <button @click="toggleSection('security')" class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-all duration-150 {{ request()->routeIs('security.*') ? 'bg-white/10 text-white' : 'text-primary-200 hover:bg-white/10 hover:text-white' }}">
           <div class="flex items-center gap-3">
@@ -1024,7 +1017,6 @@
           <i x-show="!sidebarCollapsed" :class="activeSection === 'security'?'fa-solid fa-chevron-up':'fa-solid fa-chevron-down'" class="text-[10px] text-primary-400"></i>
         </button>
         <div :class="activeSection === 'security'?'max-h-[2000px]':'max-h-0'" class="overflow-hidden transition-all duration-300 ml-3" x-show="!sidebarCollapsed">
-          @if($hrRole === 'admin')
           <a href="{{ route('security.users') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('security.users') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
             <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
             User Accounts
@@ -1033,12 +1025,10 @@
             <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
             Access Control
           </a>
-          @endif
           <a href="{{ route('security.audit') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('security.audit') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
             <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
             Audit Logs
           </a>
-          @if($hrRole === 'admin')
           <a href="{{ route('security.logins') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('security.logins') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
             <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
             Login History
@@ -1051,10 +1041,8 @@
             <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
             Security Settings
           </a>
-          @endif
         </div>
       </div>
-      @endif
 
       <!-- Reports -->
       <div x-data="{ open: {{ request()->routeIs('reports.*') ? 'true' : 'false' }} }">
@@ -1706,13 +1694,13 @@
               <i class="fa-solid fa-circle text-[8px] mr-1"></i>Shift Open
             </span>
             @php
-                $activeSession = Auth::check() ? \App\Models\CashDrawerSession::where('user_id', Auth::id())
-                    ->where('status', 'opened')
-                    ->first() : null;
-                $reconciledSession = Auth::check() ? \App\Models\CashDrawerSession::where('user_id', Auth::id())
-                    ->where('status', 'reconciled')
-                    ->first() : null;
-                $canLogout = !$activeSession && $reconciledSession;
+              $activeSession = \App\Models\CashDrawerSession::where('user_id', Auth::id())
+                  ->where('status', 'opened')
+                  ->first();
+              $reconciledSession = \App\Models\CashDrawerSession::where('user_id', Auth::id())
+                  ->where('status', 'reconciled')
+                  ->first();
+              $canLogout = !$activeSession && $reconciledSession;
             @endphp
             @if($canLogout ?? false)
             <form method="POST" action="{{ route('logout') }}">
@@ -1745,7 +1733,6 @@
     let alpineComponent;
     
     // Wait until Alpine is initialized
-    let alpineTries = 0;
     const checkAlpine = () => {
       const mainEl = document.querySelector('[x-data]');
       if (mainEl && mainEl._x_dataStack && mainEl._x_dataStack[0]) {
@@ -1779,13 +1766,6 @@
           }
         }, 10000); // Hide after 10 seconds max
       } else {
-        alpineTries++;
-        if (alpineTries > 50) {
-          // Alpine failed to initialize — force-hide the overlay so the site stays usable
-          const overlay = document.getElementById('globalLoadingOverlay');
-          if (overlay) overlay.style.setProperty('display', 'none', 'important');
-          return;
-        }
         setTimeout(checkAlpine, 100); // Try again in 100ms
       }
     };
