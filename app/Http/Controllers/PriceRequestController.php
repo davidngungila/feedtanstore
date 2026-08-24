@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\PriceChangeRequest;
 use App\Models\Product;
+use App\Models\ProductPrice;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -36,13 +37,122 @@ class PriceRequestController extends Controller
         return view('price-requests.index', compact('requests', 'stats', 'products', 'isAdmin'));
     }
 
+    /**
+     * Full price management for ALL products used in sales.
+     * Multiple prices per product are allowed but only ONE is active at a time;
+     * the active price is what POS/sales charge customers.
+     */
+    public function prices(Request $request)
+    {
+        if (!in_array(Auth::user()->role, ['admin', 'manager'])) {
+            abort(403, 'Unauthorized. Only admins and managers can manage product prices.');
+        }
+
+        $search = $request->input('search');
+
+        $products = Product::with(['prices.creator', 'unit'])
+            ->when($search, fn ($q) => $q->where(fn ($w) => $w
+                ->where('name', 'like', "%{$search}%")
+                ->orWhere('sku', 'like', "%{$search}%")
+                ->orWhere('barcode', 'like', "%{$search}%")))
+            ->orderBy('name')
+            ->paginate(20)
+            ->withQueryString();
+
+        return view('price-requests.prices', compact('products', 'search'));
+    }
+
+    public function storePrice(Request $request)
+    {
+        if (!in_array(Auth::user()->role, ['admin', 'manager'])) {
+            abort(403, 'Unauthorized. Only admins and managers can manage product prices.');
+        }
+
+        $request->validate([
+            'product_id' => 'required|exists:products,id',
+            'price' => 'required|numeric|min:0',
+            'label' => 'nullable|string|max:100',
+            'notes' => 'nullable|string|max:500',
+            'activate_now' => 'nullable|boolean',
+        ]);
+
+        $product = Product::findOrFail($request->product_id);
+
+        DB::beginTransaction();
+        try {
+            $productPrice = ProductPrice::create([
+                'product_id' => $product->id,
+                'price' => $request->price,
+                'label' => $request->label,
+                'is_active' => false,
+                'created_by' => Auth::id(),
+                'notes' => $request->notes,
+            ]);
+
+            // Activate immediately when requested OR when the product has no active price yet
+            if ($request->boolean('activate_now') || !$product->prices()->active()->exists()) {
+                $productPrice->activate();
+            }
+
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Failed to add price: ' . $e->getMessage());
+        }
+
+        return back()->with('success', "New price added for {$product->name}"
+            . ($productPrice->fresh()->is_active ? ' and activated.' : '.'));
+    }
+
+    public function activatePrice(ProductPrice $productPrice)
+    {
+        if (!in_array(Auth::user()->role, ['admin', 'manager'])) {
+            abort(403, 'Unauthorized. Only admins and managers can manage product prices.');
+        }
+
+        $productPrice->activate();
+
+        return back()->with('success', "{$productPrice->product->name} now sells at "
+            . number_format((float) $productPrice->price, 2) . ".");
+    }
+
+    public function deactivatePrice(ProductPrice $productPrice)
+    {
+        if (!in_array(Auth::user()->role, ['admin', 'manager'])) {
+            abort(403, 'Unauthorized. Only admins and managers can manage product prices.');
+        }
+
+        $productPrice->update(['is_active' => false]);
+
+        return back()->with('success', 'Price deactivated. The previous selling price still applies until you activate another price.');
+    }
+
+    public function destroyPrice(ProductPrice $productPrice)
+    {
+        if (!in_array(Auth::user()->role, ['admin', 'manager'])) {
+            abort(403, 'Unauthorized. Only admins and managers can manage product prices.');
+        }
+
+        if ($productPrice->is_active) {
+            return back()->with('error', 'This price is currently active. Activate another price before deleting it.');
+        }
+
+        $productName = $productPrice->product->name;
+        $productPrice->delete();
+
+        return back()->with('success', "Price entry removed from {$productName}.");
+    }
+
     public function create()
     {
         if (Auth::user()->role !== 'marketing_officer') {
             abort(403, 'Only marketing officers can submit price change requests.');
         }
 
-        $products = Product::where('is_active', true)->orderBy('name')->get();
+        $products = Product::with(['prices' => fn ($q) => $q->orderByDesc('is_active')->orderByDesc('created_at'), 'unit', 'category'])
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get();
 
         return view('price-requests.create', compact('products'));
     }
@@ -92,10 +202,16 @@ class PriceRequestController extends Controller
                 'reviewed_at' => now(),
             ]);
 
-            // Apply the new price to the product
-            $priceChangeRequest->product->update([
-                'selling_price' => $priceChangeRequest->proposed_price,
+            // Create a new price entry from the approved request and make it the active one
+            $productPrice = ProductPrice::create([
+                'product_id' => $priceChangeRequest->product_id,
+                'price' => $priceChangeRequest->proposed_price,
+                'label' => 'Approved request',
+                'is_active' => false,
+                'created_by' => Auth::id(),
+                'notes' => 'From approved price request',
             ]);
+            $productPrice->activate();
 
             DB::commit();
         } catch (\Exception $e) {
@@ -144,7 +260,17 @@ class PriceRequestController extends Controller
 
         $product = Product::findOrFail($request->product_id);
         $oldPrice = $product->selling_price;
-        $product->update(['selling_price' => $request->new_price]);
+
+        // Recorded in the product's price list and activated immediately
+        $productPrice = ProductPrice::create([
+            'product_id' => $product->id,
+            'price' => $request->new_price,
+            'label' => 'Direct set',
+            'is_active' => false,
+            'created_by' => Auth::id(),
+            'notes' => $request->notes,
+        ]);
+        $productPrice->activate();
 
         return back()->with(
             'success',

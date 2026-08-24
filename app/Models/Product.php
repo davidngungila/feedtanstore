@@ -116,6 +116,16 @@ class Product extends Model
         return $this->belongsTo(Unit::class);
     }
 
+    public function prices(): HasMany
+    {
+        return $this->hasMany(ProductPrice::class)->orderByDesc('is_active')->orderByDesc('created_at');
+    }
+
+    public function activePrice()
+    {
+        return $this->hasOne(ProductPrice::class)->where('is_active', true);
+    }
+
     public function grnItems(): HasMany
     {
         return $this->hasMany(GrnItem::class);

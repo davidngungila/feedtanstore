@@ -6,20 +6,25 @@
 <div class="animate-[fadeIn_0.4s_ease]">
     <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
         <div>
-            <h1 class="text-2xl font-bold text-primary-900">Product Price Requests</h1>
-            <p class="text-gray-600">
-                @if($isAdmin)
-                    Review price change requests from marketing officers, or set a product price directly
-                @else
-                    Request a new price for a product — an administrator will review it
-                @endif
-            </p>
+            @if($isAdmin)
+                <h1 class="text-2xl font-bold text-primary-900">Product Price Requests</h1>
+                <p class="text-gray-600">Review price change requests from marketing officers, or manage all product prices directly</p>
+            @else
+                <h1 class="text-2xl font-bold text-primary-900">Product Price Requests</h1>
+                <p class="text-gray-600">Request a new price for a product — an administrator will review it</p>
+            @endif
         </div>
-        @if(!$isAdmin)
-            <a href="{{ route('price-requests.create') }}" class="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
-                <i class="fas fa-tag mr-2"></i>Request Price Change
-            </a>
-        @endif
+        <div class="flex gap-3">
+            @if($isAdmin)
+                <a href="{{ route('price-requests.prices') }}" class="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                    <i class="fas fa-list mr-2"></i>Manage All Prices
+                </a>
+            @else
+                <a href="{{ route('price-requests.create') }}" class="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                    <i class="fas fa-tag mr-2"></i>Request Price Change
+                </a>
+            @endif
+        </div>
     </div>
 
     @if(session('success'))

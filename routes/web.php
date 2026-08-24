@@ -127,6 +127,11 @@ Route::middleware('auth')->group(function () {
         Route::get('/', [\App\Http\Controllers\PriceRequestController::class, 'index'])->name('index');
         Route::get('/create', [\App\Http\Controllers\PriceRequestController::class, 'create'])->name('create');
         Route::post('/', [\App\Http\Controllers\PriceRequestController::class, 'store'])->name('store');
+        Route::get('/prices', [\App\Http\Controllers\PriceRequestController::class, 'prices'])->name('prices');
+        Route::post('/prices', [\App\Http\Controllers\PriceRequestController::class, 'storePrice'])->name('prices.store');
+        Route::put('/prices/{productPrice}/activate', [\App\Http\Controllers\PriceRequestController::class, 'activatePrice'])->name('prices.activate');
+        Route::put('/prices/{productPrice}/deactivate', [\App\Http\Controllers\PriceRequestController::class, 'deactivatePrice'])->name('prices.deactivate');
+        Route::delete('/prices/{productPrice}', [\App\Http\Controllers\PriceRequestController::class, 'destroyPrice'])->name('prices.destroy');
         Route::post('/set-price', [\App\Http\Controllers\PriceRequestController::class, 'setPrice'])->name('set-price');
         Route::put('/{priceChangeRequest}/approve', [\App\Http\Controllers\PriceRequestController::class, 'approve'])->name('approve');
         Route::put('/{priceChangeRequest}/reject', [\App\Http\Controllers\PriceRequestController::class, 'reject'])->name('reject');
