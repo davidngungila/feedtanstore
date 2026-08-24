@@ -12,6 +12,16 @@ class PurchaseOrderRequestController extends Controller
 {
     public function index()
     {
+        return view('storekeeper.purchase-order-requests', $this->indexData());
+    }
+
+    public function purchasingIndex()
+    {
+        return view('purchasing.purchase-requests', $this->indexData());
+    }
+
+    private function indexData(): array
+    {
         $requests = PurchaseOrderRequest::with(['product.unit', 'supplier'])
             ->orderBy('created_at', 'desc')
             ->get();
@@ -41,7 +51,7 @@ class PurchaseOrderRequestController extends Controller
             'processed' => $requests->whereIn('status', ['processed', 'received'])->count(),
         ];
 
-        return view('storekeeper.purchase-order-requests', compact('groupPage', 'stats'));
+        return compact('groupPage', 'stats');
     }
 
     public function create()
@@ -95,6 +105,16 @@ class PurchaseOrderRequestController extends Controller
 
     public function show(PurchaseOrderRequest $purchaseOrderRequest)
     {
+        return view('storekeeper.purchase-order-requests-show', $this->showData($purchaseOrderRequest));
+    }
+
+    public function purchasingShow(PurchaseOrderRequest $purchaseOrderRequest)
+    {
+        return view('purchasing.purchase-requests-show', $this->showData($purchaseOrderRequest));
+    }
+
+    private function showData(PurchaseOrderRequest $purchaseOrderRequest): array
+    {
         $purchaseOrderRequest->load(['product.unit', 'requester', 'approver', 'supplier']);
 
         // All items belonging to the same multi-product submission
@@ -113,13 +133,7 @@ class PurchaseOrderRequestController extends Controller
 
         $suppliers = \App\Models\Supplier::where('is_active', true)->get();
 
-        return view('storekeeper.purchase-order-requests-show', compact(
-            'purchaseOrderRequest',
-            'orderItems',
-            'baseNumber',
-            'grn',
-            'suppliers'
-        ));
+        return compact('purchaseOrderRequest', 'orderItems', 'baseNumber', 'grn', 'suppliers');
     }
 
     public function approve(Request $request, PurchaseOrderRequest $purchaseOrderRequest)
@@ -255,7 +269,11 @@ class PurchaseOrderRequestController extends Controller
 
             \DB::commit();
 
-            return redirect()->route('storekeeper.purchase-order-requests.show', $purchaseOrderRequest)
+            $redirectRoute = request()->routeIs('purchasing.purchase-requests.*')
+                ? 'purchasing.purchase-requests.show'
+                : 'storekeeper.purchase-order-requests.show';
+
+            return redirect()->route($redirectRoute, $purchaseOrderRequest)
                 ->with('success', 'Products received successfully! Stock updated and GRN created.');
         } catch (\Exception $e) {
             \DB::rollBack();

@@ -277,6 +277,13 @@ Route::middleware('auth')->group(function () {
         Route::post('/orders/{purchaseOrder}/review-approve', [\App\Http\Controllers\PurchaseOrderController::class, 'reviewApprove'])->name('orders.review.approve');
         Route::post('/orders/{purchaseOrder}/review-reject', [\App\Http\Controllers\PurchaseOrderController::class, 'reviewReject'])->name('orders.review.reject');
         Route::post('/orders/{purchaseOrder}/send', [\App\Http\Controllers\PurchaseOrderController::class, 'send'])->name('orders.send');
+        // Purchase Requests submitted by Storekeepers (full management)
+        Route::get('/purchase-requests', [\App\Http\Controllers\PurchaseOrderRequestController::class, 'purchasingIndex'])->name('purchase-requests');
+        Route::get('/purchase-requests/{purchaseOrderRequest}', [\App\Http\Controllers\PurchaseOrderRequestController::class, 'purchasingShow'])->name('purchase-requests.show');
+        Route::put('/purchase-requests/{purchaseOrderRequest}/approve', [\App\Http\Controllers\PurchaseOrderRequestController::class, 'approve'])->name('purchase-requests.approve');
+        Route::put('/purchase-requests/{purchaseOrderRequest}/reject', [\App\Http\Controllers\PurchaseOrderRequestController::class, 'reject'])->name('purchase-requests.reject');
+        Route::put('/purchase-requests/{purchaseOrderRequest}/process', [\App\Http\Controllers\PurchaseOrderRequestController::class, 'process'])->name('purchase-requests.process');
+        Route::put('/purchase-requests/{purchaseOrderRequest}/receive', [\App\Http\Controllers\PurchaseOrderRequestController::class, 'receive'])->name('purchase-requests.receive');
         Route::get('/grn', [\App\Http\Controllers\GoodsReceivedNoteController::class, 'index'])->name('grn');
         Route::get('/grn/create', [\App\Http\Controllers\GoodsReceivedNoteController::class, 'create'])->name('grn.create');
         Route::post('/grn', [\App\Http\Controllers\GoodsReceivedNoteController::class, 'store'])->name('grn.store');
@@ -475,14 +482,7 @@ Route::middleware('auth')->group(function () {
         Route::delete('/carousel/{carousel}', [\App\Http\Controllers\CarouselController::class, 'destroy'])->name('carousel.destroy');
         
         Route::get('/delivery', [\App\Http\Controllers\DeliveryManagementController::class, 'index'])->name('delivery');
-        
-        // Purchase Order Request Management (Admin/Manager)
-        Route::get('/purchase-order-requests', [\App\Http\Controllers\PurchaseOrderRequestController::class, 'index'])->name('purchase-order-requests');
-        Route::get('/purchase-order-requests/{purchaseOrderRequest}', [\App\Http\Controllers\PurchaseOrderRequestController::class, 'show'])->name('purchase-order-requests.show');
-        Route::put('/purchase-order-requests/{purchaseOrderRequest}/approve', [\App\Http\Controllers\PurchaseOrderRequestController::class, 'approve'])->name('purchase-order-requests.approve');
-        Route::put('/purchase-order-requests/{purchaseOrderRequest}/reject', [\App\Http\Controllers\PurchaseOrderRequestController::class, 'reject'])->name('purchase-order-requests.reject');
-        Route::put('/purchase-order-requests/{purchaseOrderRequest}/process', [\App\Http\Controllers\PurchaseOrderRequestController::class, 'process'])->name('purchase-order-requests.process');
-        
+
         // Stock Transfer Management (Admin/Manager)
         Route::get('/stock-transfers', [\App\Http\Controllers\StockTransferController::class, 'index'])->name('stock-transfers');
         Route::get('/stock-transfers/{stockTransfer}', [\App\Http\Controllers\StockTransferController::class, 'show'])->name('stock-transfers.show');
