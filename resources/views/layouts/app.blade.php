@@ -223,6 +223,7 @@
         $activeSection = 'system';
     }
 @endphp
+@php($canLogout = $canLogout ?? false)
 <div x-data="{
     sidebarOpen: false,
     sidebarCollapsed: false,
@@ -1704,22 +1705,22 @@
               <i class="fa-solid fa-circle text-[8px] mr-1"></i>Shift Open
             </span>
             @php
-              $activeSession = \App\Models\CashDrawerSession::where('user_id', Auth::id())
-                  ->where('status', 'opened')
-                  ->first();
-              $reconciledSession = \App\Models\CashDrawerSession::where('user_id', Auth::id())
-                  ->where('status', 'reconciled')
-                  ->first();
-              $canLogout = !$activeSession && $reconciledSession;
+                $activeSession = Auth::check() ? \App\Models\CashDrawerSession::where('user_id', Auth::id())
+                    ->where('status', 'opened')
+                    ->first() : null;
+                $reconciledSession = Auth::check() ? \App\Models\CashDrawerSession::where('user_id', Auth::id())
+                    ->where('status', 'reconciled')
+                    ->first() : null;
+                $canLogout = !$activeSession && $reconciledSession;
             @endphp
-            @if($canLogout)
+            @if($canLogout ?? false)
             <form method="POST" action="{{ route('logout') }}">
               @csrf
               <button type="submit" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition-colors">
                 <i class="fa-solid fa-right-from-bracket mr-1"></i>Logout
               </button>
             </form>
-            @elseif($activeSession)
+            @elseif(!empty($activeSession))
             <a href="{{ route('cash-drawer-sessions.edit-close', $activeSession->id) }}" class="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg text-sm font-medium transition-colors">
               <i class="fa-solid fa-calculator mr-1"></i>Reconcile Now
             </a>
