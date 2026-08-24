@@ -12,6 +12,7 @@ class ProductPrice extends Model
         'price',
         'label',
         'is_active',
+        'pending_approval',
         'activated_at',
         'created_by',
         'notes',
@@ -20,6 +21,7 @@ class ProductPrice extends Model
     protected $casts = [
         'price' => 'decimal:2',
         'is_active' => 'boolean',
+        'pending_approval' => 'boolean',
         'activated_at' => 'datetime',
     ];
 
@@ -38,9 +40,15 @@ class ProductPrice extends Model
         return $query->where('is_active', true);
     }
 
+    public function scopePendingApproval($query)
+    {
+        return $query->where('pending_approval', true);
+    }
+
     /**
      * Activate this price and deactivate all other prices of the same product.
      * Keeps products.selling_price in sync so sales/POS always use the active price.
+     * Activating a price also clears its pending approval flag.
      */
     public function activate(): void
     {
@@ -51,6 +59,7 @@ class ProductPrice extends Model
 
             $this->update([
                 'is_active' => true,
+                'pending_approval' => false,
                 'activated_at' => now(),
             ]);
 

@@ -41,14 +41,18 @@ class PriceRequestController extends Controller
      * Full price management for ALL products used in sales.
      * Multiple prices per product are allowed but only ONE is active at a time;
      * the active price is what POS/sales charge customers.
+     * Marketing officers can view and add prices, but their new prices
+     * require admin/manager approval before going live.
      */
     public function prices(Request $request)
     {
-        if (!in_array(Auth::user()->role, ['admin', 'manager'])) {
-            abort(403, 'Unauthorized. Only admins and managers can manage product prices.');
+        $user = Auth::user();
+        if (!in_array($user->role, ['admin', 'manager', 'marketing_officer'])) {
+            abort(403, 'Unauthorized. Only admins, managers and marketing officers can manage product prices.');
         }
 
         $search = $request->input('search');
+        $canApprove = in_array($user->role, ['admin', 'manager']);
 
         $products = Product::with(['prices.creator', 'unit'])
             ->when($search, fn ($q) => $q->where(fn ($w) => $w
@@ -59,14 +63,17 @@ class PriceRequestController extends Controller
             ->paginate(20)
             ->withQueryString();
 
-        return view('price-requests.prices', compact('products', 'search'));
+        return view('price-requests.prices', compact('products', 'search', 'canApprove'));
     }
 
     public function storePrice(Request $request)
     {
-        if (!in_array(Auth::user()->role, ['admin', 'manager'])) {
-            abort(403, 'Unauthorized. Only admins and managers can manage product prices.');
+        $user = Auth::user();
+        if (!in_array($user->role, ['admin', 'manager', 'marketing_officer'])) {
+            abort(403, 'Unauthorized. Only admins, managers and marketing officers can manage product prices.');
         }
+
+        $canApprove = in_array($user->role, ['admin', 'manager']);
 
         $request->validate([
             'product_id' => 'required|exists:products,id',
@@ -80,17 +87,21 @@ class PriceRequestController extends Controller
 
         DB::beginTransaction();
         try {
+            // Prices added by marketing officers always await admin approval first
+            $needsApproval = !$canApprove;
+
             $productPrice = ProductPrice::create([
                 'product_id' => $product->id,
                 'price' => $request->price,
                 'label' => $request->label,
                 'is_active' => false,
+                'pending_approval' => $needsApproval,
                 'created_by' => Auth::id(),
                 'notes' => $request->notes,
             ]);
 
             // Activate immediately when requested OR when the product has no active price yet
-            if ($request->boolean('activate_now') || !$product->prices()->active()->exists()) {
+            if (!$needsApproval && ($request->boolean('activate_now') || !$product->prices()->active()->exists())) {
                 $productPrice->activate();
             }
 
@@ -100,6 +111,10 @@ class PriceRequestController extends Controller
             return back()->with('error', 'Failed to add price: ' . $e->getMessage());
         }
 
+        if ($needsApproval) {
+            return back()->with('success', "New price submitted for {$product->name} — it will go live once an administrator approves it.");
+        }
+
         return back()->with('success', "New price added for {$product->name}"
             . ($productPrice->fresh()->is_active ? ' and activated.' : '.'));
     }
@@ -107,12 +122,15 @@ class PriceRequestController extends Controller
     public function activatePrice(ProductPrice $productPrice)
     {
         if (!in_array(Auth::user()->role, ['admin', 'manager'])) {
-            abort(403, 'Unauthorized. Only admins and managers can manage product prices.');
+            abort(403, 'Unauthorized. Only admins and managers can activate product prices.');
         }
+
+        $wasPending = $productPrice->pending_approval;
 
         $productPrice->activate();
 
-        return back()->with('success', "{$productPrice->product->name} now sells at "
+        return back()->with('success', ($wasPending ? 'Approved — ' : '')
+            . "{$productPrice->product->name} now sells at "
             . number_format((float) $productPrice->price, 2) . ".");
     }
 

@@ -20,7 +20,12 @@
                     <i class="fas fa-list mr-2"></i>Manage All Prices
                 </a>
             @else
-                <a href="{{ route('price-requests.create') }}" class="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                @if(Auth::user()->role === 'marketing_officer')
+                    <a href="{{ route('price-requests.prices') }}" class="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                        <i class="fas fa-list mr-2"></i>Price Management
+                    </a>
+                @endif
+                <a href="{{ route('price-requests.create') }}" class="bg-primary-100 hover:bg-primary-200 text-primary-800 px-4 py-2 rounded-lg text-sm font-medium transition-colors">
                     <i class="fas fa-tag mr-2"></i>Request Price Change
                 </a>
             @endif

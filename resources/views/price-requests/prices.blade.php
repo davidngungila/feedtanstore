@@ -71,26 +71,38 @@
                             </td>
                             <td class="py-2.5 pr-4 text-gray-600">{{ $price->label ?? '—' }}</td>
                             <td class="py-2.5 pr-4">
-                                <span class="px-2 py-0.5 text-xs font-semibold rounded-full {{ $price->is_active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500' }}">
-                                    {{ $price->is_active ? 'Active' : 'Inactive' }}
-                                </span>
+                                @if($price->pending_approval)
+                                    <span class="px-2 py-0.5 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-700">Pending Approval</span>
+                                @elseif($price->is_active)
+                                    <span class="px-2 py-0.5 text-xs font-semibold rounded-full bg-green-100 text-green-700">Active</span>
+                                @else
+                                    <span class="px-2 py-0.5 text-xs font-semibold rounded-full bg-gray-100 text-gray-500">Inactive</span>
+                                @endif
                             </td>
                             <td class="py-2.5 pr-4 text-xs text-gray-500">{{ $price->activated_at ? $price->activated_at->format('M d, Y H:i') : '—' }}</td>
                             <td class="py-2.5 pr-4 text-xs text-gray-500">{{ $price->creator->name ?? '—' }}</td>
                             <td class="py-2.5 text-right whitespace-nowrap">
-                                @if($price->is_active)
-                                    <form action="{{ route('price-requests.prices.deactivate', $price) }}" method="POST" class="inline">
-                                        @csrf
-                                        @method('PUT')
-                                        <button type="submit" class="text-xs px-3 py-1.5 rounded-lg bg-yellow-100 hover:bg-yellow-200 text-yellow-800 font-medium">Deactivate</button>
-                                    </form>
+                                @if($canApprove)
+                                    @if($price->is_active)
+                                        <form action="{{ route('price-requests.prices.deactivate', $price) }}" method="POST" class="inline">
+                                            @csrf
+                                            @method('PUT')
+                                            <button type="submit" class="text-xs px-3 py-1.5 rounded-lg bg-yellow-100 hover:bg-yellow-200 text-yellow-800 font-medium">Deactivate</button>
+                                        </form>
+                                    @else
+                                        <button type="button" data-action="{{ route('price-requests.prices.activate', $price) }}" data-product="{{ $product->name }}" data-price="{{ number_format((float) $price->price, 2) }}" data-pending="{{ $price->pending_approval ? 1 : 0 }}" onclick="openActivateModal(this)" class="text-xs px-3 py-1.5 rounded-lg {{ $price->pending_approval ? 'bg-green-600 hover:bg-green-700' : 'bg-green-600 hover:bg-green-700' }} text-white font-medium">
+                                            {{ $price->pending_approval ? 'Approve' : 'Activate' }}
+                                        </button>
+                                        <form action="{{ route('price-requests.prices.destroy', $price) }}" method="POST" class="inline" onsubmit="return confirm('Delete this price entry?')">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="text-xs px-3 py-1.5 rounded-lg bg-red-100 hover:bg-red-200 text-red-700 font-medium ml-1">Delete</button>
+                                        </form>
+                                    @endif
+                                @elseif($price->pending_approval)
+                                    <span class="text-xs text-gray-400 italic">Waiting for admin approval</span>
                                 @else
-                                    <button type="button" data-action="{{ route('price-requests.prices.activate', $price) }}" data-product="{{ $product->name }}" data-price="{{ number_format((float) $price->price, 2) }}" onclick="openActivateModal(this)" class="text-xs px-3 py-1.5 rounded-lg bg-green-600 hover:bg-green-700 text-white font-medium">Activate</button>
-                                    <form action="{{ route('price-requests.prices.destroy', $price) }}" method="POST" class="inline" onsubmit="return confirm('Delete this price entry?')">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="text-xs px-3 py-1.5 rounded-lg bg-red-100 hover:bg-red-200 text-red-700 font-medium ml-1">Delete</button>
-                                    </form>
+                                    <span class="text-xs text-gray-400">—</span>
                                 @endif
                             </td>
                         </tr>
@@ -126,11 +138,18 @@
                         <label class="block text-xs font-medium text-gray-600 mb-1">Notes</label>
                         <input type="text" name="notes" maxlength="500" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
                     </div>
+                    @if($canApprove)
                     <label class="flex items-center gap-2 text-sm text-gray-700">
                         <input type="checkbox" name="activate_now" value="1" checked class="rounded border-gray-300 text-primary-600 focus:ring-primary-500">
                         Activate immediately
                     </label>
-                    <button type="submit" class="w-full py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg text-sm font-medium">Add Price</button>
+                    @else
+                    <input type="hidden" name="activate_now" value="0">
+                    <p class="text-xs bg-yellow-50 border border-yellow-200 text-yellow-800 rounded-lg px-3 py-2">
+                        <i class="fas fa-clock mr-1"></i>Your new price will be submitted for administrator approval before it goes live.
+                    </p>
+                    @endif
+                    <button type="submit" class="w-full py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg text-sm font-medium">{{ $canApprove ? 'Add Price' : 'Submit New Price' }}</button>
                     <p class="text-xs text-gray-400">Activating a price switches sales to it instantly and deactivates the others.</p>
                 </form>
             </div>
@@ -167,8 +186,14 @@ const activateForm = document.getElementById('activateForm');
 
 function openActivateModal(btn) {
     activateForm.action = btn.dataset.action;
+    const pending = btn.dataset.pending === '1';
+    document.getElementById('activateModalTitle').textContent = pending ? 'Approve New Price' : 'Update Selling Price';
     document.getElementById('activateProductName').textContent = btn.dataset.product;
     document.getElementById('activateNewPrice').textContent = 'TZS ' + btn.dataset.price;
+    document.getElementById('activateHint').textContent = pending
+        ? 'Approving makes this price the active selling price immediately.'
+        : 'Sales will switch to this price immediately and all other prices for this product become inactive.';
+    document.getElementById('activateConfirm').textContent = pending ? 'Yes, Approve & Activate' : 'Yes, Update Price';
     activateModal.classList.remove('hidden');
 }
 function closeActivateModal() {
@@ -188,16 +213,16 @@ document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !a
                 <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
                     <i class="fas fa-tag text-green-600"></i>
                 </div>
-                <h3 class="text-lg font-bold text-primary-900">Update Selling Price</h3>
+                <h3 class="text-lg font-bold text-primary-900" id="activateModalTitle">Update Selling Price</h3>
             </div>
             <p class="text-gray-700 mb-2">Are you sure you want to update the price in <span id="activateProductName" class="font-bold text-primary-900"></span>?</p>
             <p class="text-sm text-gray-600 mb-1">New selling price: <span id="activateNewPrice" class="font-bold text-green-700"></span></p>
-            <p class="text-xs text-gray-500 mb-5">Sales will switch to this price immediately and all other prices for this product become inactive.</p>
+            <p class="text-xs text-gray-500 mb-5" id="activateHint">Sales will switch to this price immediately and all other prices for this product become inactive.</p>
             <form id="activateForm" action="" method="POST" class="flex justify-end gap-3">
                 @csrf
                 @method('PUT')
                 <button type="button" id="activateCancel" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">Cancel</button>
-                <button type="submit" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors">Yes, Update Price</button>
+                <button type="submit" id="activateConfirm" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors">Yes, Update Price</button>
             </form>
         </div>
     </div>
