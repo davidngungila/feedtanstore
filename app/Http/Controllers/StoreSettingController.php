@@ -274,9 +274,10 @@ class StoreSettingController extends Controller
             $content = "… (showing the last 200 KB of " . number_format($size / 1024, 1) . " KB)\n\n" . $content;
         }
 
-        return response()->json([
+        return view('system.logs-view', [
             'name' => $name,
             'content' => $content,
+            'size' => $size,
         ]);
     }
 

@@ -43,9 +43,9 @@
                                 <td class="px-4 py-3 text-gray-600">{{ number_format($log['size'] / 1024, 2) }} KB</td>
                                 <td class="px-4 py-3 text-gray-600">{{ date('Y-m-d H:i:s', $log['modified']) }}</td>
                                 <td class="px-4 py-3 text-right">
-                                    <button type="button" data-name="{{ $log['name'] }}" onclick="viewLogFile(this)" class="text-primary-600 hover:text-primary-800 font-medium text-sm">
+                                    <a href="{{ route('system.logs.view', ['file' => $log['name']]) }}" class="text-primary-600 hover:text-primary-800 font-medium text-sm">
                                         <i class="fas fa-eye mr-1"></i>View Full
-                                    </button>
+                                    </a>
                                 </td>
                             </tr>
                         @endforeach
@@ -56,23 +56,6 @@
                     @endif
                 </tbody>
             </table>
-        </div>
-    </div>
-</div>
-
-{{-- Log file viewer modal --}}
-<div id="logFileModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
-    <div class="bg-white rounded-2xl shadow-xl w-full max-w-5xl h-[85vh] flex flex-col overflow-hidden">
-        <div class="flex items-center justify-between p-4 border-b border-gray-200 flex-shrink-0">
-            <h3 class="font-bold text-primary-900 truncate"><i class="fas fa-file-lines mr-2 text-primary-500"></i><span id="logFileName"></span></h3>
-            <div class="flex items-center gap-2 ml-4">
-                <input type="text" id="logFilterInput" placeholder="Filter lines..." class="hidden md:block px-3 py-1.5 border border-gray-300 rounded-lg text-xs focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
-                <button type="button" onclick="closeLogFileModal()" class="text-gray-400 hover:text-gray-600"><i class="fas fa-times"></i></button>
-            </div>
-        </div>
-        <pre id="logFileContent" class="flex-1 overflow-auto m-0 p-4 bg-gray-950 text-gray-100 text-xs leading-relaxed whitespace-pre-wrap break-all">Loading…</pre>
-        <div class="p-3 border-t border-gray-200 flex justify-end flex-shrink-0">
-            <button type="button" onclick="closeLogFileModal()" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors text-sm">Close</button>
         </div>
     </div>
 </div>
@@ -98,9 +81,7 @@
 </div>
 
 <script>
-const logFileModal = document.getElementById('logFileModal');
 const clearLogsModal = document.getElementById('clearLogsModal');
-const rawLogContent = { lines: [] };
 
 function openClearLogsModal() {
     clearLogsModal.classList.remove('hidden');
@@ -108,50 +89,9 @@ function openClearLogsModal() {
 function closeClearLogsModal() {
     clearLogsModal.classList.add('hidden');
 }
-
-async function viewLogFile(btn) {
-    document.getElementById('logFileName').textContent = btn.dataset.name;
-    document.getElementById('logFileContent').textContent = 'Loading…';
-    document.getElementById('logFilterInput').value = '';
-    logFileModal.classList.remove('hidden');
-
-    try {
-        const resp = await fetch('{{ route('system.logs.view') }}?file=' + encodeURIComponent(btn.dataset.name), {
-            headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
-        });
-        if (!resp.ok) throw new Error('HTTP ' + resp.status);
-        const data = await resp.json();
-        rawLogContent.lines = data.content.split('\n');
-        renderLogLines('');
-    } catch (err) {
-        document.getElementById('logFileContent').textContent = 'Failed to load log file: ' + err.message;
-    }
-}
-
-function renderLogLines(filter) {
-    const q = filter.trim().toLowerCase();
-    const el = document.getElementById('logFileContent');
-    if (!q) {
-        el.textContent = rawLogContent.lines.join('\n');
-        return;
-    }
-    const matches = rawLogContent.lines.filter(function (line) { return line.toLowerCase().includes(q); });
-    el.textContent = matches.length ? matches.join('\n') : 'No lines match "' + filter + '".';
-}
-document.getElementById('logFilterInput').addEventListener('input', function () { renderLogLines(this.value); });
-
-function closeLogFileModal() {
-    logFileModal.classList.add('hidden');
-    rawLogContent.lines = [];
-}
 document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape') {
-        if (!logFileModal.classList.contains('hidden')) closeLogFileModal();
-        if (!clearLogsModal.classList.contains('hidden')) closeClearLogsModal();
-    }
+    if (e.key === 'Escape' && !clearLogsModal.classList.contains('hidden')) closeClearLogsModal();
 });
-[logFileModal, clearLogsModal].forEach(function (m) {
-    m.addEventListener('click', function (e) { if (e.target === m) m.classList.add('hidden'); });
-});
+clearLogsModal.addEventListener('click', function (e) { if (e.target === clearLogsModal) closeClearLogsModal(); });
 </script>
 @endsection
