@@ -245,14 +245,13 @@
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <form action="{{ route('purchasing.purchase-requests.approve', $purchaseOrderRequest) }}" method="POST">
+                <form action="{{ route('purchasing.purchase-requests.approve', $purchaseOrderRequest) }}" method="POST" id="approveForm">
                     @csrf
                     @method('PUT')
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
-                        <textarea name="admin_notes" rows="2" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500" placeholder="Optional admin notes"></textarea>
+                    <div class="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg text-sm text-green-800">
+                        <i class="fas fa-info-circle mr-2"></i>Approving sends each Purchase Order to its supplier automatically.
                     </div>
-                    <button type="submit" {{ $canApprove ? '' : 'disabled' }} onclick="return confirm('Approve and send this order to the selected supplier(s)?')" class="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg font-medium">
+                    <button type="button" {{ $canApprove ? '' : 'disabled' }} onclick="openApproveModal()" class="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg font-medium">
                         <i class="fas fa-check mr-2"></i>Approve &amp; Send to Suppliers
                     </button>
                 </form>
@@ -349,4 +348,64 @@
         @endif
     </div>
 </div>
+
+{{-- Approve Confirmation Modal --}}
+<div id="approveModal" class="hidden fixed inset-0 z-50 overflow-y-auto" role="dialog" aria-modal="true">
+    <div class="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity" onclick="closeApproveModal()"></div>
+    <div class="flex min-h-full items-center justify-center p-4">
+        <div class="relative bg-white rounded-2xl shadow-xl max-w-lg w-full p-6 animate-[fadeIn_0.2s_ease]">
+            <button type="button" onclick="closeApproveModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors">
+                <i class="fas fa-times text-lg"></i>
+            </button>
+            <div class="flex items-start gap-4 mb-5">
+                <div class="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
+                    <i class="fas fa-paper-plane text-green-600 text-xl"></i>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold text-primary-900">Approve &amp; Send to Suppliers?</h3>
+                    <p class="text-sm text-gray-500 mt-1">This will create one Purchase Order per supplier and email/SMS each automatically with only their own products.</p>
+                </div>
+            </div>
+
+            <div class="bg-gray-50 rounded-xl p-4 mb-5">
+                <p class="text-xs font-semibold text-gray-700 uppercase tracking-wide mb-2">Order will be sent to</p>
+                @foreach($orderItems->where('status', 'pending')->groupBy('supplier_id') as $supplierId => $group)
+                    @if($supplierId)
+                        <div class="flex items-start gap-2 text-sm py-1">
+                            <i class="fas fa-truck text-primary-500 mt-0.5"></i>
+                            <p><span class="font-semibold">{{ $group->first()->supplier->name }}</span>
+                                <span class="text-gray-500">— {{ $group->pluck('product.name')->implode(', ') }}</span></p>
+                        </div>
+                    @endif
+                @endforeach
+            </div>
+
+            <div class="mb-5">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Notes (optional)</label>
+                <textarea form="approveForm" name="admin_notes" rows="2" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500" placeholder="Optional admin notes"></textarea>
+            </div>
+
+            <div class="flex justify-end gap-3">
+                <button type="button" onclick="closeApproveModal()" class="px-5 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">Cancel</button>
+                <button type="submit" form="approveForm" class="px-5 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors">
+                    <i class="fas fa-check mr-2"></i>Yes, Approve &amp; Send
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function openApproveModal() {
+    document.getElementById('approveModal').classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+}
+function closeApproveModal() {
+    document.getElementById('approveModal').classList.add('hidden');
+    document.body.style.overflow = '';
+}
+document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') closeApproveModal();
+});
+</script>
 @endsection
