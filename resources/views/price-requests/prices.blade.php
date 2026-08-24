@@ -85,11 +85,7 @@
                                         <button type="submit" class="text-xs px-3 py-1.5 rounded-lg bg-yellow-100 hover:bg-yellow-200 text-yellow-800 font-medium">Deactivate</button>
                                     </form>
                                 @else
-                                    <form action="{{ route('price-requests.prices.activate', $price) }}" method="POST" class="inline" onsubmit="return confirm('Make TZS {{ number_format((float) $price->price, 2) }} the active selling price for {{ addslashes($product->name) }}?')">
-                                        @csrf
-                                        @method('PUT')
-                                        <button type="submit" class="text-xs px-3 py-1.5 rounded-lg bg-green-600 hover:bg-green-700 text-white font-medium">Activate</button>
-                                    </form>
+                                    <button type="button" data-action="{{ route('price-requests.prices.activate', $price) }}" data-product="{{ $product->name }}" data-price="{{ number_format((float) $price->price, 2) }}" onclick="openActivateModal(this)" class="text-xs px-3 py-1.5 rounded-lg bg-green-600 hover:bg-green-700 text-white font-medium">Activate</button>
                                     <form action="{{ route('price-requests.prices.destroy', $price) }}" method="POST" class="inline" onsubmit="return confirm('Delete this price entry?')">
                                         @csrf
                                         @method('DELETE')
@@ -165,5 +161,45 @@ function toggleAddPrice(productId) {
         panel.querySelector('input[name="price"]').focus();
     }
 }
+
+const activateModal = document.getElementById('activateModal');
+const activateForm = document.getElementById('activateForm');
+
+function openActivateModal(btn) {
+    activateForm.action = btn.dataset.action;
+    document.getElementById('activateProductName').textContent = btn.dataset.product;
+    document.getElementById('activateNewPrice').textContent = 'TZS ' + btn.dataset.price;
+    activateModal.classList.remove('hidden');
+}
+function closeActivateModal() {
+    activateModal.classList.add('hidden');
+    activateForm.action = '';
+}
+document.getElementById('activateCancel').addEventListener('click', closeActivateModal);
+activateModal.addEventListener('click', function (e) { if (e.target === activateModal) closeActivateModal(); });
+document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !activateModal.classList.contains('hidden')) closeActivateModal(); });
 </script>
+
+{{-- Activate price confirmation modal --}}
+<div id="activateModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden">
+        <div class="p-6">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
+                    <i class="fas fa-tag text-green-600"></i>
+                </div>
+                <h3 class="text-lg font-bold text-primary-900">Update Selling Price</h3>
+            </div>
+            <p class="text-gray-700 mb-2">Are you sure you want to update the price in <span id="activateProductName" class="font-bold text-primary-900"></span>?</p>
+            <p class="text-sm text-gray-600 mb-1">New selling price: <span id="activateNewPrice" class="font-bold text-green-700"></span></p>
+            <p class="text-xs text-gray-500 mb-5">Sales will switch to this price immediately and all other prices for this product become inactive.</p>
+            <form id="activateForm" action="" method="POST" class="flex justify-end gap-3">
+                @csrf
+                @method('PUT')
+                <button type="button" id="activateCancel" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">Cancel</button>
+                <button type="submit" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors">Yes, Update Price</button>
+            </form>
+        </div>
+    </div>
+</div>
 @endsection
