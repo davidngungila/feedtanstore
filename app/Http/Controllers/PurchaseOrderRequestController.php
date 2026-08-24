@@ -95,9 +95,31 @@ class PurchaseOrderRequestController extends Controller
 
     public function show(PurchaseOrderRequest $purchaseOrderRequest)
     {
-        $purchaseOrderRequest->load('product', 'requester', 'approver', 'supplier');
+        $purchaseOrderRequest->load(['product.unit', 'requester', 'approver', 'supplier']);
+
+        // All items belonging to the same multi-product submission
+        $baseNumber = preg_replace('/-\d+$/', '', $purchaseOrderRequest->request_number);
+        $orderItems = PurchaseOrderRequest::with(['product.unit', 'supplier'])
+            ->where('request_number', 'like', $baseNumber . '%')
+            ->orderBy('request_number')
+            ->get();
+
+        $grn = null;
+        if ($purchaseOrderRequest->status === 'received') {
+            $grn = \App\Models\GoodsReceivedNote::where('notes', 'like', '%' . $purchaseOrderRequest->request_number . '%')
+                ->orderByDesc('id')
+                ->first();
+        }
+
         $suppliers = \App\Models\Supplier::where('is_active', true)->get();
-        return view('storekeeper.purchase-order-requests-show', compact('purchaseOrderRequest', 'suppliers'));
+
+        return view('storekeeper.purchase-order-requests-show', compact(
+            'purchaseOrderRequest',
+            'orderItems',
+            'baseNumber',
+            'grn',
+            'suppliers'
+        ));
     }
 
     public function approve(Request $request, PurchaseOrderRequest $purchaseOrderRequest)
