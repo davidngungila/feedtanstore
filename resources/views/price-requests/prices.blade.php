@@ -8,11 +8,9 @@
         <div>
             <h1 class="text-2xl font-bold text-primary-900">Price Management</h1>
             <p class="text-gray-600">Manage prices for all products used in sales — a product can hold multiple prices, but only one is active at a time.</p>
+            <p class="text-xs text-gray-400 mt-1">Showing <span id="visibleCount">{{ $products->count() }}</span> of {{ $products->total() }} products</p>
         </div>
-        <form method="GET" action="{{ route('price-requests.prices') }}" id="searchForm" class="flex gap-2">
-            <input type="text" name="search" id="searchInput" value="{{ $search }}" autocomplete="off" placeholder="Type to filter by name, SKU or barcode..." class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 min-w-[280px]">
-            <button type="submit" class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg"><i class="fas fa-search"></i></button>
-        </form>
+        <input type="text" id="searchInput" autocomplete="off" placeholder="Type to filter by name, SKU or barcode..." class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 min-w-[280px]">
     </div>
 
     @if(session('success'))
@@ -28,7 +26,7 @@
     @endif
 
     @forelse($products as $product)
-    <div class="card rounded-2xl p-5 mb-4">
+    <div class="card rounded-2xl p-5 mb-4" data-product-card data-search="{{ strtolower($product->name . ' ' . ($product->sku ?? '') . ' ' . ($product->barcode ?? '')) }}">
         <div class="flex flex-wrap items-start justify-between gap-3 mb-4 pb-3 border-b border-gray-100">
             <div>
                 <h3 class="font-bold text-primary-900">{{ $product->name }}</h3>
@@ -156,11 +154,16 @@
         </div>
     </div>
     @empty
-    <div class="card rounded-2xl p-12 text-center text-gray-500">
+    <div class="card rounded-2xl p-12 text-center text-gray-500" data-product-card>
         <i class="fas fa-tags text-4xl mb-3 block text-gray-300"></i>
         No products found.
     </div>
     @endforelse
+
+    <div id="noMatch" class="hidden card rounded-2xl p-12 text-center text-gray-500">
+        <i class="fas fa-magnifying-glass text-4xl mb-3 block text-gray-300"></i>
+        No products match your filter.
+    </div>
 
     <div class="mt-4">
         {{ $products->links() }}
@@ -228,19 +231,25 @@ activateModal.addEventListener('click', function (e) { if (e.target === activate
 document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !activateModal.classList.contains('hidden')) closeActivateModal(); });
 
 const searchInput = document.getElementById('searchInput');
-let searchTimer = null;
-searchInput.addEventListener('input', function () {
-    clearTimeout(searchTimer);
-    searchTimer = setTimeout(function () {
-        const params = new URLSearchParams(window.location.search);
-        if (searchInput.value) {
-            params.set('search', searchInput.value);
-        } else {
-            params.delete('search');
+const productCards = document.querySelectorAll('[data-product-card]');
+const noMatch = document.getElementById('noMatch');
+const visibleCount = document.getElementById('visibleCount');
+const totalCount = visibleCount.textContent;
+
+function filterProducts() {
+    const q = searchInput.value.trim().toLowerCase();
+    let visible = 0;
+    productCards.forEach(function (card) {
+        if (!card.dataset.search && !card.id) {
+            card.dataset.search = '';
         }
-        params.delete('page');
-        window.location.assign('{{ route('price-requests.prices') }}' + (params.toString() ? '?' + params.toString() : ''));
-    }, 400);
-});
+        const show = !q || (card.dataset.search || '').includes(q);
+        card.classList.toggle('hidden', !show);
+        if (show) visible++;
+    });
+    visibleCount.textContent = q ? visible : totalCount;
+    noMatch.classList.toggle('hidden', !(q && visible === 0));
+}
+searchInput.addEventListener('input', filterProducts);
 </script>
 @endsection
