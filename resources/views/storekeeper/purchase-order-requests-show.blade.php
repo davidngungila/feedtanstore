@@ -46,14 +46,13 @@
             <p class="text-gray-900">{{ $purchaseOrderRequest->reason }}</p>
         </div>
 
-        @if($purchaseOrderRequest->status === 'pending')
-        <div class="border-t border-gray-200 pt-6">
-            <h3 class="text-lg font-semibold text-gray-900 mb-4">Admin Actions</h3>
-            @php $isAdminOrManager = in_array(Auth::user()->role, ['admin', 'manager']); @endphp
-            <div class="grid grid-cols-1 {{ $isAdminOrManager ? 'md:grid-cols-3' : 'md:grid-cols-2' }} gap-4">
+        @php $isAdminOrManager = in_array(Auth::user()->role, ['admin', 'manager']); @endphp
 
-                @if($isAdminOrManager)
-                <!-- Approve & Assign Supplier -->
+        @if($purchaseOrderRequest->status === 'pending')
+            @if($isAdminOrManager)
+            <div class="border-t border-gray-200 pt-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Admin Actions</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <form action="{{ route('storekeeper.purchase-order-requests.approve', $purchaseOrderRequest) }}" method="POST">
                     @csrf
                     @method('PUT')
@@ -74,7 +73,6 @@
                         <i class="fas fa-check mr-2"></i>Approve & Assign Supplier
                     </button>
                 </form>
-                @endif
 
                 <!-- Receive Products Directly -->
                 <form action="{{ route('storekeeper.purchase-order-requests.receive', $purchaseOrderRequest) }}" method="POST">
@@ -105,8 +103,18 @@
                         <i class="fas fa-times mr-2"></i>Reject
                     </button>
                 </form>
+                </div>
             </div>
-        </div>
+            @else
+            <div class="border-t border-gray-200 pt-6">
+                <div class="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                    <p class="text-sm text-blue-800">
+                        <i class="fas fa-hourglass-half mr-2"></i>
+                        This request is awaiting review by an administrator or manager.
+                    </p>
+                </div>
+            </div>
+            @endif
         @endif
 
         @if($purchaseOrderRequest->status === 'approved')

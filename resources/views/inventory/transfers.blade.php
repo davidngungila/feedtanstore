@@ -59,7 +59,15 @@
                         <td class="text-gray-600">{{ $transfer->quantity }}</td>
                         <td class="text-gray-600">{{ $transfer->transfer_date ? date('M d, Y', strtotime($transfer->transfer_date)) : '-' }}</td>
                         <td>
-                            <span class="badge badge-green">Completed</span>
+                            @if($transfer->status === 'approved')
+                                <span class="badge badge-blue">Approved</span>
+                            @elseif($transfer->status === 'completed')
+                                <span class="badge badge-green">Completed</span>
+                            @elseif($transfer->status === 'rejected')
+                                <span class="badge badge-red">Rejected</span>
+                            @else
+                                <span class="badge badge-yellow">Pending</span>
+                            @endif
                         </td>
                         <td class="flex items-center gap-2">
                             <a href="{{ route('inventory.transfers.show', $transfer->id) }}" class="text-primary-600 hover:text-primary-800 p-1" title="View">
