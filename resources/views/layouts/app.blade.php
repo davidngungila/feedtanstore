@@ -506,6 +506,12 @@
           <span x-show="!sidebarCollapsed" class="font-medium">Orders</span>
         </a>
 
+        <!-- Products -->
+        <a href="{{ route('inventory.products') }}" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-150 group {{ request()->routeIs('inventory.products') || request()->routeIs('inventory.products.create') || request()->is('inventory/products/*/edit') ? 'bg-primary-600 text-white' : 'text-primary-200 hover:bg-white/10 hover:text-white' }}">
+          <i class="fa-solid fa-boxes-stacked w-4 text-center flex-shrink-0"></i>
+          <span x-show="!sidebarCollapsed" class="font-medium">Products</span>
+        </a>
+
         <!-- Bulk Dispatch -->
         <a href="{{ route('marketing-officer.bulk-dispatch') }}" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-150 group {{ request()->routeIs('marketing-officer.bulk-dispatch*') ? 'bg-primary-600 text-white' : 'text-primary-200 hover:bg-white/10 hover:text-white' }}">
           <i class="fa-solid fa-layer-group w-4 text-center flex-shrink-0"></i>
