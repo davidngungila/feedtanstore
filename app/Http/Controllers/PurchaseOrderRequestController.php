@@ -124,10 +124,22 @@ class PurchaseOrderRequestController extends Controller
                 ->with('error', 'Only pending requests can be edited.');
         }
 
-        $purchaseOrderRequest->load(['product.unit', 'supplier']);
+        $baseNumber = preg_replace('/-\d+$/', '', $purchaseOrderRequest->request_number);
+
+        // Load the FULL request — every product in this submission
+        $orderItems = PurchaseOrderRequest::with(['product.unit', 'supplier'])
+            ->where('request_number', 'like', $baseNumber . '%')
+            ->orderBy('request_number')
+            ->get();
+
         $suppliers = \App\Models\Supplier::where('is_active', true)->orderBy('name')->get();
 
-        return view('purchasing.purchase-requests-edit', compact('purchaseOrderRequest', 'suppliers'));
+        return view('purchasing.purchase-requests-edit', compact(
+            'purchaseOrderRequest',
+            'orderItems',
+            'baseNumber',
+            'suppliers'
+        ));
     }
 
     public function purchasingUpdate(Request $request, PurchaseOrderRequest $purchaseOrderRequest)
@@ -136,30 +148,86 @@ class PurchaseOrderRequestController extends Controller
             abort(403, 'Unauthorized. Only admins and managers can edit requests.');
         }
 
-        if ($purchaseOrderRequest->status !== 'pending') {
-            return redirect()->route('purchasing.purchase-requests.show', $purchaseOrderRequest)
-                ->with('error', 'Only pending requests can be edited.');
-        }
+        $baseNumber = preg_replace('/-\d+$/', '', $purchaseOrderRequest->request_number);
 
         $request->validate([
-            'requested_quantity' => 'required|numeric|min:1',
-            'supplier_id' => 'nullable|exists:suppliers,id',
-            'estimated_unit_price' => 'nullable|numeric|min:0',
-            'reason' => 'required|string',
+            'items' => 'required|array|min:1',
+            'items.*.id' => 'required|integer',
+            'items.*.requested_quantity' => 'required|numeric|min:1',
+            'items.*.supplier_id' => 'nullable|exists:suppliers,id',
+            'items.*.estimated_unit_price' => 'nullable|numeric|min:0',
+            'items.*.reason' => 'required|string|max:2000',
+            'remove_ids' => 'nullable|array',
+            'remove_ids.*' => 'integer',
         ]);
 
-        $unitPrice = $request->estimated_unit_price;
+        // Only items belonging to this submission and still pending may be touched
+        $groupIds = PurchaseOrderRequest::where('request_number', 'like', $baseNumber . '%')
+            ->pluck('id')
+            ->flip();
 
-        $purchaseOrderRequest->update([
-            'requested_quantity' => $request->requested_quantity,
-            'supplier_id' => $request->supplier_id ?: null,
-            'estimated_cost' => ($unitPrice !== null && $unitPrice !== '')
-                ? round($request->requested_quantity * $unitPrice, 2)
-                : null,
-            'reason' => $request->reason,
-        ]);
+        DB::beginTransaction();
+        try {
+            foreach ($request->input('items', []) as $itemData) {
+                if (!$groupIds->has($itemData['id'])) {
+                    continue;
+                }
 
-        return redirect()->route('purchasing.purchase-requests.show', $purchaseOrderRequest)
+                $orderItem = PurchaseOrderRequest::find($itemData['id']);
+                if (!$orderItem || $orderItem->status !== 'pending') {
+                    continue;
+                }
+
+                $unitPrice = $itemData['estimated_unit_price'] ?? null;
+
+                $orderItem->update([
+                    'requested_quantity' => $itemData['requested_quantity'],
+                    'supplier_id' => $itemData['supplier_id'] ?? null,
+                    'estimated_cost' => ($unitPrice !== null && $unitPrice !== '')
+                        ? round($itemData['requested_quantity'] * $unitPrice, 2)
+                        : null,
+                    'reason' => $itemData['reason'],
+                ]);
+            }
+
+            // Remove items ticked for deletion (pending ones only)
+            $removedCurrent = false;
+            foreach ($request->input('remove_ids', []) as $removeId) {
+                if (!$groupIds->has($removeId)) {
+                    continue;
+                }
+
+                $orderItem = PurchaseOrderRequest::find($removeId);
+                if (!$orderItem || $orderItem->status !== 'pending') {
+                    continue;
+                }
+
+                if ($orderItem->id === $purchaseOrderRequest->id) {
+                    $removedCurrent = true;
+                }
+
+                $orderItem->delete();
+            }
+
+            // If only one item remains, drop the -N suffix so numbering stays clean
+            $remaining = PurchaseOrderRequest::where('request_number', 'like', $baseNumber . '%')
+                ->orderBy('request_number')
+                ->get();
+            if ($remaining->count() === 1 && preg_match('/-\d+$/', $remaining->first()->request_number)) {
+                $remaining->first()->update(['request_number' => $baseNumber]);
+            }
+
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Failed to update request: ' . $e->getMessage())->withInput();
+        }
+
+        $redirectTarget = ($removedCurrent && isset($remaining) && $remaining->count() > 0)
+            ? $remaining->first()
+            : $purchaseOrderRequest;
+
+        return redirect()->route('purchasing.purchase-requests.show', $redirectTarget)
             ->with('success', 'Purchase request updated successfully.');
     }
 
