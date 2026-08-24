@@ -63,7 +63,7 @@ class PurchaseOrderRequestController extends Controller
             $createdCount++;
         }
 
-        return redirect()->route('purchase-order-requests')
+        return redirect()->route('storekeeper.purchase-order-requests')
             ->with('success', "Purchase order request submitted successfully with {$createdCount} product(s)");
     }
 
