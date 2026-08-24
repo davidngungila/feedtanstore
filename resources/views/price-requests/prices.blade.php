@@ -82,20 +82,12 @@
                             <td class="py-2.5 text-right whitespace-nowrap">
                                 @if($canApprove)
                                     @if($price->is_active)
-                                        <form action="{{ route('price-requests.prices.deactivate', $price) }}" method="POST" class="inline">
-                                            @csrf
-                                            @method('PUT')
-                                            <button type="submit" class="text-xs px-3 py-1.5 rounded-lg bg-yellow-100 hover:bg-yellow-200 text-yellow-800 font-medium">Deactivate</button>
-                                        </form>
+                                        <button type="button" data-action="{{ route('price-requests.prices.deactivate', $price) }}" data-product="{{ $product->name }}" data-price="{{ number_format((float) $price->price, 2) }}" onclick="openDeactivateModal(this)" class="text-xs px-3 py-1.5 rounded-lg bg-yellow-100 hover:bg-yellow-200 text-yellow-800 font-medium">Deactivate</button>
                                     @else
-                                        <button type="button" data-action="{{ route('price-requests.prices.activate', $price) }}" data-product="{{ $product->name }}" data-price="{{ number_format((float) $price->price, 2) }}" data-pending="{{ $price->pending_approval ? 1 : 0 }}" onclick="openActivateModal(this)" class="text-xs px-3 py-1.5 rounded-lg {{ $price->pending_approval ? 'bg-green-600 hover:bg-green-700' : 'bg-green-600 hover:bg-green-700' }} text-white font-medium">
+                                        <button type="button" data-action="{{ route('price-requests.prices.activate', $price) }}" data-product="{{ $product->name }}" data-price="{{ number_format((float) $price->price, 2) }}" data-pending="{{ $price->pending_approval ? 1 : 0 }}" onclick="openActivateModal(this)" class="text-xs px-3 py-1.5 rounded-lg bg-green-600 hover:bg-green-700 text-white font-medium">
                                             {{ $price->pending_approval ? 'Approve' : 'Activate' }}
                                         </button>
-                                        <form action="{{ route('price-requests.prices.destroy', $price) }}" method="POST" class="inline" onsubmit="return confirm('Delete this price entry?')">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="text-xs px-3 py-1.5 rounded-lg bg-red-100 hover:bg-red-200 text-red-700 font-medium ml-1">Delete</button>
-                                        </form>
+                                        <button type="button" data-action="{{ route('price-requests.prices.destroy', $price) }}" data-product="{{ $product->name }}" data-price="{{ number_format((float) $price->price, 2) }}" onclick="openDeleteModal(this)" class="text-xs px-3 py-1.5 rounded-lg bg-red-100 hover:bg-red-200 text-red-700 font-medium ml-1">Delete</button>
                                     @endif
                                 @elseif($price->pending_approval)
                                     <span class="text-xs text-gray-400 italic">Waiting for admin approval</span>
@@ -193,6 +185,52 @@
     </div>
 </div>
 
+{{-- Deactivate price confirmation modal --}}
+<div id="deactivateModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden">
+        <div class="p-6">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-10 h-10 rounded-full bg-yellow-100 flex items-center justify-center flex-shrink-0">
+                    <i class="fas fa-arrow-down text-yellow-600"></i>
+                </div>
+                <h3 class="text-lg font-bold text-primary-900">Deactivate Price</h3>
+            </div>
+            <p class="text-gray-700 mb-2">Deactivate the price in <span id="deactivateProductName" class="font-bold text-primary-900"></span>?</p>
+            <p class="text-sm text-gray-600 mb-1">Price: <span id="deactivatePrice" class="font-bold text-yellow-700"></span></p>
+            <p class="text-xs text-gray-500 mb-5">Sales will continue at the last synced price until another price is activated.</p>
+            <form id="deactivateForm" action="" method="POST" class="flex justify-end gap-3">
+                @csrf
+                @method('PUT')
+                <button type="button" id="deactivateCancel" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">Cancel</button>
+                <button type="submit" class="px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg transition-colors">Yes, Deactivate</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+{{-- Delete price confirmation modal --}}
+<div id="deleteModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden">
+        <div class="p-6">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
+                    <i class="fas fa-trash text-red-600"></i>
+                </div>
+                <h3 class="text-lg font-bold text-primary-900">Delete Price Entry</h3>
+            </div>
+            <p class="text-gray-700 mb-2">Are you sure you want to delete this price entry from <span id="deleteProductName" class="font-bold text-primary-900"></span>?</p>
+            <p class="text-sm text-gray-600 mb-1">Entry to remove: <span id="deletePrice" class="font-bold text-red-700"></span></p>
+            <p class="text-xs text-gray-500 mb-5">This permanently removes the price entry — it cannot be undone.</p>
+            <form id="deleteForm" action="" method="POST" class="flex justify-end gap-3">
+                @csrf
+                @method('DELETE')
+                <button type="button" id="deleteCancel" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">Cancel</button>
+                <button type="submit" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors">Yes, Delete</button>
+            </form>
+        </div>
+    </div>
+</div>
+
 <script>
 function toggleAddPrice(productId) {
     const panel = document.getElementById('add-price-' + productId);
@@ -209,6 +247,10 @@ function toggleAddPrice(productId) {
 
 const activateModal = document.getElementById('activateModal');
 const activateForm = document.getElementById('activateForm');
+const deactivateModal = document.getElementById('deactivateModal');
+const deactivateForm = document.getElementById('deactivateForm');
+const deleteModal = document.getElementById('deleteModal');
+const deleteForm = document.getElementById('deleteForm');
 
 function openActivateModal(btn) {
     activateForm.action = btn.dataset.action;
@@ -226,9 +268,42 @@ function closeActivateModal() {
     activateModal.classList.add('hidden');
     activateForm.action = '';
 }
+
+function openDeactivateModal(btn) {
+    deactivateForm.action = btn.dataset.action;
+    document.getElementById('deactivateProductName').textContent = btn.dataset.product;
+    document.getElementById('deactivatePrice').textContent = 'TZS ' + btn.dataset.price;
+    deactivateModal.classList.remove('hidden');
+}
+function closeDeactivateModal() {
+    deactivateModal.classList.add('hidden');
+    deactivateForm.action = '';
+}
+
+function openDeleteModal(btn) {
+    deleteForm.action = btn.dataset.action;
+    document.getElementById('deleteProductName').textContent = btn.dataset.product;
+    document.getElementById('deletePrice').textContent = 'TZS ' + btn.dataset.price;
+    deleteModal.classList.remove('hidden');
+}
+function closeDeleteModal() {
+    deleteModal.classList.add('hidden');
+    deleteForm.action = '';
+}
+
 document.getElementById('activateCancel').addEventListener('click', closeActivateModal);
 activateModal.addEventListener('click', function (e) { if (e.target === activateModal) closeActivateModal(); });
-document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !activateModal.classList.contains('hidden')) closeActivateModal(); });
+document.getElementById('deactivateCancel').addEventListener('click', closeDeactivateModal);
+deactivateModal.addEventListener('click', function (e) { if (e.target === deactivateModal) closeDeactivateModal(); });
+document.getElementById('deleteCancel').addEventListener('click', closeDeleteModal);
+deleteModal.addEventListener('click', function (e) { if (e.target === deleteModal) closeDeleteModal(); });
+document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') {
+        if (!activateModal.classList.contains('hidden')) closeActivateModal();
+        if (!deactivateModal.classList.contains('hidden')) closeDeactivateModal();
+        if (!deleteModal.classList.contains('hidden')) closeDeleteModal();
+    }
+});
 
 const searchInput = document.getElementById('searchInput');
 const productCards = document.querySelectorAll('[data-product-card]');
