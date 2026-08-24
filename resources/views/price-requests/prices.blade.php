@@ -113,7 +113,7 @@
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
-                <form action="{{ route('price-requests.prices.store') }}" method="POST" class="space-y-3">
+                <form action="{{ route('price-requests.prices.store') }}" method="POST" class="space-y-3" id="addPriceForm-{{ $product->id }}">
                     @csrf
                     <input type="hidden" name="product_id" value="{{ $product->id }}">
                     <div>
@@ -139,7 +139,7 @@
                         <i class="fas fa-clock mr-1"></i>Your new price will be submitted for administrator approval before it goes live.
                     </p>
                     @endif
-                    <button type="submit" class="w-full py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg text-sm font-medium">{{ $canApprove ? 'Add Price' : 'Submit New Price' }}</button>
+                    <button type="button" onclick="openAddPriceModal({{ $product->id }}, '{{ addslashes($product->name) }}')" class="w-full py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg text-sm font-medium">{{ $canApprove ? 'Add Price' : 'Submit New Price' }}</button>
                     <p class="text-xs text-gray-400">Activating a price switches sales to it instantly and deactivates the others.</p>
                 </form>
             </div>
@@ -231,6 +231,28 @@
     </div>
 </div>
 
+{{-- Add new price confirmation modal --}}
+<div id="addPriceModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden">
+        <div class="p-6">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center flex-shrink-0">
+                    <i class="fas fa-plus text-primary-600"></i>
+                </div>
+                <h3 class="text-lg font-bold text-primary-900">Add New Price</h3>
+            </div>
+            <p class="text-gray-700 mb-2">Are you sure you want to add a new price for <span id="addPriceProductName" class="font-bold text-primary-900"></span>?</p>
+            <p class="text-sm text-gray-600 mb-1">New price: <span id="addPriceValue" class="font-bold text-green-700"></span></p>
+            <p class="text-sm text-gray-600 mb-1">Label: <span id="addPriceLabel" class="font-semibold">—</span></p>
+            <p class="text-xs text-gray-500 mb-5" id="addPriceHint"></p>
+            <div class="flex justify-end gap-3">
+                <button type="button" id="addPriceCancel" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">Cancel</button>
+                <button type="button" id="addPriceConfirm" class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors">Yes, Add Price</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
 function toggleAddPrice(productId) {
     const panel = document.getElementById('add-price-' + productId);
@@ -251,6 +273,39 @@ const deactivateModal = document.getElementById('deactivateModal');
 const deactivateForm = document.getElementById('deactivateForm');
 const deleteModal = document.getElementById('deleteModal');
 const deleteForm = document.getElementById('deleteForm');
+const addPriceModal = document.getElementById('addPriceModal');
+let pendingAddForm = null;
+const canApprovePrices = {{ $canApprove ? 'true' : 'false' }};
+
+function openAddPriceModal(productId, productName) {
+    const form = document.getElementById('addPriceForm-' + productId);
+    const priceValue = form.querySelector('input[name="price"]').value;
+    if (!priceValue) {
+        form.querySelector('input[name="price"]').reportValidity();
+        return;
+    }
+    pendingAddForm = form;
+    document.getElementById('addPriceProductName').textContent = productName;
+    document.getElementById('addPriceValue').textContent = 'TZS ' + Number(priceValue).toFixed(2);
+    const label = form.querySelector('input[name="label"]').value.trim();
+    document.getElementById('addPriceLabel').textContent = label || '—';
+    const checkbox = form.querySelector('input[name="activate_now"]');
+    document.getElementById('addPriceHint').textContent = !canApprovePrices
+        ? 'It will await administrator approval before it goes live.'
+        : (checkbox && checkbox.checked
+            ? 'Sales will switch to this price immediately.'
+            : 'It will be added as an inactive price — activate it when ready.');
+    addPriceModal.classList.remove('hidden');
+}
+function closeAddPriceModal() {
+    addPriceModal.classList.add('hidden');
+    pendingAddForm = null;
+}
+document.getElementById('addPriceConfirm').addEventListener('click', function () {
+    if (pendingAddForm) pendingAddForm.submit();
+});
+document.getElementById('addPriceCancel').addEventListener('click', closeAddPriceModal);
+addPriceModal.addEventListener('click', function (e) { if (e.target === addPriceModal) closeAddPriceModal(); });
 
 function openActivateModal(btn) {
     activateForm.action = btn.dataset.action;
@@ -302,6 +357,7 @@ document.addEventListener('keydown', function (e) {
         if (!activateModal.classList.contains('hidden')) closeActivateModal();
         if (!deactivateModal.classList.contains('hidden')) closeDeactivateModal();
         if (!deleteModal.classList.contains('hidden')) closeDeleteModal();
+        if (!addPriceModal.classList.contains('hidden')) closeAddPriceModal();
     }
 });
 
