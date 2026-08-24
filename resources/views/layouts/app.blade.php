@@ -460,6 +460,12 @@
           <span x-show="!sidebarCollapsed" class="font-medium">Receive New Stock</span>
         </a>
 
+        <!-- Goods Received Notes (GRN) -->
+        <a href="{{ route('storekeeper.grn') }}" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-150 group {{ request()->routeIs('storekeeper.grn*') ? 'bg-primary-600 text-white' : 'text-primary-200 hover:bg-white/10 hover:text-white' }}">
+          <i class="fa-solid fa-file-invoice w-4 text-center flex-shrink-0"></i>
+          <span x-show="!sidebarCollapsed" class="font-medium">Goods Received (GRN)</span>
+        </a>
+
         <!-- Stock Adjustments -->
         <a href="{{ route('storekeeper.stock-adjustments') }}" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-150 group {{ request()->routeIs('storekeeper.stock-adjustments*') ? 'bg-primary-600 text-white' : 'text-primary-200 hover:bg-white/10 hover:text-white' }}">
           <i class="fa-solid fa-sliders-h w-4 text-center flex-shrink-0"></i>

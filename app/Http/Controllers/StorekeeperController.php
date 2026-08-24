@@ -292,4 +292,118 @@ class StorekeeperController extends Controller
             return back()->with('error', 'Failed to receive stock: ' . $e->getMessage());
         }
     }
+
+    public function grnIndex(Request $request)
+    {
+        $search = trim((string) $request->input('search'));
+
+        $grns = \App\Models\GoodsReceivedNote::with(['supplier', 'purchaseOrder'])
+            ->when($search !== '', function ($query) use ($search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('grn_number', 'like', '%' . $search . '%')
+                        ->orWhere('status', 'like', '%' . $search . '%')
+                        ->orWhereHas('supplier', function ($supplierQuery) use ($search) {
+                            $supplierQuery->where('name', 'like', '%' . $search . '%');
+                        })
+                        ->orWhereHas('purchaseOrder', function ($purchaseOrderQuery) use ($search) {
+                            $purchaseOrderQuery->where('po_number', 'like', '%' . $search . '%');
+                        });
+                });
+            })
+            ->latest()
+            ->get();
+
+        return view('storekeeper.grn', compact('grns', 'search'));
+    }
+
+    public function grnCreate()
+    {
+        $suppliers = \App\Models\Supplier::where('is_active', true)->orderBy('name')->get();
+        $products = \App\Models\Product::with('category')->orderBy('name')->get();
+
+        return view('storekeeper.grn-create', compact('suppliers', 'products'));
+    }
+
+    public function grnStore(Request $request)
+    {
+        $request->validate([
+            'supplier_id' => 'required|exists:suppliers,id',
+            'received_date' => 'required|date',
+            'notes' => 'nullable|string|max:1000',
+            'products' => 'required|array|min:1',
+            'products.*.product_id' => 'required|exists:products,id',
+            'products.*.quantity' => 'required|numeric|min:1',
+            'products.*.unit_price' => 'required|numeric|min:0',
+            'products.*.selling_price' => 'nullable|numeric|min:0',
+            'products.*.batch_number' => 'nullable|string|max:100',
+            'products.*.expiry_date' => 'nullable|date',
+        ]);
+
+        DB::beginTransaction();
+        try {
+            // Validate expiry dates for products in categories that require them
+            foreach ($request->products as $productData) {
+                $product = \App\Models\Product::with('category')->find($productData['product_id']);
+                if ($product && $product->category && $product->category->requires_expiry_date) {
+                    if (empty($productData['expiry_date'])) {
+                        DB::rollBack();
+                        return back()->with('error', "Expiry date is required for {$product->name} (Category: {$product->category->name})")->withInput();
+                    }
+                }
+            }
+
+            $grnNumber = 'GRN-' . date('YmdHis');
+            $total = 0;
+            foreach ($request->products as $productData) {
+                $total += round($productData['quantity'] * $productData['unit_price'], 2);
+            }
+
+            $grn = \App\Models\GoodsReceivedNote::create([
+                'grn_number' => $grnNumber,
+                'supplier_id' => $request->supplier_id,
+                'purchase_order_id' => null,
+                'received_date' => $request->received_date,
+                'notes' => $request->notes,
+                'total' => round($total, 2),
+                'status' => 'received',
+            ]);
+
+            foreach ($request->products as $productData) {
+                $itemTotal = round($productData['quantity'] * $productData['unit_price'], 2);
+
+                \App\Models\GrnItem::create([
+                    'goods_received_note_id' => $grn->id,
+                    'product_id' => $productData['product_id'],
+                    'quantity' => $productData['quantity'],
+                    'unit_price' => $productData['unit_price'],
+                    'total' => $itemTotal,
+                    'expiry_date' => $productData['expiry_date'] ?? null,
+                ]);
+
+                $product = \App\Models\Product::find($productData['product_id']);
+                $product->increment('quantity', $productData['quantity']);
+                $product->update(array_filter([
+                    'cost_price' => $productData['unit_price'],
+                    'selling_price' => $productData['selling_price'] ?? null,
+                    'batch_number' => $productData['batch_number'] ?? null,
+                    'expiry_date' => $productData['expiry_date'] ?? null,
+                ], fn ($v) => $v !== null && $v !== ''));
+            }
+
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Failed to create GRN: ' . $e->getMessage())->withInput();
+        }
+
+        return redirect()->route('storekeeper.grn.show', $grn)
+            ->with('success', "Goods Received Note {$grnNumber} created successfully! Stock updated.");
+    }
+
+    public function grnShow(\App\Models\GoodsReceivedNote $grn)
+    {
+        $grn->load(['supplier', 'purchaseOrder', 'items.product.unit']);
+
+        return view('storekeeper.grn-show', compact('grn'));
+    }
 }

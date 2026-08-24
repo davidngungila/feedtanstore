@@ -114,6 +114,12 @@ Route::middleware('auth')->group(function () {
         Route::get('/stock-receiving', [\App\Http\Controllers\StorekeeperController::class, 'stockReceiving'])->name('stock-receiving');
         Route::get('/stock-receiving/create/{purchaseOrder}', [\App\Http\Controllers\StorekeeperController::class, 'createStockReceiving'])->name('stock-receiving.create');
         Route::post('/stock-receiving/{purchaseOrder}', [\App\Http\Controllers\StorekeeperController::class, 'storeStockReceiving'])->name('stock-receiving.store');
+
+        // Goods Received Notes (GRN)
+        Route::get('/grn', [\App\Http\Controllers\StorekeeperController::class, 'grnIndex'])->name('grn');
+        Route::get('/grn/create', [\App\Http\Controllers\StorekeeperController::class, 'grnCreate'])->name('grn.create');
+        Route::post('/grn', [\App\Http\Controllers\StorekeeperController::class, 'grnStore'])->name('grn.store');
+        Route::get('/grn/{grn}', [\App\Http\Controllers\StorekeeperController::class, 'grnShow'])->name('grn.show');
     });
 
     // Marketing Officer Routes
@@ -279,6 +285,8 @@ Route::middleware('auth')->group(function () {
         Route::post('/orders/{purchaseOrder}/send', [\App\Http\Controllers\PurchaseOrderController::class, 'send'])->name('orders.send');
         // Purchase Requests submitted by Storekeepers (full management)
         Route::get('/purchase-requests', [\App\Http\Controllers\PurchaseOrderRequestController::class, 'purchasingIndex'])->name('purchase-requests');
+        Route::get('/purchase-requests/{purchaseOrderRequest}/edit', [\App\Http\Controllers\PurchaseOrderRequestController::class, 'purchasingEdit'])->name('purchase-requests.edit');
+        Route::put('/purchase-requests/{purchaseOrderRequest}', [\App\Http\Controllers\PurchaseOrderRequestController::class, 'purchasingUpdate'])->name('purchase-requests.update');
         Route::get('/purchase-requests/{purchaseOrderRequest}', [\App\Http\Controllers\PurchaseOrderRequestController::class, 'purchasingShow'])->name('purchase-requests.show');
         Route::put('/purchase-requests/{purchaseOrderRequest}/approve', [\App\Http\Controllers\PurchaseOrderRequestController::class, 'approve'])->name('purchase-requests.approve');
         Route::put('/purchase-requests/{purchaseOrderRequest}/reject', [\App\Http\Controllers\PurchaseOrderRequestController::class, 'reject'])->name('purchase-requests.reject');

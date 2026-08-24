@@ -113,6 +113,56 @@ class PurchaseOrderRequestController extends Controller
         return view('purchasing.purchase-requests-show', $this->showData($purchaseOrderRequest));
     }
 
+    public function purchasingEdit(PurchaseOrderRequest $purchaseOrderRequest)
+    {
+        if (!in_array(Auth::user()->role, ['admin', 'manager'])) {
+            abort(403, 'Unauthorized. Only admins and managers can edit requests.');
+        }
+
+        if ($purchaseOrderRequest->status !== 'pending') {
+            return redirect()->route('purchasing.purchase-requests.show', $purchaseOrderRequest)
+                ->with('error', 'Only pending requests can be edited.');
+        }
+
+        $purchaseOrderRequest->load(['product.unit', 'supplier']);
+        $suppliers = \App\Models\Supplier::where('is_active', true)->orderBy('name')->get();
+
+        return view('purchasing.purchase-requests-edit', compact('purchaseOrderRequest', 'suppliers'));
+    }
+
+    public function purchasingUpdate(Request $request, PurchaseOrderRequest $purchaseOrderRequest)
+    {
+        if (!in_array(Auth::user()->role, ['admin', 'manager'])) {
+            abort(403, 'Unauthorized. Only admins and managers can edit requests.');
+        }
+
+        if ($purchaseOrderRequest->status !== 'pending') {
+            return redirect()->route('purchasing.purchase-requests.show', $purchaseOrderRequest)
+                ->with('error', 'Only pending requests can be edited.');
+        }
+
+        $request->validate([
+            'requested_quantity' => 'required|numeric|min:1',
+            'supplier_id' => 'nullable|exists:suppliers,id',
+            'estimated_unit_price' => 'nullable|numeric|min:0',
+            'reason' => 'required|string',
+        ]);
+
+        $unitPrice = $request->estimated_unit_price;
+
+        $purchaseOrderRequest->update([
+            'requested_quantity' => $request->requested_quantity,
+            'supplier_id' => $request->supplier_id ?: null,
+            'estimated_cost' => ($unitPrice !== null && $unitPrice !== '')
+                ? round($request->requested_quantity * $unitPrice, 2)
+                : null,
+            'reason' => $request->reason,
+        ]);
+
+        return redirect()->route('purchasing.purchase-requests.show', $purchaseOrderRequest)
+            ->with('success', 'Purchase request updated successfully.');
+    }
+
     private function showData(PurchaseOrderRequest $purchaseOrderRequest): array
     {
         $purchaseOrderRequest->load(['product.unit', 'requester', 'approver', 'supplier']);
@@ -151,15 +201,58 @@ class PurchaseOrderRequestController extends Controller
             'admin_notes' => 'nullable|string',
         ]);
 
-        $purchaseOrderRequest->update([
-            'status' => 'approved',
-            'supplier_id' => $request->supplier_id,
-            'approved_by' => Auth::id(),
-            'approved_at' => now(),
-            'admin_notes' => $request->admin_notes,
-        ]);
+        \DB::beginTransaction();
+        try {
+            $purchaseOrderRequest->update([
+                'status' => 'approved',
+                'supplier_id' => $request->supplier_id,
+                'approved_by' => Auth::id(),
+                'approved_at' => now(),
+                'admin_notes' => $request->admin_notes,
+            ]);
 
-        return back()->with('success', 'Purchase order request approved');
+            // Auto-create Purchase Order and send it to the supplier
+            $unitPrice = ($purchaseOrderRequest->estimated_cost !== null && $purchaseOrderRequest->requested_quantity > 0)
+                ? round($purchaseOrderRequest->estimated_cost / $purchaseOrderRequest->requested_quantity, 2)
+                : ($purchaseOrderRequest->product->cost_price ?? 0);
+            $total = round($unitPrice * $purchaseOrderRequest->requested_quantity, 2);
+
+            $po = \App\Models\PurchaseOrder::create([
+                'po_number' => 'PO-' . date('YmdHis'),
+                'supplier_id' => $request->supplier_id,
+                'order_date' => now(),
+                'notes' => 'Created from Purchase Order Request: ' . $purchaseOrderRequest->request_number
+                    . ($request->admin_notes ? ' | Notes: ' . $request->admin_notes : ''),
+                'subtotal' => $total,
+                'tax' => 0,
+                'discount' => 0,
+                'total' => $total,
+                'status' => 'pending',
+                'created_by' => Auth::id(),
+                'approval_status' => 'approved',
+                'approved_by' => Auth::id(),
+                'approved_at' => now(),
+                'sent_at' => now(),
+                'sent_by' => Auth::id(),
+            ]);
+
+            $po->items()->create([
+                'product_id' => $purchaseOrderRequest->product_id,
+                'quantity' => $purchaseOrderRequest->requested_quantity,
+                'unit_price' => $unitPrice,
+                'total' => $total,
+            ]);
+
+            // Automatically send to supplier (email/SMS notifications)
+            \App\Jobs\SendPurchaseOrderNotifications::dispatch($po);
+
+            \DB::commit();
+        } catch (\Exception $e) {
+            \DB::rollBack();
+            return back()->with('error', 'Failed to approve and send to supplier: ' . $e->getMessage());
+        }
+
+        return back()->with('success', 'Request approved! Purchase Order created and automatically sent to supplier.');
     }
 
     public function reject(Request $request, PurchaseOrderRequest $purchaseOrderRequest)
@@ -200,8 +293,8 @@ class PurchaseOrderRequestController extends Controller
 
     public function receive(Request $request, PurchaseOrderRequest $purchaseOrderRequest)
     {
-        if (!in_array($purchaseOrderRequest->status, ['pending', 'approved'])) {
-            return back()->with('error', 'This request cannot be received in its current status');
+        if ($purchaseOrderRequest->status !== 'approved') {
+            return back()->with('error', 'This request must be approved and sent to the supplier before products can be received');
         }
 
         $request->validate([
