@@ -38,9 +38,14 @@
                     Stock: {{ $product->quantity ?? 0 }} {{ $product->unit->short_name ?? 'pcs' }}
                 </p>
             </div>
-            <div class="text-right">
-                <p class="text-xs text-gray-500 uppercase tracking-wide">Selling in POS at</p>
-                <p class="text-xl font-bold text-primary-900">TZS {{ number_format((float) $product->selling_price, 2) }}</p>
+            <div class="flex items-center gap-4">
+                <div class="text-right">
+                    <p class="text-xs text-gray-500 uppercase tracking-wide">Selling in POS at</p>
+                    <p class="text-xl font-bold text-primary-900">TZS {{ number_format((float) $product->selling_price, 2) }}</p>
+                </div>
+                <button type="button" onclick="toggleAddPrice({{ $product->id }})" id="add-price-btn-{{ $product->id }}" class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg text-sm font-medium transition-colors whitespace-nowrap">
+                    <i class="fas fa-plus mr-2"></i>Add New Price
+                </button>
             </div>
         </div>
 
@@ -102,9 +107,14 @@
                 </table>
             </div>
 
-            {{-- Add price --}}
-            <div class="bg-gray-50 rounded-xl p-4">
-                <h4 class="font-semibold text-primary-900 mb-3 text-sm uppercase tracking-wide">Add New Price</h4>
+            {{-- Add price (hidden until "Add New Price" is clicked) --}}
+            <div id="add-price-{{ $product->id }}" class="hidden bg-gray-50 rounded-xl p-4">
+                <div class="flex items-center justify-between mb-3">
+                    <h4 class="font-semibold text-primary-900 text-sm uppercase tracking-wide">Add New Price</h4>
+                    <button type="button" onclick="toggleAddPrice({{ $product->id }})" class="text-gray-400 hover:text-gray-600 transition-colors">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
                 <form action="{{ route('price-requests.prices.store') }}" method="POST" class="space-y-3">
                     @csrf
                     <input type="hidden" name="product_id" value="{{ $product->id }}">
@@ -141,4 +151,19 @@
         {{ $products->links() }}
     </div>
 </div>
+
+<script>
+function toggleAddPrice(productId) {
+    const panel = document.getElementById('add-price-' + productId);
+    const btn = document.getElementById('add-price-btn-' + productId);
+    panel.classList.toggle('hidden');
+    btn.innerHTML = panel.classList.contains('hidden')
+        ? '<i class="fas fa-plus mr-2"></i>Add New Price'
+        : '<i class="fas fa-minus mr-2"></i>Close';
+    if (!panel.classList.contains('hidden')) {
+        panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        panel.querySelector('input[name="price"]').focus();
+    }
+}
+</script>
 @endsection
