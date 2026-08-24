@@ -14,25 +14,35 @@ class Permissions
 
     protected static ?array $matrix = null;
 
+    protected static bool $tableAvailable = true;
+
     public static function matrix(): array
     {
         if (self::$matrix !== null) {
             return self::$matrix;
         }
 
+        // Fail-open defaults: everything allowed until the table exists / row found.
+        // Keeps the whole site rendering even before migrations have been run.
         $matrix = [];
-        foreach (RolePermission::all() as $perm) {
-            foreach (self::ACTIONS as $action) {
-                $matrix[$perm->module][$perm->role][$action] = $perm->{'can_' . $action};
-            }
-        }
-
-        // Default to allowed when a combination is missing so nothing gets locked out accidentally
         foreach (self::MODULES as $module) {
             foreach (self::ROLES as $role) {
                 foreach (self::ACTIONS as $action) {
-                    $matrix[$module][$role][$action] = $matrix[$module][$role][$action] ?? true;
+                    $matrix[$module][$role][$action] = true;
                 }
+            }
+        }
+
+        if (self::$tableAvailable) {
+            try {
+                foreach (RolePermission::all() as $perm) {
+                    foreach (self::ACTIONS as $action) {
+                        $matrix[$perm->module][$perm->role][$action] = $perm->{'can_' . $action};
+                    }
+                }
+            } catch (\Throwable $e) {
+                // Table missing (pre-migration) or DB issue — fall back to defaults.
+                self::$tableAvailable = false;
             }
         }
 
@@ -64,6 +74,7 @@ class Permissions
             }
         }
 
+        self::$tableAvailable = true;
         self::$matrix = null;
     }
 }
