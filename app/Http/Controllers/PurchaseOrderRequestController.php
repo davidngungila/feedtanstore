@@ -12,10 +12,36 @@ class PurchaseOrderRequestController extends Controller
 {
     public function index()
     {
-        $requests = PurchaseOrderRequest::with('product', 'requester', 'supplier')
+        $requests = PurchaseOrderRequest::with(['product.unit', 'supplier'])
             ->orderBy('created_at', 'desc')
-            ->paginate(20);
-        return view('storekeeper.purchase-order-requests', compact('requests'));
+            ->get();
+
+        // Multi-product submissions share a base request number (POR-...-1, -2, ...)
+        // so they are grouped and displayed as a single order
+        $groups = $requests->groupBy(function ($r) {
+            return preg_replace('/-\d+$/', '', $r->request_number);
+        })->sortByDesc(function ($group) {
+            return $group->max('created_at');
+        });
+
+        $perPage = 20;
+        $currentPage = \Illuminate\Pagination\Paginator::resolveCurrentPage();
+        $groupPage = new \Illuminate\Pagination\LengthAwarePaginator(
+            $groups->forPage($currentPage, $perPage)->values(),
+            $groups->count(),
+            $perPage,
+            $currentPage,
+            ['path' => \Illuminate\Pagination\Paginator::resolveCurrentPath()]
+        );
+
+        $stats = [
+            'pending' => $requests->where('status', 'pending')->count(),
+            'approved' => $requests->where('status', 'approved')->count(),
+            'rejected' => $requests->where('status', 'rejected')->count(),
+            'processed' => $requests->whereIn('status', ['processed', 'received'])->count(),
+        ];
+
+        return view('storekeeper.purchase-order-requests', compact('groupPage', 'stats'));
     }
 
     public function create()
@@ -145,11 +171,19 @@ class PurchaseOrderRequestController extends Controller
         $request->validate([
             'received_quantity' => 'required|numeric|min:1',
             'unit_price' => 'required|numeric|min:0',
+            'batch_number' => 'nullable|string|max:100',
+            'expiry_date' => 'nullable|date',
             'notes' => 'nullable|string|max:500',
         ]);
 
         if ($request->received_quantity > $purchaseOrderRequest->requested_quantity) {
             return back()->with('error', 'Received quantity cannot exceed requested quantity');
+        }
+
+        $product = $purchaseOrderRequest->product;
+
+        if ($product->category && $product->category->requires_expiry_date && empty($request->expiry_date)) {
+            return back()->with('error', "Expiry date is required for {$product->name} (Category: {$product->category->name})");
         }
 
         \DB::beginTransaction();
@@ -169,7 +203,7 @@ class PurchaseOrderRequestController extends Controller
 
             $product = $purchaseOrderRequest->product;
             $unitPrice = $request->unit_price;
-            $total = $request->received_quantity * $unitPrice;
+            $total = round($request->received_quantity * $unitPrice, 2);
 
             \App\Models\GrnItem::create([
                 'goods_received_note_id' => $grn->id,
@@ -177,11 +211,16 @@ class PurchaseOrderRequestController extends Controller
                 'quantity' => $request->received_quantity,
                 'unit_price' => $unitPrice,
                 'total' => $total,
+                'expiry_date' => $request->expiry_date,
             ]);
 
-            // Update product stock and cost price
+            // Update product stock, cost price, batch and expiry for tracking
             $product->increment('quantity', $request->received_quantity);
-            $product->update(['cost_price' => $unitPrice]);
+            $product->update(array_filter([
+                'cost_price' => $unitPrice,
+                'batch_number' => $request->batch_number,
+                'expiry_date' => $request->expiry_date,
+            ], fn ($v) => $v !== null && $v !== ''));
 
             // Update GRN total
             $grn->update(['total' => $total]);

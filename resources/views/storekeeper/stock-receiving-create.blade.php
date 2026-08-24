@@ -131,6 +131,30 @@
                                 @endif
                             </div>
                         </div>
+                        @if($remaining > 0)
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Batch Number</label>
+                                <input type="text"
+                                       name="received_items[{{ $item->id }}][batch_number]"
+                                       maxlength="100"
+                                       value="{{ $item->product->batch_number ?? '' }}"
+                                       placeholder="e.g., BATCH-2026-001"
+                                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">
+                                    Expiry Date
+                                    @if($item->product->category?->requires_expiry_date)
+                                        <span class="text-red-500">*</span>
+                                    @endif
+                                </label>
+                                <input type="date"
+                                       name="received_items[{{ $item->id }}][expiry_date]"
+                                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm">
+                            </div>
+                        </div>
+                        @endif
                     </div>
                 @endforeach
             </div>

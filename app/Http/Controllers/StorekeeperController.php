@@ -110,10 +110,7 @@ class StorekeeperController extends Controller
 
     public function purchaseOrderRequests()
     {
-        $requests = \App\Models\PurchaseOrderRequest::with('product', 'requester', 'supplier')
-            ->orderBy('created_at', 'desc')
-            ->paginate(20);
-        return view('storekeeper.purchase-order-requests', compact('requests'));
+        return app(\App\Http\Controllers\PurchaseOrderRequestController::class)->index();
     }
 
     public function stockAdjustments()
@@ -146,7 +143,7 @@ class StorekeeperController extends Controller
                 ->with('error', 'This purchase order has already been fully received.');
         }
 
-        $purchaseOrder->load(['supplier', 'items.product', 'items.product.unit']);
+        $purchaseOrder->load(['supplier', 'items.product.category', 'items.product.unit']);
         return view('storekeeper.stock-receiving-create', compact('purchaseOrder'));
     }
 
@@ -160,12 +157,14 @@ class StorekeeperController extends Controller
             'received_items' => 'required|array',
             'received_items.*.quantity' => 'required|integer|min:0',
             'received_items.*.unit_price' => 'nullable|numeric|min:0',
+            'received_items.*.batch_number' => 'nullable|string|max:100',
+            'received_items.*.expiry_date' => 'nullable|date',
             'received_items.*.notes' => 'nullable|string|max:500',
         ]);
 
         DB::beginTransaction();
         try {
-            $purchaseOrder->load('items.product');
+            $purchaseOrder->load('items.product.category');
 
             $grnItemsToCreate = [];
             $totalCost = 0;
@@ -191,6 +190,11 @@ class StorekeeperController extends Controller
                     return back()->with('error', "Quantity for {$poItem->product->name} exceeds the remaining {$remaining}.");
                 }
 
+                if ($poItem->product->category && $poItem->product->category->requires_expiry_date && empty($receivedData['expiry_date'])) {
+                    DB::rollBack();
+                    return back()->with('error', "Expiry date is required for {$poItem->product->name} (Category: {$poItem->product->category->name})");
+                }
+
                 $unitPrice = (isset($receivedData['unit_price']) && $receivedData['unit_price'] !== '' && $receivedData['unit_price'] !== null)
                     ? $receivedData['unit_price']
                     : $poItem->unit_price;
@@ -203,10 +207,22 @@ class StorekeeperController extends Controller
                     'quantity' => $receivedQty,
                     'unit_price' => $unitPrice,
                     'total' => $itemTotal,
+                    'batch_number' => $receivedData['batch_number'] ?? null,
+                    'expiry_date' => $receivedData['expiry_date'] ?? null,
                 ];
 
-                if (!empty($receivedData['notes'])) {
-                    $notesLines[] = "{$poItem->product->name}: {$receivedData['notes']}";
+                if (!empty($receivedData['notes']) || !empty($receivedData['batch_number']) || !empty($receivedData['expiry_date'])) {
+                    $parts = [];
+                    if (!empty($receivedData['batch_number'])) {
+                        $parts[] = 'Batch: ' . $receivedData['batch_number'];
+                    }
+                    if (!empty($receivedData['expiry_date'])) {
+                        $parts[] = 'Expiry: ' . $receivedData['expiry_date'];
+                    }
+                    if (!empty($receivedData['notes'])) {
+                        $parts[] = $receivedData['notes'];
+                    }
+                    $notesLines[] = "{$poItem->product->name}: " . implode(' | ', $parts);
                 }
             }
 
@@ -239,10 +255,15 @@ class StorekeeperController extends Controller
                     'quantity' => $row['quantity'],
                     'unit_price' => $row['unit_price'],
                     'total' => $row['total'],
+                    'expiry_date' => $row['expiry_date'],
                 ]);
 
                 $poItem->product->increment('quantity', $row['quantity']);
-                $poItem->product->update(['cost_price' => $row['unit_price']]);
+                $poItem->product->update(array_filter([
+                    'cost_price' => $row['unit_price'],
+                    'batch_number' => $row['batch_number'],
+                    'expiry_date' => $row['expiry_date'],
+                ], fn ($v) => $v !== null && $v !== ''));
             }
 
             // A PO is fully received only when every item's cumulative received

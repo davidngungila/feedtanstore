@@ -99,6 +99,19 @@
                         <input type="number" name="unit_price" step="0.01" min="0" value="{{ $purchaseOrderRequest->product->cost_price ?? 0 }}" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500" placeholder="Price per unit received">
                     </div>
                     <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Batch Number</label>
+                        <input type="text" name="batch_number" maxlength="100" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500" placeholder="e.g., BATCH-2026-001">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                            Expiry Date
+                            @if($purchaseOrderRequest->product->category?->requires_expiry_date)
+                                <span class="text-red-500">*</span>
+                            @endif
+                        </label>
+                        <input type="date" name="expiry_date" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                    </div>
+                    <div class="mb-4">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
                         <textarea name="notes" rows="2" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500" placeholder="Optional notes (e.g., batch number, condition)"></textarea>
                     </div>
