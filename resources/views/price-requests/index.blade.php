@@ -84,7 +84,7 @@
                 <label class="block text-sm font-medium text-gray-700 mb-1">New Price (TZS) *</label>
                 <input type="number" name="new_price" step="0.01" min="0" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
             </div>
-            <button type="submit" class="bg-primary-600 hover:bg-primary-700 text-white px-6 py-2 rounded-lg font-medium transition-colors" onclick="return confirm('Update this product price immediately?')">
+            <button type="button" onclick="openSetPriceModal()" class="bg-primary-600 hover:bg-primary-700 text-white px-6 py-2 rounded-lg font-medium transition-colors">
                 <i class="fas fa-bolt mr-2"></i>Set Price
             </button>
         </form>
@@ -187,4 +187,48 @@
         </div>
     </div>
 </div>
+
+@if($isAdmin)
+{{-- Set price confirmation modal --}}
+<div id="setPriceModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden">
+        <div class="p-6">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center flex-shrink-0">
+                    <i class="fas fa-bolt text-primary-600"></i>
+                </div>
+                <h3 class="text-lg font-bold text-primary-900">Update this product price immediately?</h3>
+            </div>
+            <p class="text-gray-700 mb-2">Product: <span id="setPriceProductName" class="font-bold text-primary-900"></span></p>
+            <p class="text-sm text-gray-600 mb-1">Current: <span id="setPriceCurrent" class="font-semibold"></span> &rarr; New: <span id="setPriceNew" class="font-bold text-green-700"></span></p>
+            <p class="text-xs text-gray-500 mb-5">Sales will switch to the new price immediately — no approval needed.</p>
+            <div class="flex justify-end gap-3">
+                <button type="button" id="setPriceCancel" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">Cancel</button>
+                <button type="button" onclick="document.getElementById('setPriceForm').submit()" class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors">Yes, Update Price</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+const setPriceModal = document.getElementById('setPriceModal');
+
+function openSetPriceModal() {
+    const select = document.getElementById('set_price_product');
+    const newPriceInput = document.querySelector('#setPriceForm input[name="new_price"]');
+    if (!select.value || !newPriceInput.value) {
+        select.required && !select.value ? select.reportValidity() : newPriceInput.reportValidity();
+        return;
+    }
+    const current = select.options[select.selectedIndex].dataset.price;
+    document.getElementById('setPriceProductName').textContent = select.options[select.selectedIndex].textContent.split('(current')[0].trim();
+    document.getElementById('setPriceCurrent').textContent = 'TZS ' + Number(current).toFixed(2);
+    document.getElementById('setPriceNew').textContent = 'TZS ' + Number(newPriceInput.value).toFixed(2);
+    setPriceModal.classList.remove('hidden');
+}
+document.getElementById('setPriceCancel').addEventListener('click', function () { setPriceModal.classList.add('hidden'); });
+setPriceModal.addEventListener('click', function (e) { if (e.target === setPriceModal) setPriceModal.classList.add('hidden'); });
+document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !setPriceModal.classList.contains('hidden')) setPriceModal.classList.add('hidden'); });
+</script>
+@endif
 @endsection
