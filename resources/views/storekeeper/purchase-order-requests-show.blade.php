@@ -242,47 +242,65 @@
             @endif
         @endif
 
-        @if($purchaseOrderRequest->status === 'approved')
+        @php $receivableItems = $orderItems->where('status', 'approved'); @endphp
+        @if($receivableItems->isNotEmpty())
         <div class="border-t border-gray-200 pt-6">
             <h3 class="text-lg font-semibold text-gray-900 mb-1">Receive Products</h3>
             <p class="text-sm text-gray-500 mb-4">
-                <i class="fas fa-paper-plane mr-1 text-green-600"></i>
-                Approved and sent to {{ $purchaseOrderRequest->supplier->name ?? 'supplier' }} — record the delivery below when goods arrive.
+                <i class="fas fa-truck-loading mr-1 text-green-600"></i>
+                Record the delivery for each product individually when goods arrive.
             </p>
-            <form action="{{ route('storekeeper.purchase-order-requests.receive', $purchaseOrderRequest) }}" method="POST" class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                @csrf
-                @method('PUT')
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Received Quantity *</label>
-                    <input type="number" name="received_quantity" value="{{ $purchaseOrderRequest->requested_quantity }}" min="1" max="{{ $purchaseOrderRequest->requested_quantity }}" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Unit Price *</label>
-                    <input type="number" name="unit_price" step="0.01" min="0" value="{{ $purchaseOrderRequest->product->cost_price ?? 0 }}" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500" placeholder="Price per unit received">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Batch Number</label>
-                    <input type="text" name="batch_number" maxlength="100" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500" placeholder="e.g., BATCH-2026-001">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">
-                        Expiry Date
-                        @if($purchaseOrderRequest->product->category?->requires_expiry_date)
-                            <span class="text-red-500">*</span>
+
+            @foreach($receivableItems as $item)
+            <div class="border border-gray-200 rounded-xl p-4 mb-4">
+                <div class="flex flex-wrap items-start justify-between gap-2 mb-4 pb-3 border-b border-gray-100">
+                    <div>
+                        <h4 class="font-semibold text-primary-900">{{ $item->product->name }}</h4>
+                        @if($item->product?->sku)
+                            <p class="text-xs text-gray-500">SKU: {{ $item->product->sku }}</p>
                         @endif
-                    </label>
-                    <input type="date" name="expiry_date" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                    </div>
+                    <div class="text-right text-sm text-gray-600">
+                        <p>Requested: <span class="font-semibold text-gray-900">{{ $item->requested_quantity }} {{ $item->product->unit->short_name ?? 'pcs' }}</span></p>
+                        <p class="text-xs">Supplier: {{ $item->supplier->name ?? '—' }}</p>
+                    </div>
                 </div>
-                <div class="md:col-span-2">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
-                    <input type="text" name="notes" maxlength="500" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500" placeholder="Optional delivery notes">
-                </div>
-                <div class="md:col-span-3">
-                    <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2 rounded-lg font-medium">
-                        <i class="fas fa-truck-loading mr-2"></i>Receive Products
-                    </button>
-                </div>
-            </form>
+                <form action="{{ route('storekeeper.purchase-order-requests.receive', $item) }}" method="POST" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    @csrf
+                    @method('PUT')
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Received Quantity *</label>
+                        <input type="number" name="received_quantity" value="{{ $item->requested_quantity }}" min="1" max="{{ $item->requested_quantity }}" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Unit Price *</label>
+                        <input type="number" name="unit_price" step="0.01" min="0" value="{{ $item->estimated_cost !== null && $item->requested_quantity > 0 ? round($item->estimated_cost / $item->requested_quantity, 2) : ($item->product->cost_price ?? 0) }}" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500" placeholder="Price per unit received">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Batch Number</label>
+                        <input type="text" name="batch_number" maxlength="100" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500" placeholder="e.g., BATCH-2026-001">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                            Expiry Date
+                            @if($item->product->category?->requires_expiry_date)
+                                <span class="text-red-500">*</span>
+                            @endif
+                        </label>
+                        <input type="date" name="expiry_date" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                        <input type="text" name="notes" maxlength="500" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500" placeholder="Optional delivery notes">
+                    </div>
+                    <div class="md:col-span-3">
+                        <button type="submit" onclick="return confirm('Confirm receipt of {{ addslashes($item->product->name) }}?')" class="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2 rounded-lg font-medium">
+                            <i class="fas fa-truck-loading mr-2"></i>Receive This Product
+                        </button>
+                    </div>
+                </form>
+            </div>
+            @endforeach
         </div>
         @endif
 
