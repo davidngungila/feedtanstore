@@ -122,9 +122,18 @@ Route::middleware('auth')->group(function () {
         Route::get('/grn/{grn}', [\App\Http\Controllers\StorekeeperController::class, 'grnShow'])->name('grn.show');
     });
 
+    // Product Price Change Requests (Marketing Officer requests, Admin approves)
+    Route::prefix('price-requests')->name('price-requests.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\PriceRequestController::class, 'index'])->name('index');
+        Route::get('/create', [\App\Http\Controllers\PriceRequestController::class, 'create'])->name('create');
+        Route::post('/', [\App\Http\Controllers\PriceRequestController::class, 'store'])->name('store');
+        Route::post('/set-price', [\App\Http\Controllers\PriceRequestController::class, 'setPrice'])->name('set-price');
+        Route::put('/{priceChangeRequest}/approve', [\App\Http\Controllers\PriceRequestController::class, 'approve'])->name('approve');
+        Route::put('/{priceChangeRequest}/reject', [\App\Http\Controllers\PriceRequestController::class, 'reject'])->name('reject');
+    });
+
     // Marketing Officer Routes
-    Route::prefix('marketing-officer')->name('marketing-officer.')->group(function () {
-        Route::get('/dashboard', [\App\Http\Controllers\MarketingOfficerController::class, 'dashboard'])->name('dashboard');
+    Route::prefix('marketing-officer')->name('marketing-officer.')->group(function () {        Route::get('/dashboard', [\App\Http\Controllers\MarketingOfficerController::class, 'dashboard'])->name('dashboard');
         Route::get('/orders', [\App\Http\Controllers\MarketingOfficerController::class, 'orders'])->name('orders');
         Route::get('/orders/{id}', [\App\Http\Controllers\MarketingOfficerController::class, 'orderDetails'])->name('order-details');
         Route::put('/orders/{id}/status', [\App\Http\Controllers\MarketingOfficerController::class, 'updateOrderStatus'])->name('update-order-status');

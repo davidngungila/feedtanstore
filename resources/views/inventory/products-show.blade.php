@@ -133,7 +133,6 @@
                 <h4 class="font-semibold text-gray-900 mb-2">{{ $product->name }}</h4>
                 <img src="{{ $barcodeBase64 }}" alt="Barcode for {{ $product->name }}" class="mb-2" style="width: 400px;">
                 <p class="text-sm text-gray-600 font-mono">{{ $barcodeValue }}</p>
-                <p class="text-lg font-bold text-primary-600 mt-1">TZS {{ number_format($product->selling_price, 2) }}</p>
             </div>
         </div>
     </div>

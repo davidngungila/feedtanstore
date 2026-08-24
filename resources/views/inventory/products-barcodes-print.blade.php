@@ -45,12 +45,6 @@
             word-wrap: break-word;
         }
 
-        .product-price {
-            font-size: 14px;
-            color: #333;
-            margin-bottom: 15px;
-        }
-
         .barcode-value {
             font-size: 14px;
             font-family: 'Courier New', Courier, monospace;
@@ -107,7 +101,6 @@
             <div class="product-name">{{ $item['product']->name }}</div>
             <img src="{{ $item['barcode_base64'] }}" alt="Product Barcode">
             <div class="barcode-value">{{ $item['barcode_value'] }}</div>
-            <div class="product-price">TZS {{ number_format($item['product']->selling_price, 2) }}</div>
         </div>
         @endforeach
     </div>

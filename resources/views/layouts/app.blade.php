@@ -530,6 +530,12 @@
           <span x-show="!sidebarCollapsed" class="font-medium">Riders</span>
         </a>
 
+        <!-- Price Requests -->
+        <a href="{{ route('price-requests.index') }}" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-150 group {{ request()->routeIs('price-requests*') ? 'bg-primary-600 text-white' : 'text-primary-200 hover:bg-white/10 hover:text-white' }}">
+          <i class="fa-solid fa-tag w-4 text-center flex-shrink-0"></i>
+          <span x-show="!sidebarCollapsed" class="font-medium">Price Requests</span>
+        </a>
+
         <!-- Stock Requests -->
       </nav>
     </aside>
@@ -704,6 +710,10 @@
           <a href="{{ route('inventory.barcodes') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('inventory.barcodes') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
             <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
             Barcode Bulk
+          </a>
+          <a href="{{ route('price-requests.index') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all duration-150 mt-0.5 {{ request()->routeIs('price-requests*') ? 'bg-primary-600/80 text-white' : 'text-primary-300 hover:bg-white/10 hover:text-white' }}">
+            <i class="fa-solid fa-circle text-[6px] flex-shrink-0 ml-1"></i>
+            Price Requests
           </a>
         </div>
       </div>
