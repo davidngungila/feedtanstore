@@ -36,111 +36,96 @@
             </span>
         </div>
 
-        {{-- Full request details --}}
-        <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Request Details</h3>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-            <div>
-                <p class="text-sm text-gray-600">Product</p>
-                <p class="font-semibold">{{ $purchaseOrderRequest->product->name ?? 'N/A' }}</p>
-                @if($purchaseOrderRequest->product?->sku)
-                <p class="text-xs text-gray-500">SKU: {{ $purchaseOrderRequest->product->sku }}</p>
-                @endif
-            </div>
-            <div>
-                <p class="text-sm text-gray-600">Requested Quantity</p>
-                <p class="font-semibold">{{ $purchaseOrderRequest->requested_quantity }} {{ $purchaseOrderRequest->product->unit->short_name ?? 'pcs' }}</p>
-            </div>
-            <div>
-                <p class="text-sm text-gray-600">Current Stock</p>
-                <p class="font-semibold">{{ $purchaseOrderRequest->product->quantity ?? 0 }} {{ $purchaseOrderRequest->product->unit->short_name ?? 'pcs' }}</p>
-            </div>
-            <div>
-                <p class="text-sm text-gray-600">Requested Supplier</p>
-                @if($purchaseOrderRequest->supplier)
-                    <p class="font-semibold">{{ $purchaseOrderRequest->supplier->name }}</p>
-                @else
-                    <p class="text-gray-400 italic">Not assigned yet</p>
-                @endif
-            </div>
-            @php
-                $estUnit = ($purchaseOrderRequest->estimated_cost !== null && $purchaseOrderRequest->requested_quantity > 0)
-                    ? $purchaseOrderRequest->estimated_cost / $purchaseOrderRequest->requested_quantity
-                    : null;
-            @endphp
-            <div>
-                <p class="text-sm text-gray-600">Estimated Unit Price</p>
-                @if($estUnit !== null)
-                    <p class="font-semibold">{{ number_format($estUnit, 2) }}</p>
-                @else
-                    <p class="text-gray-400 italic">Not provided</p>
-                @endif
-            </div>
-            <div>
-                <p class="text-sm text-gray-600">Estimated Total Cost</p>
-                @if($purchaseOrderRequest->estimated_cost !== null)
-                    <p class="font-semibold">{{ number_format($purchaseOrderRequest->estimated_cost, 2) }}</p>
-                @else
-                    <p class="text-gray-400 italic">Not provided</p>
-                @endif
-            </div>
-            <div>
-                <p class="text-sm text-gray-600">Requested Date</p>
-                <p class="font-semibold">{{ $purchaseOrderRequest->created_at->format('M d, Y H:i') }}</p>
-            </div>
-        </div>
+        {{-- Full request details for EVERY product in this order --}}
+        <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">
+            Request Details
+            @if($orderItems->count() > 1)
+                <span class="normal-case font-normal text-gray-400">({{ $orderItems->count() }} products)</span>
+            @endif
+        </h3>
 
-        <div class="mb-6">
-            <p class="text-sm text-gray-600">Reason</p>
-            <p class="text-gray-900">{{ $purchaseOrderRequest->reason ?: '—' }}</p>
-        </div>
-
-        {{-- Sibling items of the same multi-product order --}}
-        @if($orderItems->count() > 1)
-        <div class="mb-6">
-            <h3 class="text-lg font-semibold text-gray-900 mb-4">All Items in This Order ({{ $orderItems->count() }})</h3>
-            <div class="overflow-x-auto rounded-xl border border-gray-200">
-                <table class="min-w-full divide-y divide-gray-200 text-sm">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <th class="px-4 py-3 text-left font-semibold text-gray-600">Item #</th>
-                            <th class="px-4 py-3 text-left font-semibold text-gray-600">Product</th>
-                            <th class="px-4 py-3 text-left font-semibold text-gray-600">Qty</th>
-                            <th class="px-4 py-3 text-left font-semibold text-gray-600">Supplier</th>
-                            <th class="px-4 py-3 text-left font-semibold text-gray-600">Est. Cost</th>
-                            <th class="px-4 py-3 text-left font-semibold text-gray-600">Status</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-100 bg-white">
-                        @foreach($orderItems as $item)
-                        <tr class="{{ $item->id === $purchaseOrderRequest->id ? 'bg-primary-50' : '' }}">
-                            <td class="px-4 py-3 font-mono text-xs">{{ $item->request_number }}</td>
-                            <td class="px-4 py-3 font-medium">
-                                {{ $item->product->name ?? 'N/A' }}
-                                @if($item->id === $purchaseOrderRequest->id)
-                                    <span class="ml-1 text-xs text-primary-600">(viewing)</span>
-                                @endif
-                            </td>
-                            <td class="px-4 py-3">{{ $item->requested_quantity }} {{ $item->product->unit->short_name ?? 'pcs' }}</td>
-                            <td class="px-4 py-3">{{ $item->supplier->name ?? '—' }}</td>
-                            <td class="px-4 py-3">{{ $item->estimated_cost !== null ? number_format($item->estimated_cost, 2) : '—' }}</td>
-                            <td class="px-4 py-3">
-                                <span class="px-2 py-0.5 text-xs font-semibold rounded-full
-                                    @if($item->status == 'approved') bg-green-100 text-green-700
-                                    @elseif($item->status == 'rejected') bg-red-100 text-red-700
-                                    @elseif($item->status == 'processed') bg-blue-100 text-blue-700
-                                    @elseif($item->status == 'received') bg-emerald-100 text-emerald-700
-                                    @else bg-yellow-100 text-yellow-700
-                                    @endif">
-                                    {{ ucfirst($item->status) }}
-                                </span>
-                            </td>
-                        </tr>
-                        @endforeach
-                    </tbody>
-                </table>
+        @foreach($orderItems as $item)
+        @php
+            $estUnit = ($item->estimated_cost !== null && $item->requested_quantity > 0)
+                ? $item->estimated_cost / $item->requested_quantity
+                : null;
+            $isCurrent = $item->id === $purchaseOrderRequest->id;
+        @endphp
+        <div class="rounded-xl border {{ $isCurrent ? 'border-primary-300 bg-primary-50/40' : 'border-gray-200 bg-white' }} p-5 mb-4">
+            <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+                <div>
+                    <p class="font-semibold text-gray-900">
+                        {{ $item->product->name ?? 'N/A' }}
+                        @if($isCurrent)
+                            <span class="text-xs font-medium text-primary-600">(this item)</span>
+                        @endif
+                    </p>
+                    @if($item->product?->sku)
+                    <p class="text-xs text-gray-500">SKU: {{ $item->product->sku }}</p>
+                    @endif
+                    @if($orderItems->count() > 1)
+                    <p class="text-xs font-mono text-gray-400 mt-0.5">{{ $item->request_number }}</p>
+                    @endif
+                </div>
+                <span class="px-2 py-0.5 text-xs font-semibold rounded-full
+                    @if($item->status == 'approved') bg-green-100 text-green-700
+                    @elseif($item->status == 'rejected') bg-red-100 text-red-700
+                    @elseif($item->status == 'processed') bg-blue-100 text-blue-700
+                    @elseif($item->status == 'received') bg-emerald-100 text-emerald-700
+                    @else bg-yellow-100 text-yellow-700
+                    @endif">
+                    {{ ucfirst($item->status) }}
+                </span>
             </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-5 gap-6 mb-3">
+                <div>
+                    <p class="text-sm text-gray-600">Requested Quantity</p>
+                    <p class="font-semibold">{{ number_format($item->requested_quantity, 2) }} {{ $item->product->unit->short_name ?? 'pcs' }}</p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-600">Current Stock</p>
+                    <p class="font-semibold">{{ $item->product->quantity ?? 0 }} {{ $item->product->unit->short_name ?? 'pcs' }}</p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-600">Requested Supplier</p>
+                    @if($item->supplier)
+                        <p class="font-semibold">{{ $item->supplier->name }}</p>
+                    @else
+                        <p class="text-gray-400 italic">Not assigned yet</p>
+                    @endif
+                </div>
+                <div>
+                    <p class="text-sm text-gray-600">Estimated Unit Price</p>
+                    @if($estUnit !== null)
+                        <p class="font-semibold">{{ number_format($estUnit, 2) }}</p>
+                    @else
+                        <p class="text-gray-400 italic">Not provided</p>
+                    @endif
+                </div>
+                <div>
+                    <p class="text-sm text-gray-600">Estimated Total Cost</p>
+                    @if($item->estimated_cost !== null)
+                        <p class="font-semibold">{{ number_format($item->estimated_cost, 2) }}</p>
+                    @else
+                        <p class="text-gray-400 italic">Not provided</p>
+                    @endif
+                </div>
+            </div>
+
+            @if($item->reason)
+            <div>
+                <p class="text-sm text-gray-600">Reason</p>
+                <p class="text-gray-900">{{ $item->reason }}</p>
+            </div>
+            @endif
         </div>
-        @endif
+        @endforeach
+
+        <div class="mb-6 mt-6">
+            <p class="text-sm text-gray-600">Submitted</p>
+            <p class="font-semibold">{{ $purchaseOrderRequest->created_at->format('M d, Y H:i') }}</p>
+        </div>
 
         {{-- Approval & processing history --}}
         @if($purchaseOrderRequest->approved_at || $purchaseOrderRequest->processed_at || $purchaseOrderRequest->admin_notes)
