@@ -16,6 +16,10 @@ class GrnItem extends Model
         'expiry_date'
     ];
 
+    protected $casts = [
+        'expiry_date' => 'date',
+    ];
+
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
