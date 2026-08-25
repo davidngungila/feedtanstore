@@ -163,7 +163,7 @@
             </div>
             <form id="attendanceForm" action="" method="POST">
                 @csrf
-                @method('PUT')
+                <input type="hidden" name="_method" id="attendanceFormMethod" value="POST">
                 <div class="space-y-4">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
@@ -240,6 +240,7 @@ const deleteAttendanceModal = document.getElementById('deleteAttendanceModal');
 
 function openAttendanceModal(record = null) {
     attendanceForm.action = record ? '{{ url('hr/attendance') }}/' + record.id : '{{ route('hr.attendance.store') }}';
+    document.getElementById('attendanceFormMethod').value = record ? 'PUT' : 'POST';
     document.getElementById('attendanceModalTitle').textContent = record ? 'Edit Attendance Record' : 'Add Attendance Record';
     document.getElementById('attendanceSubmitBtn').textContent = record ? 'Update Record' : 'Add Record';
 

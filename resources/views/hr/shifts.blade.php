@@ -104,7 +104,7 @@
             </div>
             <form id="shiftForm" action="" method="POST">
                 @csrf
-                @method('PUT')
+                <input type="hidden" name="_method" id="shiftFormMethod" value="POST">
                 <div class="space-y-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Shift Name *</label>
@@ -187,6 +187,7 @@ const deleteShiftModal = document.getElementById('deleteShiftModal');
 
 function openShiftModal(shift = null) {
     shiftForm.action = shift ? '{{ url('hr/shifts') }}/' + shift.id : '{{ route('hr.shifts.store') }}';
+    document.getElementById('shiftFormMethod').value = shift ? 'PUT' : 'POST';
     document.getElementById('shiftModalTitle').textContent = shift ? 'Edit Shift — ' + shift.name : 'Add Shift';
     document.getElementById('shiftSubmitBtn').textContent = shift ? 'Update Shift' : 'Create Shift';
 

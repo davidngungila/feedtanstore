@@ -100,7 +100,7 @@
             </div>
             <form id="employeeForm" action="" method="POST">
                 @csrf
-                @method('PUT')
+                <input type="hidden" name="_method" id="employeeFormMethod" value="POST">
                 <div class="space-y-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Full Name *</label>
@@ -171,6 +171,7 @@ const deleteEmployeeModal = document.getElementById('deleteEmployeeModal');
 
 function openEmployeeModal(employee = null) {
     employeeForm.action = employee ? '{{ url('hr/employees') }}/' + employee.id : '{{ route('hr.employees.store') }}';
+    document.getElementById('employeeFormMethod').value = employee ? 'PUT' : 'POST';
     document.getElementById('employeeModalTitle').textContent = employee ? 'Edit Employee — ' + employee.name : 'Add Employee';
     document.getElementById('employeeSubmitBtn').textContent = employee ? 'Update Employee' : 'Create Employee';
 
