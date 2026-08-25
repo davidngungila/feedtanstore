@@ -149,7 +149,7 @@
              </div>
              <div class="stat-card">
                  <div class="stat-label">Total Qty Lost</div>
-                 <div class="stat-value">{{ number_format($adjustments->sum('quantity')) }}</div>
+                 <div class="stat-value">{{ number_format($adjustments->sum("quantity_change")) }}</div>
              </div>
          </div>
 
@@ -170,9 +170,9 @@
                  <tr>
                      <td>{{ $adjustment->created_at->format('d F Y H:i') }}</td>
                      <td>{{ $adjustment->product ? $adjustment->product->name : 'N/A' }}</td>
-                     <td style="text-align: right;">{{ number_format($adjustment->quantity) }}</td>
+                     <td style="text-align: right;">{{ number_format($adjustment->quantity_change) }}</td>
                      <td style="text-align: right;">TZS {{ number_format($adjustment->product->cost_price ?? 0, 2) }}</td>
-                     <td style="text-align: right;">TZS {{ number_format(($adjustment->product->cost_price ?? 0) * $adjustment->quantity, 2) }}</td>
+                     <td style="text-align: right;">TZS {{ number_format(($adjustment->product->cost_price ?? 0) * $adjustment->quantity_change, 2) }}</td>
                      <td>{{ $adjustment->reason ?? 'N/A' }}</td>
                  </tr>
                  @endforeach

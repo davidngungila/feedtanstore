@@ -21,8 +21,8 @@
                     <select name="status" id="status" class="form-input input-field px-4 py-2">
                         <option value="">All</option>
                         <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending</option>
-                        <option value="completed" {{ request('status') == 'completed' ? 'selected' : '' }}>Completed</option>
-                        <option value="cancelled" {{ request('status') == 'cancelled' ? 'selected' : '' }}>Cancelled</option>
+                        <option value="received" {{ request('status') == 'received' ? 'selected' : '' }}>Received</option>
+                        <option value="canceled" {{ request('status') == 'canceled' ? 'selected' : '' }}>Cancelled</option>
                     </select>
                 </div>
                 <button onclick="filterReport()" class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg font-medium transition-colors">
@@ -60,8 +60,8 @@
                         <i class="fas fa-check-circle text-purple-700"></i>
                     </div>
                 </div>
-                <p class="text-sm text-purple-700 mb-1">Completed Orders</p>
-                <h3 class="text-2xl font-bold text-purple-900">{{ $purchaseOrders->where('status', 'completed')->count() }}</h3>
+                <p class="text-sm text-purple-700 mb-1">Received Orders</p>
+                <h3 class="text-2xl font-bold text-purple-900">{{ $purchaseOrders->where('status', 'received')->count() }}</h3>
             </div>
         </div>
 
@@ -89,7 +89,7 @@
                         <td class="px-4 py-3 text-right font-semibold">TZS {{ number_format($order->tax, 2) }}</td>
                         <td class="px-4 py-3 text-right font-semibold">TZS {{ number_format($order->total, 2) }}</td>
                         <td class="px-4 py-3">
-                            <span class="px-2 py-1 text-xs font-semibold rounded-full {{ $order->status == 'completed' ? 'bg-green-100 text-green-700' : ($order->status == 'pending' ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700') }}">
+                            <span class="px-2 py-1 text-xs font-semibold rounded-full {{ $order->status == 'received' ? 'bg-green-100 text-green-700' : ($order->status == 'pending' ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700') }}">
                                 {{ ucfirst($order->status) }}
                             </span>
                         </td>

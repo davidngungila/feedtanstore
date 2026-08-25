@@ -111,14 +111,14 @@
                     @foreach($shifts as $shift)
                     <tr>
                         <td class="px-4 py-3 font-medium">#{{ $shift->id }}</td>
-                        <td class="px-4 py-3">{{ $shift->cashier ? $shift->cashier->name : 'N/A' }}</td>
+                        <td class="px-4 py-3">{{ $shift->user ? $shift->user->name : 'N/A' }}</td>
                         <td class="px-4 py-3">{{ $shift->created_at->format('H:i') }}</td>
                         <td class="px-4 py-3">{{ $shift->closed_at ? $shift->closed_at->format('H:i') : '-' }}</td>
                         <td class="px-4 py-3 text-right">TZS {{ number_format($shift->opening_cash, 2) }}</td>
                         <td class="px-4 py-3 text-right">{{ $shift->closing_cash ? 'TZS ' . number_format($shift->closing_cash, 2) : '-' }}</td>
                         <td class="px-4 py-3">
-                            <span class="px-2 py-1 text-xs font-semibold rounded-full {{ $shift->status === 'closed' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700' }}">
-                                {{ ucfirst($shift->status) }}
+                            <span class="px-2 py-1 text-xs font-semibold rounded-full {{ $shift->closed_at ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700' }}">
+                                {{ $shift->closed_at ? 'Closed' : 'Open' }}
                             </span>
                         </td>
                     </tr>

@@ -55,8 +55,8 @@ class ReportController extends Controller
             ->get();
         $cashTotal = $paymentMethods->where('payment_method', 'cash')->sum('total');
         $cardTotal = $paymentMethods->where('payment_method', 'card')->sum('total');
-        $mobileMoneyTotal = $paymentMethods->where('payment_method', 'mobile_money')->sum('total');
-        $creditTotal = $paymentMethods->where('payment_method', 'credit')->sum('total');
+        $mobileMoneyTotal = $paymentMethods->where('payment_method', 'mobile')->sum('total');
+        $creditTotal = $paymentMethods->whereIn('payment_method', ['clickpesa', 'online'])->sum('total');
         
         $transactions = Sale::with(['customer', 'user'])
             ->whereDate('created_at', $date)
@@ -80,7 +80,7 @@ class ReportController extends Controller
         $endDate = $request->end_date ?? today()->toDateString();
         
         $sales = Sale::select(DB::raw('DATE(created_at) as date'), DB::raw('COUNT(*) as count'), DB::raw('SUM(total) as total'))
-            ->whereBetween('created_at', [$startDate, $endDate])
+            ->whereDate('created_at', '>=', $startDate)->whereDate('created_at', '<=', $endDate)
             ->groupBy(DB::raw('DATE(created_at)'))
             ->orderBy('date')
             ->get();
@@ -129,7 +129,8 @@ class ReportController extends Controller
             ->with(['category', 'brand'])
             ->join('sale_items', 'products.id', '=', 'sale_items.product_id')
             ->join('sales', 'sales.id', '=', 'sale_items.sale_id')
-            ->whereBetween('sales.created_at', [$startDate, $endDate])
+            ->whereNull('sales.deleted_at')
+            ->whereDate('sales.created_at', '>=', $startDate)->whereDate('sales.created_at', '<=', $endDate)
             ->groupBy('products.id', 'products.name', 'products.category_id', 'products.brand_id', 'products.sku', 'products.selling_price')
             ->orderBy('total_sales', 'desc')
             ->get();
@@ -156,7 +157,8 @@ class ReportController extends Controller
             ->leftJoin('products', 'categories.id', '=', 'products.category_id')
             ->join('sale_items', 'products.id', '=', 'sale_items.product_id')
             ->join('sales', 'sales.id', '=', 'sale_items.sale_id')
-            ->whereBetween('sales.created_at', [$startDate, $endDate])
+            ->whereNull('sales.deleted_at')
+            ->whereDate('sales.created_at', '>=', $startDate)->whereDate('sales.created_at', '<=', $endDate)
             ->groupBy('categories.id', 'categories.name')
             ->orderBy('total_sales', 'desc')
             ->get();
@@ -183,7 +185,8 @@ class ReportController extends Controller
             ->leftJoin('products', 'brands.id', '=', 'products.brand_id')
             ->join('sale_items', 'products.id', '=', 'sale_items.product_id')
             ->join('sales', 'sales.id', '=', 'sale_items.sale_id')
-            ->whereBetween('sales.created_at', [$startDate, $endDate])
+            ->whereNull('sales.deleted_at')
+            ->whereDate('sales.created_at', '>=', $startDate)->whereDate('sales.created_at', '<=', $endDate)
             ->groupBy('brands.id', 'brands.name')
             ->orderBy('total_sales', 'desc')
             ->get();
@@ -215,7 +218,8 @@ class ReportController extends Controller
             ->with(['category', 'brand'])
             ->join('sale_items', 'products.id', '=', 'sale_items.product_id')
             ->join('sales', 'sales.id', '=', 'sale_items.sale_id')
-            ->whereBetween('sales.created_at', [$startDate, $endDate])
+            ->whereNull('sales.deleted_at')
+            ->whereDate('sales.created_at', '>=', $startDate)->whereDate('sales.created_at', '<=', $endDate)
             ->groupBy('products.id', 'products.name', 'products.category_id', 'products.brand_id', 'products.sku', 'products.selling_price')
             ->orderBy('total_qty', 'desc')
             ->limit($limit)
@@ -249,7 +253,9 @@ class ReportController extends Controller
             ->leftJoin('sale_items', 'products.id', '=', 'sale_items.product_id')
             ->leftJoin('sales', function($join) use ($startDate, $endDate) {
                 $join->on('sale_items.sale_id', '=', 'sales.id')
-                     ->whereBetween('sales.created_at', [$startDate, $endDate]);
+                     ->whereNull('sales.deleted_at')
+                     ->whereDate('sales.created_at', '>=', $startDate)
+                     ->whereDate('sales.created_at', '<=', $endDate);
             })
             ->groupBy('products.id', 'products.name', 'products.category_id', 'products.brand_id', 'products.sku', 'products.selling_price')
             ->orderBy('total_qty', 'asc')
@@ -285,7 +291,8 @@ class ReportController extends Controller
             ->with(['category', 'brand'])
             ->join('sale_items', 'products.id', '=', 'sale_items.product_id')
             ->join('sales', 'sales.id', '=', 'sale_items.sale_id')
-            ->whereBetween('sales.created_at', [$startDate, $endDate])
+            ->whereNull('sales.deleted_at')
+            ->whereDate('sales.created_at', '>=', $startDate)->whereDate('sales.created_at', '<=', $endDate)
             ->groupBy('products.id', 'products.name', 'products.category_id', 'products.brand_id', 'products.sku', 'products.cost_price', 'products.selling_price')
             ->orderBy('total_sales', 'desc')
             ->get();
@@ -322,7 +329,8 @@ class ReportController extends Controller
             ->with(['category', 'brand'])
             ->join('sale_items', 'products.id', '=', 'sale_items.product_id')
             ->join('sales', 'sales.id', '=', 'sale_items.sale_id')
-            ->whereBetween('sales.created_at', [$startDate, $endDate])
+            ->whereNull('sales.deleted_at')
+            ->whereDate('sales.created_at', '>=', $startDate)->whereDate('sales.created_at', '<=', $endDate)
             ->groupBy('products.id', 'products.name', 'products.category_id', 'products.brand_id', 'products.sku', 'products.cost_price', 'products.selling_price')
             ->get()
             ->map(function($product) {
@@ -354,7 +362,8 @@ class ReportController extends Controller
             ->leftJoin('products', 'categories.id', '=', 'products.category_id')
             ->join('sale_items', 'products.id', '=', 'sale_items.product_id')
             ->join('sales', 'sales.id', '=', 'sale_items.sale_id')
-            ->whereBetween('sales.created_at', [$startDate, $endDate])
+            ->whereNull('sales.deleted_at')
+            ->whereDate('sales.created_at', '>=', $startDate)->whereDate('sales.created_at', '<=', $endDate)
             ->groupBy('categories.id', 'categories.name')
             ->get()
             ->map(function($category) {
@@ -376,13 +385,14 @@ class ReportController extends Controller
         $startDate = $request->start_date ?? today()->startOfMonth()->toDateString();
         $endDate = $request->end_date ?? today()->toDateString();
         
-        $sales = Sale::whereBetween('created_at', [$startDate, $endDate])->sum('total');
-        $expenses = Expense::whereBetween('created_at', [$startDate, $endDate])->sum('amount');
+        $sales = Sale::whereDate('created_at', '>=', $startDate)->whereDate('created_at', '<=', $endDate)->sum('total');
+        $expenses = Expense::whereDate('created_at', '>=', $startDate)->whereDate('created_at', '<=', $endDate)->sum('amount');
         
         $productCosts = Product::select(DB::raw('SUM(sale_items.quantity * products.cost_price) as total_cost'))
             ->join('sale_items', 'products.id', '=', 'sale_items.product_id')
             ->join('sales', 'sales.id', '=', 'sale_items.sale_id')
-            ->whereBetween('sales.created_at', [$startDate, $endDate])
+            ->whereNull('sales.deleted_at')
+            ->whereDate('sales.created_at', '>=', $startDate)->whereDate('sales.created_at', '<=', $endDate)
             ->first()
             ->total_cost ?? 0;
         
@@ -402,16 +412,17 @@ class ReportController extends Controller
     {
         $startDate = $request->start_date ?? today()->subDays(30)->toDateString();
         $endDate = $request->end_date ?? today()->toDateString();
-        
+
         $adjustments = StockAdjustment::with('product')
-            ->where('type', 'decrease')
-            ->whereBetween('created_at', [$startDate, $endDate])
+            ->where('type', 'subtraction')
+            ->whereDate('created_at', '>=', $startDate)->whereDate('created_at', '<=', $endDate)
+            ->latest()
             ->get();
-        
+
         $totalLoss = $adjustments->sum(function($adj) {
-            return $adj->quantity * ($adj->product->cost_price ?? 0);
+            return $adj->quantity_change * ($adj->product->cost_price ?? 0);
         });
-        
+
         return view('reports.profit.loss', compact('startDate', 'endDate', 'adjustments', 'totalLoss'));
     }
 
@@ -465,17 +476,57 @@ class ReportController extends Controller
         $startDate = $request->start_date ?? today()->subDays(30)->toDateString();
         $endDate = $request->end_date ?? today()->toDateString();
         $productId = $request->product_id;
-        
+
+        // Stock IN from Goods Received Notes
+        $receivedQty = \App\Models\GrnItem::selectRaw('grn_items.product_id, SUM(grn_items.quantity) as qty')
+            ->join('goods_received_notes', 'goods_received_notes.id', '=', 'grn_items.goods_received_note_id')
+            ->whereDate('goods_received_notes.created_at', '>=', $startDate)->whereDate('goods_received_notes.created_at', '<=', $endDate)
+            ->groupBy('grn_items.product_id')
+            ->pluck('qty', 'grn_items.product_id');
+
+        // Stock OUT from completed sales
+        $soldQty = SaleItem::selectRaw('sale_items.product_id, SUM(sale_items.quantity) as qty')
+            ->join('sales', 'sales.id', '=', 'sale_items.sale_id')
+            ->whereNull('sales.deleted_at')
+            ->whereDate('sales.created_at', '>=', $startDate)->whereDate('sales.created_at', '<=', $endDate)
+            ->groupBy('sale_items.product_id')
+            ->pluck('qty', 'sale_items.product_id');
+
+        // Adjustments (+addition / -subtraction)
+        $adjustmentQty = StockAdjustment::selectRaw('product_id, SUM(CASE WHEN type = \'addition\' THEN quantity_change ELSE -quantity_change END) as qty')
+            ->whereDate('created_at', '>=', $startDate)->whereDate('created_at', '<=', $endDate)
+            ->groupBy('product_id')
+            ->pluck('qty', 'product_id');
+
+        // Transfers out (net movement between locations for the product)
+        $transferOutQty = \App\Models\StockTransfer::selectRaw('product_id, SUM(quantity) as qty')
+            ->whereDate('created_at', '>=', $startDate)->whereDate('created_at', '<=', $endDate)
+            ->groupBy('product_id')
+            ->pluck('qty', 'product_id');
+
         $query = Product::with(['category', 'brand']);
-        
+
         if ($productId) {
             $query->where('id', $productId);
         }
-        
-        $products = $query->get();
+
+        $products = $query->orderBy('name')->get()->map(function($product) use ($receivedQty, $soldQty, $adjustmentQty, $transferOutQty) {
+            $product->qty_in = (float) ($receivedQty[$product->id] ?? 0);
+            $product->qty_sold = (float) ($soldQty[$product->id] ?? 0);
+            $product->qty_adjusted = (float) ($adjustmentQty[$product->id] ?? 0);
+            $product->qty_transferred = (float) ($transferOutQty[$product->id] ?? 0);
+            $product->net_change = $product->qty_in + $product->qty_adjusted - $product->qty_sold - $product->qty_transferred;
+            return $product;
+        })->filter(function($product) {
+            return $product->qty_in > 0 || $product->qty_sold > 0 || $product->qty_adjusted != 0 || $product->qty_transferred > 0;
+        })->values();
+
         $allProducts = Product::orderBy('name')->get();
-        
-        return view('reports.inventory.movement', compact('startDate', 'endDate', 'products', 'productId', 'allProducts'));
+
+        return view('reports.inventory.movement', compact(
+            'startDate', 'endDate', 'products', 'productId', 'allProducts',
+            'receivedQty', 'soldQty'
+        ));
     }
 
     public function stockMovementPDF(Request $request)
@@ -489,7 +540,7 @@ class ReportController extends Controller
         $endDate = $request->end_date ?? today()->toDateString();
         
         $grns = \App\Models\GoodsReceivedNote::with(['supplier', 'items.product'])
-            ->whereBetween('created_at', [$startDate, $endDate])
+            ->whereDate('created_at', '>=', $startDate)->whereDate('created_at', '<=', $endDate)
             ->latest()
             ->get();
         
@@ -505,18 +556,18 @@ class ReportController extends Controller
     {
         $startDate = $request->start_date ?? today()->subDays(30)->toDateString();
         $endDate = $request->end_date ?? today()->toDateString();
-        
+
         $adjustments = StockAdjustment::with(['product'])
-            ->where('type', 'decrease')
-            ->whereBetween('created_at', [$startDate, $endDate])
+            ->where('type', 'subtraction')
+            ->whereDate('created_at', '>=', $startDate)->whereDate('created_at', '<=', $endDate)
             ->latest()
             ->get();
-        
-        $returns = SaleReturn::with(['sale', 'items.product'])
-            ->whereBetween('created_at', [$startDate, $endDate])
+
+        $returns = SaleReturn::with(['sale', 'items.saleItem.product'])
+            ->whereDate('created_at', '>=', $startDate)->whereDate('created_at', '<=', $endDate)
             ->latest()
             ->get();
-        
+
         return view('reports.inventory.stock-out', compact('startDate', 'endDate', 'adjustments', 'returns'));
     }
 
@@ -531,7 +582,7 @@ class ReportController extends Controller
         $endDate = $request->end_date ?? today()->toDateString();
         
         $transfers = StockTransfer::with(['product', 'fromLocation', 'toLocation'])
-            ->whereBetween('created_at', [$startDate, $endDate])
+            ->whereDate('created_at', '>=', $startDate)->whereDate('created_at', '<=', $endDate)
             ->latest()
             ->get();
         
@@ -608,6 +659,7 @@ class ReportController extends Controller
             ->with(['category', 'brand'])
             ->join('sale_items', 'products.id', '=', 'sale_items.product_id')
             ->join('sales', 'sales.id', '=', 'sale_items.sale_id')
+            ->whereNull('sales.deleted_at')
             ->where('sales.created_at', '>=', today()->subDays($days))
             ->groupBy('products.id', 'products.name', 'products.category_id', 'products.brand_id', 'products.sku', 'products.quantity')
             ->having('total_sold', '>=', $threshold)
@@ -626,28 +678,26 @@ class ReportController extends Controller
     {
         $days = (int) ($request->days ?? 30);
         $threshold = (int) ($request->threshold ?? 10);
-        
-        $products = Product::select(
-                'products.id',
-                'products.name',
-                'products.category_id',
-                'products.brand_id',
-                'products.sku',
-                'products.quantity',
-                DB::raw('COALESCE(SUM(sale_items.quantity), 0) as total_sold')
-            )
-            ->with(['category', 'brand'])
-            ->leftJoin('sale_items', function($join) use ($days) {
-                $join->on('products.id', '=', 'sale_items.product_id')
-                     ->whereHas('sale', function($q) use ($days) {
-                         $q->where('sales.created_at', '>=', today()->subDays($days));
-                     });
+
+        $soldQty = SaleItem::selectRaw('sale_items.product_id, SUM(sale_items.quantity) as qty')
+            ->join('sales', 'sales.id', '=', 'sale_items.sale_id')
+            ->whereNull('sales.deleted_at')
+            ->where('sales.created_at', '>=', today()->subDays($days))
+            ->groupBy('sale_items.product_id')
+            ->pluck('qty', 'sale_items.product_id');
+
+        $products = Product::with(['category', 'brand'])
+            ->orderBy('name')
+            ->get()
+            ->each(function($product) use ($soldQty) {
+                $product->total_sold = (float) ($soldQty[$product->id] ?? 0);
             })
-            ->groupBy('products.id', 'products.name', 'products.category_id', 'products.brand_id', 'products.sku', 'products.quantity')
-            ->having('total_sold', '<=', $threshold)
-            ->orderBy('total_sold', 'asc')
-            ->get();
-        
+            ->filter(function($product) use ($threshold) {
+                return $product->total_sold <= $threshold;
+            })
+            ->sortBy('total_sold')
+            ->values();
+
         return view('reports.inventory.slow-moving', compact('products', 'days', 'threshold'));
     }
 
@@ -740,7 +790,7 @@ class ReportController extends Controller
         $endDate = $request->end_date ?? today()->toDateString();
         
         $purchaseOrders = PurchaseOrder::with(['supplier'])
-            ->whereBetween('created_at', [$startDate, $endDate])
+            ->whereDate('created_at', '>=', $startDate)->whereDate('created_at', '<=', $endDate)
             ->get();
         
         $totalPurchases = $purchaseOrders->sum('total');
@@ -758,9 +808,12 @@ class ReportController extends Controller
         $startDate = $request->start_date ?? today()->startOfMonth()->toDateString();
         $endDate = $request->end_date ?? today()->toDateString();
         
-        $suppliers = Supplier::select('suppliers.id', 'suppliers.name', 'suppliers.email', 'suppliers.phone', DB::raw('SUM(purchase_orders.total) as total_purchases'))
-            ->leftJoin('purchase_orders', 'suppliers.id', '=', 'purchase_orders.supplier_id')
-            ->whereBetween('purchase_orders.created_at', [$startDate, $endDate])
+        $suppliers = Supplier::select('suppliers.id', 'suppliers.name', 'suppliers.email', 'suppliers.phone', DB::raw('COALESCE(SUM(purchase_orders.total), 0) as total_purchases'))
+            ->leftJoin('purchase_orders', function($join) use ($startDate, $endDate) {
+                $join->on('suppliers.id', '=', 'purchase_orders.supplier_id')
+                     ->whereDate('purchase_orders.created_at', '>=', $startDate)
+                     ->whereDate('purchase_orders.created_at', '<=', $endDate);
+            })
             ->groupBy('suppliers.id', 'suppliers.name', 'suppliers.email', 'suppliers.phone')
             ->orderBy('total_purchases', 'desc')
             ->get();
@@ -779,7 +832,7 @@ class ReportController extends Controller
         $endDate = $request->end_date ?? today()->toDateString();
         
         $suppliers = Supplier::with(['purchaseOrders' => function($q) use ($startDate, $endDate) {
-            $q->whereBetween('created_at', [$startDate, $endDate]);
+            $q->whereDate('created_at', '>=', $startDate)->whereDate('created_at', '<=', $endDate);
         }])->get();
         
         return view('reports.purchasing.supplier-performance', compact('startDate', 'endDate', 'suppliers'));
@@ -795,8 +848,8 @@ class ReportController extends Controller
         $startDate = $request->start_date ?? today()->startOfMonth()->toDateString();
         $endDate = $request->end_date ?? today()->toDateString();
         
-        $purchases = PurchaseOrder::whereBetween('created_at', [$startDate, $endDate])->sum('total');
-        $sales = Sale::whereBetween('created_at', [$startDate, $endDate])->sum('total');
+        $purchases = PurchaseOrder::whereDate('created_at', '>=', $startDate)->whereDate('created_at', '<=', $endDate)->sum('total');
+        $sales = Sale::whereDate('created_at', '>=', $startDate)->whereDate('created_at', '<=', $endDate)->sum('total');
         
         return view('reports.purchasing.vs-sales', compact('startDate', 'endDate', 'purchases', 'sales'));
     }
@@ -818,7 +871,7 @@ class ReportController extends Controller
             $query->where('status', $status);
         }
         
-        $purchaseOrders = $query->whereBetween('created_at', [$startDate, $endDate])->latest()->get();
+        $purchaseOrders = $query->whereDate('created_at', '>=', $startDate)->whereDate('created_at', '<=', $endDate)->latest()->get();
         
         return view('reports.purchasing.purchase-orders', compact('startDate', 'endDate', 'status', 'purchaseOrders'));
     }
@@ -833,12 +886,16 @@ class ReportController extends Controller
     {
         $startDate = $request->start_date ?? today()->subDays(7)->toDateString();
         $endDate = $request->end_date ?? today()->toDateString();
-        
-        $shifts = WorkShift::with(['user', 'cashier'])
-            ->whereBetween('created_at', [$startDate, $endDate])
-            ->latest()
-            ->get();
-        
+
+        $shifts = \App\Models\Shift::with(['user'])
+            ->whereDate('opened_at', '>=', $startDate)->whereDate('opened_at', '<=', $endDate)
+            ->orderBy('opened_at', 'desc')
+            ->get()
+            ->each(function($shift) {
+                $shift->total_sales = (float) $shift->cash_sales + (float) $shift->card_sales + (float) $shift->mobile_sales;
+                $shift->shift_status = $shift->closed_at ? 'closed' : 'open';
+            });
+
         return view('reports.cash.cashier-shift', compact('startDate', 'endDate', 'shifts'));
     }
 
@@ -850,27 +907,27 @@ class ReportController extends Controller
     public function cashReconciliation(Request $request)
     {
         $date = $request->date ?? today()->toDateString();
-        
+
         $cashSales = Sale::whereDate('created_at', $date)->where('payment_method', 'cash')->sum('total');
         $expenses = Expense::whereDate('created_at', $date)->sum('amount');
-        
-        // Get shifts for the date
-        $shifts = WorkShift::whereDate('created_at', $date)->get();
+
+        // Get cashier shifts opened on the date
+        $shifts = \App\Models\Shift::with('user')->whereDate('opened_at', $date)->orderBy('opened_at')->get();
         $totalOpeningCash = $shifts->sum('opening_cash');
         $totalClosingCash = $shifts->sum('closing_cash');
-        
+
         // Calculate expected cash
         $expectedCash = $totalOpeningCash + $cashSales - $expenses;
         $difference = $totalClosingCash - $expectedCash;
-        
+
         return view('reports.cash.reconciliation', compact(
-            'date', 
-            'cashSales', 
-            'expenses', 
-            'shifts', 
-            'totalOpeningCash', 
-            'totalClosingCash', 
-            'expectedCash', 
+            'date',
+            'cashSales',
+            'expenses',
+            'shifts',
+            'totalOpeningCash',
+            'totalClosingCash',
+            'expectedCash',
             'difference'
         ));
     }
@@ -886,7 +943,7 @@ class ReportController extends Controller
         $endDate = $request->end_date ?? today()->toDateString();
         
         $methods = Sale::select('payment_method', DB::raw('COUNT(*) as count'), DB::raw('SUM(total) as total'))
-            ->whereBetween('created_at', [$startDate, $endDate])
+            ->whereDate('created_at', '>=', $startDate)->whereDate('created_at', '<=', $endDate)
             ->groupBy('payment_method')
             ->get();
         
@@ -906,8 +963,8 @@ class ReportController extends Controller
         $startDate = $request->start_date ?? today()->subDays(30)->toDateString();
         $endDate = $request->end_date ?? today()->toDateString();
         
-        $incomes = Income::whereBetween('created_at', [$startDate, $endDate])->get();
-        $expenses = Expense::whereBetween('created_at', [$startDate, $endDate])->get();
+        $incomes = Income::whereDate('created_at', '>=', $startDate)->whereDate('created_at', '<=', $endDate)->get();
+        $expenses = Expense::whereDate('created_at', '>=', $startDate)->whereDate('created_at', '<=', $endDate)->get();
         
         $totalIncome = $incomes->sum('amount');
         $totalExpenses = $expenses->sum('amount');
@@ -956,14 +1013,21 @@ class ReportController extends Controller
     {
         $startDate = $request->start_date ?? today()->startOfMonth()->toDateString();
         $endDate = $request->end_date ?? today()->toDateString();
-        
-        $cashiers = User::select('users.id', 'users.name', 'users.email', DB::raw('COUNT(sales.id) as transaction_count'), DB::raw('SUM(sales.total) as total_sales'))
-            ->leftJoin('sales', 'users.id', '=', 'sales.user_id')
-            ->whereBetween('sales.created_at', [$startDate, $endDate])
-            ->groupBy('users.id', 'users.name', 'users.email')
-            ->orderBy('total_sales', 'desc')
-            ->get();
-        
+
+        $aggregates = Sale::selectRaw('user_id, COUNT(*) as transaction_count, SUM(total) as total_sales')
+            ->whereNull('deleted_at')
+            ->whereDate('created_at', '>=', $startDate)->whereDate('created_at', '<=', $endDate)
+            ->groupBy('user_id')
+            ->get()
+            ->mapWithKeys(fn($row) => [($row->user_id ?? 0) => $row]);
+
+        $cashiers = User::orderBy('name')->get()->map(function($user) use ($aggregates) {
+            $agg = $aggregates->get($user->id);
+            $user->transaction_count = (int) ($agg->transaction_count ?? 0);
+            $user->total_sales = (float) ($agg->total_sales ?? 0);
+            return $user;
+        })->sortByDesc('total_sales')->values();
+
         return view('reports.staff.sales-by-cashier', compact('startDate', 'endDate', 'cashiers'));
     }
 
@@ -976,14 +1040,19 @@ class ReportController extends Controller
     {
         $startDate = $request->start_date ?? today()->startOfMonth()->toDateString();
         $endDate = $request->end_date ?? today()->toDateString();
-        
-        $cashiers = User::select('users.id', 'users.name', 'users.email', DB::raw('COUNT(sales.id) as transaction_count'))
-            ->leftJoin('sales', 'users.id', '=', 'sales.user_id')
-            ->whereBetween('sales.created_at', [$startDate, $endDate])
-            ->groupBy('users.id', 'users.name', 'users.email')
-            ->orderBy('transaction_count', 'desc')
-            ->get();
-        
+
+        $aggregates = Sale::selectRaw('user_id, COUNT(*) as transaction_count')
+            ->whereNull('deleted_at')
+            ->whereDate('created_at', '>=', $startDate)->whereDate('created_at', '<=', $endDate)
+            ->groupBy('user_id')
+            ->get()
+            ->mapWithKeys(fn($row) => [($row->user_id ?? 0) => (int) $row->transaction_count]);
+
+        $cashiers = User::orderBy('name')->get()->map(function($user) use ($aggregates) {
+            $user->transaction_count = $aggregates->get($user->id, 0);
+            return $user;
+        })->sortByDesc('transaction_count')->values();
+
         return view('reports.staff.transaction-count', compact('startDate', 'endDate', 'cashiers'));
     }
 
@@ -998,7 +1067,7 @@ class ReportController extends Controller
         $endDate = $request->end_date ?? today()->toDateString();
         
         $activities = ActionLog::with('user')
-            ->whereBetween('created_at', [$startDate, $endDate])
+            ->whereDate('created_at', '>=', $startDate)->whereDate('created_at', '<=', $endDate)
             ->latest()
             ->get();
         
@@ -1018,7 +1087,7 @@ class ReportController extends Controller
         $sales = Sale::with(['user'])
             ->whereNotNull('discount')
             ->where('discount', '>', 0)
-            ->whereBetween('created_at', [$startDate, $endDate])
+            ->whereDate('created_at', '>=', $startDate)->whereDate('created_at', '<=', $endDate)
             ->latest()
             ->get();
         
@@ -1037,7 +1106,7 @@ class ReportController extends Controller
         $startDate = $request->start_date ?? today()->startOfMonth()->toDateString();
         $endDate = $request->end_date ?? today()->toDateString();
         
-        $cancelledSales = Sale::onlyTrashed()->with(['user'])->whereBetween('created_at', [$startDate, $endDate])->latest()->get();
+        $cancelledSales = Sale::onlyTrashed()->with(['user'])->whereDate('created_at', '>=', $startDate)->whereDate('created_at', '<=', $endDate)->latest()->get();
         
         return view('reports.staff.void-transactions', compact('startDate', 'endDate', 'cancelledSales'));
     }
@@ -1052,7 +1121,7 @@ class ReportController extends Controller
         $startDate = $request->start_date ?? today()->startOfMonth()->toDateString();
         $endDate = $request->end_date ?? today()->toDateString();
         
-        $returns = SaleReturn::with(['sale', 'user'])->whereBetween('created_at', [$startDate, $endDate])->latest()->get();
+        $returns = SaleReturn::with(['sale', 'user'])->whereDate('created_at', '>=', $startDate)->whereDate('created_at', '<=', $endDate)->latest()->get();
         
         $totalRefunded = $returns->sum('total');
         
@@ -1069,14 +1138,22 @@ class ReportController extends Controller
     {
         $startDate = $request->start_date ?? today()->startOfMonth()->toDateString();
         $endDate = $request->end_date ?? today()->toDateString();
-        
-        $customers = Customer::select('customers.id', 'customers.name', 'customers.email', 'customers.phone', DB::raw('COUNT(sales.id) as purchase_count'), DB::raw('SUM(sales.total) as total_spent'))
-            ->leftJoin('sales', 'customers.id', '=', 'sales.customer_id')
-            ->whereBetween('sales.created_at', [$startDate, $endDate])
-            ->groupBy('customers.id', 'customers.name', 'customers.email', 'customers.phone')
-            ->orderBy('total_spent', 'desc')
-            ->get();
-        
+
+        $aggregates = Sale::selectRaw('customer_id, COUNT(*) as purchase_count, SUM(total) as total_spent')
+            ->whereNull('deleted_at')
+            ->whereDate('created_at', '>=', $startDate)->whereDate('created_at', '<=', $endDate)
+            ->whereNotNull('customer_id')
+            ->groupBy('customer_id')
+            ->get()
+            ->mapWithKeys(fn($row) => [$row->customer_id => $row]);
+
+        $customers = Customer::orderBy('name')->get()->map(function($customer) use ($aggregates) {
+            $agg = $aggregates->get($customer->id);
+            $customer->purchase_count = (int) ($agg->purchase_count ?? 0);
+            $customer->total_spent = (float) ($agg->total_spent ?? 0);
+            return $customer;
+        })->sortByDesc('total_spent')->values();
+
         return view('reports.customer.sales', compact('startDate', 'endDate', 'customers'));
     }
 
@@ -1097,7 +1174,7 @@ class ReportController extends Controller
             $query->where('customer_id', $customerId);
         }
         
-        $sales = $query->whereBetween('created_at', [$startDate, $endDate])->latest()->get();
+        $sales = $query->whereDate('created_at', '>=', $startDate)->whereDate('created_at', '<=', $endDate)->latest()->get();
         $customers = Customer::orderBy('name')->get();
         
         return view('reports.customer.purchase-history', compact('startDate', 'endDate', 'sales', 'customers', 'customerId'));
@@ -1110,8 +1187,25 @@ class ReportController extends Controller
 
     public function loyaltyReport(Request $request)
     {
-        $customers = Customer::orderBy('loyalty_points', 'desc')->get();
-        
+        $pointTotals = \App\Models\LoyaltyPoint::selectRaw('customer_id, '
+                . 'SUM(CASE WHEN type = \'earned\' THEN points ELSE 0 END) as earned, '
+                . 'SUM(CASE WHEN type = \'redeemed\' THEN points ELSE 0 END) as redeemed')
+            ->groupBy('customer_id')
+            ->get()
+            ->mapWithKeys(fn($row) => [$row->customer_id => $row]);
+
+        $customers = Customer::orderBy('name')->get()->map(function($customer) use ($pointTotals) {
+            $totals = $pointTotals->get($customer->id);
+            $earned = (float) ($totals->earned ?? 0);
+            $redeemed = (float) ($totals->redeemed ?? 0);
+            $customer->points_earned = $earned;
+            $customer->points_redeemed = $redeemed;
+            $customer->loyalty_balance = $earned - $redeemed;
+            return $customer;
+        })->filter(fn($customer) => $customer->loyalty_balance != 0 || $customer->points_earned > 0)
+          ->sortByDesc('loyalty_balance')
+          ->values();
+
         return view('reports.customer.loyalty', compact('customers'));
     }
 
@@ -1127,7 +1221,7 @@ class ReportController extends Controller
         $endDate = $request->end_date ?? today()->toDateString();
         
         $logs = ActionLog::with('user')
-            ->whereBetween('created_at', [$startDate, $endDate])
+            ->whereDate('created_at', '>=', $startDate)->whereDate('created_at', '<=', $endDate)
             ->latest()
             ->get();
         
@@ -1143,14 +1237,13 @@ class ReportController extends Controller
     {
         $startDate = $request->start_date ?? today()->subDays(30)->toDateString();
         $endDate = $request->end_date ?? today()->toDateString();
-        
-        $logs = ActionLog::with('user')
-            ->where('action', 'like', '%price%')
-            ->whereBetween('created_at', [$startDate, $endDate])
+
+        $changes = \App\Models\PriceChangeRequest::with(['product', 'requester', 'reviewer'])
+            ->whereDate('created_at', '>=', $startDate)->whereDate('created_at', '<=', $endDate)
             ->latest()
             ->get();
-        
-        return view('reports.security.price-changes', compact('startDate', 'endDate', 'logs'));
+
+        return view('reports.security.price-changes', compact('startDate', 'endDate', 'changes'));
     }
 
     public function priceChangesPDF(Request $request)
@@ -1163,11 +1256,11 @@ class ReportController extends Controller
         $startDate = $request->start_date ?? today()->subDays(30)->toDateString();
         $endDate = $request->end_date ?? today()->toDateString();
         
-        $adjustments = StockAdjustment::with(['product', 'user'])
-            ->whereBetween('created_at', [$startDate, $endDate])
+        $adjustments = StockAdjustment::with(['product'])
+            ->whereDate('created_at', '>=', $startDate)->whereDate('created_at', '<=', $endDate)
             ->latest()
             ->get();
-        
+
         return view('reports.security.inventory-adjustments', compact('startDate', 'endDate', 'adjustments'));
     }
 
@@ -1188,7 +1281,7 @@ class ReportController extends Controller
             $query->where('user_id', $userId);
         }
         
-        $logs = $query->whereBetween('created_at', [$startDate, $endDate])->latest()->get();
+        $logs = $query->whereDate('created_at', '>=', $startDate)->whereDate('created_at', '<=', $endDate)->latest()->get();
         $users = User::orderBy('name')->get();
         
         return view('reports.security.user-activity', compact('startDate', 'endDate', 'logs', 'users', 'userId'));
@@ -1209,15 +1302,17 @@ class ReportController extends Controller
         
         $todaySales = Sale::whereDate('created_at', $today)->sum('total');
         $todayTransactions = Sale::whereDate('created_at', $today)->count();
-        $monthSales = Sale::whereMonth('created_at', $today->month)->sum('total');
+        $monthSales = Sale::whereMonth('created_at', $today->month)->whereYear('created_at', $today->year)->sum('total');
         $lowStockCount = Product::whereColumn('quantity', '<=', 'reorder_level')->where('quantity', '>', 0)->count();
         $outOfStockCount = Product::where('quantity', 0)->count();
         $totalStockValue = Product::sum(DB::raw('quantity * cost_price'));
-        
+
         $topProducts = Product::select('products.id', 'products.name', DB::raw('SUM(sale_items.quantity) as total_qty'))
             ->join('sale_items', 'products.id', '=', 'sale_items.product_id')
             ->join('sales', 'sales.id', '=', 'sale_items.sale_id')
+            ->whereNull('sales.deleted_at')
             ->whereMonth('sales.created_at', $today->month)
+            ->whereYear('sales.created_at', $today->year)
             ->groupBy('products.id', 'products.name')
             ->orderBy('total_qty', 'desc')
             ->limit(5)
@@ -1263,7 +1358,8 @@ class ReportController extends Controller
             ->leftJoin('products', 'categories.id', '=', 'products.category_id')
             ->join('sale_items', 'products.id', '=', 'sale_items.product_id')
             ->join('sales', 'sales.id', '=', 'sale_items.sale_id')
-            ->whereBetween('sales.created_at', [$startDate, $endDate])
+            ->whereNull('sales.deleted_at')
+            ->whereDate('sales.created_at', '>=', $startDate)->whereDate('sales.created_at', '<=', $endDate)
             ->groupBy('categories.id', 'categories.name')
             ->get()
             ->map(function($category) {
@@ -1322,6 +1418,7 @@ class ReportController extends Controller
         $sales = Sale::whereBetween('created_at', [$start, $end])->sum('total');
         $costs = Product::join('sale_items', 'products.id', '=', 'sale_items.product_id')
             ->join('sales', 'sales.id', '=', 'sale_items.sale_id')
+            ->whereNull('sales.deleted_at')
             ->whereBetween('sales.created_at', [$start, $end])
             ->sum(DB::raw('sale_items.quantity * products.cost_price'));
         
@@ -1363,7 +1460,7 @@ class ReportController extends Controller
         
         // Get payment methods
         $paymentMethods = Sale::select('payment_method', DB::raw('COUNT(*) as count'), DB::raw('SUM(total) as total'))
-            ->whereBetween('created_at', [$startDate, $endDate])
+            ->whereDate('created_at', '>=', $startDate)->whereDate('created_at', '<=', $endDate)
             ->groupBy('payment_method')
             ->get();
             
@@ -1386,7 +1483,7 @@ class ReportController extends Controller
         $endDate = $request->end_date ?? today()->toDateString();
         
         // Get sales with COGS
-        $sales = Sale::with('items.product')->whereBetween('created_at', [$startDate, $endDate])->get();
+        $sales = Sale::with('items.product')->whereDate('created_at', '>=', $startDate)->whereDate('created_at', '<=', $endDate)->get();
         
         $totalSales = $sales->sum('total');
         $totalCOGS = $sales->sum(function($sale) {
@@ -1406,7 +1503,7 @@ class ReportController extends Controller
             $monthStart = $start->copy()->startOfMonth()->toDateString();
             $monthEnd = $start->copy()->endOfMonth()->toDateString();
             
-            $monthSales = Sale::with('items.product')->whereBetween('created_at', [$monthStart, $monthEnd])->get();
+            $monthSales = Sale::with('items.product')->whereDate('created_at', '>=', $monthStart)->whereDate('created_at', '<=', $monthEnd)->get();
             $monthTotal = $monthSales->sum('total');
             $monthCOGS = $monthSales->sum(function($sale) {
                 return $sale->items->sum(function($item) {
@@ -1460,8 +1557,8 @@ class ReportController extends Controller
         $period = \Carbon\Carbon::parse($startDate)->diffInDays($endDate) + 1;
         $midpoint = \Carbon\Carbon::parse($startDate)->addDays($period / 2);
         
-        $firstHalfSales = Sale::whereBetween('created_at', [$startDate, $midpoint->toDateString()])->sum('total');
-        $secondHalfSales = Sale::whereBetween('created_at', [$midpoint->toDateString(), $endDate])->sum('total');
+        $firstHalfSales = Sale::whereDate('created_at', '>=', $startDate)->whereDate('created_at', '<=', $midpoint->toDateString())->sum('total');
+        $secondHalfSales = Sale::whereDate('created_at', '>=', $midpoint->toDateString())->whereDate('created_at', '<=', $endDate)->sum('total');
         
         $growthPercent = $firstHalfSales > 0 ? (($secondHalfSales - $firstHalfSales) / $firstHalfSales) * 100 : 0;
         
@@ -1474,7 +1571,7 @@ class ReportController extends Controller
     
     private function calculateInventoryTurnover($startDate, $endDate)
     {
-        $totalCOGS = Sale::with('items.product')->whereBetween('created_at', [$startDate, $endDate])->get()->sum(function($sale) {
+        $totalCOGS = Sale::with('items.product')->whereDate('created_at', '>=', $startDate)->whereDate('created_at', '<=', $endDate)->get()->sum(function($sale) {
             return $sale->items->sum(function($item) {
                 return $item->quantity * ($item->product->cost_price ?? 0);
             });
@@ -1489,7 +1586,7 @@ class ReportController extends Controller
     {
         $totalCustomers = Customer::count();
         $repeatCustomers = Customer::whereHas('sales', function($q) use ($startDate, $endDate) {
-            $q->whereBetween('created_at', [$startDate, $endDate]);
+            $q->whereDate('created_at', '>=', $startDate)->whereDate('created_at', '<=', $endDate);
         })->count();
         
         return $totalCustomers > 0 ? ($repeatCustomers / $totalCustomers) * 100 : 0;
@@ -1497,8 +1594,8 @@ class ReportController extends Controller
     
     private function calculateCashFlowHealth($startDate, $endDate)
     {
-        $totalSales = Sale::whereBetween('created_at', [$startDate, $endDate])->sum('total');
-        $totalExpenses = Expense::whereBetween('created_at', [$startDate, $endDate])->sum('amount');
+        $totalSales = Sale::whereDate('created_at', '>=', $startDate)->whereDate('created_at', '<=', $endDate)->sum('total');
+        $totalExpenses = Expense::whereDate('created_at', '>=', $startDate)->whereDate('created_at', '<=', $endDate)->sum('amount');
         $netCashFlow = $totalSales - $totalExpenses;
         
         return [
@@ -1517,14 +1614,24 @@ class ReportController extends Controller
     {
         $startDate = $request->start_date ?? today()->startOfMonth()->toDateString();
         $endDate = $request->end_date ?? today()->toDateString();
-        
-        $members = Customer::select('customers.id', 'customers.name', 'customers.email', 'customers.phone', DB::raw('COUNT(sales.id) as purchase_count'), DB::raw('SUM(sales.total) as total_spent'))
-            ->leftJoin('sales', 'customers.id', '=', 'sales.customer_id')
-            ->whereBetween('sales.created_at', [$startDate, $endDate])
-            ->groupBy('customers.id', 'customers.name', 'customers.email', 'customers.phone')
-            ->orderBy('total_spent', 'desc')
-            ->get();
-        
+
+        $aggregates = Sale::selectRaw('customer_id, COUNT(*) as purchase_count, SUM(total) as total_spent')
+            ->whereNull('deleted_at')
+            ->whereDate('created_at', '>=', $startDate)->whereDate('created_at', '<=', $endDate)
+            ->whereNotNull('customer_id')
+            ->groupBy('customer_id')
+            ->get()
+            ->mapWithKeys(fn($row) => [$row->customer_id => $row]);
+
+        $members = Customer::orderBy('name')->get()->map(function($customer) use ($aggregates) {
+            $agg = $aggregates->get($customer->id);
+            $customer->purchase_count = (int) ($agg->purchase_count ?? 0);
+            $customer->total_spent = (float) ($agg->total_spent ?? 0);
+            return $customer;
+        })->filter(fn($customer) => $customer->purchase_count > 0)
+          ->sortByDesc('total_spent')
+          ->values();
+
         return view('reports.advanced.member-purchase', compact('startDate', 'endDate', 'members'));
     }
 

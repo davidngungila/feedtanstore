@@ -56,7 +56,7 @@
                     </div>
                 </div>
                 <p class="text-sm text-yellow-700 mb-1">Total Qty Lost</p>
-                <h3 class="text-2xl font-bold text-yellow-900">{{ number_format($adjustments->sum('quantity')) }}</h3>
+                <h3 class="text-2xl font-bold text-yellow-900">{{ number_format($adjustments->sum('quantity_change')) }}</h3>
             </div>
         </div>
 
@@ -78,9 +78,9 @@
                     <tr>
                         <td class="px-4 py-3">{{ $adjustment->created_at->format('Y-m-d H:i') }}</td>
                         <td class="px-4 py-3 font-medium">{{ $adjustment->product ? $adjustment->product->name : 'N/A' }}</td>
-                        <td class="px-4 py-3 text-right">{{ number_format($adjustment->quantity) }}</td>
+                        <td class="px-4 py-3 text-right">{{ number_format($adjustment->quantity_change) }}</td>
                         <td class="px-4 py-3 text-right">TZS {{ number_format($adjustment->product->cost_price ?? 0, 2) }}</td>
-                        <td class="px-4 py-3 text-right font-semibold text-red-700">TZS {{ number_format(($adjustment->product->cost_price ?? 0) * $adjustment->quantity, 2) }}</td>
+                        <td class="px-4 py-3 text-right font-semibold text-red-700">TZS {{ number_format(($adjustment->product->cost_price ?? 0) * $adjustment->quantity_change, 2) }}</td>
                         <td class="px-4 py-3">{{ $adjustment->reason ?? 'N/A' }}</td>
                     </tr>
                     @endforeach

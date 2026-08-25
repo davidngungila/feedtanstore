@@ -38,7 +38,7 @@
                     </div>
                 </div>
                 <p class="text-sm text-blue-700 mb-1">Active Cashiers</p>
-                <h3 class="text-2xl font-bold text-blue-900">{{ $shifts->pluck('cashier_id')->unique()->count() }}</h3>
+                <h3 class="text-2xl font-bold text-blue-900">{{ $shifts->pluck('user_id')->unique()->count() }}</h3>
             </div>
             <div class="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-5">
                 <div class="flex items-center justify-between mb-3">
@@ -56,7 +56,7 @@
                     </div>
                 </div>
                 <p class="text-sm text-green-700 mb-1">Closed Shifts</p>
-                <h3 class="text-2xl font-bold text-green-900">{{ $shifts->where('status', 'closed')->count() }}</h3>
+                <h3 class="text-2xl font-bold text-green-900">{{ $shifts->where('shift_status', 'closed')->count() }}</h3>
             </div>
         </div>
 
@@ -80,7 +80,6 @@
                     @foreach($shifts as $shift)
                     <tr>
                         <td class="px-4 py-3 font-medium">#{{ $shift->id }}</td>
-                        <td class="px-4 py-3">{{ $shift->cashier ? $shift->cashier->name : 'N/A' }}</td>
                         <td class="px-4 py-3">{{ $shift->user ? $shift->user->name : 'N/A' }}</td>
                         <td class="px-4 py-3">{{ $shift->created_at->format('Y-m-d H:i') }}</td>
                         <td class="px-4 py-3">{{ $shift->closed_at ? $shift->closed_at->format('Y-m-d H:i') : '-' }}</td>
@@ -88,8 +87,8 @@
                         <td class="px-4 py-3 text-right">{{ $shift->closing_cash ? 'TZS ' . number_format($shift->closing_cash, 2) : '-' }}</td>
                         <td class="px-4 py-3 text-right">TZS {{ number_format($shift->total_sales, 2) }}</td>
                         <td class="px-4 py-3">
-                            <span class="px-2 py-1 text-xs font-semibold rounded-full {{ $shift->status === 'closed' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700' }}">
-                                {{ ucfirst($shift->status) }}
+                            <span class="px-2 py-1 text-xs font-semibold rounded-full {{ $shift->shift_status === 'closed' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700' }}">
+                                {{ ucfirst($shift->shift_status) }}
                             </span>
                         </td>
                     </tr>

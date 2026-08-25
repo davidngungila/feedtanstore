@@ -210,12 +210,12 @@
                  @foreach($shifts as $shift)
                  <tr>
                      <td>#{{ $shift->id }}</td>
-                     <td>{{ $shift->cashier ? $shift->cashier->name : 'N/A' }}</td>
+                     <td>{{ $shift->user ? $shift->user->name : 'N/A' }}</td>
                      <td>{{ $shift->created_at->format('H:i') }}</td>
                      <td>{{ $shift->closed_at ? $shift->closed_at->format('H:i') : '-' }}</td>
                      <td style="text-align: right;">TZS {{ number_format($shift->opening_cash, 2) }}</td>
                      <td style="text-align: right;">{{ $shift->closing_cash ? 'TZS ' . number_format($shift->closing_cash, 2) : '-' }}</td>
-                     <td>{{ ucfirst($shift->status) }}</td>
+                      <td>{{ $shift->closed_at ? 'Closed' : 'Open' }}</td>
                  </tr>
                  @endforeach
                  @if($shifts->isEmpty())
