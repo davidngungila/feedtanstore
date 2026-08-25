@@ -73,4 +73,5 @@
         </form>
     </div>
 </div>
+@include('hr._processing-overlay')
 @endsection

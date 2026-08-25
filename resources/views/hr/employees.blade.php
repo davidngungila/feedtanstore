@@ -124,13 +124,19 @@
                             @endforeach
                         </select>
                     </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1"><span id="passwordLabel">Password *</span></label>
-                        <input type="password" name="password" id="emp_password" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                    <div id="passwordAutoNote" class="flex items-start gap-2 p-3 bg-primary-50 border border-primary-100 rounded-lg text-sm text-primary-800">
+                        <i class="fas fa-circle-info mt-0.5"></i>
+                        <span>A temporary password will be generated automatically and sent to the employee by email and SMS.</span>
                     </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1"><span id="passwordConfirmLabel">Confirm Password *</span></label>
-                        <input type="password" name="password_confirmation" id="emp_password_confirmation" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                    <div id="passwordFields" class="space-y-4 hidden">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1"><span id="passwordLabel">New Password (leave blank to keep current)</span></label>
+                            <input type="password" name="password" id="emp_password" autocomplete="new-password" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1"><span id="passwordConfirmLabel">Confirm New Password</span></label>
+                            <input type="password" name="password_confirmation" id="emp_password_confirmation" autocomplete="new-password" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                        </div>
                     </div>
                 </div>
                 <div class="flex justify-end gap-3 mt-6">
@@ -181,12 +187,10 @@ function openEmployeeModal(employee = null) {
     document.getElementById('emp_role').value = employee ? employee.role : 'cashier';
     document.getElementById('emp_password').value = '';
     document.getElementById('emp_password_confirmation').value = '';
-
-    const required = employee ? '' : ' *';
-    document.getElementById('passwordLabel').textContent = employee ? 'New Password (leave blank to keep current)' : 'Password' + required;
-    document.getElementById('passwordConfirmLabel').textContent = employee ? 'Confirm New Password' : 'Confirm Password' + required;
-    document.getElementById('emp_password').required = !employee;
+    document.getElementById('emp_password').required = false;
     document.getElementById('emp_password_confirmation').required = false;
+    document.getElementById('passwordAutoNote').classList.toggle('hidden', !!employee);
+    document.getElementById('passwordFields').classList.toggle('hidden', !employee);
 
     employeeModal.classList.remove('hidden');
 }
@@ -215,4 +219,5 @@ document.addEventListener('keydown', function (e) {
 employeeModal.addEventListener('click', function (e) { if (e.target === employeeModal) closeEmployeeModal(); });
 deleteEmployeeModal.addEventListener('click', function (e) { if (e.target === deleteEmployeeModal) closeDeleteEmployeeModal(); });
 </script>
+@include('hr._processing-overlay')
 @endsection

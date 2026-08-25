@@ -6,10 +6,16 @@ use App\Models\User;
 use App\Models\Attendance;
 use App\Models\WorkShift;
 use App\Models\ActionLog;
+use App\Models\CommunicationProfile;
 use App\Support\Permissions;
+use App\Mail\EmployeeWelcomeEmail;
+use App\Services\MessagingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 use Carbon\Carbon;
 
 class HRController extends Controller
@@ -74,21 +80,102 @@ class HRController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'phone' => 'nullable|string|max:20|unique:users,phone',
-            'password' => 'required|string|min:8|confirmed',
             'role' => 'required|in:' . implode(',', Permissions::ROLES),
         ]);
+
+        $generatedPassword = Str::random(12);
 
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'phone' => $request->phone,
-            'password' => Hash::make($request->password),
+            'password' => Hash::make($generatedPassword),
             'role' => $request->role,
         ]);
 
+        $notified = $this->sendWelcomeCredentials($user, $generatedPassword);
+
         $this->log('create_employee', 'Created new employee: ' . $user->name . ' (' . $user->role . ')');
 
-        return redirect()->route('hr.employees')->with('success', 'Employee created successfully!');
+        return redirect()->route('hr.employees')->with(
+            'success',
+            'Employee created successfully! ' . $notified
+        );
+    }
+
+    protected function sendWelcomeCredentials(User $user, string $password): string
+    {
+        $emailed = false;
+        $smsed = false;
+
+        try {
+            $emailProfile = CommunicationProfile::where('type', 'email')->where('is_active', true)->first();
+            $mailer = 'smtp';
+            if ($emailProfile) {
+                config([
+                    'mail.mailers.test_smtp' => [
+                        'transport' => 'smtp',
+                        'host' => $emailProfile->smtp_host,
+                        'port' => $emailProfile->smtp_port,
+                        'encryption' => $emailProfile->smtp_encryption,
+                        'username' => $emailProfile->smtp_username,
+                        'password' => $emailProfile->smtp_password,
+                        'timeout' => 30,
+                        'local_domain' => null,
+                    ],
+                    'mail.from' => [
+                        'address' => $emailProfile->email_from_address,
+                        'name' => $emailProfile->email_from_name,
+                    ],
+                ]);
+                $mailer = 'test_smtp';
+            }
+            Mail::mailer($mailer)->to($user->email)->send(new EmployeeWelcomeEmail($user, $password));
+            $emailed = true;
+        } catch (\Throwable $e) {
+            Log::error('Failed to send welcome email to employee', [
+                'employee_id' => $user->id,
+                'email' => $user->email,
+                'error' => $e->getMessage(),
+            ]);
+        }
+
+        if ($user->phone) {
+            try {
+                $roleLabel = ucfirst(str_replace('_', ' ', $user->role));
+                $settings = \App\Models\StoreSetting::firstOrCreate();
+                $loginUrl = rtrim($settings->store_url ?? config('app.url'), '/') . '/login';
+                $smsText = "Welcome to Feedtan Store, {$user->name}! Your {$roleLabel} account is ready. "
+                    . "Login at {$loginUrl} | Email: {$user->email} | Password: {$password}. "
+                    . 'Please change your password after first login.';
+                $result = (new MessagingService())->sendSms($user->phone, $smsText);
+                $smsed = (bool) ($result['success'] ?? false);
+                if (!$smsed) {
+                    Log::warning('Welcome SMS to employee not sent', [
+                        'employee_id' => $user->id,
+                        'response' => $result['response'] ?? null,
+                    ]);
+                }
+            } catch (\Throwable $e) {
+                Log::error('Failed to send welcome SMS to employee', [
+                    'employee_id' => $user->id,
+                    'phone' => $user->phone,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
+
+        if ($emailed && $smsed) {
+            return 'An auto-generated password has been emailed and sent by SMS.';
+        }
+        if ($emailed) {
+            return 'An auto-generated password has been emailed' . ($user->phone ? ' (SMS delivery failed)' : '') . '.';
+        }
+        if ($smsed) {
+            return 'An auto-generated password has been sent by SMS (email delivery failed).';
+        }
+
+        return 'Warning: login credentials could not be delivered automatically — please share them manually.';
     }
 
     public function editEmployee($id)

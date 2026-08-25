@@ -278,4 +278,5 @@ document.addEventListener('keydown', function (e) {
 attendanceModal.addEventListener('click', function (e) { if (e.target === attendanceModal) closeAttendanceModal(); });
 deleteAttendanceModal.addEventListener('click', function (e) { if (e.target === deleteAttendanceModal) closeDeleteAttendanceModal(); });
 </script>
+@include('hr._processing-overlay')
 @endsection

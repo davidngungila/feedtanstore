@@ -239,4 +239,5 @@ document.addEventListener('keydown', function (e) {
     m.addEventListener('click', function (e) { if (e.target === m) m.classList.add('hidden'); });
 });
 </script>
+@include('hr._processing-overlay')
 @endsection
