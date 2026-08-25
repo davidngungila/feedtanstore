@@ -107,36 +107,47 @@ class HRController extends Controller
     {
         $emailed = false;
         $smsed = false;
+        $emailError = null;
 
         try {
             $emailProfile = CommunicationProfile::where('type', 'email')->where('is_active', true)->first();
-            $mailer = 'smtp';
-            if ($emailProfile) {
+            $mailer = config('mail.default');
+            if ($emailProfile && $emailProfile->smtp_host && $emailProfile->smtp_username && $emailProfile->smtp_password) {
                 config([
                     'mail.mailers.test_smtp' => [
                         'transport' => 'smtp',
                         'host' => $emailProfile->smtp_host,
-                        'port' => $emailProfile->smtp_port,
+                        'port' => $emailProfile->smtp_port ?: 587,
                         'encryption' => $emailProfile->smtp_encryption,
                         'username' => $emailProfile->smtp_username,
                         'password' => $emailProfile->smtp_password,
                         'timeout' => 30,
                         'local_domain' => null,
                     ],
-                    'mail.from' => [
-                        'address' => $emailProfile->email_from_address,
-                        'name' => $emailProfile->email_from_name,
-                    ],
                 ]);
+                if ($emailProfile->email_from_address) {
+                    config([
+                        'mail.from.address' => $emailProfile->email_from_address,
+                        'mail.from.name' => $emailProfile->email_from_name ?? config('app.name'),
+                    ]);
+                }
                 $mailer = 'test_smtp';
+            } elseif ($emailProfile) {
+                Log::warning('Email communication profile incomplete, using default mailer', [
+                    'profile_id' => $emailProfile->id,
+                    'has_host' => (bool) $emailProfile->smtp_host,
+                    'has_username' => (bool) $emailProfile->smtp_username,
+                    'has_password' => (bool) $emailProfile->smtp_password,
+                ]);
             }
             Mail::mailer($mailer)->to($user->email)->send(new EmployeeWelcomeEmail($user, $password));
             $emailed = true;
         } catch (\Throwable $e) {
+            $emailError = $e->getMessage();
             Log::error('Failed to send welcome email to employee', [
                 'employee_id' => $user->id,
                 'email' => $user->email,
-                'error' => $e->getMessage(),
+                'error' => $emailError,
             ]);
         }
 
@@ -165,6 +176,8 @@ class HRController extends Controller
             }
         }
 
+        $reason = $emailError ? ' Reason: ' . Str::limit($emailError, 160) : '';
+
         if ($emailed && $smsed) {
             return 'An auto-generated password has been emailed and sent by SMS.';
         }
@@ -172,10 +185,10 @@ class HRController extends Controller
             return 'An auto-generated password has been emailed' . ($user->phone ? ' (SMS delivery failed)' : '') . '.';
         }
         if ($smsed) {
-            return 'An auto-generated password has been sent by SMS (email delivery failed).';
+            return 'An auto-generated password has been sent by SMS. Email delivery failed.' . $reason;
         }
 
-        return 'Warning: login credentials could not be delivered automatically — please share them manually.';
+        return 'Warning: login credentials could not be delivered automatically — please share them manually.' . $reason;
     }
 
     public function editEmployee($id)
