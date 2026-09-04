@@ -225,6 +225,8 @@ class ProductController extends Controller
     {
         $productIds = $request->product_ids;
         $quantities = $request->quantities ?? [];
+        $size = intval($request->input('size', 20));
+        $size = max(10, min(35, $size));
 
         // Handle JSON string case (from expiry page)
         if (is_string($productIds)) {
@@ -258,11 +260,14 @@ class ProductController extends Controller
             }
         }
 
-        return view('inventory.products-barcodes-print', compact('barcodes'));
+        return view('inventory.products-barcodes-print', compact('barcodes', 'size'));
     }
 
-    public function printAllBarcodes()
+    public function printAllBarcodes(Request $request)
     {
+        $size = intval($request->input('size', 20));
+        $size = max(10, min(35, $size));
+
         $products = Product::with(['category', 'brand', 'unit'])
             ->where('is_active', true)
             ->get();
@@ -279,7 +284,7 @@ class ProductController extends Controller
             ];
         }
 
-        return view('inventory.products-barcodes-print', compact('barcodes'));
+        return view('inventory.products-barcodes-print', compact('barcodes', 'size'));
     }
 
     public function exportBarcodesPdf(Request $request)

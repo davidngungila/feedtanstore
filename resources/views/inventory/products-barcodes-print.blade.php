@@ -107,15 +107,15 @@
     </style>
 </head>
 <body>
-    <div class="controls">
+        <div class="controls">
         <label for="barcodeSize" style="font-weight: 600; font-size: 14px;">Size:</label>
         <select id="barcodeSize" onchange="updateSize()">
-            <option value="10">10mm</option>
-            <option value="15">15mm</option>
-            <option value="20" selected>20mm</option>
-            <option value="25">25mm</option>
-            <option value="30">30mm</option>
-            <option value="35">35mm</option>
+            <option value="10" {{ ($size ?? 20) == 10 ? 'selected' : '' }}>10mm</option>
+            <option value="15" {{ ($size ?? 20) == 15 ? 'selected' : '' }}>15mm</option>
+            <option value="20" {{ ($size ?? 20) == 20 ? 'selected' : '' }}>20mm</option>
+            <option value="25" {{ ($size ?? 20) == 25 ? 'selected' : '' }}>25mm</option>
+            <option value="30" {{ ($size ?? 20) == 30 ? 'selected' : '' }}>30mm</option>
+            <option value="35" {{ ($size ?? 20) == 35 ? 'selected' : '' }}>35mm</option>
         </select>
         <button onclick="window.print()">
             Print All Barcodes
@@ -129,7 +129,7 @@
         @foreach($barcodes as $item)
         <div class="barcode-card">
             <div class="product-name">{{ $item['product']->name }}</div>
-            <img src="{{ $item['barcode_base64'] }}" alt="Product Barcode" style="width: 20mm;">
+            <img src="{{ $item['barcode_base64'] }}" alt="Product Barcode" style="width: {{ $size ?? 20 }}mm;">
         </div>
         @endforeach
     </div>

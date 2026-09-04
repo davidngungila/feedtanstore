@@ -8,6 +8,17 @@
         <div class="flex flex-col md:flex-row items-center justify-between mb-6 gap-4">
             <h2 class="text-xl font-bold text-primary-900">Barcode Bulk</h2>
             <div class="flex flex-wrap items-center gap-4">
+                <div class="flex items-center gap-2">
+                    <label for="barcodeSizeGlobal" class="text-sm font-semibold text-gray-700">Size:</label>
+                    <select id="barcodeSizeGlobal" class="px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                        <option value="10">10mm</option>
+                        <option value="15">15mm</option>
+                        <option value="20" selected>20mm</option>
+                        <option value="25">25mm</option>
+                        <option value="30">30mm</option>
+                        <option value="35">35mm</option>
+                    </select>
+                </div>
                 <div class="relative">
                     <form action="{{ route('inventory.barcodes') }}" method="GET">
                         <input type="text" name="search" value="{{ $search ?? '' }}" placeholder="Search products..." class="w-full md:w-64 pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
@@ -15,8 +26,9 @@
                     </form>
                 </div>
                 @if(count($products) > 0)
-                    <form action="{{ route('inventory.barcodes.print-all') }}" method="POST" class="inline">
+                    <form action="{{ route('inventory.barcodes.print-all') }}" method="POST" class="inline" id="printAllForm">
                         @csrf
+                        <input type="hidden" name="size" id="printAllSize" value="20">
                         <button type="submit" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
                             <i class="fas fa-print mr-2"></i>Print All
                         </button>
@@ -36,6 +48,7 @@
 
         <form action="{{ route('inventory.barcodes.print') }}" method="POST" id="barcodeForm">
             @csrf
+            <input type="hidden" name="size" id="printSelectedSize" value="20">
             <div class="mb-4 flex flex-wrap items-center gap-4">
                 <div class="flex items-center gap-2">
                     <input type="checkbox" id="selectAll" class="w-5 h-5 text-primary-600 rounded">
@@ -93,6 +106,28 @@
 </div>
 
 <script>
+    const sizeSelect = document.getElementById('barcodeSizeGlobal');
+    const printAllSize = document.getElementById('printAllSize');
+    const printSelectedSize = document.getElementById('printSelectedSize');
+
+    sizeSelect.addEventListener('change', function() {
+        printAllSize.value = this.value;
+        printSelectedSize.value = this.value;
+        updateExportPdfLinks();
+    });
+
+    function updateExportPdfLinks() {
+        const size = sizeSelect.value;
+        const exportAllPdfBtn = document.getElementById('exportAllPdfBtn');
+        if (exportAllPdfBtn) {
+            const url = new URL(exportAllPdfBtn.href);
+            url.searchParams.set('size', size);
+            exportAllPdfBtn.href = url.toString();
+        }
+    }
+
+    updateExportPdfLinks();
+
     document.getElementById('selectAll').addEventListener('change', function() {
         const checkboxes = document.querySelectorAll('.product-checkbox');
         checkboxes.forEach(checkbox => {
@@ -122,7 +157,9 @@
             alert('Please select at least one product.');
             return;
         }
+        const size = sizeSelect.value;
         const params = new URLSearchParams();
+        params.set('size', size);
         ids.forEach(id => params.append('product_ids[]', id));
         window.location.href = '{{ route("inventory.barcodes.export-pdf") }}?' + params.toString();
     }
