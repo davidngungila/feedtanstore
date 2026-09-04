@@ -322,6 +322,9 @@ class ProductController extends Controller
         $dompdf->setPaper('a4');
         $dompdf->render();
 
-        return $dompdf->download('barcodes-' . now()->format('Y-m-d-His') . '.pdf');
+        return response($dompdf->output(), 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="barcodes-' . now()->format('Y-m-d-His') . '.pdf"',
+        ]);
     }
 }
