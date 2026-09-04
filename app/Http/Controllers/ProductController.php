@@ -281,4 +281,47 @@ class ProductController extends Controller
 
         return view('inventory.products-barcodes-print', compact('barcodes'));
     }
+
+    public function exportBarcodesPdf(Request $request)
+    {
+        $productIds = $request->product_ids;
+        $size = intval($request->input('size', 20));
+        $size = max(10, min(35, $size));
+
+        if (is_string($productIds)) {
+            $productIds = json_decode($productIds, true);
+        }
+
+        if (empty($productIds)) {
+            $products = Product::with(['category', 'brand', 'unit'])
+                ->where('is_active', true)
+                ->get();
+        } else {
+            $products = Product::with(['category', 'brand', 'unit'])
+                ->whereIn('id', $productIds)
+                ->where('is_active', true)
+                ->get();
+        }
+
+        $generator = new \Picqer\Barcode\BarcodeGeneratorPNG();
+        $barcodes = [];
+        foreach ($products as $product) {
+            $barcodeValue = $product->barcode ?? $product->sku ?? $product->id;
+            $barcodePng = $generator->getBarcode($barcodeValue, \Picqer\Barcode\BarcodeGeneratorPNG::TYPE_CODE_128);
+            $barcodes[] = [
+                'product' => $product,
+                'barcode_base64' => 'data:image/png;base64,' . base64_encode($barcodePng),
+                'barcode_value' => $barcodeValue
+            ];
+        }
+
+        $html = view('inventory.products-barcodes-pdf', compact('barcodes', 'size'))->render();
+
+        $dompdf = new \Dompdf\Dompdf();
+        $dompdf->loadHtml($html);
+        $dompdf->setPaper('a4');
+        $dompdf->render();
+
+        return $dompdf->download('barcodes-' . now()->format('Y-m-d-His') . '.pdf');
+    }
 }

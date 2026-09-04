@@ -263,6 +263,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/barcodes', [\App\Http\Controllers\ProductController::class, 'barcodes'])->name('barcodes');
         Route::post('/barcodes/print', [\App\Http\Controllers\ProductController::class, 'printBarcodes'])->name('barcodes.print');
         Route::post('/barcodes/print-all', [\App\Http\Controllers\ProductController::class, 'printAllBarcodes'])->name('barcodes.print-all');
+        Route::get('/barcodes/export-pdf', [\App\Http\Controllers\ProductController::class, 'exportBarcodesPdf'])->name('barcodes.export-pdf');
+        Route::post('/barcodes/export-pdf', [\App\Http\Controllers\ProductController::class, 'exportBarcodesPdf'])->name('barcodes.export-pdf-post');
     });
 
     // Stock Requests

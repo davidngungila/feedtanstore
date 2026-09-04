@@ -125,25 +125,51 @@
         <div class="card rounded-2xl p-6">
             <div class="flex items-center justify-between mb-6">
                 <h3 class="text-lg font-bold text-primary-900">Product Barcode</h3>
-                <button onclick="printBarcode()" class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors">
-                    <i class="fas fa-print mr-2"></i>Print Barcode
-                </button>
+                <div class="flex items-center gap-3">
+                    <div class="flex items-center gap-2">
+                        <label for="barcodeSize" class="text-sm font-medium text-gray-700">Size:</label>
+                        <select id="barcodeSize" onchange="updateBarcodeSize()" class="px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                            <option value="10">10mm</option>
+                            <option value="15">15mm</option>
+                            <option value="20" selected>20mm</option>
+                            <option value="25">25mm</option>
+                            <option value="30">30mm</option>
+                            <option value="35">35mm</option>
+                        </select>
+                    </div>
+                    <button onclick="printBarcode()" class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors">
+                        <i class="fas fa-print mr-2"></i>Print
+                    </button>
+                    <a href="{{ route('inventory.barcodes.export-pdf', ['product_ids' => [$product->id], 'size' => '20']) }}" id="exportPdfBtn" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors">
+                        <i class="fas fa-file-pdf mr-2"></i>Export PDF
+                    </a>
+                </div>
             </div>
             <div id="barcode-print-area" class="flex flex-col items-center justify-center p-4 bg-gray-50 rounded-lg">
                 <h4 class="font-semibold text-gray-900 mb-2">{{ $product->name }}</h4>
-                <img src="{{ $barcodeBase64 }}" alt="Barcode for {{ $product->name }}" class="mb-2" style="width: 400px;">
-                <p class="text-sm text-gray-600 font-mono">{{ $barcodeValue }}</p>
+                <img id="barcodeImage" src="{{ $barcodeBase64 }}" alt="Barcode for {{ $product->name }}" style="width: 20mm;">
             </div>
         </div>
     </div>
 </div>
 
 <script>
+    function updateBarcodeSize() {
+        const size = document.getElementById('barcodeSize').value;
+        const img = document.getElementById('barcodeImage');
+        img.style.width = size + 'mm';
+        const pdfBtn = document.getElementById('exportPdfBtn');
+        const url = new URL(pdfBtn.href);
+        url.searchParams.set('size', size);
+        pdfBtn.href = url.toString();
+    }
+
     function printBarcode() {
+        const size = document.getElementById('barcodeSize').value;
         const printContent = document.getElementById('barcode-print-area').innerHTML;
-        const originalContent = document.body.innerHTML;
         
-        document.body.innerHTML = `
+        const printWindow = window.open('', '_blank');
+        printWindow.document.write(`
             <html>
                 <head>
                     <title>Product Barcode</title>
@@ -160,8 +186,10 @@
                         .barcode-container {
                             text-align: center;
                             padding: 20px;
-                            border: 2px solid #000;
-                            width: 450px;
+                        }
+                        img {
+                            width: ${size}mm;
+                            height: auto;
                         }
                     </style>
                 </head>
@@ -169,11 +197,11 @@
                     <div class="barcode-container">${printContent}</div>
                 </body>
             </html>
-        `;
-        
-        window.print();
-        document.body.innerHTML = originalContent;
-        location.reload();
+        `);
+        printWindow.document.close();
+        printWindow.onload = function() {
+            printWindow.print();
+        };
     }
 </script>
 @endsection

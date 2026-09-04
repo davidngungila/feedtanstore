@@ -18,9 +18,12 @@
                     <form action="{{ route('inventory.barcodes.print-all') }}" method="POST" class="inline">
                         @csrf
                         <button type="submit" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
-                            <i class="fas fa-print mr-2"></i>Print All Barcodes
+                            <i class="fas fa-print mr-2"></i>Print All
                         </button>
                     </form>
+                    <a href="{{ route('inventory.barcodes.export-pdf') }}" id="exportAllPdfBtn" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                        <i class="fas fa-file-pdf mr-2"></i>Export All PDF
+                    </a>
                 @endif
             </div>
         </div>
@@ -46,7 +49,10 @@
                     </button>
                 </div>
                 <button type="submit" class="bg-primary-600 hover:bg-primary-700 text-white px-6 py-2 rounded-lg font-medium transition-colors">
-                    <i class="fas fa-print mr-2"></i>Print Selected Barcodes
+                    <i class="fas fa-print mr-2"></i>Print Selected
+                </button>
+                <button type="button" onclick="exportSelectedPdf()" class="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg font-medium transition-colors">
+                    <i class="fas fa-file-pdf mr-2"></i>Export Selected PDF
                 </button>
             </div>
 
@@ -87,7 +93,6 @@
 </div>
 
 <script>
-    // Select All functionality
     document.getElementById('selectAll').addEventListener('change', function() {
         const checkboxes = document.querySelectorAll('.product-checkbox');
         checkboxes.forEach(checkbox => {
@@ -95,7 +100,6 @@
         });
     });
 
-    // Update select all when individual checkboxes change
     document.querySelectorAll('.product-checkbox').forEach(checkbox => {
         checkbox.addEventListener('change', function() {
             const allChecked = Array.from(document.querySelectorAll('.product-checkbox')).every(cb => cb.checked);
@@ -103,7 +107,6 @@
         });
     });
 
-    // Apply quantity to all
     document.getElementById('applyQuantityAll').addEventListener('click', function() {
         const quantity = parseInt(document.getElementById('quantityAll').value) || 1;
         const quantityInputs = document.querySelectorAll('.product-quantity');
@@ -111,5 +114,17 @@
             input.value = quantity;
         });
     });
+
+    function exportSelectedPdf() {
+        const checked = document.querySelectorAll('.product-checkbox:checked');
+        const ids = Array.from(checked).map(cb => cb.value);
+        if (ids.length === 0) {
+            alert('Please select at least one product.');
+            return;
+        }
+        const params = new URLSearchParams();
+        ids.forEach(id => params.append('product_ids[]', id));
+        window.location.href = '{{ route("inventory.barcodes.export-pdf") }}?' + params.toString();
+    }
 </script>
 @endsection
