@@ -58,7 +58,7 @@ class StoreSettingController extends Controller
             'delivery_per_km_rate' => 'nullable|numeric|min:0',
             'delivery_free_threshold' => 'nullable|numeric|min:0',
             'delivery_use_zone_pricing' => 'boolean',
-            'delivery_zone_config' => 'nullable|array',
+            'delivery_zone_config' => 'nullable|json',
             // Cash drawer fields
             'cash_drawer_auto_open_after_cash_sale' => 'boolean',
             'cash_drawer_auto_open_for_cash_in' => 'boolean',
@@ -92,6 +92,7 @@ class StoreSettingController extends Controller
             'tra_tin_number' => 'nullable|string|max:20',
             'tra_vfd_serial' => 'nullable|string|max:50',
             'tra_licence' => 'nullable|string|max:1000',
+            'online_market_enabled' => 'boolean',
         ]);
 
         $data = $request->all();
@@ -114,11 +115,23 @@ class StoreSettingController extends Controller
             'cash_drawer_auto_open_for_cash_in',
             'cash_drawer_auto_open_for_cash_out',
             'cash_drawer_open_before_sale',
-            'vfd_enabled'
+            'vfd_enabled',
+            'online_market_enabled'
         ];
         
         foreach ($checkboxFields as $field) {
             $data[$field] = $request->has($field) ? true : false;
+        }
+
+        // Normalize delivery_zone_config: the form submits a JSON string, store as array
+        if (array_key_exists('delivery_zone_config', $data)) {
+            $zoneConfig = $data['delivery_zone_config'];
+            if (is_string($zoneConfig) && trim($zoneConfig) !== '') {
+                $decoded = json_decode($zoneConfig, true);
+                $data['delivery_zone_config'] = is_array($decoded) ? $decoded : [];
+            } elseif (trim((string) $zoneConfig) === '') {
+                $data['delivery_zone_config'] = [];
+            }
         }
         
         \Log::info('StoreSettingController update - Data after checkbox processing:', $data);

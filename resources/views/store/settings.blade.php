@@ -82,6 +82,23 @@
                 </div>
             </div>
 
+            <!-- Online Market Section -->
+            <div class="mb-8">
+                <h3 class="text-lg font-semibold text-primary-900 mb-4 border-b border-gray-200 pb-2">
+                    <i class="fas fa-globe mr-2"></i>
+                    Online Market
+                </h3>
+                <div class="p-4 bg-gray-50 rounded-xl border border-gray-200">
+                    <label class="flex items-center gap-3">
+                        <input type="checkbox" name="online_market_enabled" value="1" {{ $settings->online_market_enabled ? 'checked' : '' }} class="w-5 h-5 rounded border-gray-300 text-primary-600 focus:ring-primary-500">
+                        <div>
+                            <span class="text-base font-semibold text-gray-700">Enable Online Market</span>
+                            <p class="text-xs text-gray-500 mt-1">Switch the public online shop on or off. When turned off, customers see an "online store closed" message and cannot browse the catalogue.</p>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
             <!-- Map / OpenRouteService Section -->
             <div class="mb-8">
                 <h3 class="text-lg font-semibold text-primary-900 mb-4 border-b border-gray-200 pb-2">
@@ -139,13 +156,10 @@
                                 <i class="fas fa-eye"></i>
                                 View Sitemap
                             </a>
-                            <form method="POST" action="{{ route('store.settings.regenerate-sitemap') }}">
-                                @csrf
-                                <button type="submit" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2">
-                                    <i class="fas fa-sync"></i>
-                                    Regenerate Sitemap
-                                </button>
-                            </form>
+                            <button type="submit" form="regenerate-sitemap-form" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2">
+                                <i class="fas fa-sync"></i>
+                                Regenerate Sitemap
+                            </button>
                         </div>
                     </div>
 
@@ -320,6 +334,10 @@
                     Save Settings
                 </button>
             </div>
+        </form>
+
+        <form id="regenerate-sitemap-form" method="POST" action="{{ route('store.settings.regenerate-sitemap') }}" class="hidden">
+            @csrf
         </form>
     </div>
 </div>

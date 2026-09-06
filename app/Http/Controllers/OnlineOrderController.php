@@ -180,6 +180,11 @@ class OnlineOrderController extends Controller
 
     public function shop()
     {
+        $settings = \App\Models\StoreSetting::firstOrCreate();
+        if (!$settings->online_market_enabled) {
+            return $this->offlinePage($settings);
+        }
+
         $query = Product::where('is_active', true)
             ->where('is_available_online', true)
             ->where('quantity', '>', 0)
@@ -224,15 +229,17 @@ class OnlineOrderController extends Controller
             ->take(8)
             ->get();
 
-        $settings = \App\Models\StoreSetting::firstOrCreate();
-
         return view('shop.index', compact('products', 'slides', 'categories', 'selectedCategory', 'settings', 'deals', 'featured'));
     }
 
     public function showProduct(Product $product)
     {
-        $product->load(['category', 'brand', 'images']);
         $settings = \App\Models\StoreSetting::firstOrCreate();
+        if (!$settings->online_market_enabled) {
+            return $this->offlinePage($settings);
+        }
+
+        $product->load(['category', 'brand', 'images']);
         $categories = \App\Models\Category::where('is_active', true)->get();
         return view('shop.product', compact('product', 'settings', 'categories'));
     }
@@ -240,8 +247,18 @@ class OnlineOrderController extends Controller
     public function checkout()
     {
         $settings = \App\Models\StoreSetting::firstOrCreate();
+        if (!$settings->online_market_enabled) {
+            return $this->offlinePage($settings);
+        }
+
         $categories = \App\Models\Category::where('is_active', true)->get();
         return view('shop.checkout', compact('settings', 'categories'));
+    }
+
+    private function offlinePage($settings)
+    {
+        $categories = \App\Models\Category::where('is_active', true)->get();
+        return response(view('shop.offline', compact('settings', 'categories')), 503);
     }
 
     public function create()

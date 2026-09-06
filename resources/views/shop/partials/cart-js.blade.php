@@ -55,6 +55,7 @@ function addToCart(id, name, price) {
   updateCartUI();
   animateCartButton(id);
   showToast(name + ' ' + '{{ __('added to cart') }}', 'cart');
+  openCart();
 }
 
 function changeQty(id, delta, name = null, price = null) {

@@ -89,6 +89,8 @@ class StoreSetting extends Model
         'privacy_policy',
         'rider_terms',
         'rider_privacy_policy',
+        // Online Market Settings
+        'online_market_enabled',
     ];
     
     protected $casts = [
@@ -110,6 +112,7 @@ class StoreSetting extends Model
         'sitemap_search_engine_status' => 'array',
         'sitemap_last_generated_at' => 'datetime',
         'vat_registered' => 'boolean',
+        'online_market_enabled' => 'boolean',
     ];
 
     /**
