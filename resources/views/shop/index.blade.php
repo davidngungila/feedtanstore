@@ -195,6 +195,7 @@
 .product-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:20px;}
   @media(max-width:1080px){.product-grid{grid-template-columns:repeat(3,minmax(0,1fr));}}
   @media(max-width:760px){.product-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;}}
+  @media(max-width:480px){.product-grid{grid-template-columns:repeat(1,minmax(0,1fr));gap:15px;}}
 
 .p-card{
   background:#fff;border-radius:var(--radius-m);overflow:hidden;box-shadow:var(--shadow-card);
