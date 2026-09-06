@@ -37,6 +37,8 @@ class AppServiceProvider extends ServiceProvider
         // Product::observe(SitemapObserver::class);
         // Category::observe(SitemapObserver::class);
 
+        require_once base_path('app/Helpers/seo.php');
+
         // Share notification counts with all views
         View::composer('*', function ($view) {
             $outOfStockCount = Product::where('quantity', 0)->count();
