@@ -1,9 +1,14 @@
 <?php
 
+use App\Http\Controllers\Api\AppNotificationController;
+use App\Http\Controllers\Api\AttendanceAuthController;
+use App\Http\Controllers\Api\AttendanceController;
+use App\Http\Controllers\Api\AttendanceProfileController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CatalogController;
 use App\Http\Controllers\Api\DeviceTokenController;
 use App\Http\Controllers\Api\DispatchRequestController;
+use App\Http\Controllers\Api\LeaveController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\PublicController;
 use App\Http\Controllers\Api\RiderController;
@@ -13,6 +18,12 @@ use App\Http\Controllers\OnlineOrderController;
 use App\Models\DeliveryRider;
 use App\Models\OnlineOrder;
 use Illuminate\Support\Facades\Route;
+
+// ===================== ATTENDANCE MVP PUBLIC ROUTES =====================
+Route::prefix('attendance')->group(function () {
+    Route::post('/login', [AttendanceAuthController::class, 'login']);
+    Route::post('/forgot-password', [AttendanceAuthController::class, 'forgotPassword']);
+});
 
 // Public routes
 Route::post('/auth/login', [AuthController::class, 'login']);
@@ -35,6 +46,46 @@ Route::get('/realtime/orders', function () {
     $orders = OnlineOrder::with(['rider', 'items.product'])->whereNotNull('delivery_latitude')->whereNotNull('delivery_longitude')->get();
 
     return response()->json($orders);
+});
+
+// ===================== ATTENDANCE MVP PROTECTED ROUTES =====================
+Route::middleware('auth:sanctum')->prefix('attendance')->group(function () {
+    Route::post('/logout', [AttendanceAuthController::class, 'logout']);
+    Route::get('/me', [AttendanceAuthController::class, 'me']);
+
+    // Dashboard
+    Route::get('/dashboard', [AttendanceController::class, 'dashboard']);
+    Route::get('/today', [AttendanceController::class, 'today']);
+    Route::get('/stats', [AttendanceController::class, 'stats']);
+
+    // Check In / Check Out
+    Route::post('/check-in', [AttendanceController::class, 'checkIn']);
+    Route::post('/check-out', [AttendanceController::class, 'checkOut']);
+
+    // Attendance History & Calendar
+    Route::get('/history', [AttendanceController::class, 'history']);
+    Route::get('/calendar', [AttendanceController::class, 'calendar']);
+
+    // Profile
+    Route::get('/profile', [AttendanceProfileController::class, 'show']);
+    Route::put('/profile', [AttendanceProfileController::class, 'update']);
+    Route::post('/profile/photo', [AttendanceProfileController::class, 'updatePhoto']);
+    Route::post('/profile/change-password', [AttendanceProfileController::class, 'changePassword']);
+
+    // Leave Management
+    Route::get('/leaves', [LeaveController::class, 'index']);
+    Route::post('/leaves', [LeaveController::class, 'store']);
+    Route::get('/leaves/{id}', [LeaveController::class, 'show']);
+    Route::post('/leaves/{id}/cancel', [LeaveController::class, 'cancel']);
+    Route::post('/leaves/{id}/review', [LeaveController::class, 'review']); // manager/admin
+
+    // Notifications
+    Route::get('/notifications', [AppNotificationController::class, 'index']);
+    Route::get('/notifications/unread-count', [AppNotificationController::class, 'unreadCount']);
+    Route::post('/notifications/{id}/read', [AppNotificationController::class, 'markRead']);
+    Route::post('/notifications/read-all', [AppNotificationController::class, 'markAllRead']);
+    Route::delete('/notifications/{id}', [AppNotificationController::class, 'destroy']);
+    Route::delete('/notifications/clear/read', [AppNotificationController::class, 'clearRead']);
 });
 
 // Protected routes (Sanctum auth)
