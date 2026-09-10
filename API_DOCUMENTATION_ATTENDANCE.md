@@ -15,6 +15,7 @@
 3. [Authentication](#3-authentication)
 4. [Dashboard & Today Status](#4-dashboard--today-status)
 5. [Check In / Check Out](#5-check-in--check-out)
+   - 5.3 [Biometric (Fingerprint/Face)](#53-biometric-authentication-fingerprintface--recommended)
 6. [Attendance History & Calendar](#6-attendance-history--calendar)
 7. [Profile](#7-profile)
 8. [Leave Management](#8-leave-management)
@@ -36,7 +37,7 @@ The simplest integration path for MVP. Implement these 5 screens only. All other
 |---|--------|-------------|--------|
 | 1 | **Login** | `POST /attendance/login` | Phone/Email + Password → receives `token`. Save to `flutter_secure_storage`. |
 | 2 | **Dashboard** | `GET /attendance/dashboard` | Shows `today.status` (present/absent/late/leave), `check_in`, `check_out`, `working_hours_formatted`, `can_check_in`, `can_check_out`. Single **Check In** / **Check Out** button. |
-| 3 | **Check In/Out** | `POST /attendance/check-in` <br> `POST /attendance/check-out` | On button tap: get GPS (`Geolocator`), optional selfie (`image_picker`), POST as `multipart/form-data`. On success reload dashboard. |
+| 3 | **Check In/Out** | `POST /attendance/check-in` <br> `POST /attendance/check-out` | On button tap: **Biometric prompt** (`local_auth`) → get GPS (`Geolocator`) → optional selfie (`image_picker`) → POST as `multipart/form-data` with `biometric_verified=true`. On success reload dashboard. |
 | 4 | **Attendance History** | `GET /attendance/history` <br> `GET /attendance/calendar` | List: Date, Check-in, Check-out, Total hours, Status. Calendar: colors Present(Green)/Absent(Red)/Late(Orange)/Leave(Blue). |
 | 5 | **Profile** | `GET /attendance/profile` | Name, Employee ID, Department, Position, Phone, Profile photo. `POST /attendance/profile/photo` for update. |
 
@@ -231,7 +232,11 @@ Aggregated data for dashboard cards + check-in/out button state.
     "working_hours": 2.35,
     "working_hours_formatted": "02:21",
     "can_check_in": false,
-    "can_check_out": true
+    "can_check_out": true,
+    "check_in_biometric_verified": true,
+    "check_out_biometric_verified": false,
+    "check_in_biometric_type": "fingerprint",
+    "check_out_biometric_type": null
   },
   "month_summary": {
     "month": "2026-09",
@@ -344,15 +349,30 @@ Both endpoints accept `multipart/form-data` because of optional selfie. Send as 
 | `longitude` | decimal | **yes** | `-180` to `180` |
 | `address` | string | no | Reverse-geocoded address |
 | `photo` | file (image) | no | Selfie – jpeg/png/webp, max 4MB |
+| `biometric_verified` | boolean | no | `true` if device biometric succeeded. **Recommended `true`** |
+| `biometric_type` | string | no | `fingerprint` \| `face` \| `iris` \| `none` |
+| `device_info` | object | no | `{ platform: android/ios, model, device_id, app_version }` |
+| `device_info.platform` | string | no | `android` / `ios` |
+| `device_info.model` | string | no | e.g., `Pixel 7` |
+| `device_info.device_id` | string | no | `Android ID` / `identifierForVendor` |
+| `device_info.app_version` | string | no | `1.0.0` |
 
-**cURL:**
+> **No fingerprint template is sent/stored.** Phone OS verifies fingerprint, app only sends `biometric_verified=true`.
+
+**cURL (with biometric):**
 ```bash
 curl -X POST "https://feedtanstore.com/api/attendance/check-in" \
   -H "Authorization: Bearer TOKEN" \
   -F "latitude=-3.3869" \
   -F "longitude=36.6883" \
   -F "address=Moshi, Kilimanjaro" \
-  -F "photo=@/path/to/selfie.jpg"
+  -F "photo=@/path/to/selfie.jpg" \
+  -F "biometric_verified=1" \
+  -F "biometric_type=fingerprint" \
+  -F "device_info[platform]=android" \
+  -F "device_info[model]=Pixel 7" \
+  -F "device_info[device_id]=abc123" \
+  -F "device_info[app_version]=1.0.0"
 ```
 
 **Success 201:**
@@ -388,7 +408,7 @@ If late (>09:15 per `WorkShift` or default 09:00): `"message": "Checked in succe
 **Auth:** Required
 **Content-Type:** `multipart/form-data`
 
-Same fields as Check In. Requires prior Check In.
+Same fields as Check In (including `biometric_verified`, `biometric_type`, `device_info`). Requires prior Check In.
 
 **Success 200:**
 ```json
@@ -415,7 +435,66 @@ Same fields as Check In. Requires prior Check In.
 
 ---
 
-### Check In/Check Out Flutter Implementation
+### 5.3 Biometric Authentication (Fingerprint/Face) – Recommended
+
+> **Do NOT store fingerprint images/templates in Laravel.** Use the phone's built-in Secure Enclave / TEE via `local_auth`. Backend only records `biometric_verified=true`.
+
+**Architecture (exactly as you described):**
+```
+Flutter App
+    ↓
+local_auth (Biometric API)
+    ↓
+Android BiometricPrompt / iOS FaceID/TouchID
+    ↓
+Fingerprint / Face
+    ↓
+Success → App calls Attendance API with biometric_verified=true
+    ↓
+Laravel Backend → Attendance DB (boolean, no template)
+```
+
+**Strongest combo for attendance fraud prevention:**
+```
+Fingerprint (local_auth) + GPS (Geolocator) + Employee Account (Bearer token)
+→ must be authenticated user + be within workplace + biometric on same device
+```
+
+**Flow in app:**
+1. Employee logs in first time → `SharedPreferences.setBool('biometric_enabled', false)` → prompt “Enable fingerprint attendance?”
+2. Enable → `LocalAuthentication().authenticate(...)` test → save enabled flag.
+3. On Check In/Out:
+   ```
+   Tap [ CHECK IN ]
+        ↓
+   🔐 Verify your identity
+   Touch the fingerprint sensor
+        ↓
+   Success → get GPS → POST /attendance/check-in (biometric_verified=1)
+   Fail/Cancel → show error, do NOT call API
+   ```
+
+**UI states for Dashboard (copy your example):**
+```
+Good Morning, David 👋
+────────────────────
+Today's Attendance
+Check In       08:42
+Check Out      --:--
+Working Hours  02:21
+        [ CHECK IN ]   ← after fingerprint
+────────────────────
+📍 Location: Verified
+🔐 Fingerprint: Required → Verified ✓
+```
+
+**Security notes:**
+- Backend trusts `biometric_verified` flag; for higher security consider app attestation (Play Integrity / DeviceCheck) – out of MVP scope.
+- If device has no biometric enrolled, fallback to PIN or skip biometric (send `biometric_verified=false`). Server still accepts but marks `check_in_biometric_verified=false` visible in dashboard/history.
+
+---
+
+### Check In/Check Out Flutter Implementation (with Biometric)
 
 **Dependencies:**
 ```yaml
@@ -425,6 +504,9 @@ dependencies:
   image_picker: ^1.0.7
   flutter_secure_storage: ^9.0.0
   intl: ^0.19.0
+  local_auth: ^2.1.8
+  shared_preferences: ^2.2.3
+  device_info_plus: ^10.1.0 # for device_info
 ```
 
 **Geolocator helper:**
@@ -442,29 +524,133 @@ Future<Position> getCurrentPosition() async {
 }
 ```
 
-**Dio FormData helpers:**
+**Biometric helper (`local_auth`):**
 ```dart
-Future<Map<String,dynamic>> checkIn({double? lat, double? lng, String? address, XFile? photo}) async {
+import 'package:local_auth/local_auth.dart';
+import 'package:flutter/services.dart';
+
+class BiometricService {
+  final LocalAuthentication _auth = LocalAuthentication();
+
+  Future<bool> isAvailable() async {
+    final canCheck = await _auth.canCheckBiometrics;
+    final isDeviceSupported = await _auth.isDeviceSupported();
+    return canCheck && isDeviceSupported;
+  }
+
+  Future<List<BiometricType>> availableTypes() => _auth.getAvailableBiometrics();
+
+  // Returns true if verified, false if cancelled/failed
+  Future<bool> authenticate({String reason = 'Verify your identity to confirm attendance'}) async {
+    try {
+      final ok = await _auth.authenticate(
+        localizedReason: reason,
+        options: const AuthenticationOptions(biometricOnly: true, stickyAuth: true),
+      );
+      return ok;
+    } on PlatformException catch (e) {
+      print('Biometric error: $e');
+      return false;
+    }
+  }
+}
+```
+
+**Device info helper:**
+```dart
+import 'package:device_info_plus/device_info_plus.dart';
+import 'dart:io';
+
+Future<Map<String,String>> getDeviceInfo() async {
+  final di = DeviceInfoPlugin();
+  if (Platform.isAndroid) {
+    final a = await di.androidInfo;
+    return {'platform':'android','model': a.model ?? 'android','device_id': a.id ?? '','app_version':'1.0.0'};
+  } else {
+    final i = await di.iosInfo;
+    return {'platform':'ios','model': i.model ?? 'ios','device_id': i.identifierForVendor ?? '','app_version':'1.0.0'};
+  }
+}
+```
+
+**Dio FormData helpers (with biometric):**
+```dart
+Future<Map<String,dynamic>> checkIn({double? lat, double? lng, String? address, XFile? photo, bool requireBiometric = true}) async {
+  // 1. Biometric first – phone does verification
+  bool bioOk = false;
+  String bioType = 'none';
+  if (requireBiometric) {
+    final bio = BiometricService();
+    if (await bio.isAvailable()) {
+      bioOk = await bio.authenticate(reason: 'Touch the fingerprint sensor to confirm attendance');
+      if (!bioOk) throw Exception('Biometric verification failed/cancelled');
+      final types = await bio.availableTypes();
+      bioType = types.contains(BiometricType.face) ? 'face' : 'fingerprint';
+    }
+  }
+  // 2. GPS
   Position pos = await getCurrentPosition(); // if lat/lng not supplied
+  final deviceInfo = await getDeviceInfo();
   final form = FormData.fromMap({
     'latitude': lat ?? pos.latitude,
     'longitude': lng ?? pos.longitude,
     if (address != null) 'address': address,
     if (photo != null) 'photo': await MultipartFile.fromFile(photo.path, filename: 'selfie.jpg'),
+    'biometric_verified': bioOk ? '1' : '0',
+    'biometric_type': bioType,
+    'device_info[platform]': deviceInfo['platform'],
+    'device_info[model]': deviceInfo['model'],
+    'device_info[device_id]': deviceInfo['device_id'],
+    'device_info[app_version]': deviceInfo['app_version'],
   });
   final res = await dio.post('/attendance/check-in', data: form);
   return res.data;
 }
 
-Future<Map<String,dynamic>> checkOut({XFile? photo}) async {
+Future<Map<String,dynamic>> checkOut({XFile? photo, bool requireBiometric = true}) async {
+  bool bioOk = false; String bioType = 'none';
+  if (requireBiometric) {
+    final bio = BiometricService();
+    if (await bio.isAvailable()) {
+      bioOk = await bio.authenticate(reason: 'Verify to check out');
+      if (!bioOk) throw Exception('Biometric cancelled');
+      final types = await bio.availableTypes();
+      bioType = types.contains(BiometricType.face) ? 'face' : 'fingerprint';
+    }
+  }
   Position pos = await getCurrentPosition();
+  final deviceInfo = await getDeviceInfo();
   final form = FormData.fromMap({
     'latitude': pos.latitude,
     'longitude': pos.longitude,
     if (photo != null) 'photo': await MultipartFile.fromFile(photo.path, filename: 'selfie.jpg'),
+    'biometric_verified': bioOk ? '1' : '0',
+    'biometric_type': bioType,
+    'device_info[platform]': deviceInfo['platform'],
+    'device_info[model]': deviceInfo['model'],
+    'device_info[device_id]': deviceInfo['device_id'],
   });
   final res = await dio.post('/attendance/check-out', data: form);
   return res.data;
+}
+```
+
+**Enable prompt on first login (SharedPreferences):**
+```dart
+Future<void> promptEnableBiometric(BuildContext context) async {
+  final prefs = await SharedPreferences.getInstance();
+  if (prefs.getBool('biometric_enabled') == true) return;
+  final bio = BiometricService();
+  if (!await bio.isAvailable()) return;
+  final enable = await showDialog<bool>(context: context, builder: (_) => AlertDialog(
+    title: const Text('Enable fingerprint attendance?'),
+    content: const Text('Use your fingerprint/face to check in faster next time.'),
+    actions: [TextButton(onPressed: ()=> Navigator.pop(context,false), child: const Text('Later')), ElevatedButton(onPressed: ()=> Navigator.pop(context,true), child: const Text('Enable'))],
+  ));
+  if (enable == true) {
+    final ok = await bio.authenticate(reason: 'Enable biometric for attendance');
+    await prefs.setBool('biometric_enabled', ok);
+  }
 }
 ```
 
@@ -1152,6 +1338,11 @@ dio.interceptors.add(InterceptorsWrapper(
   "working_hours_formatted": "string HH:MM | null (appended)",
   "status": "string: present|absent|late|leave|half-day",
   "notes": "string | null",
+  "check_in_biometric_verified": "boolean (true if phone fingerprint/face succeeded)",
+  "check_out_biometric_verified": "boolean",
+  "check_in_biometric_type": "string fingerprint|face|iris|none | null",
+  "check_out_biometric_type": "string | null",
+  "device_info": "object | null { platform, model, device_id, app_version }",
   "created_at": "datetime",
   "updated_at": "datetime"
 }
@@ -1225,6 +1416,9 @@ dependencies:
   intl: ^0.19.0
   provider: ^6.1.2        # or flutter_riverpod
   cached_network_image: ^3.3.0
+  local_auth: ^2.1.8
+  shared_preferences: ^2.2.3
+  device_info_plus: ^10.1.0
 
 dev_dependencies:
   flutter_lints: ^4.0.0
@@ -1401,25 +1595,58 @@ class AttendanceService {
     return res.data;
   }
 
-  Future<Map<String,dynamic>> checkIn({XFile? photo, String? address}) async {
+  // With biometric (recommended)
+  Future<Map<String,dynamic>> checkIn({XFile? photo, String? address, bool requireBiometric = true}) async {
+    bool bioOk = false; String bioType = 'none';
+    if (requireBiometric) {
+      final bio = BiometricService(); // see 5.3
+      if (await bio.isAvailable()) {
+        bioOk = await bio.authenticate(reason: 'Touch fingerprint sensor to confirm attendance');
+        if (!bioOk) throw Exception('Biometric cancelled');
+        final types = await bio.availableTypes();
+        bioType = types.contains(BiometricType.face) ? 'face' : 'fingerprint';
+      }
+    }
     final pos = await _getPos();
+    final dev = await getDeviceInfo();
     final form = FormData.fromMap({
       'latitude': pos.latitude,
       'longitude': pos.longitude,
       if (address != null) 'address': address,
       if (photo != null) 'photo': await MultipartFile.fromFile(photo.path, filename: photo.name),
+      'biometric_verified': bioOk ? '1' : '0',
+      'biometric_type': bioType,
+      'device_info[platform]': dev['platform'],
+      'device_info[model]': dev['model'],
+      'device_info[device_id]': dev['device_id'],
     });
     final res = await _dio.post('/attendance/check-in', data: form);
     return res.data;
   }
 
-  Future<Map<String,dynamic>> checkOut({XFile? photo, String? address}) async {
+  Future<Map<String,dynamic>> checkOut({XFile? photo, String? address, bool requireBiometric = true}) async {
+    bool bioOk = false; String bioType = 'none';
+    if (requireBiometric) {
+      final bio = BiometricService();
+      if (await bio.isAvailable()) {
+        bioOk = await bio.authenticate(reason: 'Verify to check out');
+        if (!bioOk) throw Exception('Biometric cancelled');
+        final types = await bio.availableTypes();
+        bioType = types.contains(BiometricType.face) ? 'face' : 'fingerprint';
+      }
+    }
     final pos = await _getPos();
+    final dev = await getDeviceInfo();
     final form = FormData.fromMap({
       'latitude': pos.latitude,
       'longitude': pos.longitude,
       if (address != null) 'address': address,
       if (photo != null) 'photo': await MultipartFile.fromFile(photo.path, filename: photo.name),
+      'biometric_verified': bioOk ? '1' : '0',
+      'biometric_type': bioType,
+      'device_info[platform]': dev['platform'],
+      'device_info[model]': dev['model'],
+      'device_info[device_id]': dev['device_id'],
     });
     final res = await _dio.post('/attendance/check-out', data: form);
     return res.data;
@@ -1646,6 +1873,8 @@ class _SplashScreenState extends State<SplashScreen> {
 <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 <uses-permission android:name="android.permission.CAMERA" />
 <uses-permission android:name="android.permission.INTERNET" />
+<uses-permission android:name="android.permission.USE_BIOMETRIC" />
+<uses-permission android:name="android.permission.USE_FINGERPRINT" /> <!-- legacy -->
 ```
 
 ### iOS `ios/Runner/Info.plist`
@@ -1656,6 +1885,8 @@ class _SplashScreenState extends State<SplashScreen> {
 <string>Camera is used for optional attendance selfie</string>
 <key>NSPhotoLibraryUsageDescription</key>
 <string>Photo library access for profile photo</string>
+<key>NSFaceIDUsageDescription</key>
+<string>We use Face ID to securely verify your attendance</string>
 ```
 
 ### Runtime Permission Request (use Geolocator + permission_handler if needed)
@@ -1708,7 +1939,8 @@ token = (from login response)
 
 ## 15. Changelog
 
-- **2026-09-10**: Initial Attendance MVP API released. Endpoints under `/api/attendance/*` with Sanctum. Covers Login (phone/email), Dashboard, Check In/Out (GPS+photo), History/Calendar/Stats, Profile, Leave, Notifications.
+- **2026-09-10 (v2)**: **Biometric update** – `check-in/out` now accept `biometric_verified`, `biometric_type`, `device_info`. Backend stores `check_in/out_biometric_verified` (boolean, no template). Dashboard returns biometric flags. Docs add `local_auth` integration (no fingerprint stored on server). Security: phone OS verifies, server trusts flag + GPS + Bearer token.
+- **2026-09-10 (v1)**: Initial Attendance MVP API released. Endpoints under `/api/attendance/*` with Sanctum. Covers Login (phone/email), Dashboard, Check In/Out (GPS+photo), History/Calendar/Stats, Profile, Leave, Notifications.
 
 ---
 

@@ -99,6 +99,10 @@ class AttendanceController extends Controller
                 'working_hours_formatted' => $workingHoursFormatted,
                 'can_check_in' => !$todayAttendance || !$todayAttendance->check_in,
                 'can_check_out' => $todayAttendance && $todayAttendance->check_in && !$todayAttendance->check_out,
+                'check_in_biometric_verified' => $todayAttendance?->check_in_biometric_verified ?? false,
+                'check_out_biometric_verified' => $todayAttendance?->check_out_biometric_verified ?? false,
+                'check_in_biometric_type' => $todayAttendance?->check_in_biometric_type,
+                'check_out_biometric_type' => $todayAttendance?->check_out_biometric_type,
             ],
             'month_summary' => [
                 'month' => Carbon::now()->format('Y-m'),
@@ -142,7 +146,11 @@ class AttendanceController extends Controller
     /**
      * Check In
      * Required: latitude, longitude
-     * Optional: photo (image), address
+     * Optional: photo (image), address, biometric_verified, biometric_type, device_info
+     *
+     * Biometric flow (recommended): Flutter does local_auth first, then sends
+     *   biometric_verified=true + biometric_type=fingerprint|face + device_info
+     * Backend does NOT store fingerprint template, only boolean+type+device.
      */
     public function checkIn(Request $request)
     {
@@ -151,6 +159,14 @@ class AttendanceController extends Controller
             'longitude' => 'required|numeric|between:-180,180',
             'address' => 'nullable|string|max:500',
             'photo' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:4096',
+            // Biometric – phone handles verification, backend only records success
+            'biometric_verified' => 'nullable|boolean',
+            'biometric_type' => 'nullable|string|in:fingerprint,face,iris,none',
+            'device_info' => 'nullable|array',
+            'device_info.platform' => 'nullable|string|max:50',
+            'device_info.model' => 'nullable|string|max:100',
+            'device_info.device_id' => 'nullable|string|max:255',
+            'device_info.app_version' => 'nullable|string|max:50',
         ]);
 
         $user = $request->user();
@@ -211,16 +227,20 @@ class AttendanceController extends Controller
                 'check_in_address' => $request->address,
                 'check_in_photo' => $photoPath,
                 'status' => $status,
+                'check_in_biometric_verified' => $request->boolean('biometric_verified'),
+                'check_in_biometric_type' => $request->input('biometric_type'),
+                'device_info' => $request->input('device_info'),
             ]
         );
 
         // Create notification for successful check-in
+        $bioBadge = $request->boolean('biometric_verified') ? ' 🔐 Biometric verified' : '';
         AppNotification::create([
             'user_id' => $user->id,
             'title' => 'Check-in Successful',
-            'body' => 'You checked in at ' . $now->format('h:i A') . ($status === 'late' ? ' (Late)' : ''),
+            'body' => 'You checked in at ' . $now->format('h:i A') . ($status === 'late' ? ' (Late)' : '') . $bioBadge,
             'type' => $status === 'late' ? 'late' : 'attendance',
-            'data' => ['attendance_id' => $attendance->id, 'action' => 'check_in'],
+            'data' => ['attendance_id' => $attendance->id, 'action' => 'check_in', 'biometric_verified' => $request->boolean('biometric_verified')],
         ]);
 
         return response()->json([
@@ -232,7 +252,7 @@ class AttendanceController extends Controller
     /**
      * Check Out
      * Required: latitude, longitude
-     * Optional: photo (image), address
+     * Optional: photo (image), address, biometric_verified, biometric_type, device_info
      */
     public function checkOut(Request $request)
     {
@@ -241,6 +261,13 @@ class AttendanceController extends Controller
             'longitude' => 'required|numeric|between:-180,180',
             'address' => 'nullable|string|max:500',
             'photo' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:4096',
+            'biometric_verified' => 'nullable|boolean',
+            'biometric_type' => 'nullable|string|in:fingerprint,face,iris,none',
+            'device_info' => 'nullable|array',
+            'device_info.platform' => 'nullable|string|max:50',
+            'device_info.model' => 'nullable|string|max:100',
+            'device_info.device_id' => 'nullable|string|max:255',
+            'device_info.app_version' => 'nullable|string|max:50',
         ]);
 
         $user = $request->user();
@@ -274,6 +301,10 @@ class AttendanceController extends Controller
             'check_out_address' => $request->address,
             'check_out_photo' => $photoPath,
             'total_hours' => $totalHours,
+            'check_out_biometric_verified' => $request->boolean('biometric_verified'),
+            'check_out_biometric_type' => $request->input('biometric_type'),
+            // merge device_info if provided (keep original check-in device_info if not overwritten)
+            'device_info' => $request->input('device_info', $attendance->device_info),
         ]);
 
         // Notification

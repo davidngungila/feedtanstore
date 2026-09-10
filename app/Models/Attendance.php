@@ -23,6 +23,11 @@ class Attendance extends Model
         'total_hours',
         'check_in_address',
         'check_out_address',
+        'check_in_biometric_verified',
+        'check_out_biometric_verified',
+        'check_in_biometric_type',
+        'check_out_biometric_type',
+        'device_info',
     ];
 
     protected $casts = [
@@ -34,6 +39,9 @@ class Attendance extends Model
         'check_in_longitude' => 'decimal:7',
         'check_out_latitude' => 'decimal:7',
         'check_out_longitude' => 'decimal:7',
+        'check_in_biometric_verified' => 'boolean',
+        'check_out_biometric_verified' => 'boolean',
+        'device_info' => 'array',
     ];
 
     protected $appends = ['check_in_photo_url', 'check_out_photo_url', 'working_hours_formatted'];
