@@ -12,20 +12,9 @@
     <p class="text-xs text-gray-600 mb-3">Enter the <strong>driver code</strong> (e.g., rider vehicle plate, staff code, or route code) to use as reference for all sales you make <strong>today</strong>. Every sale/order created today will be tagged with this code and you can filter today's report by it.</p>
     <form method="POST" action="{{ route('field-sales.driver-code.store') }}" class="flex flex-wrap gap-2 items-end">
       @csrf
-      <div class="flex-1 min-w-[180px]">
+      <div class="flex-1 min-w-[220px]">
         <label class="form-label">Driver Code *</label>
         <input type="text" name="driver_code" value="{{ $driverCode ?? $todayDriver->driver_code ?? '' }}" required placeholder="e.g., DRV-001 / T123ABC / REF-DAVID2026" class="form-input input-field font-mono">
-      </div>
-      <div class="flex-1 min-w-[180px]">
-        <label class="form-label">Driver Name (optional)</label>
-        <input type="text" name="driver_name" value="{{ $todayDriver->driver_name ?? '' }}" placeholder="Driver full name" class="form-input input-field">
-      </div>
-      <div class="min-w-[180px]">
-        <label class="form-label">Link to Rider (optional)</label>
-        <select name="delivery_rider_id" class="form-input input-field">
-          <option value="">-- No rider --</option>
-          @foreach($riders as $r)<option value="{{ $r->id }}" {{ (isset($todayDriver) && $todayDriver->delivery_rider_id==$r->id)?'selected':'' }}>{{ $r->name }} ({{ $r->vehicle_plate ?? 'no plate' }})</option>@endforeach
-        </select>
       </div>
       <div>
         <label class="form-label">Date</label>
@@ -37,7 +26,7 @@
       @endif
     </form>
     @if($todayDriver)
-      <div class="mt-3 p-2 bg-white rounded border text-sm">Active today: <span class="font-mono font-bold text-primary-700">{{ $todayDriver->driver_code }}</span> @if($todayDriver->driver_name) – {{ $todayDriver->driver_name }} @endif @if($todayDriver->deliveryRider) (Rider: {{ $todayDriver->deliveryRider->name }}) @endif</div>
+      <div class="mt-3 p-2 bg-white rounded border text-sm">Active today: <span class="font-mono font-bold text-primary-700">{{ $todayDriver->driver_code }}</span></div>
     @endif
   </div>
 
