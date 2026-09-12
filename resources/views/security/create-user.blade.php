@@ -28,11 +28,11 @@
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Role</label>
                     <select name="role" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
-                        <option value="admin" {{ old('role') === 'admin' ? 'selected' : '' }}>Admin</option>
-                        <option value="cashier" {{ old('role') === 'cashier' ? 'selected' : '' }}>Cashier</option>
-                        <option value="manager" {{ old('role') === 'manager' ? 'selected' : '' }}>Manager</option>
-                        <option value="accountant" {{ old('role') === 'accountant' ? 'selected' : '' }}>Accountant</option>
+                        @foreach(\App\Support\Permissions::ROLES as $r)
+                            <option value="{{ $r }}" {{ old('role') === $r ? 'selected' : '' }}>{{ ucwords(str_replace('_',' ', $r)) }}</option>
+                        @endforeach
                     </select>
+                    <p class="text-xs text-gray-500 mt-1">All system roles including Auditor & Store Supervisor are now available.</p>
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Profile Image</label>
