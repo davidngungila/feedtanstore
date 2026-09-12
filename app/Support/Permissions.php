@@ -6,9 +6,12 @@ use App\Models\RolePermission;
 
 class Permissions
 {
-    public const ROLES = ['admin', 'manager', 'cashier', 'storekeeper', 'marketing_officer'];
+    public const ROLES = ['admin', 'manager', 'cashier', 'storekeeper', 'marketing_officer', 'field_sales', 'stock_auditor', 'external_auditor', 'online_sales', 'inventory_manager', 'rider'];
 
-    public const MODULES = ['sales', 'inventory', 'purchasing', 'hr', 'finance', 'reports', 'marketing', 'system'];
+    public const MODULES = ['sales', 'inventory', 'purchasing', 'hr', 'finance', 'reports', 'marketing', 'system', 'stock_verification', 'customer_demand', 'competitor_intel', 'field_sales', 'online_orders', 'audit', 'cashier_performance'];
+
+    // Role-module access matrix helpers for stock auditor / external auditor strict isolation
+    public const STRICT_AUDITOR_DENY = ['sales','purchases','purchasing','finance','reports','marketing','system','hr','customer_demand','competitor_intel','field_sales','online_orders','audit','cashier_performance'];
 
     public const ACTIONS = ['create', 'read', 'update', 'delete'];
 

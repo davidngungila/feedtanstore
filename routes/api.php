@@ -157,4 +157,52 @@ Route::middleware('auth:sanctum')->group(function () {
         ->middleware('throttle:tracking-api');
     Route::post('/tracking/sessions/{id}/route', [TrackingSessionController::class, 'route'])
         ->middleware('throttle:tracking-api');
+
+    // ===================== FIELD SALES MOBILE APP =====================
+    Route::prefix('field-sales')->group(function(){
+        Route::get('/dashboard', [\App\Http\Controllers\Api\FieldSalesController::class,'dashboard']);
+        Route::get('/products', [\App\Http\Controllers\Api\FieldSalesController::class,'products']);
+        Route::get('/products/{product}/availability', [\App\Http\Controllers\Api\FieldSalesController::class,'checkAvailability']);
+        Route::get('/customers', [\App\Http\Controllers\Api\FieldSalesController::class,'customers']);
+        Route::post('/customers', [\App\Http\Controllers\Api\FieldSalesController::class,'storeCustomer']);
+        Route::post('/orders', [\App\Http\Controllers\Api\FieldSalesController::class,'createOrder']);
+        Route::get('/orders', [\App\Http\Controllers\Api\FieldSalesController::class,'myOrders']);
+        Route::get('/orders/{order}', [\App\Http\Controllers\Api\FieldSalesController::class,'showOrder']);
+        Route::put('/orders/{order}/status', [\App\Http\Controllers\Api\FieldSalesController::class,'updateOrderStatus']);
+        Route::post('/orders/sync-offline', [\App\Http\Controllers\Api\FieldSalesController::class,'syncOffline']);
+        // Demand & competitor via field sales
+        Route::post('/demands', [\App\Http\Controllers\CustomerDemandController::class,'apiStore']);
+        Route::get('/demands', [\App\Http\Controllers\CustomerDemandController::class,'apiIndex']);
+        Route::post('/competitor-intel', [\App\Http\Controllers\CompetitorIntelligenceController::class,'apiStore']);
+        Route::get('/competitor-intel', [\App\Http\Controllers\CompetitorIntelligenceController::class,'apiIndex']);
+    });
+
+    // Stock Verification (auditor blind)
+    Route::prefix('stock-verification')->group(function(){
+        Route::get('/assigned', [\App\Http\Controllers\StockVerificationController::class,'apiAssignedSessions']);
+        Route::get('/{session}', [\App\Http\Controllers\StockVerificationController::class,'apiSessionDetail']);
+        Route::post('/{session}/submit', [\App\Http\Controllers\StockVerificationController::class,'apiSubmit']);
+    });
+
+    // POS offline sync
+    Route::prefix('offline')->group(function(){
+        Route::post('/queue', [\App\Http\Controllers\OfflineSyncController::class,'queue']);
+        Route::post('/sync', [\App\Http\Controllers\OfflineSyncController::class,'sync']);
+        Route::get('/status', [\App\Http\Controllers\OfflineSyncController::class,'status']);
+    });
+
+    // Customer demand / competitor / ratings / issues / cashier performance (mobile + POS)
+    Route::post('/customer-demands', [\App\Http\Controllers\CustomerDemandController::class,'apiStore']);
+    Route::post('/competitor-intel', [\App\Http\Controllers\CompetitorIntelligenceController::class,'apiStore']);
+    Route::post('/customer-ratings', [\App\Http\Controllers\CustomerRatingController::class,'apiStore']);
+    Route::post('/transaction-issues', [\App\Http\Controllers\TransactionIssueController::class,'apiStore']);
+    Route::post('/cashier-service-time/start', [\App\Http\Controllers\CashierPerformanceController::class,'start']);
+    Route::post('/cashier-service-time/end', [\App\Http\Controllers\CashierPerformanceController::class,'end']);
+
+    // Product search for field sales & POS
+    Route::get('/products/search', function(\Illuminate\Http\Request $r){
+        $q=\App\Models\Product::where('is_active',true);
+        if($r->filled('term')) $q->where('name','like','%'.$r->term.'%')->orWhere('barcode','like','%'.$r->term.'%');
+        return response()->json($q->with(['category'])->limit(50)->get());
+    });
 });

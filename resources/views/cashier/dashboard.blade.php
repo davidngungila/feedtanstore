@@ -440,8 +440,330 @@
     </div>
 </div>
 
-<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js">// ==================== OFFLINE POS + SERVICE TIMER + DEMAND + RATING ENHANCEMENTS ====================
+let serviceTimerActive = false;
+let serviceStartTime = null;
+let pendingSyncCount = 0;
+
+function generateLocalId(){ return 'LOCAL-' + Date.now() + '-' + Math.random().toString(36).substr(2,6).toUpperCase(); }
+function getOfflineQueue(){ try{ return JSON.parse(localStorage.getItem('offline_queue')||'[]'); }catch(e){return [];} }
+function setOfflineQueue(q){ localStorage.setItem('offline_queue', JSON.stringify(q)); updateSyncIndicator(); }
+function updateSyncIndicator(){
+    const q=getOfflineQueue();
+    const pending=q.filter(x=>x.sync_status==='pending' || x.sync_status==='failed').length;
+    pendingSyncCount=pending;
+    let el=document.getElementById('offlineSyncBadge');
+    if(!el){
+        const bar=document.querySelector('.card');
+        if(bar){
+            el=document.createElement('div');
+            el.id='offlineSyncBadge';
+            el.className='fixed bottom-4 right-4 z-50 px-3 py-2 rounded-full text-xs font-bold shadow-lg';
+            document.body.appendChild(el);
+        }
+    }
+    if(el){
+        if(!navigator.onLine){ el.textContent='● OFFLINE – '+pending+' pending'; el.className='fixed bottom-4 right-4 z-50 px-3 py-2 rounded-full text-xs font-bold shadow-lg bg-yellow-500 text-white'; }
+        else if(pending>0){ el.textContent='● '+pending+' Pending Sync'; el.className='fixed bottom-4 right-4 z-50 px-3 py-2 rounded-full text-xs font-bold shadow-lg bg-orange-500 text-white'; el.onclick=()=>syncOfflineQueue(); el.style.cursor='pointer'; }
+        else { el.textContent='● Synced'; el.className='fixed bottom-4 right-4 z-50 px-3 py-2 rounded-full text-xs font-bold shadow-lg bg-green-600 text-white'; }
+    }
+}
+function storeOfflineTransaction(payload){
+    const q=getOfflineQueue();
+    const localId=generateLocalId();
+    payload.local_transaction_id=localId;
+    payload.offline_created_at=new Date().toISOString();
+    q.push({local_transaction_id:localId, payload:payload, sync_status:'pending', offline_created_at:payload.offline_created_at, device_info:navigator.userAgent});
+    setOfflineQueue(q);
+    // also try to queue on server when online via /offline/queue if possible in background
+    if(navigator.onLine){
+        fetch('/offline/queue',{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-TOKEN':document.querySelector('meta[name="csrf-token"]').content},body:JSON.stringify({local_transaction_id:localId,payload:payload,offline_created_at:payload.offline_created_at,device_info:navigator.userAgent})}).catch(()=>{});
+    }
+    return localId;
+}
+async function syncOfflineQueue(){
+    const q=getOfflineQueue();
+    const pending=q.filter(x=>x.sync_status==='pending' || x.sync_status==='failed');
+    if(pending.length===0){ showNotification('No pending transactions','info'); return; }
+    let ok=0, fail=0;
+    for(let item of pending){
+        try{
+            const res=await fetch('/cashier/sale',{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-TOKEN':document.querySelector('meta[name="csrf-token"]').content},body:JSON.stringify(item.payload)});
+            if(res.ok){ item.sync_status='synced'; item.synced_at=new Date().toISOString(); const data=await res.json(); item.synced_sale_id=data.sale_id; ok++; }
+            else { const err=await res.json().catch(()=>({})); item.sync_status='failed'; item.last_error=err.error||'Sync failed'; fail++; }
+        }catch(e){ item.sync_status='failed'; item.last_error=e.message; fail++; }
+    }
+    setOfflineQueue(q);
+    // also hit /offline/sync for server queue
+    try{ await fetch('/offline/sync',{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-TOKEN':document.querySelector('meta[name="csrf-token"]').content},body:JSON.stringify({})}); }catch(e){}
+    showNotification(`Sync complete: ${ok} synced, ${fail} failed`, fail?'error':'success');
+    updateSyncIndicator();
+    loadDashboardData();
+}
+window.addEventListener('online', ()=>{ updateSyncIndicator(); syncOfflineQueue(); });
+window.addEventListener('offline', updateSyncIndicator);
+setTimeout(updateSyncIndicator,500);
+setInterval(updateSyncIndicator,5000);
+// Inject Demand & Sync buttons into Quick Actions
+setTimeout(()=>{
+    const qa=document.getElementById('quickActions');
+    if(qa){
+        const grid=qa.querySelector('.grid');
+        if(grid){
+            const btn=document.createElement('button');
+            btn.type='button'; btn.className='py-2 border border-blue-300 rounded-lg hover:bg-blue-50 text-blue-700 text-sm font-medium'; btn.innerHTML='<i class="fas fa-comment-dots mr-1"></i>Customer Demand'; btn.onclick=showDemandModal; grid.appendChild(btn);
+            const btn2=document.createElement('button');
+            btn2.type='button'; btn2.className='py-2 border border-orange-300 rounded-lg hover:bg-orange-50 text-orange-700 text-sm font-medium'; btn2.innerHTML='<i class="fas fa-sync mr-1"></i>Sync Offline'; btn2.onclick=syncOfflineQueue; grid.appendChild(btn2);
+        }
+    }
+},1200);
+
+// Service Timer: starts on New Sale or first product scan
+function startServiceTimer(trigger){
+    if(serviceTimerActive) return;
+    serviceTimerActive=true;
+    serviceStartTime=new Date();
+    fetch('/cashier-performance/start',{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-TOKEN':document.querySelector('meta[name="csrf-token"]').content},body:JSON.stringify({trigger:trigger})}).catch(()=>{});
+    console.log('Service timer started:',trigger,serviceStartTime);
+}
+function endServiceTimer(saleId){
+    if(!serviceTimerActive) return;
+    serviceTimerActive=false;
+    const duration=Math.floor((new Date()-serviceStartTime)/1000);
+    fetch('/cashier-performance/end',{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-TOKEN':document.querySelector('meta[name="csrf-token"]').content},body:JSON.stringify({sale_id:saleId})}).catch(()=>{});
+    console.log('Service timer ended, duration',duration);
+    return duration;
+}
+const origNewSale = window.newSale;
+window.newSale = function(){
+    // original behavior plus start timer
+    if(typeof origNewSale==='function'){ origNewSale(); }
+    cart=[]; renderCart(); startServiceTimer('new_sale');
+    document.getElementById('successModal')?.classList.add('hidden');
+}
+// Patch addProductToCart to auto-start timer on first scan
+const origAddProductToCart = window.addProductToCart;
+if(origAddProductToCart){
+    window.addProductToCart = function(id,name,price){
+        if(cart.length===0 && !serviceTimerActive){ startServiceTimer('first_scan'); }
+        return origAddProductToCart(id,name,price);
+    }
+}
+// Patch completeSale catch to handle offline
+const origShowNotification = window.showNotification;
+// Demand capture modal helpers
+function showDemandModal(){
+    const custId=document.getElementById('customerSelect')?.value||null;
+    const custName=document.getElementById('customerSearchInput')?.value||'Walk-in';
+    Swal.fire({
+        title:'What product would you like us to have next time?',
+        html:`<input id="demandProduct" class="swal2-input" placeholder="Product requested *">
+              <input id="demandQty" type="number" class="swal2-input" placeholder="Quantity" value="1" min="1">
+              <label style="display:flex;align-items:center;gap:6px;margin-top:8px;"><input type="checkbox" id="demandOOS"> Was out of stock</label>
+              <textarea id="demandNote" class="swal2-textarea" placeholder="Optional note"></textarea>`,
+        showCancelButton:true, confirmButtonText:'Submit Demand',
+        preConfirm:()=>{
+            const product=document.getElementById('demandProduct').value.trim();
+            if(!product) { Swal.showValidationMessage('Product required'); return false; }
+            return {
+                product_requested:product,
+                requested_quantity:parseInt(document.getElementById('demandQty').value)||1,
+                was_out_of_stock:document.getElementById('demandOOS').checked,
+                note:document.getElementById('demandNote').value,
+                customer_id: custId||null,
+                customer_name: custId?null:custName
+            };
+        }
+    }).then(res=>{
+        if(res.isConfirmed){
+            fetch('/customer-demands',{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-TOKEN':document.querySelector('meta[name="csrf-token"]').content},body:JSON.stringify(res.value)})
+            .then(r=>r.json()).then(()=>Swal.fire('Saved','Demand recorded','success')).catch(()=>Swal.fire('Error','Failed','error'));
+        }
+    });
+}
+function showRatingModal(saleId){
+    Swal.fire({
+        title:'Rate your shopping experience (1-5 ★)',
+        html:`<input id="ratingStars" type="number" min="1" max="5" class="swal2-input" placeholder="Rating 1-5">
+              <textarea id="ratingComment" class="swal2-textarea" placeholder="Comment (staff service, waiting time, etc.)"></textarea>`,
+        showCancelButton:true, confirmButtonText:'Submit Rating',
+        preConfirm:()=>{
+            const rating=parseInt(document.getElementById('ratingStars').value);
+            if(!rating||rating<1||rating>5){ Swal.showValidationMessage('Rating 1-5 required'); return false; }
+            return {rating:rating, comment:document.getElementById('ratingComment').value, sale_id:saleId};
+        }
+    }).then(res=>{
+        if(res.isConfirmed){
+            fetch('/customer-ratings',{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-TOKEN':document.querySelector('meta[name="csrf-token"]').content},body:JSON.stringify(res.value)})
+            .then(()=>Swal.fire('Thank you!','Rating submitted','success'));
+        }
+    });
+}
+// Hook after successful sale to offer demand + rating
+const origCompleteSaleCatchPatch = true;
+</script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11">// ==================== OFFLINE POS + SERVICE TIMER + DEMAND + RATING ENHANCEMENTS ====================
+let serviceTimerActive = false;
+let serviceStartTime = null;
+let pendingSyncCount = 0;
+
+function generateLocalId(){ return 'LOCAL-' + Date.now() + '-' + Math.random().toString(36).substr(2,6).toUpperCase(); }
+function getOfflineQueue(){ try{ return JSON.parse(localStorage.getItem('offline_queue')||'[]'); }catch(e){return [];} }
+function setOfflineQueue(q){ localStorage.setItem('offline_queue', JSON.stringify(q)); updateSyncIndicator(); }
+function updateSyncIndicator(){
+    const q=getOfflineQueue();
+    const pending=q.filter(x=>x.sync_status==='pending' || x.sync_status==='failed').length;
+    pendingSyncCount=pending;
+    let el=document.getElementById('offlineSyncBadge');
+    if(!el){
+        const bar=document.querySelector('.card');
+        if(bar){
+            el=document.createElement('div');
+            el.id='offlineSyncBadge';
+            el.className='fixed bottom-4 right-4 z-50 px-3 py-2 rounded-full text-xs font-bold shadow-lg';
+            document.body.appendChild(el);
+        }
+    }
+    if(el){
+        if(!navigator.onLine){ el.textContent='● OFFLINE – '+pending+' pending'; el.className='fixed bottom-4 right-4 z-50 px-3 py-2 rounded-full text-xs font-bold shadow-lg bg-yellow-500 text-white'; }
+        else if(pending>0){ el.textContent='● '+pending+' Pending Sync'; el.className='fixed bottom-4 right-4 z-50 px-3 py-2 rounded-full text-xs font-bold shadow-lg bg-orange-500 text-white'; el.onclick=()=>syncOfflineQueue(); el.style.cursor='pointer'; }
+        else { el.textContent='● Synced'; el.className='fixed bottom-4 right-4 z-50 px-3 py-2 rounded-full text-xs font-bold shadow-lg bg-green-600 text-white'; }
+    }
+}
+function storeOfflineTransaction(payload){
+    const q=getOfflineQueue();
+    const localId=generateLocalId();
+    payload.local_transaction_id=localId;
+    payload.offline_created_at=new Date().toISOString();
+    q.push({local_transaction_id:localId, payload:payload, sync_status:'pending', offline_created_at:payload.offline_created_at, device_info:navigator.userAgent});
+    setOfflineQueue(q);
+    // also try to queue on server when online via /offline/queue if possible in background
+    if(navigator.onLine){
+        fetch('/offline/queue',{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-TOKEN':document.querySelector('meta[name="csrf-token"]').content},body:JSON.stringify({local_transaction_id:localId,payload:payload,offline_created_at:payload.offline_created_at,device_info:navigator.userAgent})}).catch(()=>{});
+    }
+    return localId;
+}
+async function syncOfflineQueue(){
+    const q=getOfflineQueue();
+    const pending=q.filter(x=>x.sync_status==='pending' || x.sync_status==='failed');
+    if(pending.length===0){ showNotification('No pending transactions','info'); return; }
+    let ok=0, fail=0;
+    for(let item of pending){
+        try{
+            const res=await fetch('/cashier/sale',{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-TOKEN':document.querySelector('meta[name="csrf-token"]').content},body:JSON.stringify(item.payload)});
+            if(res.ok){ item.sync_status='synced'; item.synced_at=new Date().toISOString(); const data=await res.json(); item.synced_sale_id=data.sale_id; ok++; }
+            else { const err=await res.json().catch(()=>({})); item.sync_status='failed'; item.last_error=err.error||'Sync failed'; fail++; }
+        }catch(e){ item.sync_status='failed'; item.last_error=e.message; fail++; }
+    }
+    setOfflineQueue(q);
+    // also hit /offline/sync for server queue
+    try{ await fetch('/offline/sync',{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-TOKEN':document.querySelector('meta[name="csrf-token"]').content},body:JSON.stringify({})}); }catch(e){}
+    showNotification(`Sync complete: ${ok} synced, ${fail} failed`, fail?'error':'success');
+    updateSyncIndicator();
+    loadDashboardData();
+}
+window.addEventListener('online', ()=>{ updateSyncIndicator(); syncOfflineQueue(); });
+window.addEventListener('offline', updateSyncIndicator);
+setTimeout(updateSyncIndicator,500);
+setInterval(updateSyncIndicator,5000);
+// Inject Demand & Sync buttons into Quick Actions
+setTimeout(()=>{
+    const qa=document.getElementById('quickActions');
+    if(qa){
+        const grid=qa.querySelector('.grid');
+        if(grid){
+            const btn=document.createElement('button');
+            btn.type='button'; btn.className='py-2 border border-blue-300 rounded-lg hover:bg-blue-50 text-blue-700 text-sm font-medium'; btn.innerHTML='<i class="fas fa-comment-dots mr-1"></i>Customer Demand'; btn.onclick=showDemandModal; grid.appendChild(btn);
+            const btn2=document.createElement('button');
+            btn2.type='button'; btn2.className='py-2 border border-orange-300 rounded-lg hover:bg-orange-50 text-orange-700 text-sm font-medium'; btn2.innerHTML='<i class="fas fa-sync mr-1"></i>Sync Offline'; btn2.onclick=syncOfflineQueue; grid.appendChild(btn2);
+        }
+    }
+},1200);
+
+// Service Timer: starts on New Sale or first product scan
+function startServiceTimer(trigger){
+    if(serviceTimerActive) return;
+    serviceTimerActive=true;
+    serviceStartTime=new Date();
+    fetch('/cashier-performance/start',{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-TOKEN':document.querySelector('meta[name="csrf-token"]').content},body:JSON.stringify({trigger:trigger})}).catch(()=>{});
+    console.log('Service timer started:',trigger,serviceStartTime);
+}
+function endServiceTimer(saleId){
+    if(!serviceTimerActive) return;
+    serviceTimerActive=false;
+    const duration=Math.floor((new Date()-serviceStartTime)/1000);
+    fetch('/cashier-performance/end',{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-TOKEN':document.querySelector('meta[name="csrf-token"]').content},body:JSON.stringify({sale_id:saleId})}).catch(()=>{});
+    console.log('Service timer ended, duration',duration);
+    return duration;
+}
+const origNewSale = window.newSale;
+window.newSale = function(){
+    // original behavior plus start timer
+    if(typeof origNewSale==='function'){ origNewSale(); }
+    cart=[]; renderCart(); startServiceTimer('new_sale');
+    document.getElementById('successModal')?.classList.add('hidden');
+}
+// Patch addProductToCart to auto-start timer on first scan
+const origAddProductToCart = window.addProductToCart;
+if(origAddProductToCart){
+    window.addProductToCart = function(id,name,price){
+        if(cart.length===0 && !serviceTimerActive){ startServiceTimer('first_scan'); }
+        return origAddProductToCart(id,name,price);
+    }
+}
+// Patch completeSale catch to handle offline
+const origShowNotification = window.showNotification;
+// Demand capture modal helpers
+function showDemandModal(){
+    const custId=document.getElementById('customerSelect')?.value||null;
+    const custName=document.getElementById('customerSearchInput')?.value||'Walk-in';
+    Swal.fire({
+        title:'What product would you like us to have next time?',
+        html:`<input id="demandProduct" class="swal2-input" placeholder="Product requested *">
+              <input id="demandQty" type="number" class="swal2-input" placeholder="Quantity" value="1" min="1">
+              <label style="display:flex;align-items:center;gap:6px;margin-top:8px;"><input type="checkbox" id="demandOOS"> Was out of stock</label>
+              <textarea id="demandNote" class="swal2-textarea" placeholder="Optional note"></textarea>`,
+        showCancelButton:true, confirmButtonText:'Submit Demand',
+        preConfirm:()=>{
+            const product=document.getElementById('demandProduct').value.trim();
+            if(!product) { Swal.showValidationMessage('Product required'); return false; }
+            return {
+                product_requested:product,
+                requested_quantity:parseInt(document.getElementById('demandQty').value)||1,
+                was_out_of_stock:document.getElementById('demandOOS').checked,
+                note:document.getElementById('demandNote').value,
+                customer_id: custId||null,
+                customer_name: custId?null:custName
+            };
+        }
+    }).then(res=>{
+        if(res.isConfirmed){
+            fetch('/customer-demands',{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-TOKEN':document.querySelector('meta[name="csrf-token"]').content},body:JSON.stringify(res.value)})
+            .then(r=>r.json()).then(()=>Swal.fire('Saved','Demand recorded','success')).catch(()=>Swal.fire('Error','Failed','error'));
+        }
+    });
+}
+function showRatingModal(saleId){
+    Swal.fire({
+        title:'Rate your shopping experience (1-5 ★)',
+        html:`<input id="ratingStars" type="number" min="1" max="5" class="swal2-input" placeholder="Rating 1-5">
+              <textarea id="ratingComment" class="swal2-textarea" placeholder="Comment (staff service, waiting time, etc.)"></textarea>`,
+        showCancelButton:true, confirmButtonText:'Submit Rating',
+        preConfirm:()=>{
+            const rating=parseInt(document.getElementById('ratingStars').value);
+            if(!rating||rating<1||rating>5){ Swal.showValidationMessage('Rating 1-5 required'); return false; }
+            return {rating:rating, comment:document.getElementById('ratingComment').value, sale_id:saleId};
+        }
+    }).then(res=>{
+        if(res.isConfirmed){
+            fetch('/customer-ratings',{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-TOKEN':document.querySelector('meta[name="csrf-token"]').content},body:JSON.stringify(res.value)})
+            .then(()=>Swal.fire('Thank you!','Rating submitted','success'));
+        }
+    });
+}
+// Hook after successful sale to offer demand + rating
+const origCompleteSaleCatchPatch = true;
+</script>
 <script>
 let cart = [];
 let selectedPaymentMethod = 'cash';
@@ -1679,6 +2001,14 @@ function completeSale() {
                                 loadDashboardData();
                                 playSuccessSound();
                                 
+                                // End service timer and offer demand/rating
+                                try{ endServiceTimer(currentSaleId); }catch(e){}
+                                setTimeout(()=>{
+                                    if(currentSaleId && Swal){
+                                        Swal.fire({title:'Sale Completed',text:'Ask: What product would you like us to have next time?', icon:'question', showCancelButton:true, confirmButtonText:'Record Demand', cancelButtonText:'Skip'}).then(r=>{ if(r.isConfirmed) showDemandModal(); });
+                                    }
+                                },800);
+                                setTimeout(()=>{ if(currentSaleId) showRatingModal(currentSaleId); },1500);
                                 // Auto-print receipt after showing success modal
                                 setTimeout(() => {
                                     if (currentSaleId) {
@@ -1692,8 +2022,26 @@ function completeSale() {
                         .catch(e => {
                             console.error('=== Error in completeSale ===', e);
                             document.getElementById('loadingOverlay').classList.add('hidden');
-                            isProcessing = false; // Reset processing flag on error
-                            showNotification(e.error || e.message || 'Error completing sale', 'error');
+                            isProcessing = false;
+                            // Offline fallback: if network error or offline, store locally and show pending sync
+                            const isNetworkError = !navigator.onLine || (e.message && e.message.includes('Failed to fetch')) || e.error?.toString().includes('Failed to fetch');
+                            if(!navigator.onLine || isNetworkError){
+                                // reconstruct payload for offline storage (from earlier formattedCart etc.)
+                                try{
+                                    const offPayload={items:formattedCart, total:total, discount:0, paid:paid, payment_method:selectedPaymentMethod, customer_id:customerId?parseInt(customerId):null };
+                                    const localId=storeOfflineTransaction(offPayload);
+                                    showNotification('Offline – transaction saved locally ('+localId+'). Will sync when online.','info');
+                                    // show success modal as pending sync
+                                    currentSaleId=null;
+                                    document.getElementById('modalTotal').textContent='TZS '+formatNumber(total);
+                                    document.getElementById('modalPaid').textContent='TZS '+formatNumber(paid);
+                                    document.getElementById('modalChange').textContent='Pending Sync';
+                                    document.getElementById('successModal').classList.remove('hidden');
+                                    updateSyncIndicator();
+                                }catch(oe){ showNotification('Error saving offline: '+oe.message,'error'); }
+                            } else {
+                                showNotification(e.error || e.message || 'Error completing sale', 'error');
+                            }
                         });
                     }, 200);
                 }, 200);
@@ -2267,5 +2615,166 @@ function openPaymentProgressModal(orderNumber, trackingUrl, pdfUrl) {
         });
     });
 }
+// ==================== OFFLINE POS + SERVICE TIMER + DEMAND + RATING ENHANCEMENTS ====================
+let serviceTimerActive = false;
+let serviceStartTime = null;
+let pendingSyncCount = 0;
+
+function generateLocalId(){ return 'LOCAL-' + Date.now() + '-' + Math.random().toString(36).substr(2,6).toUpperCase(); }
+function getOfflineQueue(){ try{ return JSON.parse(localStorage.getItem('offline_queue')||'[]'); }catch(e){return [];} }
+function setOfflineQueue(q){ localStorage.setItem('offline_queue', JSON.stringify(q)); updateSyncIndicator(); }
+function updateSyncIndicator(){
+    const q=getOfflineQueue();
+    const pending=q.filter(x=>x.sync_status==='pending' || x.sync_status==='failed').length;
+    pendingSyncCount=pending;
+    let el=document.getElementById('offlineSyncBadge');
+    if(!el){
+        const bar=document.querySelector('.card');
+        if(bar){
+            el=document.createElement('div');
+            el.id='offlineSyncBadge';
+            el.className='fixed bottom-4 right-4 z-50 px-3 py-2 rounded-full text-xs font-bold shadow-lg';
+            document.body.appendChild(el);
+        }
+    }
+    if(el){
+        if(!navigator.onLine){ el.textContent='● OFFLINE – '+pending+' pending'; el.className='fixed bottom-4 right-4 z-50 px-3 py-2 rounded-full text-xs font-bold shadow-lg bg-yellow-500 text-white'; }
+        else if(pending>0){ el.textContent='● '+pending+' Pending Sync'; el.className='fixed bottom-4 right-4 z-50 px-3 py-2 rounded-full text-xs font-bold shadow-lg bg-orange-500 text-white'; el.onclick=()=>syncOfflineQueue(); el.style.cursor='pointer'; }
+        else { el.textContent='● Synced'; el.className='fixed bottom-4 right-4 z-50 px-3 py-2 rounded-full text-xs font-bold shadow-lg bg-green-600 text-white'; }
+    }
+}
+function storeOfflineTransaction(payload){
+    const q=getOfflineQueue();
+    const localId=generateLocalId();
+    payload.local_transaction_id=localId;
+    payload.offline_created_at=new Date().toISOString();
+    q.push({local_transaction_id:localId, payload:payload, sync_status:'pending', offline_created_at:payload.offline_created_at, device_info:navigator.userAgent});
+    setOfflineQueue(q);
+    // also try to queue on server when online via /offline/queue if possible in background
+    if(navigator.onLine){
+        fetch('/offline/queue',{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-TOKEN':document.querySelector('meta[name="csrf-token"]').content},body:JSON.stringify({local_transaction_id:localId,payload:payload,offline_created_at:payload.offline_created_at,device_info:navigator.userAgent})}).catch(()=>{});
+    }
+    return localId;
+}
+async function syncOfflineQueue(){
+    const q=getOfflineQueue();
+    const pending=q.filter(x=>x.sync_status==='pending' || x.sync_status==='failed');
+    if(pending.length===0){ showNotification('No pending transactions','info'); return; }
+    let ok=0, fail=0;
+    for(let item of pending){
+        try{
+            const res=await fetch('/cashier/sale',{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-TOKEN':document.querySelector('meta[name="csrf-token"]').content},body:JSON.stringify(item.payload)});
+            if(res.ok){ item.sync_status='synced'; item.synced_at=new Date().toISOString(); const data=await res.json(); item.synced_sale_id=data.sale_id; ok++; }
+            else { const err=await res.json().catch(()=>({})); item.sync_status='failed'; item.last_error=err.error||'Sync failed'; fail++; }
+        }catch(e){ item.sync_status='failed'; item.last_error=e.message; fail++; }
+    }
+    setOfflineQueue(q);
+    // also hit /offline/sync for server queue
+    try{ await fetch('/offline/sync',{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-TOKEN':document.querySelector('meta[name="csrf-token"]').content},body:JSON.stringify({})}); }catch(e){}
+    showNotification(`Sync complete: ${ok} synced, ${fail} failed`, fail?'error':'success');
+    updateSyncIndicator();
+    loadDashboardData();
+}
+window.addEventListener('online', ()=>{ updateSyncIndicator(); syncOfflineQueue(); });
+window.addEventListener('offline', updateSyncIndicator);
+setTimeout(updateSyncIndicator,500);
+setInterval(updateSyncIndicator,5000);
+// Inject Demand & Sync buttons into Quick Actions
+setTimeout(()=>{
+    const qa=document.getElementById('quickActions');
+    if(qa){
+        const grid=qa.querySelector('.grid');
+        if(grid){
+            const btn=document.createElement('button');
+            btn.type='button'; btn.className='py-2 border border-blue-300 rounded-lg hover:bg-blue-50 text-blue-700 text-sm font-medium'; btn.innerHTML='<i class="fas fa-comment-dots mr-1"></i>Customer Demand'; btn.onclick=showDemandModal; grid.appendChild(btn);
+            const btn2=document.createElement('button');
+            btn2.type='button'; btn2.className='py-2 border border-orange-300 rounded-lg hover:bg-orange-50 text-orange-700 text-sm font-medium'; btn2.innerHTML='<i class="fas fa-sync mr-1"></i>Sync Offline'; btn2.onclick=syncOfflineQueue; grid.appendChild(btn2);
+        }
+    }
+},1200);
+
+// Service Timer: starts on New Sale or first product scan
+function startServiceTimer(trigger){
+    if(serviceTimerActive) return;
+    serviceTimerActive=true;
+    serviceStartTime=new Date();
+    fetch('/cashier-performance/start',{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-TOKEN':document.querySelector('meta[name="csrf-token"]').content},body:JSON.stringify({trigger:trigger})}).catch(()=>{});
+    console.log('Service timer started:',trigger,serviceStartTime);
+}
+function endServiceTimer(saleId){
+    if(!serviceTimerActive) return;
+    serviceTimerActive=false;
+    const duration=Math.floor((new Date()-serviceStartTime)/1000);
+    fetch('/cashier-performance/end',{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-TOKEN':document.querySelector('meta[name="csrf-token"]').content},body:JSON.stringify({sale_id:saleId})}).catch(()=>{});
+    console.log('Service timer ended, duration',duration);
+    return duration;
+}
+const origNewSale = window.newSale;
+window.newSale = function(){
+    // original behavior plus start timer
+    if(typeof origNewSale==='function'){ origNewSale(); }
+    cart=[]; renderCart(); startServiceTimer('new_sale');
+    document.getElementById('successModal')?.classList.add('hidden');
+}
+// Patch addProductToCart to auto-start timer on first scan
+const origAddProductToCart = window.addProductToCart;
+if(origAddProductToCart){
+    window.addProductToCart = function(id,name,price){
+        if(cart.length===0 && !serviceTimerActive){ startServiceTimer('first_scan'); }
+        return origAddProductToCart(id,name,price);
+    }
+}
+// Patch completeSale catch to handle offline
+const origShowNotification = window.showNotification;
+// Demand capture modal helpers
+function showDemandModal(){
+    const custId=document.getElementById('customerSelect')?.value||null;
+    const custName=document.getElementById('customerSearchInput')?.value||'Walk-in';
+    Swal.fire({
+        title:'What product would you like us to have next time?',
+        html:`<input id="demandProduct" class="swal2-input" placeholder="Product requested *">
+              <input id="demandQty" type="number" class="swal2-input" placeholder="Quantity" value="1" min="1">
+              <label style="display:flex;align-items:center;gap:6px;margin-top:8px;"><input type="checkbox" id="demandOOS"> Was out of stock</label>
+              <textarea id="demandNote" class="swal2-textarea" placeholder="Optional note"></textarea>`,
+        showCancelButton:true, confirmButtonText:'Submit Demand',
+        preConfirm:()=>{
+            const product=document.getElementById('demandProduct').value.trim();
+            if(!product) { Swal.showValidationMessage('Product required'); return false; }
+            return {
+                product_requested:product,
+                requested_quantity:parseInt(document.getElementById('demandQty').value)||1,
+                was_out_of_stock:document.getElementById('demandOOS').checked,
+                note:document.getElementById('demandNote').value,
+                customer_id: custId||null,
+                customer_name: custId?null:custName
+            };
+        }
+    }).then(res=>{
+        if(res.isConfirmed){
+            fetch('/customer-demands',{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-TOKEN':document.querySelector('meta[name="csrf-token"]').content},body:JSON.stringify(res.value)})
+            .then(r=>r.json()).then(()=>Swal.fire('Saved','Demand recorded','success')).catch(()=>Swal.fire('Error','Failed','error'));
+        }
+    });
+}
+function showRatingModal(saleId){
+    Swal.fire({
+        title:'Rate your shopping experience (1-5 ★)',
+        html:`<input id="ratingStars" type="number" min="1" max="5" class="swal2-input" placeholder="Rating 1-5">
+              <textarea id="ratingComment" class="swal2-textarea" placeholder="Comment (staff service, waiting time, etc.)"></textarea>`,
+        showCancelButton:true, confirmButtonText:'Submit Rating',
+        preConfirm:()=>{
+            const rating=parseInt(document.getElementById('ratingStars').value);
+            if(!rating||rating<1||rating>5){ Swal.showValidationMessage('Rating 1-5 required'); return false; }
+            return {rating:rating, comment:document.getElementById('ratingComment').value, sale_id:saleId};
+        }
+    }).then(res=>{
+        if(res.isConfirmed){
+            fetch('/customer-ratings',{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-TOKEN':document.querySelector('meta[name="csrf-token"]').content},body:JSON.stringify(res.value)})
+            .then(()=>Swal.fire('Thank you!','Rating submitted','success'));
+        }
+    });
+}
+// Hook after successful sale to offer demand + rating
+const origCompleteSaleCatchPatch = true;
 </script>
 @endsection

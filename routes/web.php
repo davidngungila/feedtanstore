@@ -186,6 +186,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/returns/{return}', [\App\Http\Controllers\SaleReturnController::class, 'show'])->name('returns.show');
         Route::get('/returns/{return}/download', [\App\Http\Controllers\SaleReturnController::class, 'downloadPDF'])->name('returns.download');
         Route::post('/returns', [\App\Http\Controllers\SaleReturnController::class, 'store'])->name('returns.store');
+        Route::post('/returns/{return}/approve', [\App\Http\Controllers\SaleReturnController::class, 'approve'])->name('returns.approve');
         Route::get('/cancelled', [\App\Http\Controllers\CancelledSaleController::class, 'index'])->name('cancelled');
         Route::get('/discounts', [\App\Http\Controllers\DiscountController::class, 'index'])->name('discounts');
         Route::get('/discounts/create', [\App\Http\Controllers\DiscountController::class, 'create'])->name('discounts.create');
@@ -827,6 +828,105 @@ Route::middleware('auth')->group(function () {
         Route::post('/thank-you', [\App\Http\Controllers\VFDController::class, 'thankYou'])->name('thank-you');
     });
     }); // Close the rider redirect middleware group
+});
+
+// ===================== NEW INTEGRATED MODULES =====================
+// Stock Verification (blind audit) - accessible to all authenticated but role-gated inside controller + middleware
+Route::middleware('auth')->prefix('stock-verification')->name('stock-verification.')->group(function () {
+    Route::get('/', [\App\Http\Controllers\StockVerificationController::class, 'index'])->name('index');
+    Route::get('/create', [\App\Http\Controllers\StockVerificationController::class, 'create'])->name('create');
+    Route::post('/', [\App\Http\Controllers\StockVerificationController::class, 'store'])->name('store');
+    Route::get('/{session}', [\App\Http\Controllers\StockVerificationController::class, 'show'])->name('show');
+    Route::post('/{session}/submit', [\App\Http\Controllers\StockVerificationController::class, 'auditorSubmit'])->name('auditor-submit');
+    Route::post('/{session}/review', [\App\Http\Controllers\StockVerificationController::class, 'review'])->name('review');
+    Route::post('/{session}/approve', [\App\Http\Controllers\StockVerificationController::class, 'approve'])->name('approve');
+    Route::post('/{session}/reject', [\App\Http\Controllers\StockVerificationController::class, 'reject'])->name('reject');
+});
+
+// Customer Demands
+Route::middleware('auth')->prefix('customer-demands')->name('customer-demands.')->group(function () {
+    Route::get('/', [\App\Http\Controllers\CustomerDemandController::class, 'index'])->name('index');
+    Route::get('/create', [\App\Http\Controllers\CustomerDemandController::class, 'create'])->name('create');
+    Route::post('/', [\App\Http\Controllers\CustomerDemandController::class, 'store'])->name('store');
+    Route::put('/{demand}/status', [\App\Http\Controllers\CustomerDemandController::class, 'updateStatus'])->name('update-status');
+    Route::get('/reports', [\App\Http\Controllers\CustomerDemandController::class, 'reports'])->name('reports');
+});
+
+// Competitor Intelligence
+Route::middleware('auth')->prefix('competitor-intel')->name('competitor-intel.')->group(function () {
+    Route::get('/', [\App\Http\Controllers\CompetitorIntelligenceController::class, 'index'])->name('index');
+    Route::post('/', [\App\Http\Controllers\CompetitorIntelligenceController::class, 'store'])->name('store');
+    Route::get('/reports', [\App\Http\Controllers\CompetitorIntelligenceController::class, 'reports'])->name('reports');
+});
+
+// Customer Ratings
+Route::middleware('auth')->prefix('customer-ratings')->name('customer-ratings.')->group(function () {
+    Route::get('/', [\App\Http\Controllers\CustomerRatingController::class, 'index'])->name('index');
+    Route::post('/', [\App\Http\Controllers\CustomerRatingController::class, 'store'])->name('store');
+});
+
+// Transaction Issues
+Route::middleware('auth')->prefix('transaction-issues')->name('transaction-issues.')->group(function () {
+    Route::get('/', [\App\Http\Controllers\TransactionIssueController::class, 'index'])->name('index');
+    Route::get('/create', [\App\Http\Controllers\TransactionIssueController::class, 'create'])->name('create');
+    Route::post('/', [\App\Http\Controllers\TransactionIssueController::class, 'store'])->name('store');
+    Route::get('/{issue}', [\App\Http\Controllers\TransactionIssueController::class, 'show'])->name('show');
+    Route::put('/{issue}', [\App\Http\Controllers\TransactionIssueController::class, 'update'])->name('update');
+});
+
+// Offline Sync (web UI)
+Route::middleware('auth')->prefix('offline')->name('offline.')->group(function () {
+    Route::get('/status', [\App\Http\Controllers\OfflineSyncController::class, 'status'])->name('status');
+    Route::post('/queue', [\App\Http\Controllers\OfflineSyncController::class, 'queue'])->name('queue');
+    Route::post('/sync', [\App\Http\Controllers\OfflineSyncController::class, 'sync'])->name('sync');
+    Route::post('/{offline}/retry', [\App\Http\Controllers\OfflineSyncController::class, 'retry'])->name('retry');
+});
+
+// Cashier Performance & Service Time
+Route::middleware('auth')->prefix('cashier-performance')->name('cashier-performance.')->group(function () {
+    Route::get('/', [\App\Http\Controllers\CashierPerformanceController::class, 'index'])->name('index');
+    Route::post('/start', [\App\Http\Controllers\CashierPerformanceController::class, 'start'])->name('start');
+    Route::post('/end', [\App\Http\Controllers\CashierPerformanceController::class, 'end'])->name('end');
+});
+
+// Revenue / Demand Intelligence
+Route::middleware('auth')->prefix('revenue')->name('revenue.')->group(function () {
+    Route::get('/', [\App\Http\Controllers\RevenueReportController::class, 'index'])->name('index');
+});
+Route::middleware('auth')->prefix('demand-intelligence')->name('demand-intelligence.')->group(function () {
+    Route::get('/', [\App\Http\Controllers\DemandIntelligenceController::class, 'dashboard'])->name('index');
+});
+
+// Management Dashboard (new integrated)
+Route::middleware('auth')->get('/management-dashboard', function(){
+    $todaySales = \App\Models\Sale::whereDate('created_at', today())->where('status','completed')->sum('total');
+    $todayProfit = \App\Models\Sale::whereDate('created_at', today())->where('status','completed')->get()->sum(fn($s)=> $s->total - ($s->cost_of_goods_sold ?? 0));
+    $orders = \App\Models\OnlineOrder::count();
+    $paidOrders = \App\Models\OnlineOrder::where('payment_status','paid')->count();
+    $unpaidOrders = \App\Models\OnlineOrder::where('payment_status','pending')->count();
+    $returns = \App\Models\SaleReturn::count();
+    $lowStock = \App\Models\Product::whereColumn('quantity','<=','reorder_level')->count();
+    $varianceSessions = \App\Models\StockVerificationSession::where('status','submitted')->count();
+    $avgRating = \App\Models\CustomerRating::avg('rating');
+    $demands = \App\Models\CustomerDemand::count();
+    $competitors = \App\Models\CompetitorIntelligence::count();
+    $serviceAvg = \App\Models\CashierServiceTime::where('status','completed')->avg('duration_seconds');
+    $fieldSales = \App\Models\FieldSalesOrder::whereDate('created_at', today())->sum('total');
+    $role = auth()->user()->role;
+    if ($role==='stock_auditor') return redirect()->route('stock-verification.index');
+    if ($role==='field_sales') return redirect()->route('field-sales.dashboard');
+    if ($role==='external_auditor') return redirect()->route('stock-verification.index');
+    return view('dashboards.management', compact('todaySales','todayProfit','orders','paidOrders','unpaidOrders','returns','lowStock','varianceSessions','avgRating','demands','competitors','serviceAvg','fieldSales'));
+})->name('management.dashboard');
+
+Route::middleware('auth')->prefix('field-sales')->name('field-sales.')->group(function(){
+    Route::get('/dashboard', function(){
+        $repId=auth()->id();
+        $mySales=\App\Models\Sale::where('sales_rep_id',$repId)->where('sales_channel','field_sales')->latest()->limit(10)->get();
+        $myOrders=\App\Models\FieldSalesOrder::where('sales_rep_id',$repId)->latest()->limit(10)->get();
+        $myCustomers= \App\Models\Customer::latest()->limit(5)->get();
+        return view('dashboards.field-sales', compact('mySales','myOrders','myCustomers'));
+    })->name('dashboard');
 });
 
 // Rider Routes (separate, protected by auth)

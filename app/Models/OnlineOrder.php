@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 
 class OnlineOrder extends Model {
-    protected $fillable = ['order_number', 'tracking_token', 'delivery_code', 'customer_id', 'customer_name', 'customer_phone', 'customer_email', 'delivery_address', 'delivery_latitude', 'delivery_longitude', 'status', 'packaging_status', 'reconciliation_status', 'payment_status', 'payment_method', 'payment_transaction_id', 'payment_order_reference', 'clickpesa_status', 'subtotal', 'discount', 'delivery_fee', 'total', 'delivery_rider_id', 'user_id', 'notes', 'is_processed', 'rider_acceptance_status', 'rider_accepted_at'];
+    protected $fillable = ['order_number','reference_code','customer_reference_code','referral_code','campaign_code','sales_rep_code','sales_rep_id','branch_id','fulfillment_status','payment_authorized_by','fulfillment_authorized_by','is_paid_override','tracking_token', 'delivery_code', 'customer_id', 'customer_name', 'customer_phone', 'customer_email', 'delivery_address', 'delivery_latitude', 'delivery_longitude', 'status', 'packaging_status', 'reconciliation_status', 'payment_status', 'payment_method', 'payment_transaction_id', 'payment_order_reference', 'clickpesa_status', 'subtotal', 'discount', 'delivery_fee', 'total', 'delivery_rider_id', 'user_id', 'notes', 'is_processed', 'rider_acceptance_status', 'rider_accepted_at'];
     
     public function getShortCustomerReferenceAttribute() {
         $parts = explode('-', $this->order_number);
@@ -39,4 +39,9 @@ class OnlineOrder extends Model {
     public function statusHistory() {
         return $this->hasMany(OnlineOrderStatusHistory::class)->latest();
     }
+
+    public function salesRep() { return $this->belongsTo(User::class,'sales_rep_id'); }
+    public function branch() { return $this->belongsTo(Branch::class); }
+    public function issues() { return $this->hasMany(TransactionIssue::class); }
+    public function rating() { return $this->hasOne(CustomerRating::class); }
 }

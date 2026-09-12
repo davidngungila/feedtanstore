@@ -21,7 +21,10 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
         $middleware->alias([
             'auth' => \App\Http\Middleware\Authenticate::class,
+            'role' => \App\Http\Middleware\RoleAccess::class,
+            'stock.auditor.guard' => \App\Http\Middleware\StockAuditorGuard::class,
         ]);
+        $middleware->append(\App\Http\Middleware\StockAuditorGuard::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

@@ -174,6 +174,21 @@ class CashierController extends Controller
 
             \Log::info('Validation passed', $data);
 
+            // Handle cashier service time: if no active timer, create one (method 2 fallback - first product scan). Also support explicit start via frontend.
+            $serviceTime = \App\Models\CashierServiceTime::where('cashier_id', Auth::id())->where('status','active')->latest()->first();
+            $serviceStartedViaFallback = false;
+            if (!$serviceTime) {
+                $serviceTime = \App\Models\CashierServiceTime::create([
+                    'cashier_id'=>Auth::id(),
+                    'customer_id'=> $data['customer_id'] ?? null,
+                    'service_start_time'=> now(),
+                    'status'=>'active',
+                    'channel'=>'in_store',
+                    'start_trigger'=>'first_scan',
+                ]);
+                $serviceStartedViaFallback = true;
+            }
+
             // Check stock availability
             foreach ($data['items'] as $item) {
                 $product = Product::find($item['id']);
@@ -307,9 +322,29 @@ class CashierController extends Controller
                 }
             }
 
+            // Complete service time measurement
+            try {
+                if (isset($serviceTime) && $serviceTime) {
+                    $serviceTime->update(['sale_id'=>$sale->id]);
+                    $serviceTime->complete();
+                }
+            } catch (\Throwable $e) {\Log::warning('Service time complete failed: '.$e->getMessage());}
+
+            // Calculate COGS and gross profit synchronously
+            try {
+                $cogs=0;
+                foreach ($sale->items as $si){ $p=Product::find($si->product_id); $cogs+=($p->cost_price??0)*$si->quantity; }
+                $sale->update(['cost_of_goods_sold'=>$cogs,'gross_sales'=>$sale->total,'gross_profit'=>$sale->total-$cogs, 'sales_channel'=>'in_store','sales_rep_id'=>Auth::id()]);
+                // Stock movements
+                foreach ($sale->items as $si){
+                    \App\Models\StockMovement::create(['product_id'=>$si->product_id,'movement_type'=>'sale','quantity'=>$si->quantity,'reference_type'=>Sale::class,'reference_id'=>$sale->id,'user_id'=>Auth::id(),'notes'=>'POS sale '.$sale->invoice_number]);
+                }
+                \App\Services\AuditService::log('create_sale','sales', Sale::class, $sale->id, null, $sale->toArray(), 'Sale completed '.$sale->invoice_number);
+            } catch (\Throwable $e) {\Log::warning('COGS update failed: '.$e->getMessage());}
+
             \Log::info('Sale completed successfully', ['sale_id' => $sale->id]);
 
-            return response()->json(['sale' => $sale, 'change' => $change, 'sale_id' => $sale->id]);
+            return response()->json(['sale' => $sale, 'change' => $change, 'sale_id' => $sale->id, 'service_duration'=>$serviceTime->duration_seconds ?? null]);
         } catch (\Exception $e) {
             \Log::error('Error completing sale', [
                 'message' => $e->getMessage(),

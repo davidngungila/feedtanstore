@@ -676,7 +676,7 @@ class MarketingOfficerController extends Controller
             'is_active' => 'boolean'
         ]);
 
-        $generatedPassword = Str::random(12);
+        $generatedPassword = 'password';
 
         \DB::beginTransaction();
         try {
@@ -740,7 +740,7 @@ class MarketingOfficerController extends Controller
             try {
                 $smsProfile = CommunicationProfile::where('type', 'sms')->where('is_active', true)->first();
                 if ($smsProfile) {
-                    $smsText = "Welcome to Feedtan Delivery Team, {$rider->name}! Your account is ready. Login with email: {$user->email} and password: {$generatedPassword}. Download the rider app to start delivering. Change password after first login.";
+                    $smsText = "Hongera {$rider->name}! Umekamilisha usajili wako kwa mafanikio katika Feedtan Delivery Team. Falaha zetu! Ingia kwenye account yako kwa: Email: {$user->email} & Password: {$generatedPassword}. Pakua app ya rider kuanza kusafirisha. Tafadhali badilisha password baada ya kuingia mara ya kwanza. Karibu timu!";
                     $messagingService = new MessagingService($smsProfile->sms_api_key, $smsProfile->messaging_sender_id, false);
                     \Illuminate\Support\Facades\Queue::afterResponse(function () use ($messagingService, $request, $smsText) {
                         try {
@@ -761,7 +761,7 @@ class MarketingOfficerController extends Controller
                 ]);
             }
 
-            return redirect()->route('marketing-officer.riders')->with('success', 'Delivery Rider created successfully! Welcome email and SMS sent with login credentials.');
+            return redirect()->route('marketing-officer.riders')->with('success', 'Delivery Rider created successfully! Congratulatory SMS and welcome email sent with login credentials.');
         } catch (\Exception $e) {
             \DB::rollBack();
             return back()->with('error', 'Failed to create rider: ' . $e->getMessage());

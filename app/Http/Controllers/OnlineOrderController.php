@@ -88,12 +88,19 @@ class OnlineOrderController extends Controller
     public function index(Request $request)
     {
         $search = trim((string) $request->input('search'));
+        // Payment status is primary organization: All | Paid | Unpaid | Partially Paid | Failed | Refunded
+        $paymentStatus = $request->input('payment_status', 'all'); // all, paid, pending(unpaid), partially_paid, failed, refunded
+        $paymentMap = ['paid'=>'paid','unpaid'=>'pending','pending'=>'pending','partially_paid'=>'partially_paid','failed'=>'failed','refunded'=>'refunded'];
         $statusFilter = $request->input('status', ['pending', 'confirmed', 'preparing', 'ready', 'out_for_delivery', 'delivered', 'cancelled']);
         if (!is_array($statusFilter)) {
             $statusFilter = [$statusFilter];
         }
         
         $orders = OnlineOrder::with(['items', 'rider', 'user'])
+            ->when($paymentStatus !== 'all', function($q) use ($paymentStatus, $paymentMap){
+                $mapped = $paymentMap[$paymentStatus] ?? $paymentStatus;
+                $q->where('payment_status', $mapped);
+            })
             ->whereIn('status', $statusFilter)
             ->when($search !== '', function ($query) use ($search) {
                 $query->where(function ($q) use ($search) {
@@ -175,7 +182,8 @@ class OnlineOrderController extends Controller
         }
 
         $allStatuses = ['pending', 'confirmed', 'preparing', 'ready', 'out_for_delivery', 'delivered', 'cancelled'];
-        return view('online.orders', compact('orders', 'storeLat', 'storeLng', 'routes', 'statusFilter', 'allStatuses', 'search', 'orderDistances', 'orderDeliveryFees'));
+        $allPaymentStatuses = ['all'=>'All','paid'=>'Paid','pending'=>'Unpaid','partially_paid'=>'Partially Paid','failed'=>'Failed','refunded'=>'Refunded'];
+        return view('online.orders', compact('orders', 'storeLat', 'storeLng', 'routes', 'statusFilter', 'allStatuses', 'allPaymentStatuses','paymentStatus','search', 'orderDistances', 'orderDeliveryFees'));
     }
 
     public function shop()
@@ -281,6 +289,10 @@ class OnlineOrderController extends Controller
             'delivery_fee' => 'nullable|numeric|min:0',
             'delivery_rider_id' => 'nullable|exists:delivery_riders,id',
             'promo_code' => 'nullable|string|max:50',
+            'referral_code' => 'nullable|string|max:50',
+            'campaign_code' => 'nullable|string|max:50',
+            'sales_rep_code' => 'nullable|string|max:50',
+            'customer_reference_code' => 'nullable|string|max:50',
             'notes' => 'nullable|string',
             'items' => 'required|array',
             'items.*.product_id' => 'required|exists:products,id',
@@ -300,10 +312,18 @@ class OnlineOrderController extends Controller
         }
 
         $total = max(0, $subtotal + $deliveryFee - $discount);
+        $refCode = 'ORD-'.date('Ymd').'-'.str_pad((OnlineOrder::count()+1),6,'0',STR_PAD_LEFT);
 
         // First create the order without tracking token to get an ID
         $order = OnlineOrder::create([
             'order_number' => 'ORD-' . strtoupper(uniqid()),
+            'reference_code' => $refCode,
+            'referral_code' => $request->referral_code,
+            'campaign_code' => $request->campaign_code,
+            'sales_rep_code' => $request->sales_rep_code,
+            'customer_reference_code' => $request->customer_reference_code,
+            'sales_rep_id' => auth()->id(),
+            'fulfillment_status' => 'new',
             'delivery_code' => str_pad(rand(0, 9999), 4, '0', STR_PAD_LEFT),
             'customer_id' => $request->customer_id,
             'customer_name' => $request->customer_name,
@@ -424,6 +444,10 @@ class OnlineOrderController extends Controller
             'delivery_fee' => 'nullable|numeric|min:0',
             'delivery_rider_id' => 'nullable|exists:delivery_riders,id',
             'promo_code' => 'nullable|string|max:50',
+            'referral_code' => 'nullable|string|max:50',
+            'campaign_code' => 'nullable|string|max:50',
+            'sales_rep_code' => 'nullable|string|max:50',
+            'customer_reference_code' => 'nullable|string|max:50',
             'notes' => 'nullable|string',
             'items' => 'required|array',
             'items.*.product_id' => 'required|exists:products,id',
@@ -543,10 +567,24 @@ class OnlineOrderController extends Controller
     {
         $request->validate([
             'status' => 'required|in:pending,confirmed,preparing,ready,out_for_delivery,delivered,cancelled',
-            'payment_status' => 'nullable|in:pending,paid,failed',
+            'payment_status' => 'nullable|in:pending,paid,failed,partially_paid,refunded',
             'notes' => 'nullable|string',
-            'delivery_code_input' => 'nullable|string'
+            'delivery_code_input' => 'nullable|string',
+            'paid_override' => 'nullable|boolean',
+            'fulfillment_status' => 'nullable|in:new,confirmed,processing,ready_for_pickup,out_for_delivery,delivered,cancelled,awaiting_payment,payment_reminder',
         ]);
+
+        // PAYMENT-FIRST RULE: prevent processing unpaid orders without override
+        $needsPaid = in_array($request->status, ['confirmed','preparing','ready','out_for_delivery','delivered'], true);
+        if ($needsPaid && $order->payment_status !== 'paid' && !$order->is_paid_override) {
+            $hasOverride = $request->boolean('paid_override');
+            $isAuthorized = in_array(auth()->user()->role ?? '', ['admin','manager'], true);
+            if (!$hasOverride || !$isAuthorized) {
+                return back()->withErrors(['status'=>'Cannot process/dispatch unpaid order. Payment status is '. $order->payment_status .'. Require authorized override.'])->withInput();
+            }
+            // record override
+            $order->update(['is_paid_override'=>true,'payment_authorized_by'=>auth()->id()]);
+        }
 
         // Validate delivery code when marking as delivered
         if ($request->status === 'delivered' && $order->status !== 'delivered') {

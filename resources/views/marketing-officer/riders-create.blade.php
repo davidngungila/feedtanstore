@@ -14,7 +14,7 @@
 
         <div class="mb-4 p-3 bg-blue-100 border border-blue-400 text-blue-800 rounded-lg">
             <i class="fas fa-info-circle mr-2"></i>
-            <strong>Note:</strong> A secure password will be automatically generated and sent to the rider via email and SMS along with login instructions.
+            <strong>Note:</strong> The default password <code>password</code> will be sent to the rider via email and SMS along with login instructions. The rider should change it after first login.
         </div>
 
         @if($errors->any())
