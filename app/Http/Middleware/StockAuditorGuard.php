@@ -52,20 +52,8 @@ class StockAuditorGuard
         $user = Auth::user();
         if ($user && $user->role === 'stock_auditor') {
             $path = trim($request->path(), '/');
-            // Allow only stock-verification and auth routes
-            $isAllowed = false;
-            foreach ($this->allowedForAuditor as $allowed) {
-                if ($path === $allowed || str_starts_with($path, $allowed)) { $isAllowed = true; break; }
-            }
-            if (!$isAllowed) {
-                foreach ($this->blockedPrefixes as $blocked) {
-                    if ($path === $blocked || str_starts_with($path, $blocked)) {
-                        if ($request->expectsJson()) return response()->json(['message'=>'Forbidden: stock auditors may only access stock verification'],403);
-                        abort(403, 'Stock auditors may only access Stock Verification');
-                    }
-                }
-                // For stock_auditor, default deny anything not explicitly allowed
-                if (!in_array($path, ['','/']) && !$isAllowed) {
+            foreach ($this->blockedPrefixes as $blocked) {
+                if ($path === $blocked || str_starts_with($path, $blocked)) {
                     if ($request->expectsJson()) return response()->json(['message'=>'Forbidden: stock auditors may only access stock verification'],403);
                     abort(403, 'Stock auditors may only access Stock Verification');
                 }

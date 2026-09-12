@@ -124,7 +124,7 @@ class StockVerificationController extends Controller
             $activeIds = Product::where('is_active', true)->pluck('id')->toArray();
             $existingIds = $session->items()->pluck('product_id')->toArray();
             $missing = array_diff($activeIds, $existingIds);
-            if (!empty($missing) && in_array($session->status, ['assigned','in_progress','draft'], true)) {
+            if (!empty($missing) && in_array($session->status, ['assigned','in_progress','draft','submitted'], true)) {
                 foreach ($missing as $pid) {
                     $prod = Product::find($pid);
                     if ($prod) {
@@ -140,7 +140,10 @@ class StockVerificationController extends Controller
                 $session->refresh();
             }
             $session->load(['items.product','branch','location']);
-            return view('stock-verification.auditor-show', compact('session'));
+            // Provide full product list for guaranteed display (even if lazy creation raced)
+            $allProducts = Product::where('is_active', true)->orderBy('name')->get();
+            $itemsMap = $session->items->keyBy('product_id');
+            return view('stock-verification.auditor-show', compact('session','allProducts','itemsMap'));
         }
         if ($isExternal) {
             $session->load(['items.product','branch','location','auditor','creator']);
