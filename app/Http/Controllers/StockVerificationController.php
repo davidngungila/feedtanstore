@@ -61,15 +61,23 @@ class StockVerificationController extends Controller
             'branch_id' => 'nullable|exists:branches,id',
             'location_id' => 'nullable|exists:locations,id',
             'assigned_auditor_id' => 'nullable|exists:users,id',
-            'product_ids' => 'required|array|min:1',
+            'product_ids' => 'nullable|array',
             'product_ids.*' => 'exists:products,id',
             'title' => 'nullable|string|max:255',
             'notes' => 'nullable|string',
             'is_monthly_audit' => 'nullable|boolean',
             'audit_month' => 'nullable|date',
         ]);
+        // Default: include ALL active products if none selected – ensures auditor sees full catalog without numbers
+        $productIds = $request->input('product_ids');
+        if (empty($productIds)) {
+            $productIds = Product::where('is_active', true)->pluck('id')->toArray();
+            if (empty($productIds)) {
+                return back()->with('error','No active products found to verify.');
+            }
+        }
 
-        return DB::transaction(function () use ($request) {
+        return DB::transaction(function () use ($request, $productIds) {
             $session = StockVerificationSession::create([
                 'session_number' => StockVerificationSession::generateNumber(),
                 'title' => $request->title,
@@ -84,8 +92,9 @@ class StockVerificationController extends Controller
                 'audit_month' => $request->audit_month,
             ]);
 
-            foreach ($request->product_ids as $productId) {
+            foreach ($productIds as $productId) {
                 $product = Product::find($productId);
+                if (!$product) continue;
                 StockVerificationItem::create([
                     'session_id' => $session->id,
                     'product_id' => $productId,
@@ -111,6 +120,25 @@ class StockVerificationController extends Controller
         }
         if ($isAuditor) {
             // Blind view: never expose system_quantity / variance
+            // Ensure ALL active products are shown without numbers – if session was created with subset, auto-add missing active products
+            $activeIds = Product::where('is_active', true)->pluck('id')->toArray();
+            $existingIds = $session->items()->pluck('product_id')->toArray();
+            $missing = array_diff($activeIds, $existingIds);
+            if (!empty($missing) && in_array($session->status, ['assigned','in_progress','draft'], true)) {
+                foreach ($missing as $pid) {
+                    $prod = Product::find($pid);
+                    if ($prod) {
+                        StockVerificationItem::create([
+                            'session_id' => $session->id,
+                            'product_id' => $pid,
+                            'system_quantity' => $prod->quantity ?? 0,
+                            'status' => 'pending',
+                        ]);
+                    }
+                }
+                $session->recalcCounts();
+                $session->refresh();
+            }
             $session->load(['items.product','branch','location']);
             return view('stock-verification.auditor-show', compact('session'));
         }

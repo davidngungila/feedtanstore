@@ -233,6 +233,9 @@
     isStorekeeper: {{ (Auth::check() && Auth::user()->role === 'storekeeper') ? 'true' : 'false' }},
     isMarketingOfficer: {{ (Auth::check() && Auth::user()->role === 'marketing_officer') ? 'true' : 'false' }},
     isStoreSupervisor: {{ (Auth::check() && Auth::user()->role === 'store_supervisor') ? 'true' : 'false' }},
+    isStockAuditor: {{ (Auth::check() && Auth::user()->role === 'stock_auditor') ? 'true' : 'false' }},
+    isExternalAuditor: {{ (Auth::check() && Auth::user()->role === 'external_auditor') ? 'true' : 'false' }},
+    isFieldSales: {{ (Auth::check() && Auth::user()->role === 'field_sales') ? 'true' : 'false' }},
     currentTime: '',
     currentUser: {
         name: '{{ Auth::check() ? Auth::user()->name : 'Admin User' }}',
@@ -604,8 +607,85 @@
     </aside>
   </template>
 
+  <!-- Stock Auditor Sidebar – BLIND COUNT ONLY (no Analytics/Sales/Inventory etc.) -->
+  <template x-if="isStockAuditor">
+    <aside :class="[sidebarOpen?'translate-x-0':'lg:translate-x-0 -translate-x-full','sidebar sidebar-bg fixed lg:relative h-screen z-50 flex flex-col transition-all duration-300',sidebarCollapsed&&window.innerWidth>=1024?'w-16':'w-[260px]']" class="sidebar-bg">
+      <div class="flex items-center justify-between p-4 border-b border-white/20 border-t-2 border-primary-600 flex-shrink-0 bg-white">
+        <div class="flex items-center gap-3" x-show="!sidebarCollapsed || window.innerWidth<1024">
+          <img src="{{ asset('feedtanstorelogo.png') }}" alt="FEEDTAN STORE" class="w-full h-12 rounded-lg flex-shrink-0 object-contain" style="max-width: 180px;">
+        </div>
+        <div x-show="sidebarCollapsed && window.innerWidth>=1024" class="w-10 h-10 rounded-lg flex items-center justify-center mx-auto">
+          <img src="{{ asset('feedtanstorelogo.png') }}" alt="FEEDTAN STORE" class="w-full h-full rounded-lg object-contain">
+        </div>
+        <button @click="sidebarCollapsed=!sidebarCollapsed" class="text-primary-300 hover:text-white transition-colors hidden lg:block">
+          <i :class="sidebarCollapsed?'fa-solid fa-chevron-right':'fa-solid fa-chevron-left'" class="text-xs"></i>
+        </button>
+      </div>
+      <nav class="flex-1 overflow-y-auto py-3 px-2 space-y-0.5">
+        <a href="{{ route('stock-verification.index') }}" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm {{ request()->routeIs('stock-verification.*') ? 'bg-primary-600 text-white' : 'text-primary-200 hover:bg-white/10 hover:text-white' }}">
+          <i class="fa-solid fa-clipboard-check w-4 text-center"></i><span x-show="!sidebarCollapsed" class="font-medium">Stock Verification</span>
+        </a>
+        <div class="mt-4 px-3 py-2 rounded-lg bg-white/10 text-primary-200 text-xs" x-show="!sidebarCollapsed">
+          <i class="fas fa-eye-slash mr-1"></i>Blind count mode<br>System quantities are hidden.
+        </div>
+      </nav>
+      <div class="p-3 border-t border-white/10 text-xs text-primary-300" x-show="!sidebarCollapsed">Stock Auditor</div>
+    </aside>
+  </template>
+
+  <!-- External Auditor Sidebar – READ ONLY -->
+  <template x-if="isExternalAuditor">
+    <aside :class="[sidebarOpen?'translate-x-0':'lg:translate-x-0 -translate-x-full','sidebar sidebar-bg fixed lg:relative h-screen z-50 flex flex-col transition-all duration-300',sidebarCollapsed&&window.innerWidth>=1024?'w-16':'w-[260px]']" class="sidebar-bg">
+      <div class="flex items-center justify-between p-4 border-b border-white/20 border-t-2 border-primary-600 flex-shrink-0 bg-white">
+        <div class="flex items-center gap-3" x-show="!sidebarCollapsed || window.innerWidth<1024">
+          <img src="{{ asset('feedtanstorelogo.png') }}" alt="FEEDTAN STORE" class="w-full h-12 rounded-lg flex-shrink-0 object-contain" style="max-width: 180px;">
+        </div>
+        <div x-show="sidebarCollapsed && window.innerWidth>=1024" class="w-10 h-10 rounded-lg flex items-center justify-center mx-auto">
+          <img src="{{ asset('feedtanstorelogo.png') }}" alt="FEEDTAN STORE" class="w-full h-full rounded-lg object-contain">
+        </div>
+        <button @click="sidebarCollapsed=!sidebarCollapsed" class="text-primary-300 hover:text-white transition-colors hidden lg:block">
+          <i :class="sidebarCollapsed?'fa-solid fa-chevron-right':'fa-solid fa-chevron-left'" class="text-xs"></i>
+        </button>
+      </div>
+      <nav class="flex-1 overflow-y-auto py-3 px-2 space-y-0.5">
+        <a href="{{ route('stock-verification.index') }}" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm {{ request()->routeIs('stock-verification.*') ? 'bg-primary-600 text-white' : 'text-primary-200 hover:bg-white/10 hover:text-white' }}">
+          <i class="fa-solid fa-file-shield w-4 text-center"></i><span x-show="!sidebarCollapsed" class="font-medium">External Audit</span>
+        </a>
+        <div class="mt-4 px-3 py-2 rounded-lg bg-yellow-500/20 text-yellow-200 text-xs" x-show="!sidebarCollapsed">
+          <i class="fas fa-lock mr-1"></i>Read-only access<br>No modifications allowed.
+        </div>
+      </nav>
+      <div class="p-3 border-t border-white/10 text-xs text-primary-300" x-show="!sidebarCollapsed">External Auditor – Read Only</div>
+    </aside>
+  </template>
+
+  <!-- Field Sales Sidebar -->
+  <template x-if="isFieldSales">
+    <aside :class="[sidebarOpen?'translate-x-0':'lg:translate-x-0 -translate-x-full','sidebar sidebar-bg fixed lg:relative h-screen z-50 flex flex-col transition-all duration-300',sidebarCollapsed&&window.innerWidth>=1024?'w-16':'w-[260px]']" class="sidebar-bg">
+      <div class="flex items-center justify-between p-4 border-b border-white/20 border-t-2 border-primary-600 flex-shrink-0 bg-white">
+        <div class="flex items-center gap-3" x-show="!sidebarCollapsed || window.innerWidth<1024">
+          <img src="{{ asset('feedtanstorelogo.png') }}" alt="FEEDTAN STORE" class="w-full h-12 rounded-lg flex-shrink-0 object-contain" style="max-width: 180px;">
+        </div>
+        <button @click="sidebarCollapsed=!sidebarCollapsed" class="text-primary-300 hover:text-white transition-colors hidden lg:block">
+          <i :class="sidebarCollapsed?'fa-solid fa-chevron-right':'fa-solid fa-chevron-left'" class="text-xs"></i>
+        </button>
+      </div>
+      <nav class="flex-1 overflow-y-auto py-3 px-2 space-y-0.5">
+        <a href="{{ route('field-sales.dashboard') }}" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm {{ request()->routeIs('field-sales.dashboard') ? 'bg-primary-600 text-white' : 'text-primary-200 hover:bg-white/10 hover:text-white' }}">
+          <i class="fa-solid fa-house w-4 text-center"></i><span x-show="!sidebarCollapsed" class="font-medium">Field Dashboard</span>
+        </a>
+        <a href="{{ route('customer-demands.index') }}" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm {{ request()->routeIs('customer-demands.*') ? 'bg-primary-600 text-white' : 'text-primary-200 hover:bg-white/10 hover:text-white' }}">
+          <i class="fa-solid fa-comment-dots w-4 text-center"></i><span x-show="!sidebarCollapsed" class="font-medium">Demands</span>
+        </a>
+        <a href="{{ route('competitor-intel.index') }}" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm {{ request()->routeIs('competitor-intel.*') ? 'bg-primary-600 text-white' : 'text-primary-200 hover:bg-white/10 hover:text-white' }}">
+          <i class="fa-solid fa-search-dollar w-4 text-center"></i><span x-show="!sidebarCollapsed" class="font-medium">Competitor</span>
+        </a>
+      </nav>
+    </aside>
+  </template>
+
   <!-- Regular Sidebar -->
-  <template x-if="!isCashier && !isRider && !isStorekeeper && !isMarketingOfficer && !isStoreSupervisor">
+  <template x-if="!isCashier && !isRider && !isStorekeeper && !isMarketingOfficer && !isStoreSupervisor && !isStockAuditor && !isExternalAuditor && !isFieldSales">
     <aside :class="[sidebarOpen?'translate-x-0':'lg:translate-x-0 -translate-x-full','sidebar sidebar-bg fixed lg:relative h-screen z-50 flex flex-col transition-all duration-300',sidebarCollapsed&&window.innerWidth>=1024?'w-16':'w-[260px]']"
            class="sidebar-bg">
 
