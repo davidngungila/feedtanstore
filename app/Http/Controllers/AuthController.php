@@ -87,6 +87,12 @@ class AuthController extends Controller
                 return redirect()->intended(route('cashier.dashboard'));
             } elseif ($user->role === 'rider') {
                 return redirect()->intended(route('rider.dashboard'));
+            } elseif ($user->role === 'store_supervisor') {
+                return redirect()->intended(route('store-supervisor.dashboard'));
+            } elseif ($user->role === 'stock_auditor') {
+                return redirect()->intended(route('stock-verification.index'));
+            } elseif ($user->role === 'field_sales') {
+                return redirect()->intended(route('field-sales.dashboard'));
             }
             return redirect()->intended(route('dashboard'));
         }
@@ -163,6 +169,12 @@ class AuthController extends Controller
                 return redirect()->intended(route('storekeeper.dashboard'));
             } elseif ($user->role === 'marketing_officer') {
                 return redirect()->intended(route('marketing-officer.dashboard'));
+            } elseif ($user->role === 'store_supervisor') {
+                return redirect()->intended(route('store-supervisor.dashboard'));
+            } elseif ($user->role === 'stock_auditor') {
+                return redirect()->intended(route('stock-verification.index'));
+            } elseif ($user->role === 'field_sales') {
+                return redirect()->intended(route('field-sales.dashboard'));
             }
             
             return redirect()->intended(route('dashboard'));

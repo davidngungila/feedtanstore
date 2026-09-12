@@ -6,7 +6,7 @@ use App\Models\RolePermission;
 
 class Permissions
 {
-    public const ROLES = ['admin', 'manager', 'cashier', 'storekeeper', 'marketing_officer', 'field_sales', 'stock_auditor', 'external_auditor', 'online_sales', 'inventory_manager', 'rider'];
+    public const ROLES = ['admin', 'manager', 'cashier', 'storekeeper', 'marketing_officer', 'field_sales', 'stock_auditor', 'external_auditor', 'online_sales', 'inventory_manager', 'rider', 'store_supervisor'];
 
     public const MODULES = ['sales', 'inventory', 'purchasing', 'hr', 'finance', 'reports', 'marketing', 'system', 'stock_verification', 'customer_demand', 'competitor_intel', 'field_sales', 'online_orders', 'audit', 'cashier_performance'];
 

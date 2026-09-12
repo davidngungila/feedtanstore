@@ -89,10 +89,10 @@ class SaleReturnController extends Controller {
                 'total' => 0,
                 'refund_amount' => 0,
                 'reason' => $request->reason,
-                'approval_status' => in_array(Auth::user()->role,['admin','manager'], true) ? 'approved' : 'pending',
+                'approval_status' => in_array(Auth::user()->role,['admin','manager','store_supervisor'], true) ? 'approved' : 'pending',
                 'refund_method' => $request->refund_method ?? $sale->payment_method ?? 'cash',
-                'approver_id' => in_array(Auth::user()->role,['admin','manager'], true) ? Auth::id() : null,
-                'approved_at' => in_array(Auth::user()->role,['admin','manager'], true) ? now() : null,
+                'approver_id' => in_array(Auth::user()->role,['admin','manager','store_supervisor'], true) ? Auth::id() : null,
+                'approved_at' => in_array(Auth::user()->role,['admin','manager','store_supervisor'], true) ? now() : null,
             ]);
 
             $returnItemsTotal = 0;
@@ -154,7 +154,7 @@ class SaleReturnController extends Controller {
     }
 
     public function approve(SaleReturn $return) {
-        if (!in_array(Auth::user()->role,['admin','manager'],true)) abort(403);
+        if (!in_array(Auth::user()->role,['admin','manager','store_supervisor'],true)) abort(403);
         if ($return->approval_status==='approved') return back()->with('error','Already approved');
         \Illuminate\Support\Facades\DB::transaction(function() use ($return){
             $return->update(['approval_status'=>'approved','approver_id'=>Auth::id(),'approved_at'=>now()]);

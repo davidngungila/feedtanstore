@@ -916,8 +916,22 @@ Route::middleware('auth')->get('/management-dashboard', function(){
     if ($role==='stock_auditor') return redirect()->route('stock-verification.index');
     if ($role==='field_sales') return redirect()->route('field-sales.dashboard');
     if ($role==='external_auditor') return redirect()->route('stock-verification.index');
+    if ($role==='store_supervisor') return redirect()->route('store-supervisor.dashboard');
     return view('dashboards.management', compact('todaySales','todayProfit','orders','paidOrders','unpaidOrders','returns','lowStock','varianceSessions','avgRating','demands','competitors','serviceAvg','fieldSales'));
 })->name('management.dashboard');
+
+// Store Supervisor – manages most operational issues
+Route::middleware('auth')->prefix('store-supervisor')->name('store-supervisor.')->group(function(){
+    Route::get('/dashboard', [\App\Http\Controllers\StoreSupervisorController::class, 'dashboard'])->name('dashboard');
+    Route::get('/issues', [\App\Http\Controllers\StoreSupervisorController::class, 'issues'])->name('issues');
+    Route::put('/issues/{issue}', [\App\Http\Controllers\StoreSupervisorController::class, 'updateIssue'])->name('issues.update');
+    Route::post('/returns/{return}/approve', [\App\Http\Controllers\StoreSupervisorController::class, 'approveReturn'])->name('returns.approve');
+    Route::post('/returns/{return}/reject', [\App\Http\Controllers\StoreSupervisorController::class, 'rejectReturn'])->name('returns.reject');
+    Route::get('/demands', [\App\Http\Controllers\StoreSupervisorController::class, 'demands'])->name('demands');
+    Route::put('/demands/{demand}', [\App\Http\Controllers\StoreSupervisorController::class, 'updateDemand'])->name('demands.update');
+    Route::get('/verifications', [\App\Http\Controllers\StoreSupervisorController::class, 'verifications'])->name('verifications');
+    Route::get('/competitors', [\App\Http\Controllers\StoreSupervisorController::class, 'competitorReports'])->name('competitors');
+});
 
 Route::middleware('auth')->prefix('field-sales')->name('field-sales.')->group(function(){
     Route::get('/dashboard', function(){

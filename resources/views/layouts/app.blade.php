@@ -232,6 +232,7 @@
     isRider: {{ (Auth::check() && Auth::user()->role === 'rider') ? 'true' : 'false' }},
     isStorekeeper: {{ (Auth::check() && Auth::user()->role === 'storekeeper') ? 'true' : 'false' }},
     isMarketingOfficer: {{ (Auth::check() && Auth::user()->role === 'marketing_officer') ? 'true' : 'false' }},
+    isStoreSupervisor: {{ (Auth::check() && Auth::user()->role === 'store_supervisor') ? 'true' : 'false' }},
     currentTime: '',
     currentUser: {
         name: '{{ Auth::check() ? Auth::user()->name : 'Admin User' }}',
@@ -548,8 +549,63 @@
     </aside>
   </template>
 
+  <!-- Store Supervisor Sidebar -->
+  <template x-if="isStoreSupervisor">
+    <aside :class="[sidebarOpen?'translate-x-0':'lg:translate-x-0 -translate-x-full','sidebar sidebar-bg fixed lg:relative h-screen z-50 flex flex-col transition-all duration-300',sidebarCollapsed&&window.innerWidth>=1024?'w-16':'w-[260px]']" class="sidebar-bg">
+      <div class="flex items-center justify-between p-4 border-b border-white/20 border-t-2 border-primary-600 flex-shrink-0 bg-white">
+        <div class="flex items-center gap-3" x-show="!sidebarCollapsed || window.innerWidth<1024">
+          <img src="{{ asset('feedtanstorelogo.png') }}" alt="FEEDTAN STORE" class="w-full h-12 rounded-lg flex-shrink-0 object-contain" style="max-width: 180px;">
+        </div>
+        <div x-show="sidebarCollapsed && window.innerWidth>=1024" class="w-10 h-10 rounded-lg flex items-center justify-center mx-auto">
+          <img src="{{ asset('feedtanstorelogo.png') }}" alt="FEEDTAN STORE" class="w-full h-full rounded-lg object-contain">
+        </div>
+        <button @click="sidebarCollapsed=!sidebarCollapsed" class="text-primary-300 hover:text-white transition-colors hidden lg:block">
+          <i :class="sidebarCollapsed?'fa-solid fa-chevron-right':'fa-solid fa-chevron-left'" class="text-xs"></i>
+        </button>
+      </div>
+      <nav class="flex-1 overflow-y-auto py-3 px-2 space-y-0.5">
+        <a href="{{ route('store-supervisor.dashboard') }}" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm {{ request()->routeIs('store-supervisor.dashboard') ? 'bg-primary-600 text-white' : 'text-primary-200 hover:bg-white/10 hover:text-white' }}">
+          <i class="fa-solid fa-house w-4 text-center"></i><span x-show="!sidebarCollapsed" class="font-medium">Dashboard</span>
+        </a>
+        <a href="{{ route('store-supervisor.issues') }}" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm {{ request()->routeIs('store-supervisor.issues*') ? 'bg-primary-600 text-white' : 'text-primary-200 hover:bg-white/10 hover:text-white' }}">
+          <i class="fa-solid fa-exclamation-triangle w-4 text-center"></i><span x-show="!sidebarCollapsed" class="font-medium">Issues Inbox</span>
+        </a>
+        <a href="{{ route('sales.returns') }}" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm {{ request()->routeIs('sales.returns*') ? 'bg-primary-600 text-white' : 'text-primary-200 hover:bg-white/10 hover:text-white' }}">
+          <i class="fa-solid fa-undo w-4 text-center"></i><span x-show="!sidebarCollapsed" class="font-medium">Returns Approval</span>
+        </a>
+        <a href="{{ route('store-supervisor.verifications') }}" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm {{ request()->routeIs('store-supervisor.verifications') ? 'bg-primary-600 text-white' : 'text-primary-200 hover:bg-white/10 hover:text-white' }}">
+          <i class="fa-solid fa-clipboard-check w-4 text-center"></i><span x-show="!sidebarCollapsed" class="font-medium">Stock Verifications</span>
+        </a>
+        <a href="{{ route('store-supervisor.demands') }}" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm {{ request()->routeIs('store-supervisor.demands') ? 'bg-primary-600 text-white' : 'text-primary-200 hover:bg-white/10 hover:text-white' }}">
+          <i class="fa-solid fa-comment-dots w-4 text-center"></i><span x-show="!sidebarCollapsed" class="font-medium">Customer Demands</span>
+        </a>
+        <a href="{{ route('store-supervisor.competitors') }}" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm {{ request()->routeIs('store-supervisor.competitors') ? 'bg-primary-600 text-white' : 'text-primary-200 hover:bg-white/10 hover:text-white' }}">
+          <i class="fa-solid fa-search-dollar w-4 text-center"></i><span x-show="!sidebarCollapsed" class="font-medium">Competitor Intel</span>
+        </a>
+        <a href="{{ route('offline.status') }}" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm {{ request()->routeIs('offline.status') ? 'bg-primary-600 text-white' : 'text-primary-200 hover:bg-white/10 hover:text-white' }}">
+          <i class="fa-solid fa-wifi w-4 text-center"></i><span x-show="!sidebarCollapsed" class="font-medium">Offline Sync</span>
+        </a>
+        <a href="{{ route('customer-ratings.index') }}" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm {{ request()->routeIs('customer-ratings.index') ? 'bg-primary-600 text-white' : 'text-primary-200 hover:bg-white/10 hover:text-white' }}">
+          <i class="fa-solid fa-star w-4 text-center"></i><span x-show="!sidebarCollapsed" class="font-medium">Customer Ratings</span>
+        </a>
+        <a href="{{ route('cashier-performance.index') }}" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm {{ request()->routeIs('cashier-performance.index') ? 'bg-primary-600 text-white' : 'text-primary-200 hover:bg-white/10 hover:text-white' }}">
+          <i class="fa-solid fa-user-clock w-4 text-center"></i><span x-show="!sidebarCollapsed" class="font-medium">Cashier Perf.</span>
+        </a>
+        <a href="{{ route('demand-intelligence.index') }}" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm {{ request()->routeIs('demand-intelligence.index') ? 'bg-primary-600 text-white' : 'text-primary-200 hover:bg-white/10 hover:text-white' }}">
+          <i class="fa-solid fa-lightbulb w-4 text-center"></i><span x-show="!sidebarCollapsed" class="font-medium">Demand Intel</span>
+        </a>
+        <a href="{{ route('inventory.products') }}" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm {{ request()->routeIs('inventory.products') ? 'bg-primary-600 text-white' : 'text-primary-200 hover:bg-white/10 hover:text-white' }}">
+          <i class="fa-solid fa-boxes-stacked w-4 text-center"></i><span x-show="!sidebarCollapsed" class="font-medium">Products</span>
+        </a>
+        <a href="{{ route('revenue.index') }}" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm {{ request()->routeIs('revenue.index') ? 'bg-primary-600 text-white' : 'text-primary-200 hover:bg-white/10 hover:text-white' }}">
+          <i class="fa-solid fa-chart-line w-4 text-center"></i><span x-show="!sidebarCollapsed" class="font-medium">Revenue</span>
+        </a>
+      </nav>
+    </aside>
+  </template>
+
   <!-- Regular Sidebar -->
-  <template x-if="!isCashier && !isRider && !isStorekeeper && !isMarketingOfficer">
+  <template x-if="!isCashier && !isRider && !isStorekeeper && !isMarketingOfficer && !isStoreSupervisor">
     <aside :class="[sidebarOpen?'translate-x-0':'lg:translate-x-0 -translate-x-full','sidebar sidebar-bg fixed lg:relative h-screen z-50 flex flex-col transition-all duration-300',sidebarCollapsed&&window.innerWidth>=1024?'w-16':'w-[260px]']"
            class="sidebar-bg">
 

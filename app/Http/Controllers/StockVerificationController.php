@@ -19,8 +19,8 @@ class StockVerificationController extends Controller
     private function ensureCanManage(): void
     {
         $role = Auth::user()->role;
-        if (!in_array($role, ['admin','manager','inventory_manager'], true)) {
-            abort(403, 'Only management can manage stock verification sessions');
+        if (!in_array($role, ['admin','manager','inventory_manager','store_supervisor'], true)) {
+            abort(403, 'Only management / Store Supervisor can manage stock verification sessions');
         }
     }
 
@@ -104,7 +104,7 @@ class StockVerificationController extends Controller
         $user = Auth::user();
         $isAuditor = $user->role === 'stock_auditor';
         $isExternal = $user->role === 'external_auditor';
-        $isManager = in_array($user->role, ['admin','manager','inventory_manager'], true);
+        $isManager = in_array($user->role, ['admin','manager','inventory_manager','store_supervisor'], true);
 
         if ($isAuditor && (int)$session->assigned_auditor_id !== (int)$user->id) {
             abort(403, 'You are not assigned to this session');
