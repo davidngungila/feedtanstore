@@ -170,6 +170,10 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/orders/{order}', [\App\Http\Controllers\Api\FieldSalesController::class,'showOrder']);
         Route::put('/orders/{order}/status', [\App\Http\Controllers\Api\FieldSalesController::class,'updateOrderStatus']);
         Route::post('/orders/sync-offline', [\App\Http\Controllers\Api\FieldSalesController::class,'syncOffline']);
+        // Driver / Reference Code for daily sales
+        Route::post('/driver-code', [\App\Http\Controllers\Api\FieldSalesController::class,'setDriverCode']);
+        Route::get('/driver-code', [\App\Http\Controllers\Api\FieldSalesController::class,'getDriverCode']);
+        Route::get('/sales/by-driver', [\App\Http\Controllers\Api\FieldSalesController::class,'salesByDriverAndDate']);
         // Demand & competitor via field sales
         Route::post('/demands', [\App\Http\Controllers\CustomerDemandController::class,'apiStore']);
         Route::get('/demands', [\App\Http\Controllers\CustomerDemandController::class,'apiIndex']);

@@ -934,13 +934,44 @@ Route::middleware('auth')->prefix('store-supervisor')->name('store-supervisor.')
 });
 
 Route::middleware('auth')->prefix('field-sales')->name('field-sales.')->group(function(){
-    Route::get('/dashboard', function(){
+    Route::get('/dashboard', function(\Illuminate\Http\Request $request){
         $repId=auth()->id();
+        $todayDriver = \App\Models\DriverDailyReference::where('sales_rep_id',$repId)->whereDate('sales_date', today())->latest()->first();
+        $driverCode = $request->input('driver_code', $todayDriver?->driver_code ?? session('field_sales_driver_code'));
         $mySales=\App\Models\Sale::where('sales_rep_id',$repId)->where('sales_channel','field_sales')->latest()->limit(10)->get();
         $myOrders=\App\Models\FieldSalesOrder::where('sales_rep_id',$repId)->latest()->limit(10)->get();
         $myCustomers= \App\Models\Customer::latest()->limit(5)->get();
-        return view('dashboards.field-sales', compact('mySales','myOrders','myCustomers'));
+        // Today's sales with driver code reference
+        $todaySales = \App\Models\Sale::where('sales_rep_id',$repId)->where('sales_channel','field_sales')->whereDate('sales_date', today());
+        $todayOrders = \App\Models\FieldSalesOrder::where('sales_rep_id',$repId)->whereDate('sales_date', today());
+        if ($driverCode) {
+            $todaySales->where('driver_code', $driverCode);
+            $todayOrders->where('driver_code', $driverCode);
+        }
+        $todaySalesList = $todaySales->with(['items.product'])->latest()->get();
+        $todayOrdersList = $todayOrders->with(['items.product'])->latest()->get();
+        $todaySummary = [
+            'count' => $todaySalesList->count() + $todayOrdersList->count(),
+            'total' => $todaySalesList->sum('total') + $todayOrdersList->sum('total'),
+            'driver_code' => $driverCode,
+        ];
+        // Group today by driver_code for overview
+        $byDriver = \App\Models\FieldSalesOrder::where('sales_rep_id',$repId)->whereDate('sales_date', today())
+            ->selectRaw('driver_code, COUNT(*) as cnt, SUM(total) as total')->groupBy('driver_code')->get();
+        $riders = \App\Models\DeliveryRider::where('is_active', true)->get();
+        return view('dashboards.field-sales', compact('mySales','myOrders','myCustomers','todaySalesList','todayOrdersList','todaySummary','byDriver','todayDriver','driverCode','riders'));
     })->name('dashboard');
+    Route::post('/driver-code', function(\Illuminate\Http\Request $request){
+        $request->validate(['driver_code'=>'required|string|max:50','driver_name'=>'nullable|string|max:100','delivery_rider_id'=>'nullable|exists:delivery_riders,id','sales_date'=>'nullable|date']);
+        $salesDate = $request->input('sales_date', today()->toDateString());
+        $ref = \App\Models\DriverDailyReference::updateOrCreate(
+            ['sales_rep_id'=>auth()->id(), 'sales_date'=>$salesDate, 'driver_code'=>$request->driver_code],
+            ['driver_name'=>$request->driver_name, 'delivery_rider_id'=>$request->delivery_rider_id]
+        );
+        session(['field_sales_driver_code'=>$request->driver_code]);
+        \App\Services\AuditService::log('set_driver_code','field_sales', \App\Models\DriverDailyReference::class, $ref->id, null, $ref->toArray(), 'Web driver code set');
+        return redirect()->route('field-sales.dashboard', ['driver_code'=>$request->driver_code])->with('success','Driver code "'.$request->driver_code.'" set for '.$salesDate.' – it will be used as reference for today\'s sales.');
+    })->name('driver-code.store');
 });
 
 // Rider Routes (separate, protected by auth)

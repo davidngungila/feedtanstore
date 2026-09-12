@@ -28,7 +28,91 @@ class FieldSalesController extends Controller
         $demands=CustomerDemand::where('staff_id',$repId)->count();
         $competitors=CompetitorIntelligence::where('sales_rep_id',$repId)->count();
         $totalRevenue=Sale::where('sales_rep_id',$repId)->where('sales_channel','field_sales')->sum('total') + FieldSalesOrder::where('sales_rep_id',$repId)->sum('total');
-        return response()->json(compact('mySales','myOrders','pendingOrders','demands','competitors','totalRevenue'));
+        // Today's driver code & sales per day
+        $todayCode = \App\Models\DriverDailyReference::where('sales_rep_id',$repId)->whereDate('sales_date', today())->latest()->first();
+        $todayDriverCode = $todayCode?->driver_code;
+        $todaySalesCount = Sale::where('sales_rep_id',$repId)->whereDate('sales_date', today())->count() + FieldSalesOrder::where('sales_rep_id',$repId)->whereDate('sales_date', today())->count();
+        $todaySalesTotal = Sale::where('sales_rep_id',$repId)->whereDate('sales_date', today())->sum('total') + FieldSalesOrder::where('sales_rep_id',$repId)->whereDate('sales_date', today())->sum('total');
+        $todayByDriver = null;
+        if ($todayDriverCode) {
+            $todayByDriver = [
+                'driver_code' => $todayDriverCode,
+                'count' => Sale::where('sales_rep_id',$repId)->where('driver_code',$todayDriverCode)->whereDate('sales_date', today())->count() + FieldSalesOrder::where('sales_rep_id',$repId)->where('driver_code',$todayDriverCode)->whereDate('sales_date', today())->count(),
+                'total' => Sale::where('sales_rep_id',$repId)->where('driver_code',$todayDriverCode)->whereDate('sales_date', today())->sum('total') + FieldSalesOrder::where('sales_rep_id',$repId)->where('driver_code',$todayDriverCode)->whereDate('sales_date', today())->sum('total'),
+            ];
+        }
+        return response()->json(compact('mySales','myOrders','pendingOrders','demands','competitors','totalRevenue','todayDriverCode','todaySalesCount','todaySalesTotal','todayByDriver'));
+    }
+
+    public function setDriverCode(Request $request)
+    {
+        $data=$request->validate([
+            'driver_code'=>'required|string|max:50',
+            'driver_name'=>'nullable|string|max:100',
+            'delivery_rider_id'=>'nullable|exists:delivery_riders,id',
+            'sales_date'=>'nullable|date',
+            'notes'=>'nullable|string|max:500',
+        ]);
+        $salesDate = isset($data['sales_date']) ? \Carbon\Carbon::parse($data['sales_date'])->toDateString() : today()->toDateString();
+        $ref = \App\Models\DriverDailyReference::updateOrCreate(
+            ['sales_rep_id'=>$request->user()->id, 'sales_date'=>$salesDate, 'driver_code'=>$data['driver_code']],
+            ['driver_name'=>$data['driver_name']??null, 'delivery_rider_id'=>$data['delivery_rider_id']??null, 'notes'=>$data['notes']??null]
+        );
+        // also store in session for web
+        if (!$request->expectsJson()) session(['field_sales_driver_code'=>$data['driver_code']]);
+        \App\Services\AuditService::log('set_driver_code','field_sales', \App\Models\DriverDailyReference::class, $ref->id, null, $ref->toArray(), 'Driver code set '.$data['driver_code'].' for '.$salesDate);
+        if ($request->expectsJson()) return response()->json($ref, 201);
+        return back()->with('success','Driver code "'.$data['driver_code'].'" set for '.$salesDate.' – will be used as reference for today\'s sales.');
+    }
+
+    public function getDriverCode(Request $request)
+    {
+        $salesDate = $request->input('sales_date', today()->toDateString());
+        $ref = \App\Models\DriverDailyReference::where('sales_rep_id',$request->user()->id)->whereDate('sales_date',$salesDate)->latest()->first();
+        $ordersToday = FieldSalesOrder::where('sales_rep_id',$request->user()->id)->whereDate('sales_date',$salesDate);
+        $salesToday = Sale::where('sales_rep_id',$request->user()->id)->where('sales_channel','field_sales')->whereDate('sales_date',$salesDate);
+        if ($request->filled('driver_code')) {
+            $ordersToday->where('driver_code',$request->driver_code);
+            $salesToday->where('driver_code',$request->driver_code);
+        } elseif ($ref) {
+            $ordersToday->where('driver_code',$ref->driver_code);
+            $salesToday->where('driver_code',$ref->driver_code);
+        }
+        return response()->json([
+            'driver_reference' => $ref,
+            'orders' => $ordersToday->with('items.product')->latest()->get(),
+            'sales' => $salesToday->with('items.product')->latest()->get(),
+            'summary' => [
+                'count' => $ordersToday->count() + $salesToday->count(),
+                'total' => (clone $ordersToday)->sum('total') + (clone $salesToday)->sum('total'),
+            ]
+        ]);
+    }
+
+    public function salesByDriverAndDate(Request $request)
+    {
+        $request->validate([
+            'sales_date'=>'nullable|date',
+            'driver_code'=>'nullable|string|max:50',
+        ]);
+        $salesDate = $request->input('sales_date', today()->toDateString());
+        $qOrders = FieldSalesOrder::where('sales_rep_id',$request->user()->id)->whereDate('sales_date',$salesDate);
+        $qSales = Sale::where('sales_rep_id',$request->user()->id)->where('sales_channel','field_sales')->whereDate('sales_date',$salesDate);
+        if ($request->filled('driver_code')) {
+            $qOrders->where('driver_code',$request->driver_code);
+            $qSales->where('driver_code',$request->driver_code);
+        }
+        $orders = $qOrders->with(['items.product'])->latest()->get();
+        $sales = $qSales->with(['items.product'])->latest()->get();
+        // group by driver_code for summary
+        $byDriver = FieldSalesOrder::where('sales_rep_id',$request->user()->id)->whereDate('sales_date',$salesDate)
+            ->selectRaw('driver_code, COUNT(*) as cnt, SUM(total) as total')
+            ->groupBy('driver_code')->get()
+            ->merge(
+                Sale::where('sales_rep_id',$request->user()->id)->where('sales_channel','field_sales')->whereDate('sales_date',$salesDate)
+                ->selectRaw('driver_code, COUNT(*) as cnt, SUM(total) as total')->groupBy('driver_code')->get()
+            );
+        return response()->json(compact('salesDate','orders','sales','byDriver'));
     }
 
     public function products(Request $request)
@@ -90,6 +174,11 @@ class FieldSalesController extends Controller
             'paid_amount'=>'nullable|numeric|min:0',
             'notes'=>'nullable|string',
             'branch_id'=>'nullable|exists:branches,id',
+            'driver_code'=>'nullable|string|max:50',
+            'driver_name'=>'nullable|string|max:100',
+            'reference_code'=>'nullable|string|max:50',
+            'delivery_rider_id'=>'nullable|exists:delivery_riders,id',
+            'sales_date'=>'nullable|date',
             'local_transaction_id'=>'nullable|string|unique:field_sales_orders,local_transaction_id|unique:sales,local_transaction_id',
         ]);
 
@@ -114,6 +203,13 @@ class FieldSalesController extends Controller
             $existing=FieldSalesOrder::where('local_transaction_id',$localId)->first();
             if ($existing) return response()->json($existing,200);
 
+            // Resolve driver code: use provided or today's saved driver reference
+            $driverCode = $data['driver_code'] ?? $request->header('X-Driver-Code') ?? session('field_sales_driver_code');
+            if (!$driverCode) {
+                $todayRef = \App\Models\DriverDailyReference::where('sales_rep_id',$salesRepId)->whereDate('sales_date', $data['sales_date'] ?? today())->latest()->first();
+                $driverCode = $todayRef?->driver_code;
+            }
+            $salesDate = isset($data['sales_date']) ? \Carbon\Carbon::parse($data['sales_date'])->toDateString() : today()->toDateString();
             $order=FieldSalesOrder::create([
                 'order_number'=>FieldSalesOrder::generateNumber(),
                 'local_transaction_id'=>$localId,
@@ -121,6 +217,11 @@ class FieldSalesController extends Controller
                 'customer_name'=>$data['customer_name'],
                 'customer_phone'=>$data['customer_phone']??null,
                 'sales_rep_id'=>$salesRepId,
+                'driver_code'=>$driverCode,
+                'driver_name'=>$data['driver_name']??null,
+                'delivery_rider_id'=>$data['delivery_rider_id']??null,
+                'reference_code'=>$data['reference_code']??null,
+                'sales_date'=>$salesDate,
                 'branch_id'=>$data['branch_id']??null,
                 'subtotal'=>$subtotal,
                 'discount'=>$discount,
@@ -174,6 +275,9 @@ class FieldSalesController extends Controller
                     'sales_rep_id'=>$salesRepId,
                     'sales_channel'=>'field_sales',
                     'branch_id'=>$order->branch_id,
+                    'driver_code'=>$driverCode,
+                    'reference_code'=>$data['reference_code']??null,
+                    'sales_date'=>$salesDate,
                     'subtotal'=>$subtotal,
                     'discount'=>$discount,
                     'total'=>$total,
@@ -207,6 +311,9 @@ class FieldSalesController extends Controller
         $q=FieldSalesOrder::where('sales_rep_id',$request->user()->id)->with(['items.product','customer'])->latest();
         if ($request->filled('status')) $q->where('status',$request->status);
         if ($request->filled('payment_status')) $q->where('payment_status',$request->payment_status);
+        if ($request->filled('driver_code')) $q->where('driver_code',$request->driver_code);
+        if ($request->filled('sales_date')) $q->whereDate('sales_date',$request->sales_date);
+        if ($request->filled('reference_code')) $q->where('reference_code',$request->reference_code);
         return response()->json($q->paginate(20));
     }
 
@@ -235,6 +342,9 @@ class FieldSalesController extends Controller
             'orders.*.items.*.product_id'=>'required|exists:products,id',
             'orders.*.items.*.quantity'=>'required|integer|min:1',
             'orders.*.offline_created_at'=>'nullable|date',
+            'orders.*.driver_code'=>'nullable|string|max:50',
+            'orders.*.reference_code'=>'nullable|string|max:50',
+            'orders.*.sales_date'=>'nullable|date',
         ]);
         $results=[];
         foreach ($request->orders as $ord){
@@ -252,6 +362,9 @@ class FieldSalesController extends Controller
                     'customer_phone'=>$ord['customer_phone']??null,
                     'customer_id'=>$ord['customer_id']??null,
                     'sales_rep_id'=>$request->user()->id,
+                    'driver_code'=>$ord['driver_code']??null,
+                    'reference_code'=>$ord['reference_code']??null,
+                    'sales_date'=>isset($ord['sales_date']) ? \Carbon\Carbon::parse($ord['sales_date'])->toDateString() : today()->toDateString(),
                     'subtotal'=>$subtotal,
                     'discount'=>$ord['discount']??0,
                     'total'=>$ord['total']??$subtotal,

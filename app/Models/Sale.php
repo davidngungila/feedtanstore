@@ -7,9 +7,9 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Sale extends Model {
     use SoftDeletes;
-    protected $fillable = ['invoice_number', 'local_transaction_id','sync_status','synced_at','offline_created_at','device_info','sales_channel','branch_id','location_id','sales_rep_id','gross_sales','cost_of_goods_sold','gross_profit','customer_id', 'user_id', 'shift_id', 'discount_id', 'subtotal', 'tax', 'discount', 'total', 'paid', 'change', 'payment_method', 'type', 'status', 'notes', 'cancellation_reason', 'cash_drawer_session_id', 'tra_receipt_number', 'tra_verification_link', 'tra_qr_code', 'tra_status', 'tra_gc_used', 'tra_dc_used', 'tra_znum_used'];
+    protected $fillable = ['invoice_number', 'local_transaction_id','sync_status','synced_at','offline_created_at','device_info','sales_channel','branch_id','location_id','sales_rep_id','driver_code','reference_code','sales_date','gross_sales','cost_of_goods_sold','gross_profit','customer_id', 'user_id', 'shift_id', 'discount_id', 'subtotal', 'tax', 'discount', 'total', 'paid', 'change', 'payment_method', 'type', 'status', 'notes', 'cancellation_reason', 'cash_drawer_session_id', 'tra_receipt_number', 'tra_verification_link', 'tra_qr_code', 'tra_status', 'tra_gc_used', 'tra_dc_used', 'tra_znum_used'];
 
-    protected $casts = ['synced_at'=>'datetime','offline_created_at'=>'datetime'];
+    protected $casts = ['synced_at'=>'datetime','offline_created_at'=>'datetime','sales_date'=>'date'];
 
     public function customer() {
         return $this->belongsTo(Customer::class);
