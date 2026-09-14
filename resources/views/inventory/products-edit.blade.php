@@ -241,7 +241,8 @@
             }
 
             productScanner = new Html5Qrcode('productScannerViewport');
-            const cameraId = cameras[0].id;
+            const backCamera = cameras.find(c => /back|rear|environment/i.test(c.label)) || cameras[cameras.length - 1];
+            const cameraId = backCamera.id;
 
             await productScanner.start(
                 cameraId,
