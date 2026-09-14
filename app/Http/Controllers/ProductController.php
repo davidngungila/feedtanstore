@@ -21,15 +21,6 @@ class ProductController extends Controller
         return $sku;
     }
 
-    protected function generateUniqueBarcode(): string
-    {
-        do {
-            $barcode = now()->format('ymdHis') . random_int(1000, 9999);
-        } while (Product::where('barcode', $barcode)->exists());
-
-        return $barcode;
-    }
-
     public function index(Request $request)
     {
         $search = $request->input('search');

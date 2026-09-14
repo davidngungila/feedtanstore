@@ -155,11 +155,6 @@ class GoodsReceivedNoteController extends Controller
             // Update product quantity, cost price, selling price, batch for tracking
             $product = Product::find($productData['product_id']);
 
-            // Auto-create a barcode for the product if it does not have one yet
-            if (!$product->barcode) {
-                $product->update(['barcode' => Product::generateUniqueBarcode()]);
-            }
-
             $product->increment('quantity', $productData['quantity']);
             $product->update(array_filter([
                 'cost_price' => $productData['unit_price'],

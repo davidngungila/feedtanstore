@@ -421,11 +421,6 @@ class PurchaseOrderRequestController extends Controller
             // Batch number is generated automatically when not provided
             $batchNumber = $request->batch_number ?: \App\Models\Product::generateBatchNumber($product->id);
 
-            // Auto-create a barcode for the product if it does not have one yet
-            if (!$product->barcode) {
-                $product->update(['barcode' => \App\Models\Product::generateUniqueBarcode()]);
-            }
-
             // Create GRN for this request
             $grnNumber = 'GRN-POR-' . date('YmdHis');
 

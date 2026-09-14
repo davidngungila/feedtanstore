@@ -259,11 +259,6 @@ class StorekeeperController extends Controller
                     'expiry_date' => $row['expiry_date'],
                 ]);
 
-                // Auto-create a barcode for the product if it does not have one yet
-                if (!$product->barcode) {
-                    $product->update(['barcode' => \App\Models\Product::generateUniqueBarcode()]);
-                }
-
                 $product->increment('quantity', $row['quantity']);
                 $product->update(array_filter([
                     'cost_price' => $row['unit_price'],
@@ -392,11 +387,6 @@ class StorekeeperController extends Controller
                 ]);
 
                 $product = \App\Models\Product::find($productData['product_id']);
-
-                // Auto-create a barcode for the product if it does not have one yet
-                if (!$product->barcode) {
-                    $product->update(['barcode' => \App\Models\Product::generateUniqueBarcode()]);
-                }
 
                 $product->increment('quantity', $productData['quantity']);
                 $product->update(array_filter([
