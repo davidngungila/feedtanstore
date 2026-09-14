@@ -38,9 +38,9 @@
 
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Barcode / QR Code</label>
-                    <div class="flex gap-2">
-                        <input type="text" name="barcode" id="barcode" value="{{ old('barcode', $product->barcode) }}" placeholder="Scan or type barcode/QR code" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
-                        <button type="button" id="scanBarcodeBtn" onclick="startScanner()" class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors flex items-center gap-2 whitespace-nowrap">
+<div class="flex flex-col sm:flex-row gap-2">
+                        <input type="text" name="barcode" id="barcode" value="{{ old('barcode', $product->barcode) }}" placeholder="Scan or type barcode/QR code" class="w-full min-w-0 sm:flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                        <button type="button" onclick="startScanner()" class="w-full sm:w-auto px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors flex items-center justify-center gap-2 whitespace-nowrap">
                             <i class="fas fa-camera"></i> Scan
                         </button>
                     </div>
