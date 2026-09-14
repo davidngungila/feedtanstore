@@ -76,15 +76,38 @@ class ProductController extends Controller
         return view('inventory.products-show', compact('product', 'barcodeBase64', 'barcodeValue'));
     }
 
+    public function checkBarcode(Request $request)
+    {
+        $barcode = $request->input('barcode');
+        if (!$barcode) {
+            return response()->json(['exists' => false]);
+        }
+
+        $product = Product::where('barcode', $barcode)->first();
+
+        if ($product) {
+            return response()->json([
+                'exists' => true,
+                'product' => [
+                    'id' => $product->id,
+                    'name' => $product->name,
+                    'sku' => $product->sku,
+                    'barcode' => $product->barcode,
+                ]
+            ]);
+        }
+
+        return response()->json(['exists' => false]);
+    }
+
     public function create()
     {
         $categories = Category::all();
         $brands = Brand::all();
         $units = Unit::all();
         $generatedSku = $this->generateUniqueSku();
-        $generatedBarcode = $this->generateUniqueBarcode();
 
-        return view('inventory.products-create', compact('categories', 'brands', 'units', 'generatedSku', 'generatedBarcode'));
+        return view('inventory.products-create', compact('categories', 'brands', 'units', 'generatedSku'));
     }
 
     public function store(Request $request)
@@ -92,7 +115,7 @@ class ProductController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'sku' => 'nullable|string|max:255|unique:products,sku',
-            'barcode' => 'nullable|string|max:255|unique:products,barcode',
+            'barcode' => 'required|string|max:255|unique:products,barcode',
             'category_id' => 'required|exists:categories,id',
             'brand_id' => 'nullable|exists:brands,id',
             'unit_id' => 'required|exists:units,id',
@@ -110,7 +133,7 @@ class ProductController extends Controller
 
         $payload = $request->all();
         $payload['sku'] = $request->filled('sku') ? $request->sku : $this->generateUniqueSku($request->name);
-        $payload['barcode'] = $request->filled('barcode') ? $request->barcode : $this->generateUniqueBarcode();
+        $payload['barcode'] = $request->barcode;
         $payload['is_available_online'] = $request->has('is_available_online');
 
         Product::create($payload);
@@ -205,131 +228,5 @@ class ProductController extends Controller
             'lowStockCount', 
             'outOfStockCount'
         ));
-    }
-
-    public function barcodes(Request $request)
-    {
-        $search = $request->search;
-        $products = Product::with(['category', 'brand', 'unit'])
-            ->where('is_active', true)
-            ->when($search, function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('sku', 'like', "%{$search}%")
-                  ->orWhere('barcode', 'like', "%{$search}%");
-            })
-            ->get();
-        return view('inventory.products-barcodes', compact('products', 'search'));
-    }
-
-    public function printBarcodes(Request $request)
-    {
-        $productIds = $request->product_ids;
-        $quantities = $request->quantities ?? [];
-        $size = intval($request->input('size', 20));
-        $size = max(10, min(35, $size));
-
-        // Handle JSON string case (from expiry page)
-        if (is_string($productIds)) {
-            $productIds = json_decode($productIds, true);
-        }
-
-        $request->validate([
-            'product_ids' => 'required|array',
-            'product_ids.*' => 'exists:products,id'
-        ]);
-
-        $products = Product::with(['category', 'brand', 'unit'])
-            ->whereIn('id', $productIds)
-            ->where('is_active', true)
-            ->get();
-
-        $generator = new \Picqer\Barcode\BarcodeGeneratorPNG();
-        $barcodes = [];
-        foreach ($products as $product) {
-            $qty = $quantities[$product->id] ?? 1;
-            $qty = max(1, intval($qty));
-            $barcodeValue = $product->barcode ?? $product->sku ?? $product->id;
-            $barcodePng = $generator->getBarcode($barcodeValue, \Picqer\Barcode\BarcodeGeneratorPNG::TYPE_CODE_128);
-            
-            for ($i = 0; $i < $qty; $i++) {
-                $barcodes[] = [
-                    'product' => $product,
-                    'barcode_base64' => 'data:image/png;base64,' . base64_encode($barcodePng),
-                    'barcode_value' => $barcodeValue
-                ];
-            }
-        }
-
-        return view('inventory.products-barcodes-print', compact('barcodes', 'size'));
-    }
-
-    public function printAllBarcodes(Request $request)
-    {
-        $size = intval($request->input('size', 20));
-        $size = max(10, min(35, $size));
-
-        $products = Product::with(['category', 'brand', 'unit'])
-            ->where('is_active', true)
-            ->get();
-
-        $generator = new \Picqer\Barcode\BarcodeGeneratorPNG();
-        $barcodes = [];
-        foreach ($products as $product) {
-            $barcodeValue = $product->barcode ?? $product->sku ?? $product->id;
-            $barcodePng = $generator->getBarcode($barcodeValue, \Picqer\Barcode\BarcodeGeneratorPNG::TYPE_CODE_128);
-            $barcodes[] = [
-                'product' => $product,
-                'barcode_base64' => 'data:image/png;base64,' . base64_encode($barcodePng),
-                'barcode_value' => $barcodeValue
-            ];
-        }
-
-        return view('inventory.products-barcodes-print', compact('barcodes', 'size'));
-    }
-
-    public function exportBarcodesPdf(Request $request)
-    {
-        $productIds = $request->product_ids;
-        $size = intval($request->input('size', 20));
-        $size = max(10, min(35, $size));
-
-        if (is_string($productIds)) {
-            $productIds = json_decode($productIds, true);
-        }
-
-        if (empty($productIds)) {
-            $products = Product::with(['category', 'brand', 'unit'])
-                ->where('is_active', true)
-                ->get();
-        } else {
-            $products = Product::with(['category', 'brand', 'unit'])
-                ->whereIn('id', $productIds)
-                ->where('is_active', true)
-                ->get();
-        }
-
-        $generator = new \Picqer\Barcode\BarcodeGeneratorPNG();
-        $barcodes = [];
-        foreach ($products as $product) {
-            $barcodeValue = $product->barcode ?? $product->sku ?? $product->id;
-            $barcodePng = $generator->getBarcode($barcodeValue, \Picqer\Barcode\BarcodeGeneratorPNG::TYPE_CODE_128);
-            $barcodes[] = [
-                'product' => $product,
-                'barcode_base64' => 'data:image/png;base64,' . base64_encode($barcodePng),
-                'barcode_value' => $barcodeValue
-            ];
-        }
-
-        $html = view('inventory.products-barcodes-pdf', compact('barcodes', 'size'))->render();
-
-        $dompdf = new \Dompdf\Dompdf();
-        $dompdf->loadHtml($html);
-        $dompdf->setPaper('a4');
-        $dompdf->render();
-
-        return response($dompdf->output(), 200, [
-            'Content-Type' => 'application/pdf',
-            'Content-Disposition' => 'attachment; filename="barcodes-' . now()->format('Y-m-d-His') . '.pdf"',
-        ]);
     }
 }

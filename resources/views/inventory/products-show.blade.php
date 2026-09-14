@@ -140,9 +140,6 @@
                     <button onclick="printBarcode()" class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors">
                         <i class="fas fa-print mr-2"></i>Print
                     </button>
-                    <a href="{{ route('inventory.barcodes.export-pdf', ['product_ids' => [$product->id], 'size' => '20']) }}" id="exportPdfBtn" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors">
-                        <i class="fas fa-file-pdf mr-2"></i>Export PDF
-                    </a>
                 </div>
             </div>
             <div id="barcode-print-area" class="flex flex-col items-center justify-center p-4 bg-gray-50 rounded-lg">
@@ -158,10 +155,6 @@
         const size = document.getElementById('barcodeSize').value;
         const img = document.getElementById('barcodeImage');
         img.style.width = size + 'mm';
-        const pdfBtn = document.getElementById('exportPdfBtn');
-        const url = new URL(pdfBtn.href);
-        url.searchParams.set('size', size);
-        pdfBtn.href = url.toString();
     }
 
     function printBarcode() {

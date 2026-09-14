@@ -211,6 +211,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/products', [\App\Http\Controllers\ProductController::class, 'index'])->name('products');
         Route::get('/products/create', [\App\Http\Controllers\ProductController::class, 'create'])->name('products.create');
         Route::post('/products', [\App\Http\Controllers\ProductController::class, 'store'])->name('products.store');
+        Route::get('/check-barcode', [\App\Http\Controllers\ProductController::class, 'checkBarcode'])->name('check-barcode');
         Route::get('/products/{identifier}', [\App\Http\Controllers\ProductController::class, 'show'])->name('products.show');
         Route::get('/products/{identifier}/edit', [\App\Http\Controllers\ProductController::class, 'edit'])->name('products.edit');
         Route::put('/products/{identifier}', [\App\Http\Controllers\ProductController::class, 'update'])->name('products.update');
@@ -261,11 +262,6 @@ Route::middleware('auth')->group(function () {
         Route::get('/expiry', [\App\Http\Controllers\ProductController::class, 'expiry'])->name('expiry');
         Route::get('/damaged', [\App\Http\Controllers\DamagedGoodController::class, 'index'])->name('damaged');
         Route::get('/reports', [\App\Http\Controllers\ProductController::class, 'reports'])->name('reports');
-        Route::get('/barcodes', [\App\Http\Controllers\ProductController::class, 'barcodes'])->name('barcodes');
-        Route::post('/barcodes/print', [\App\Http\Controllers\ProductController::class, 'printBarcodes'])->name('barcodes.print');
-        Route::post('/barcodes/print-all', [\App\Http\Controllers\ProductController::class, 'printAllBarcodes'])->name('barcodes.print-all');
-        Route::get('/barcodes/export-pdf', [\App\Http\Controllers\ProductController::class, 'exportBarcodesPdf'])->name('barcodes.export-pdf');
-        Route::post('/barcodes/export-pdf', [\App\Http\Controllers\ProductController::class, 'exportBarcodesPdf'])->name('barcodes.export-pdf-post');
     });
 
     // Stock Requests

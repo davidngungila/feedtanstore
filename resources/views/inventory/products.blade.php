@@ -3,6 +3,26 @@
 @section('page-title', 'Products')
 
 @section('content')
+@php
+    $productsData = $products->map(fn($p) => [
+        'id' => $p->id,
+        'name' => $p->name,
+        'sku' => $p->sku,
+        'barcode' => $p->barcode,
+        'category' => $p->category->name ?? '-',
+        'brand' => $p->brand->name ?? '-',
+        'unit' => $p->unit->short_name ?? ($p->unit->name ?? '-'),
+        'quantity' => $p->quantity,
+        'reorder_level' => $p->reorder_level,
+        'cost_price' => $p->cost_price,
+        'selling_price' => $p->selling_price,
+        'expiry_date' => $p->expiry_date ? $p->expiry_date->format('Y-m-d') : null,
+        'is_active' => (bool) $p->is_active,
+        'is_available_online' => (bool) ($p->is_available_online ?? false),
+        'description' => $p->description,
+        'specifications' => $p->specifications,
+    ])->keyBy('id')->toArray();
+@endphp
 <div class="animate-[fadeIn_0.4s_ease]">
     <div class="card rounded-2xl p-6">
         <div class="flex flex-col md:flex-row items-center justify-between gap-4 mb-6">
@@ -16,9 +36,6 @@
                         </button>
                     </div>
                 </form>
-                <a href="{{ route('inventory.barcodes') }}" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors whitespace-nowrap">
-                    <i class="fas fa-barcode mr-2"></i>Barcode Bulk
-                </a>
                 <a href="{{ route('inventory.products.create') }}" class="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg font-medium transition-colors whitespace-nowrap">
                     <i class="fas fa-plus mr-2"></i>Add Product
                 </a>
@@ -69,7 +86,7 @@
                 </thead>
                 <tbody id="products-table-body">
                     @foreach($products as $product)
-                    <tr data-search="{{ strtolower($product->name . ' ' . ($product->sku ?? '') . ' ' . ($product->barcode ?? '') . ' ' . ($product->category->name ?? '') . ' ' . ($product->brand->name ?? '')) }}">
+                    <tr data-search="{{ strtolower($product->name . ' ' . ($product->sku ?? '') . ' ' . ($product->barcode ?? '') . ' ' . ($product->category->name ?? '') . ' ' . ($product->brand->name ?? '')) }}" data-id="{{ $product->id }}" class="cursor-pointer hover:bg-gray-50 transition-colors">
                         <td class="text-left">
                             <input type="checkbox" name="product_ids[]" value="{{ $product->id }}" form="barcode-bulk-form" class="product-checkbox w-4 h-4 text-primary-600">
                         </td>
@@ -146,7 +163,169 @@
                     selectAllCheckbox.checked = allChecked;
                 });
             });
+
+            // Right drawer
+            const productsData = @json($productsData);
+            const drawer = document.getElementById('productDrawer');
+            const drawerBackdrop = document.getElementById('productDrawerBackdrop');
+
+            window.closeProductDrawer = function() {
+                drawer.classList.add('translate-x-full');
+                drawerBackdrop.classList.add('hidden');
+                document.body.style.overflow = '';
+            };
+
+            function populateDrawer(data) {
+                document.getElementById('drawerTitle').textContent = data.name;
+                document.getElementById('drawerSku').textContent = data.sku || '-';
+                document.getElementById('drawerBarcode').textContent = data.barcode || '-';
+                document.getElementById('drawerCategory').textContent = data.category;
+                document.getElementById('drawerBrand').textContent = data.brand;
+                document.getElementById('drawerUnit').textContent = data.unit;
+                document.getElementById('drawerQuantity').textContent = data.quantity;
+                document.getElementById('drawerQuantity').className = 'font-semibold ' + (data.quantity <= data.reorder_level ? 'text-red-600' : 'text-primary-900');
+                document.getElementById('drawerReorder').textContent = data.reorder_level;
+                document.getElementById('drawerCost').textContent = 'TZS ' + Number(data.cost_price).toLocaleString();
+                document.getElementById('drawerSelling').textContent = 'TZS ' + Number(data.selling_price).toLocaleString();
+                document.getElementById('drawerExpiry').textContent = data.expiry_date ? new Date(data.expiry_date + 'T00:00:00').toLocaleDateString() : '-';
+
+                const badges = document.getElementById('drawerBadges');
+                badges.innerHTML = '';
+
+                let badge = document.createElement('span');
+                badge.className = 'px-3 py-1 rounded-full text-xs font-semibold ' + (data.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800');
+                badge.textContent = data.is_active ? 'Active' : 'Inactive';
+                badges.appendChild(badge);
+
+                if (data.is_available_online) {
+                    badge = document.createElement('span');
+                    badge.className = 'px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800';
+                    badge.textContent = 'Available Online';
+                    badges.appendChild(badge);
+                }
+
+                if (data.quantity <= data.reorder_level) {
+                    badge = document.createElement('span');
+                    badge.className = 'px-3 py-1 rounded-full text-xs font-semibold bg-orange-100 text-orange-800';
+                    badge.textContent = 'Low Stock';
+                    badges.appendChild(badge);
+                }
+
+                const descSection = document.getElementById('drawerDescription');
+                if (data.description) {
+                    descSection.classList.remove('hidden');
+                    descSection.querySelector('p').textContent = data.description;
+                } else {
+                    descSection.classList.add('hidden');
+                }
+
+                const specSection = document.getElementById('drawerSpecifications');
+                if (data.specifications) {
+                    specSection.classList.remove('hidden');
+                    specSection.querySelector('p').textContent = data.specifications;
+                } else {
+                    specSection.classList.add('hidden');
+                }
+
+                document.getElementById('drawerViewBtn').href = `/inventory/products/${data.id}`;
+                document.getElementById('drawerEditBtn').href = `/inventory/products/${data.id}/edit`;
+            }
+
+            tableBody.addEventListener('click', function(e) {
+                if (e.target.closest('a, button, input, form')) return;
+                const row = e.target.closest('tr[data-id]');
+                if (row && productsData[row.dataset.id]) {
+                    populateDrawer(productsData[row.dataset.id]);
+                    drawerBackdrop.classList.remove('hidden');
+                    requestAnimationFrame(() => drawer.classList.remove('translate-x-full'));
+                    document.body.style.overflow = 'hidden';
+                }
+            });
+
+            drawerBackdrop.addEventListener('click', closeProductDrawer);
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && !drawerBackdrop.classList.contains('hidden')) {
+                    closeProductDrawer();
+                }
+            });
         </script>
     </div>
 </div>
+
+<!-- Product Right Drawer -->
+<div id="productDrawerBackdrop" class="fixed inset-0 z-40 bg-black/40 hidden"></div>
+<aside id="productDrawer" class="fixed top-0 right-0 h-full w-full max-w-md bg-white z-50 shadow-2xl flex flex-col transition-transform duration-300 ease-in-out translate-x-full">
+    <div class="flex items-center justify-between p-5 border-b">
+        <h3 id="drawerTitle" class="text-lg font-bold text-primary-900 truncate">Product</h3>
+        <button type="button" onclick="closeProductDrawer()" class="text-gray-400 hover:text-gray-600 text-3xl leading-none">
+            &times;
+        </button>
+    </div>
+
+    <div class="flex-1 overflow-y-auto p-5 space-y-6">
+        <div id="drawerBadges" class="flex flex-wrap gap-2"></div>
+
+        <div class="grid grid-cols-2 gap-4">
+            <div>
+                <p class="text-xs uppercase tracking-wide text-gray-500 mb-1">SKU</p>
+                <p id="drawerSku" class="font-medium text-gray-900 break-all">-</p>
+            </div>
+            <div>
+                <p class="text-xs uppercase tracking-wide text-gray-500 mb-1">Barcode</p>
+                <p id="drawerBarcode" class="font-medium text-gray-900 break-all">-</p>
+            </div>
+            <div>
+                <p class="text-xs uppercase tracking-wide text-gray-500 mb-1">Category</p>
+                <p id="drawerCategory" class="font-medium text-gray-900">-</p>
+            </div>
+            <div>
+                <p class="text-xs uppercase tracking-wide text-gray-500 mb-1">Brand</p>
+                <p id="drawerBrand" class="font-medium text-gray-900">-</p>
+            </div>
+            <div>
+                <p class="text-xs uppercase tracking-wide text-gray-500 mb-1">Unit</p>
+                <p id="drawerUnit" class="font-medium text-gray-900">-</p>
+            </div>
+            <div>
+                <p class="text-xs uppercase tracking-wide text-gray-500 mb-1">Quantity in Stock</p>
+                <p id="drawerQuantity" class="font-semibold text-primary-900">-</p>
+            </div>
+            <div>
+                <p class="text-xs uppercase tracking-wide text-gray-500 mb-1">Reorder Level</p>
+                <p id="drawerReorder" class="font-medium text-gray-900">-</p>
+            </div>
+            <div>
+                <p class="text-xs uppercase tracking-wide text-gray-500 mb-1">Expiry Date</p>
+                <p id="drawerExpiry" class="font-medium text-gray-900">-</p>
+            </div>
+            <div>
+                <p class="text-xs uppercase tracking-wide text-gray-500 mb-1">Cost Price</p>
+                <p id="drawerCost" class="font-medium text-gray-900">-</p>
+            </div>
+            <div>
+                <p class="text-xs uppercase tracking-wide text-gray-500 mb-1">Selling Price</p>
+                <p id="drawerSelling" class="font-medium text-green-700">-</p>
+            </div>
+        </div>
+
+        <div id="drawerDescription" class="p-4 bg-yellow-50 border-l-4 border-yellow-400 rounded-lg">
+            <h4 class="font-semibold text-yellow-800 mb-1">Description</h4>
+            <p class="text-sm text-yellow-700"></p>
+        </div>
+
+        <div id="drawerSpecifications" class="p-4 bg-gray-50 border-l-4 border-gray-300 rounded-lg">
+            <h4 class="font-semibold text-gray-800 mb-1">Specifications</h4>
+            <p class="text-sm text-gray-700"></p>
+        </div>
+    </div>
+
+    <div class="p-5 border-t flex gap-3">
+        <a id="drawerViewBtn" href="#" class="flex-1 text-center px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors">
+            <i class="fas fa-eye mr-2"></i>View Full Details
+        </a>
+        <a id="drawerEditBtn" href="#" class="flex-1 text-center px-4 py-2 border border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors">
+            <i class="fas fa-edit mr-2"></i>Edit
+        </a>
+    </div>
+</aside>
 @endsection
