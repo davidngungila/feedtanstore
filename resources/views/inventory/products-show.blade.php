@@ -314,7 +314,7 @@
             submitManualBarcode();
         }
     });
-
+</script>
 <script>
     function updateBarcodeSize() {
         const size = document.getElementById('barcodeSize').value;
