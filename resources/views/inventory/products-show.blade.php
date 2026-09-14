@@ -126,6 +126,7 @@
             <div class="flex items-center justify-between mb-6">
                 <h3 class="text-lg font-bold text-primary-900">Product Barcode</h3>
                 <div class="flex flex-wrap items-center gap-3">
+                    @if($product->barcode)
                     <div class="flex items-center gap-2">
                         <label for="barcodeSize" class="text-sm font-medium text-gray-700">Size:</label>
                         <select id="barcodeSize" onchange="updateBarcodeSize()" class="px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
@@ -137,19 +138,35 @@
                             <option value="35">35mm</option>
                         </select>
                     </div>
+                    @endif
                     <button type="button" onclick="startScanner()" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors">
                         <i class="fas fa-camera mr-2"></i>Scan &amp; Link
                     </button>
+                    @if($product->barcode)
                     <button onclick="printBarcode()" class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors">
                         <i class="fas fa-print mr-2"></i>Print
                     </button>
+                    @endif
                 </div>
             </div>
             <div id="barcodeStatus" class="hidden mb-3 text-sm"></div>
+            @if($product->barcode)
             <div id="barcode-print-area" class="flex flex-col items-center justify-center p-4 bg-gray-50 rounded-lg">
                 <h4 class="font-semibold text-gray-900 mb-2">{{ $product->name }}</h4>
                 <img id="barcodeImage" src="{{ $barcodeBase64 }}" alt="Barcode for {{ $product->name }}" style="width: 20mm;">
             </div>
+            @else
+            <div class="flex flex-col items-center justify-center p-8 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+                <div class="w-16 h-16 rounded-full bg-amber-100 flex items-center justify-center mb-3">
+                    <i class="fas fa-barcode text-2xl text-amber-600"></i>
+                </div>
+                <h4 class="font-semibold text-gray-700 mb-1">Not Linked</h4>
+                <p class="text-sm text-gray-500 text-center mb-4">This product has no barcode yet. Scan the physical product to link it.</p>
+                <button type="button" onclick="startScanner()" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors flex items-center gap-2 whitespace-nowrap">
+                    <i class="fas fa-camera"></i> Scan Product Now
+                </button>
+            </div>
+            @endif
         </div>
     </div>
 </div>
@@ -317,12 +334,18 @@
 </script>
 <script>
     function updateBarcodeSize() {
-        const size = document.getElementById('barcodeSize').value;
         const img = document.getElementById('barcodeImage');
+        if (!img) return;
+        const size = document.getElementById('barcodeSize').value;
         img.style.width = size + 'mm';
     }
 
     function printBarcode() {
+        const img = document.getElementById('barcodeImage');
+        if (!img) {
+            alert('This product has no barcode linked yet.');
+            return;
+        }
         const size = document.getElementById('barcodeSize').value;
         const printContent = document.getElementById('barcode-print-area').innerHTML;
         

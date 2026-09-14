@@ -59,10 +59,13 @@ class ProductController extends Controller
             'saleItems.sale.customer'
         ]);
         
-        $barcodeValue = $product->barcode ?? $product->sku ?? $product->id;
-        $generator = new \Picqer\Barcode\BarcodeGeneratorPNG();
-        $barcodePng = $generator->getBarcode($barcodeValue, \Picqer\Barcode\BarcodeGeneratorPNG::TYPE_CODE_128);
-        $barcodeBase64 = 'data:image/png;base64,' . base64_encode($barcodePng);
+        $barcodeValue = $product->barcode;
+        $barcodeBase64 = null;
+        if ($barcodeValue) {
+            $generator = new \Picqer\Barcode\BarcodeGeneratorPNG();
+            $barcodePng = $generator->getBarcode($barcodeValue, \Picqer\Barcode\BarcodeGeneratorPNG::TYPE_CODE_128);
+            $barcodeBase64 = 'data:image/png;base64,' . base64_encode($barcodePng);
+        }
         
         return view('inventory.products-show', compact('product', 'barcodeBase64', 'barcodeValue'));
     }
