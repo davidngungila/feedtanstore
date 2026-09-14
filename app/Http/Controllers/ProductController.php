@@ -100,6 +100,25 @@ class ProductController extends Controller
         return response()->json(['exists' => false]);
     }
 
+    public function linkBarcode(Request $request, $identifier)
+    {
+        $product = Product::where('id', $identifier)
+            ->orWhere('sku', $identifier)
+            ->orWhere('barcode', $identifier)
+            ->firstOrFail();
+
+        $request->validate([
+            'barcode' => 'required|string|max:255|unique:products,barcode,' . $product->id,
+        ]);
+
+        $product->update(['barcode' => $request->barcode]);
+
+        return response()->json([
+            'success' => true,
+            'barcode' => $product->barcode,
+        ]);
+    }
+
     public function create()
     {
         $categories = Category::all();
@@ -194,6 +213,18 @@ class ProductController extends Controller
             
         $product->delete();
         return redirect()->route('inventory.products')->with('success', 'Product deleted successfully!');
+    }
+
+    public function bulkDelete(Request $request)
+    {
+        $request->validate([
+            'product_ids' => 'required|array',
+            'product_ids.*' => 'exists:products,id',
+        ]);
+
+        $count = Product::whereIn('id', $request->product_ids)->delete();
+
+        return redirect()->route('inventory.products')->with('success', $count . ' product(s) deleted successfully!');
     }
 
     public function lowStock()

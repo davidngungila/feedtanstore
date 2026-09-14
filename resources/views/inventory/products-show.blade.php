@@ -125,7 +125,7 @@
         <div class="card rounded-2xl p-6">
             <div class="flex items-center justify-between mb-6">
                 <h3 class="text-lg font-bold text-primary-900">Product Barcode</h3>
-                <div class="flex items-center gap-3">
+                <div class="flex flex-wrap items-center gap-3">
                     <div class="flex items-center gap-2">
                         <label for="barcodeSize" class="text-sm font-medium text-gray-700">Size:</label>
                         <select id="barcodeSize" onchange="updateBarcodeSize()" class="px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
@@ -137,11 +137,15 @@
                             <option value="35">35mm</option>
                         </select>
                     </div>
+                    <button type="button" onclick="startScanner()" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors">
+                        <i class="fas fa-camera mr-2"></i>Scan &amp; Link
+                    </button>
                     <button onclick="printBarcode()" class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors">
                         <i class="fas fa-print mr-2"></i>Print
                     </button>
                 </div>
             </div>
+            <div id="barcodeStatus" class="hidden mb-3 text-sm"></div>
             <div id="barcode-print-area" class="flex flex-col items-center justify-center p-4 bg-gray-50 rounded-lg">
                 <h4 class="font-semibold text-gray-900 mb-2">{{ $product->name }}</h4>
                 <img id="barcodeImage" src="{{ $barcodeBase64 }}" alt="Barcode for {{ $product->name }}" style="width: 20mm;">
@@ -149,6 +153,167 @@
         </div>
     </div>
 </div>
+
+<!-- Barcode Scanner Modal -->
+<div id="scannerModal" class="fixed inset-0 z-50 bg-black bg-opacity-75 flex items-center justify-center hidden">
+    <div class="bg-white rounded-2xl p-6 w-full max-w-lg mx-4 shadow-2xl">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-bold text-gray-900">Scan Barcode / QR Code</h3>
+            <button type="button" onclick="stopScanner()" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
+        </div>
+        <div id="productScannerViewport" class="w-full rounded-lg overflow-hidden mb-4" style="min-height: 250px;"></div>
+        <div id="scannerStatusText" class="text-sm text-gray-500 text-center mb-3">Initializing camera...</div>
+        <div class="flex gap-3">
+            <input type="text" id="manualBarcodeInput" placeholder="Or type barcode manually" class="flex-1 min-w-0 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500">
+            <button type="button" onclick="submitManualBarcode()" class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors">OK</button>
+        </div>
+        <button type="button" onclick="stopScanner()" class="mt-4 w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">Close Scanner</button>
+    </div>
+</div>
+
+<script src="{{ asset('js/html5-qrcode.min.js') }}"></script>
+<script>
+    let productScanner = null;
+    let scannerActive = false;
+
+    async function startScanner() {
+        document.getElementById('scannerModal').classList.remove('hidden');
+        document.getElementById('scannerStatusText').textContent = 'Initializing camera...';
+        document.getElementById('manualBarcodeInput').value = '';
+
+        if (typeof Html5Qrcode === 'undefined') {
+            document.getElementById('scannerStatusText').textContent = 'Scanner library failed to load. Type barcode manually.';
+            return;
+        }
+
+        try {
+            const cameras = await Html5Qrcode.getCameras();
+            if (!cameras || cameras.length === 0) {
+                document.getElementById('scannerStatusText').textContent = 'No camera found. Type barcode manually.';
+                return;
+            }
+
+            productScanner = new Html5Qrcode('productScannerViewport');
+            const backCamera = cameras.find(c => /back|rear|environment/i.test(c.label)) || cameras[cameras.length - 1];
+            const cameraId = backCamera.id;
+
+            await productScanner.start(
+                cameraId,
+                {
+                    fps: 10,
+                    qrbox: { width: 280, height: 150 },
+                    aspectRatio: 1.7778,
+                    formatsToSupport: [
+                        Html5QrcodeSupportedFormats.CODE_128,
+                        Html5QrcodeSupportedFormats.CODE_39,
+                        Html5QrcodeSupportedFormats.CODE_93,
+                        Html5QrcodeSupportedFormats.EAN_13,
+                        Html5QrcodeSupportedFormats.EAN_8,
+                        Html5QrcodeSupportedFormats.UPC_A,
+                        Html5QrcodeSupportedFormats.UPC_E,
+                        Html5QrcodeSupportedFormats.QR_CODE,
+                        Html5QrcodeSupportedFormats.ITF,
+                        Html5QrcodeSupportedFormats.CODABAR
+                    ]
+                },
+                (decodedText) => {
+                    linkBarcode(decodedText);
+                    stopScanner();
+                },
+                () => {}
+            );
+
+            document.getElementById('scannerStatusText').textContent = 'Camera active. Point at a barcode or QR code.';
+            scannerActive = true;
+        } catch (err) {
+            console.error('Scanner start error:', err);
+            document.getElementById('scannerStatusText').textContent = 'Unable to start camera. Check permissions or type manually.';
+        }
+    }
+
+    async function stopScanner() {
+        if (productScanner && scannerActive) {
+            try {
+                await productScanner.stop();
+                productScanner.clear();
+            } catch (e) {
+                console.error('Scanner stop error:', e);
+            }
+            scannerActive = false;
+            productScanner = null;
+        }
+        document.getElementById('scannerModal').classList.add('hidden');
+    }
+
+    function submitManualBarcode() {
+        const val = document.getElementById('manualBarcodeInput').value.trim();
+        if (val) {
+            linkBarcode(val);
+            stopScanner();
+        }
+    }
+
+    function linkBarcode(barcode) {
+        const statusEl = document.getElementById('barcodeStatus');
+        statusEl.classList.remove('hidden');
+
+        fetch('{{ route("inventory.products.link-barcode", $product) }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({ barcode: barcode })
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    statusEl.className = 'mb-3 text-sm p-3 bg-green-100 border border-green-400 text-green-800 rounded-lg';
+                    statusEl.textContent = 'Barcode linked successfully: ' + data.barcode;
+                    setTimeout(() => window.location.reload(), 900);
+                } else {
+                    statusEl.className = 'mb-3 text-sm p-3 bg-red-100 border border-red-400 text-red-800 rounded-lg';
+                    statusEl.textContent = data.message || data.barcode || 'Failed to link barcode.';
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                statusEl.className = 'mb-3 text-sm p-3 bg-red-100 border border-red-400 text-red-800 rounded-lg';
+                statusEl.textContent = 'Error linking barcode. Please try again.';
+            });
+    }
+
+    // Global physical barcode scanner listener (USB/keyboard scanners type fast then send Enter)
+    let barcodeBuffer = '';
+    let lastKeyTime = 0;
+    document.addEventListener('keydown', function(e) {
+        const now = Date.now();
+        if (now - lastKeyTime > 100) {
+            barcodeBuffer = '';
+        }
+        lastKeyTime = now;
+
+        if (e.key === 'Enter') {
+            if (barcodeBuffer.length > 0) {
+                e.preventDefault();
+                const scanned = barcodeBuffer.trim();
+                barcodeBuffer = '';
+                if (scanned) {
+                    linkBarcode(scanned);
+                }
+            }
+        } else if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
+            barcodeBuffer += e.key;
+        }
+    });
+
+    document.getElementById('manualBarcodeInput').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            submitManualBarcode();
+        }
+    });
 
 <script>
     function updateBarcodeSize() {

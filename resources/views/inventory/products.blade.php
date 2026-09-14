@@ -88,7 +88,7 @@
                     @foreach($products as $product)
                     <tr data-search="{{ strtolower($product->name . ' ' . ($product->sku ?? '') . ' ' . ($product->barcode ?? '') . ' ' . ($product->category->name ?? '') . ' ' . ($product->brand->name ?? '')) }}" data-id="{{ $product->id }}" class="cursor-pointer hover:bg-gray-50 transition-colors">
                         <td class="text-left">
-                            <input type="checkbox" name="product_ids[]" value="{{ $product->id }}" form="barcode-bulk-form" class="product-checkbox w-4 h-4 text-primary-600">
+                            <input type="checkbox" name="product_ids[]" value="{{ $product->id }}" form="bulk-delete-form" class="product-checkbox w-4 h-4 text-primary-600">
                         </td>
                         <td class="font-medium text-primary-900">
                             <a href="{{ route('inventory.products.show', $product) }}" class="hover:underline">{{ $product->name }}</a>
@@ -154,6 +154,7 @@
                 productCheckboxes.forEach(checkbox => {
                     checkbox.checked = this.checked;
                 });
+                updateBulkBar();
             });
 
             // Update select all when individual checkboxes change
@@ -161,8 +162,33 @@
                 checkbox.addEventListener('change', function() {
                     const allChecked = Array.from(productCheckboxes).every(cb => cb.checked);
                     selectAllCheckbox.checked = allChecked;
+                    updateBulkBar();
                 });
             });
+
+            // Bulk delete
+            const bulkDeleteForm = document.getElementById('bulk-delete-form');
+            const bulkBar = document.getElementById('bulkActions');
+
+            function updateBulkBar() {
+                const checked = Array.from(productCheckboxes).filter(cb => cb.checked && !cb.closest('tr').style.display);
+                if (checked.length > 0) {
+                    document.getElementById('bulkCount').textContent = checked.length + ' selected';
+                    bulkBar.classList.remove('hidden');
+                } else {
+                    bulkBar.classList.add('hidden');
+                }
+            }
+
+            searchInput.addEventListener('input', updateBulkBar);
+
+            window.bulkDelete = function() {
+                const checked = Array.from(productCheckboxes).filter(cb => cb.checked).length;
+                if (checked === 0) return;
+                if (confirm('Delete ' + checked + ' selected product(s)? This will permanently remove them and all related details (prices, images, transactions, etc.).')) {
+                    bulkDeleteForm.submit();
+                }
+            };
 
             // Right drawer
             const productsData = @json($productsData);
@@ -253,6 +279,17 @@
 </div>
 
 <!-- Product Right Drawer -->
+<form id="bulk-delete-form" action="{{ route('inventory.products.bulk-delete') }}" method="POST" class="hidden">
+    @csrf
+</form>
+
+<div id="bulkActions" class="fixed bottom-6 right-6 z-30 hidden items-center gap-3 bg-white rounded-xl shadow-2xl border border-red-200 px-5 py-3">
+    <span id="bulkCount" class="text-sm font-semibold text-gray-700"></span>
+    <button type="button" onclick="bulkDelete()" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors flex items-center gap-2 whitespace-nowrap">
+        <i class="fas fa-trash"></i> Delete Selected
+    </button>
+</div>
+
 <div id="productDrawerBackdrop" class="fixed inset-0 z-40 bg-black/40 hidden"></div>
 <aside id="productDrawer" class="fixed top-0 right-0 h-full w-full max-w-md bg-white z-50 shadow-2xl flex flex-col transition-transform duration-300 ease-in-out translate-x-full">
     <div class="flex items-center justify-between p-5 border-b">

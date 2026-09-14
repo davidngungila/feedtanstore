@@ -211,7 +211,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/products', [\App\Http\Controllers\ProductController::class, 'index'])->name('products');
         Route::get('/products/create', [\App\Http\Controllers\ProductController::class, 'create'])->name('products.create');
         Route::post('/products', [\App\Http\Controllers\ProductController::class, 'store'])->name('products.store');
+        Route::post('/products/bulk-delete', [\App\Http\Controllers\ProductController::class, 'bulkDelete'])->name('products.bulk-delete');
         Route::get('/check-barcode', [\App\Http\Controllers\ProductController::class, 'checkBarcode'])->name('check-barcode');
+        Route::post('/products/{identifier}/link-barcode', [\App\Http\Controllers\ProductController::class, 'linkBarcode'])->name('products.link-barcode');
         Route::get('/products/{identifier}', [\App\Http\Controllers\ProductController::class, 'show'])->name('products.show');
         Route::get('/products/{identifier}/edit', [\App\Http\Controllers\ProductController::class, 'edit'])->name('products.edit');
         Route::put('/products/{identifier}', [\App\Http\Controllers\ProductController::class, 'update'])->name('products.update');
