@@ -6,7 +6,11 @@ use App\Models\Product;
 use App\Models\Category;
 use App\Models\Brand;
 use App\Models\Unit;
+use App\Imports\ProductImport;
+use App\Exports\ProductSampleExport;
+use App\Exports\ProductExport;
 use Illuminate\Http\Request;
+use Maatwebsite\Excel\Facades\Excel;
 
 class ProductController extends Controller
 {
@@ -128,7 +132,7 @@ class ProductController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'sku' => 'nullable|string|max:255|unique:products,sku',
-            'barcode' => 'required|string|max:255|unique:products,barcode',
+            'barcode' => 'nullable|string|max:255|unique:products,barcode',
             'category_id' => 'required|exists:categories,id',
             'brand_id' => 'nullable|exists:brands,id',
             'unit_id' => 'required|exists:units,id',
@@ -146,7 +150,7 @@ class ProductController extends Controller
 
         $payload = $request->all();
         $payload['sku'] = $request->filled('sku') ? $request->sku : $this->generateUniqueSku($request->name);
-        $payload['barcode'] = $request->barcode;
+        $payload['barcode'] = $request->filled('barcode') ? $request->barcode : null;
         $payload['is_available_online'] = $request->has('is_available_online');
 
         Product::create($payload);
@@ -193,7 +197,7 @@ class ProductController extends Controller
             'is_available_online' => 'boolean'
         ]);
 
-        $product->update($request->all() + ['is_available_online' => $request->has('is_available_online')]);
+        $product->update($request->except('barcode') + ['barcode' => $request->filled('barcode') ? $request->barcode : null] + ['is_available_online' => $request->has('is_available_online')]);
 
         return redirect()->route('inventory.products')->with('success', 'Product updated successfully!');
     }
@@ -219,6 +223,49 @@ class ProductController extends Controller
         $count = Product::whereIn('id', $request->product_ids)->delete();
 
         return redirect()->route('inventory.products')->with('success', $count . ' product(s) deleted successfully!');
+    }
+
+    public function import(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|file|mimes:xlsx,xls,csv|max:10240',
+        ]);
+
+        try {
+            $import = new ProductImport();
+            Excel::import($import, $request->file('file'));
+            $count = $import->getImportedCount();
+            $updated = $import->getUpdatedCount();
+            $failures = $import->getFailures();
+
+            $message = "Successfully imported {$count} product(s)";
+            if ($updated > 0) {
+                $message .= " and updated {$updated} existing product(s)";
+            }
+            $message .= "!";
+
+            if (!empty($failures)) {
+                $message .= " However, " . count($failures) . " row(s) failed: " . implode("; ", array_slice($failures, 0, 20));
+                if (count($failures) > 20) {
+                    $message .= "...";
+                }
+                return redirect()->route('inventory.products')->with('warning', $message);
+            }
+
+            return redirect()->route('inventory.products')->with('success', $message);
+        } catch (\Exception $e) {
+            return redirect()->route('inventory.products')->with('error', 'Import failed: ' . $e->getMessage());
+        }
+    }
+
+    public function downloadSample()
+    {
+        return Excel::download(new ProductSampleExport(), 'products_sample.xlsx');
+    }
+
+    public function export(Request $request)
+    {
+        return Excel::download(new ProductExport($request->input('search')), 'products_' . now()->format('Ymd_His') . '.xlsx');
     }
 
     public function lowStock()

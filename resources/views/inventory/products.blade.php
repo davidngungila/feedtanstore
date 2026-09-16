@@ -39,12 +39,30 @@
                 <a href="{{ route('inventory.products.create') }}" class="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg font-medium transition-colors whitespace-nowrap">
                     <i class="fas fa-plus mr-2"></i>Add Product
                 </a>
+                <button type="button" onclick="openImportModal()" class="border border-primary-600 text-primary-600 hover:bg-primary-50 px-4 py-2 rounded-lg font-medium transition-colors whitespace-nowrap">
+                    <i class="fas fa-file-import mr-2"></i>Import Sheet
+                </button>
+                <a href="{{ route('inventory.products.export', request()->query()) }}" class="border border-primary-600 text-primary-600 hover:bg-primary-50 px-4 py-2 rounded-lg font-medium transition-colors whitespace-nowrap">
+                    <i class="fas fa-file-export mr-2"></i>Export Excel
+                </a>
             </div>
         </div>
 
         @if(session('success'))
             <div class="mb-4 p-3 bg-green-100 border border-green-400 text-green-800 rounded-lg">
                 {{ session('success') }}
+            </div>
+        @endif
+
+        @if(session('warning'))
+            <div class="mb-4 p-3 bg-yellow-100 border border-yellow-400 text-yellow-800 rounded-lg">
+                {{ session('warning') }}
+            </div>
+        @endif
+
+        @if(session('error'))
+            <div class="mb-4 p-3 bg-red-100 border border-red-400 text-red-800 rounded-lg">
+                {{ session('error') }}
             </div>
         @endif
 
@@ -365,4 +383,109 @@
         </a>
     </div>
 </aside>
+
+<!-- Import Sheet Modal -->
+<div id="importModalBackdrop" class="fixed inset-0 z-40 bg-black/40 hidden"></div>
+<div id="importModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+        <div class="flex items-center justify-between p-5 border-b">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center text-primary-600">
+                    <i class="fas fa-file-import"></i>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold text-primary-900">Import Products from Sheet</h3>
+                    <p class="text-xs text-gray-500">Upload .xlsx, .xls or .csv</p>
+                </div>
+            </div>
+            <button type="button" onclick="closeImportModal()" class="text-gray-400 hover:text-gray-600 text-3xl leading-none">
+                &times;
+            </button>
+        </div>
+
+        <form action="{{ route('inventory.products.import') }}" method="POST" enctype="multipart/form-data" class="p-5 space-y-5">
+            @csrf
+            <div>
+                <label for="import_file" class="block text-sm font-medium text-gray-700 mb-2">
+                    Choose file to import
+                </label>
+                <div id="importDropArea" class="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center cursor-pointer hover:border-primary-500 hover:bg-primary-50 transition-colors">
+                    <i class="fas fa-cloud-upload-alt text-3xl text-gray-400 mb-3"></i>
+                    <p class="text-sm text-gray-600">Drag & drop your file here, or <span class="text-primary-600 font-semibold">browse</span></p>
+                    <p id="importFileName" class="text-xs text-gray-500 mt-2 hidden"></p>
+                    <input type="file" name="file" id="import_file" accept=".xlsx,.xls,.csv" class="hidden" required>
+                </div>
+                @error('file')
+                    <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                @enderror
+            </div>
+
+            <div class="p-4 bg-gray-50 rounded-xl text-sm text-gray-600 space-y-1">
+                <p class="font-semibold text-gray-800 flex items-center gap-2"><i class="fas fa-info-circle text-primary-600"></i>Instructions</p>
+                <p>The first row must be the column headings.</p>
+                <p>Required: <span class="font-medium">name</span>.</p>
+                <p>Category, brand and unit are matched by name and auto-created if missing.</p>
+                <p>Rows matching an existing SKU or barcode are updated instead of duplicated.</p>
+                <p>Blank SKU is generated automatically; blank barcode is left empty so it can be scanned and linked later.</p>
+            </div>
+
+            <div class="flex items-center justify-between gap-3">
+                <a href="{{ route('inventory.products.sample.download') }}" class="inline-flex items-center gap-2 text-sm text-primary-600 hover:text-primary-800 font-medium">
+                    <i class="fas fa-download"></i> Download sample sheet
+                </a>
+                <div class="flex gap-3">
+                    <button type="button" onclick="closeImportModal()" class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                        Cancel
+                    </button>
+                    <button type="submit" class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors flex items-center gap-2">
+                        <i class="fas fa-file-import"></i> Import
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    const importModal = document.getElementById('importModal');
+    const importModalBackdrop = document.getElementById('importModalBackdrop');
+    const importDropArea = document.getElementById('importDropArea');
+    const importFileInput = document.getElementById('import_file');
+    const importFileName = document.getElementById('importFileName');
+
+    window.openImportModal = function() {
+        importModal.classList.remove('hidden');
+        importModal.classList.add('flex');
+        importModalBackdrop.classList.remove('hidden');
+    };
+
+    window.closeImportModal = function() {
+        importModal.classList.add('hidden');
+        importModal.classList.remove('flex');
+        importModalBackdrop.classList.add('hidden');
+    };
+
+    importDropArea.addEventListener('click', () => importFileInput.click());
+    importDropArea.addEventListener('dragover', (e) => { e.preventDefault(); importDropArea.classList.add('border-primary-600'); });
+    importDropArea.addEventListener('dragleave', () => importDropArea.classList.remove('border-primary-600'));
+    importDropArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        importDropArea.classList.remove('border-primary-600');
+        if (e.dataTransfer.files.length) {
+            importFileInput.files = e.dataTransfer.files;
+            showImportFileName();
+        }
+    });
+    importFileInput.addEventListener('change', showImportFileName);
+
+    function showImportFileName() {
+        if (importFileInput.files.length) {
+            importFileName.textContent = 'Selected: ' + importFileInput.files[0].name;
+            importFileName.classList.remove('hidden');
+        }
+    }
+
+    importModalBackdrop.addEventListener('click', closeImportModal);
+    importFileInput.addEventListener('click', (e) => e.stopPropagation());
+</script>
 @endsection
