@@ -231,7 +231,12 @@
             <h3 class="text-lg font-bold text-gray-900">Scan Barcode / QR Code</h3>
             <button type="button" onclick="stopScanner()" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
         </div>
-        <div id="productScannerViewport" class="w-full rounded-lg overflow-hidden mb-4" style="min-height: 250px;"></div>
+        <div class="relative mb-4">
+            <div id="productScannerViewport" class="w-full rounded-lg overflow-hidden" style="min-height: 250px;"></div>
+            <button type="button" onclick="stopScanner()" class="absolute top-2 right-2 z-10 w-10 h-10 rounded-full bg-white/90 hover:bg-white text-gray-800 shadow-lg flex items-center justify-center text-xl font-bold leading-none transition-colors">
+                &times;
+            </button>
+        </div>
         <div id="scannerStatusText" class="text-sm text-gray-500 text-center mb-3">Initializing camera...</div>
         <div class="flex gap-3">
             <input type="text" id="manualBarcodeInput" placeholder="Or type barcode manually" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500">

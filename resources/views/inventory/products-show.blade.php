@@ -178,8 +178,17 @@
             <h3 class="text-lg font-bold text-gray-900">Scan Barcode / QR Code</h3>
             <button type="button" onclick="stopScanner()" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
         </div>
-        <div id="productScannerViewport" class="w-full rounded-lg overflow-hidden mb-4" style="min-height: 250px;"></div>
+        <div class="relative mb-4">
+            <div id="productScannerViewport" class="w-full rounded-lg overflow-hidden" style="min-height: 250px;"></div>
+            <button type="button" onclick="stopScanner()" class="absolute top-2 right-2 z-10 w-10 h-10 rounded-full bg-white/90 hover:bg-white text-gray-800 shadow-lg flex items-center justify-center text-xl font-bold leading-none transition-colors">
+                &times;
+            </button>
+        </div>
         <div id="scannerStatusText" class="text-sm text-gray-500 text-center mb-3">Initializing camera...</div>
+        <div class="mb-3">
+            <label for="scannerExpiryDate" class="block text-sm font-medium text-gray-700 mb-1">Expiry Date (optional)</label>
+            <input type="date" id="scannerExpiryDate" value="{{ $product->expiry_date ? $product->expiry_date->format('Y-m-d') : '' }}" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500">
+        </div>
         <div class="flex gap-3">
             <input type="text" id="manualBarcodeInput" placeholder="Or type barcode manually" class="flex-1 min-w-0 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500">
             <button type="button" onclick="submitManualBarcode()" class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors">OK</button>
@@ -273,6 +282,8 @@
     function linkBarcode(barcode) {
         const statusEl = document.getElementById('barcodeStatus');
         statusEl.classList.remove('hidden');
+        const expiryInput = document.getElementById('scannerExpiryDate');
+        const expiryDate = expiryInput ? expiryInput.value : '';
 
         fetch('{{ route("inventory.products.link-barcode", $product) }}', {
                 method: 'POST',
@@ -281,13 +292,13 @@
                     'Accept': 'application/json',
                     'X-CSRF-TOKEN': '{{ csrf_token() }}'
                 },
-                body: JSON.stringify({ barcode: barcode })
+                body: JSON.stringify({ barcode: barcode, expiry_date: expiryDate || null })
             })
             .then(r => r.json())
             .then(data => {
                 if (data.success) {
                     statusEl.className = 'mb-3 text-sm p-3 bg-green-100 border border-green-400 text-green-800 rounded-lg';
-                    statusEl.textContent = 'Barcode linked successfully: ' + data.barcode;
+                    statusEl.textContent = 'Barcode linked successfully: ' + data.barcode + (expiryDate ? ' (expiry: ' + expiryDate + ')' : '');
                     setTimeout(() => window.location.reload(), 900);
                 } else {
                     statusEl.className = 'mb-3 text-sm p-3 bg-red-100 border border-red-400 text-red-800 rounded-lg';
