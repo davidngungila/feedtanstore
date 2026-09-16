@@ -142,61 +142,13 @@
                         <th class="text-left">Actions</th>
                     </tr>
                 </thead>
-                <tbody id="products-table-body">
-                    @foreach($products as $product)
-                    <tr data-search="{{ strtolower($product->name . ' ' . ($product->sku ?? '') . ' ' . ($product->barcode ?? '') . ' ' . ($product->category->name ?? '') . ' ' . ($product->brand->name ?? '')) }}" data-id="{{ $product->id }}" class="cursor-pointer hover:bg-gray-50 transition-colors">
-                        <td class="text-left">
-                            <input type="checkbox" name="product_ids[]" value="{{ $product->id }}" form="bulk-delete-form" class="product-checkbox w-4 h-4 text-primary-600">
-                        </td>
-                        <td class="font-medium text-primary-900">
-                            <a href="{{ route('inventory.products.show', $product) }}" class="hover:underline">{{ $product->name }}</a>
-                        </td>
-                        <td class="text-gray-600">{{ $product->sku ?? '-' }}</td>
-<td class="text-gray-600">{{ $product->barcode ?? '-' }}</td>
-                        <td>
-                            <span class="badge {{ $product->barcode_linked_at ? 'badge-green' : 'badge-yellow' }}">
-                                {{ $product->barcode_linked_at ? 'Scanned' : 'Not Scanned' }}
-                            </span>
-                        </td>
-                        <td>
-                            <span class="badge {{ $product->barcode ? 'badge-green' : 'badge-red' }}">
-                                {{ $product->barcode ? 'Linked' : 'Not Linked' }}
-                            </span>
-                        </td>
-                        <td class="text-gray-600">{{ $product->category->name ?? '-' }}</td>
-                        <td class="text-gray-600">{{ $product->brand->name ?? '-' }}</td>
-                        <td class="font-semibold {{ $product->quantity <= $product->reorder_level ? 'text-red-600' : 'text-primary-900' }}">
-                            {{ $product->quantity }} {{ $product->unit->short_name ?? '' }}
-                        </td>
-                        <td class="text-gray-600">TZS {{ number_format($product->cost_price, 2) }}</td>
-                        <td class="text-gray-600">TZS {{ number_format($product->selling_price, 2) }}</td>
-                        <td>
-                            <span class="badge {{ $product->is_active ? 'badge-green' : 'badge-gray' }}">
-                                {{ $product->is_active ? 'Active' : 'Inactive' }}
-                            </span>
-                        </td>
-                        <td class="flex items-center gap-2">
-                            <a href="{{ route('inventory.products.show', $product) }}" class="text-primary-600 hover:text-primary-800 p-1" title="View">
-                                <i class="fas fa-eye"></i>
-                            </a>
-                            <a href="{{ route('inventory.products.edit', $product) }}" class="text-primary-600 hover:text-primary-800 p-1" title="Edit">
-                                <i class="fas fa-edit"></i>
-                            </a>
-                            <form action="{{ route('inventory.products.destroy', $product) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this product?')">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="text-red-600 hover:text-red-800 p-1" title="Delete">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </form>
-                        </td>
-                    </tr>
-                    @endforeach
+<tbody id="products-table-body">
+                    @include('inventory.partials._product_rows', ['products' => $products])
                 </tbody>
             </table>
         </div>
 
-        <div class="mt-4 p-3">
+        <div class="mt-4 p-3" id="products-pagination">
             {{ $products->links() }}
         </div>
 
@@ -204,41 +156,29 @@
             const searchInput = document.querySelector('input[name="search"]');
             const tableBody = document.getElementById('products-table-body');
             const selectAllCheckbox = document.getElementById('select-all-products');
-            const productCheckboxes = document.querySelectorAll('.product-checkbox');
 
-            // Search functionality - searches the full catalog over all pages (server-side)
-            let searchTimer;
-            searchInput.addEventListener('input', function() {
-                updateBulkBar();
-                clearTimeout(searchTimer);
-                searchTimer = setTimeout(() => {
-                    this.form.submit();
-                }, 400);
-            });
-
-            // Select all functionality
-            selectAllCheckbox.addEventListener('change', function() {
-                productCheckboxes.forEach(checkbox => {
-                    checkbox.checked = this.checked;
+            // Bind checkbox interactions (re-run after a search refresh)
+            function bindProductChecks() {
+                const checkboxes = tableBody.querySelectorAll('.product-checkbox');
+                checkboxes.forEach(checkbox => {
+                    checkbox.addEventListener('change', () => {
+                        updateBulkBar();
+                        selectAllCheckbox.checked = Array.from(tableBody.querySelectorAll('.product-checkbox')).every(cb => cb.checked);
+                    });
                 });
-                updateBulkBar();
-            });
-
-            // Update select all when individual checkboxes change
-            productCheckboxes.forEach(checkbox => {
-                checkbox.addEventListener('change', function() {
-                    const allChecked = Array.from(productCheckboxes).every(cb => cb.checked);
-                    selectAllCheckbox.checked = allChecked;
+                selectAllCheckbox.checked = checkboxes.length > 0 && Array.from(checkboxes).every(cb => cb.checked);
+                selectAllCheckbox.onchange = function() {
+                    tableBody.querySelectorAll('.product-checkbox').forEach(cb => cb.checked = this.checked);
                     updateBulkBar();
-                });
-            });
+                };
+            }
 
             // Bulk delete
             const bulkDeleteForm = document.getElementById('bulk-delete-form');
             const bulkBar = document.getElementById('bulkActions');
 
             function updateBulkBar() {
-                const checked = Array.from(productCheckboxes).filter(cb => cb.checked && !cb.closest('tr').style.display);
+                const checked = Array.from(tableBody.querySelectorAll('.product-checkbox')).filter(cb => cb.checked && !cb.closest('tr').style.display);
                 if (checked.length > 0) {
                     document.getElementById('bulkCount').textContent = checked.length + ' selected';
                     bulkBar.classList.remove('hidden');
@@ -247,18 +187,48 @@
                 }
             }
 
-            searchInput.addEventListener('input', updateBulkBar);
-
             window.bulkDelete = function() {
-                const checked = Array.from(productCheckboxes).filter(cb => cb.checked).length;
+                const checked = Array.from(tableBody.querySelectorAll('.product-checkbox')).filter(cb => cb.checked).length;
                 if (checked === 0) return;
                 if (confirm('Delete ' + checked + ' selected product(s)? This will permanently remove them and all related details (prices, images, transactions, etc.).')) {
                     bulkDeleteForm.submit();
                 }
             };
 
+            // Live search - filters the full catalog on typing (AJAX, all pages)
+            let searchTimer;
+            searchInput.addEventListener('input', function() {
+                updateBulkBar();
+                clearTimeout(searchTimer);
+                searchTimer = setTimeout(() => performSearch(this.value.trim()), 150);
+            });
+
+            function performSearch(term) {
+                const statusInput = document.querySelector('input[name="status"]');
+                const url = new URL('{{ route('inventory.products') }}');
+                if (statusInput && statusInput.value) url.searchParams.set('status', statusInput.value);
+                url.searchParams.set('search', term);
+                history.replaceState(null, '', url);
+
+                url.searchParams.set('fetch', '1');
+                fetch(url, {
+                    headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+                })
+                .then(r => r.json())
+                .then(data => {
+                    tableBody.innerHTML = data.rows_html;
+                    document.getElementById('products-pagination').innerHTML = data.pagination_html;
+                    productsData = data.products_data;
+                    bindProductChecks();
+                    updateBulkBar();
+                })
+                .catch(() => {});
+            }
+
+            bindProductChecks();
+
             // Right drawer
-            const productsData = @json($productsData);
+            let productsData = @json($productsData);
             const drawer = document.getElementById('productDrawer');
             const drawerBackdrop = document.getElementById('productDrawerBackdrop');
 

@@ -30,7 +30,7 @@ class ProductController extends Controller
         $search = $request->input('search');
         $status = $request->input('status');
 
-        $products = Product::with(['category', 'brand', 'unit'])
+        $query = Product::with(['category', 'brand', 'unit'])
             ->when($search, function ($query) use ($search) {
                 $query->where('name', 'like', '%' . $search . '%')
                       ->orWhere('sku', 'like', '%' . $search . '%')
@@ -48,9 +48,37 @@ class ProductController extends Controller
             ->when($status === 'not-linked', function ($query) {
                 $query->whereNull('barcode');
             })
-            ->orderBy('name')
-            ->paginate(20)
-            ->withQueryString();
+            ->orderBy('name');
+
+        if ($request->input('fetch')) {
+            $products = $query->paginate(20)->withQueryString();
+
+            return response()->json([
+                'rows_html' => view('inventory.partials._product_rows', compact('products'))->render(),
+                'pagination_html' => (string) $products->links(),
+                'products_data' => $products->getCollection()->map(fn($p) => [
+                    'id' => $p->id,
+                    'name' => $p->name,
+                    'sku' => $p->sku,
+                    'barcode' => $p->barcode,
+                    'barcode_linked_at' => $p->barcode_linked_at ? $p->barcode_linked_at->format('Y-m-d H:i:s') : null,
+                    'category' => $p->category->name ?? '-',
+                    'brand' => $p->brand->name ?? '-',
+                    'unit' => $p->unit->short_name ?? ($p->unit->name ?? '-'),
+                    'quantity' => $p->quantity,
+                    'reorder_level' => $p->reorder_level,
+                    'cost_price' => $p->cost_price,
+                    'selling_price' => $p->selling_price,
+                    'expiry_date' => $p->expiry_date ? $p->expiry_date->format('Y-m-d') : null,
+                    'is_active' => (bool) $p->is_active,
+                    'is_available_online' => (bool) ($p->is_available_online ?? false),
+                    'description' => $p->description,
+                    'specifications' => $p->specifications,
+                ])->keyBy('id'),
+            ]);
+        }
+
+        $products = $query->paginate(20)->withQueryString();
 
         $linkedCount = Product::whereNotNull('barcode')->count();
         $notLinkedCount = Product::whereNull('barcode')->count();
