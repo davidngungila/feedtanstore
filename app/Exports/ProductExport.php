@@ -14,10 +14,12 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 class ProductExport implements FromQuery, WithHeadings, WithMapping, ShouldAutoSize, WithTitle, WithStyles
 {
     protected $search;
+    protected $status;
 
-    public function __construct(?string $search = null)
+    public function __construct(?string $search = null, ?string $status = null)
     {
         $this->search = $search;
+        $this->status = $status;
     }
 
     public function query()
@@ -33,6 +35,12 @@ class ProductExport implements FromQuery, WithHeadings, WithMapping, ShouldAutoS
                     ->orWhereHas('brand', function ($q) {
                         $q->where('name', 'like', '%' . $this->search . '%');
                     });
+            })
+            ->when($this->status === 'linked', function ($query) {
+                $query->whereNotNull('barcode');
+            })
+            ->when($this->status === 'not-linked', function ($query) {
+                $query->whereNull('barcode');
             })
             ->orderBy('name');
     }

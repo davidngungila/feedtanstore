@@ -31,6 +31,9 @@
             <div class="flex flex-col md:flex-row items-center gap-3 w-full md:w-auto">
                 <form action="{{ route('inventory.products') }}" method="GET" class="w-full md:w-64">
                     <div class="relative">
+                        @if($status)
+                            <input type="hidden" name="status" value="{{ $status }}">
+                        @endif
                         <input type="text" name="search" value="{{ $search ?? '' }}" placeholder="Search products..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
                         <button type="submit" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-primary-600">
                             <i class="fas fa-search"></i>
@@ -83,6 +86,21 @@
                 </a>
             </div>
         @endif
+
+        <div class="inline-flex rounded-lg border border-gray-300 bg-gray-100 p-1 mb-4">
+            <a href="{{ route('inventory.products', ['status' => null, 'search' => $search]) }}"
+               class="px-4 py-1.5 rounded-md text-sm font-medium transition-colors {{ !$status ? 'bg-white text-primary-700 shadow-sm' : 'text-gray-600 hover:text-primary-600' }}">
+                All ({{ $linkedCount + $notLinkedCount }})
+            </a>
+            <a href="{{ route('inventory.products', ['status' => 'linked', 'search' => $search]) }}"
+               class="px-4 py-1.5 rounded-md text-sm font-medium transition-colors {{ $status === 'linked' ? 'bg-white text-primary-700 shadow-sm' : 'text-gray-600 hover:text-primary-600' }}">
+                <i class="fas fa-barcode mr-1 text-green-600"></i>Linked ({{ $linkedCount }})
+            </a>
+            <a href="{{ route('inventory.products', ['status' => 'not-linked', 'search' => $search]) }}"
+               class="px-4 py-1.5 rounded-md text-sm font-medium transition-colors {{ $status === 'not-linked' ? 'bg-white text-primary-700 shadow-sm' : 'text-gray-600 hover:text-primary-600' }}">
+                <i class="fas fa-barcode mr-1 text-red-600"></i>Not Linked ({{ $notLinkedCount }})
+            </a>
+        </div>
 
         <div class="overflow-x-auto">
             <table class="data-table w-full">

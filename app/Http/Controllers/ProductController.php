@@ -28,7 +28,8 @@ class ProductController extends Controller
     public function index(Request $request)
     {
         $search = $request->input('search');
-        
+        $status = $request->input('status');
+
         $products = Product::with(['category', 'brand', 'unit'])
             ->when($search, function ($query) use ($search) {
                 $query->where('name', 'like', '%' . $search . '%')
@@ -41,13 +42,21 @@ class ProductController extends Controller
                           $q->where('name', 'like', '%' . $search . '%');
                       });
             })
+            ->when($status === 'linked', function ($query) {
+                $query->whereNotNull('barcode');
+            })
+            ->when($status === 'not-linked', function ($query) {
+                $query->whereNull('barcode');
+            })
             ->orderBy('name')
             ->paginate(20)
             ->withQueryString();
-        
+
+        $linkedCount = Product::whereNotNull('barcode')->count();
+        $notLinkedCount = Product::whereNull('barcode')->count();
         $lowStockCount = Product::whereColumn('quantity', '<=', 'reorder_level')->count();
-        
-        return view('inventory.products', compact('products', 'search', 'lowStockCount'));
+
+        return view('inventory.products', compact('products', 'search', 'status', 'linkedCount', 'notLinkedCount', 'lowStockCount'));
     }
 
     public function show($identifier)
@@ -268,7 +277,7 @@ class ProductController extends Controller
 
     public function export(Request $request)
     {
-        return Excel::download(new ProductExport($request->input('search')), 'products_' . now()->format('Ymd_His') . '.xlsx');
+        return Excel::download(new ProductExport($request->input('search'), $request->input('status')), 'products_' . now()->format('Ymd_His') . '.xlsx');
     }
 
     public function lowStock()
