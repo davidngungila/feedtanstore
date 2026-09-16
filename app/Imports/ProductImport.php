@@ -119,12 +119,15 @@ class ProductImport implements OnEachRow, WithHeadingRow, SkipsOnFailure
         }
 
         $cartons = isset($row['cartons']) ? (int) $row['cartons'] : 0;
-        $piecesPerUnit = isset($row['pcs']) ? (int) $row['pcs'] : 0;
+        $perCarton = 0;
+        if (isset($row['pcs'])) {
+            $perCarton = (int) $row['pcs'];
+        } elseif (isset($row['quantity']) && $cartons > 0) {
+            $perCarton = (int) $row['quantity'];
+        }
 
-        if ($cartons > 0 && $piecesPerUnit > 0) {
-            $quantity = $cartons * $piecesPerUnit;
-        } elseif ($cartons > 0) {
-            $quantity = $cartons;
+        if ($cartons > 0) {
+            $quantity = $perCarton > 0 ? $cartons * $perCarton : $cartons;
         } else {
             $quantity = isset($row['quantity']) ? (int) $row['quantity'] : 0;
         }
@@ -145,8 +148,8 @@ class ProductImport implements OnEachRow, WithHeadingRow, SkipsOnFailure
             $sellingPrice = (float) $row['selling_price'];
         }
 
-        if ($cartons > 0 && $piecesPerUnit > 0 && $costPrice > 0) {
-            $costPrice = $costPrice / $piecesPerUnit;
+        if ($cartons > 0 && $perCarton > 0 && $costPrice > 0) {
+            $costPrice = $costPrice / $perCarton;
             $costPrice = round($costPrice, 2);
         }
 

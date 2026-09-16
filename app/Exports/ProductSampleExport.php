@@ -24,7 +24,7 @@ class ProductSampleExport implements FromArray, WithHeadings, ShouldAutoSize, Wi
     public function headings(): array
     {
         return [
-            'Product', 'Cartons', 'pcs', 'Price per carton (TZS)', 'Price per item',
+            'Product', 'Cartons', 'Quantity', 'Price per carton (TZS)', 'Price per item',
         ];
     }
 
