@@ -178,20 +178,35 @@
             <h3 class="text-lg font-bold text-gray-900">Scan Barcode / QR Code</h3>
             <button type="button" onclick="stopScanner()" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
         </div>
-        <div class="relative mb-4">
-            <div id="productScannerViewport" class="w-full rounded-lg overflow-hidden" style="min-height: 250px;"></div>
-            <button type="button" onclick="stopScanner()" class="absolute top-2 right-2 z-10 w-10 h-10 rounded-full bg-white/90 hover:bg-white text-gray-800 shadow-lg flex items-center justify-center text-xl font-bold leading-none transition-colors">
-                &times;
-            </button>
+        <div id="scanPanel">
+            <div class="relative mb-4">
+                <div id="productScannerViewport" class="w-full rounded-lg overflow-hidden" style="min-height: 250px;"></div>
+                <button type="button" onclick="stopScanner()" class="absolute top-2 right-2 z-10 w-10 h-10 rounded-full bg-white/90 hover:bg-white text-gray-800 shadow-lg flex items-center justify-center text-xl font-bold leading-none transition-colors">
+                    &times;
+                </button>
+            </div>
+            <div id="scannerStatusText" class="text-sm text-gray-500 text-center mb-3">Initializing camera...</div>
+            <div class="flex gap-3">
+                <input type="text" id="manualBarcodeInput" placeholder="Or type barcode manually" class="flex-1 min-w-0 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500">
+                <button type="button" onclick="submitManualBarcode()" class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors">OK</button>
+            </div>
         </div>
-        <div id="scannerStatusText" class="text-sm text-gray-500 text-center mb-3">Initializing camera...</div>
-        <div class="mb-3">
-            <label for="scannerExpiryDate" class="block text-sm font-medium text-gray-700 mb-1">Expiry Date (optional)</label>
-            <input type="date" id="scannerExpiryDate" value="{{ $product->expiry_date ? $product->expiry_date->format('Y-m-d') : '' }}" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500">
-        </div>
-        <div class="flex gap-3">
-            <input type="text" id="manualBarcodeInput" placeholder="Or type barcode manually" class="flex-1 min-w-0 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500">
-            <button type="button" onclick="submitManualBarcode()" class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors">OK</button>
+        <div id="confirmPanel" class="hidden">
+            <div class="mb-4 p-4 bg-gray-50 rounded-lg">
+                <p class="text-sm text-gray-500 mb-1">Scanned Barcode</p>
+                <p id="scannedBarcodeValue" class="font-mono font-semibold text-lg text-gray-900 break-all"></p>
+            </div>
+            <input type="hidden" id="confirmBarcode">
+            <div class="mb-4">
+                <label for="scannerExpiryDate" class="block text-sm font-medium text-gray-700 mb-1">Expiry Date (optional)</label>
+                <input type="date" id="scannerExpiryDate" value="{{ $product->expiry_date ? $product->expiry_date->format('Y-m-d') : '' }}" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500">
+            </div>
+            <div class="flex gap-3">
+                <button type="button" onclick="confirmLinkBarcode()" class="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors whitespace-nowrap">
+                    <i class="fas fa-link mr-2"></i>Link Barcode &amp; Save
+                </button>
+                <button type="button" onclick="rescan()" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">Rescan</button>
+            </div>
         </div>
         <button type="button" onclick="stopScanner()" class="mt-4 w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">Close Scanner</button>
     </div>
@@ -204,6 +219,8 @@
 
     async function startScanner() {
         document.getElementById('scannerModal').classList.remove('hidden');
+        document.getElementById('scanPanel').classList.remove('hidden');
+        document.getElementById('confirmPanel').classList.add('hidden');
         document.getElementById('scannerStatusText').textContent = 'Initializing camera...';
         document.getElementById('manualBarcodeInput').value = '';
 
@@ -243,8 +260,7 @@
                     ]
                 },
                 (decodedText) => {
-                    linkBarcode(decodedText);
-                    stopScanner();
+                    handleScannedBarcode(decodedText);
                 },
                 () => {}
             );
@@ -257,7 +273,7 @@
         }
     }
 
-    async function stopScanner() {
+    async function stopCamera() {
         if (productScanner && scannerActive) {
             try {
                 await productScanner.stop();
@@ -268,14 +284,40 @@
             scannerActive = false;
             productScanner = null;
         }
+    }
+
+    async function stopScanner() {
+        await stopCamera();
         document.getElementById('scannerModal').classList.add('hidden');
+    }
+
+    async function handleScannedBarcode(barcode) {
+        await stopCamera();
+        document.getElementById('scannerModal').classList.remove('hidden');
+        document.getElementById('confirmBarcode').value = barcode;
+        document.getElementById('scannedBarcodeValue').textContent = barcode;
+        document.getElementById('scanPanel').classList.add('hidden');
+        document.getElementById('confirmPanel').classList.remove('hidden');
+        setTimeout(() => document.getElementById('scannerExpiryDate').focus(), 60);
+    }
+
+    function rescan() {
+        document.getElementById('confirmPanel').classList.add('hidden');
+        document.getElementById('scanPanel').classList.remove('hidden');
+        startScanner();
+    }
+
+    function confirmLinkBarcode() {
+        const barcode = document.getElementById('confirmBarcode').value.trim();
+        if (!barcode) return;
+        linkBarcode(barcode);
+        stopScanner();
     }
 
     function submitManualBarcode() {
         const val = document.getElementById('manualBarcodeInput').value.trim();
         if (val) {
-            linkBarcode(val);
-            stopScanner();
+            handleScannedBarcode(val);
         }
     }
 
@@ -328,7 +370,7 @@
                 const scanned = barcodeBuffer.trim();
                 barcodeBuffer = '';
                 if (scanned) {
-                    linkBarcode(scanned);
+                    handleScannedBarcode(scanned);
                 }
             }
         } else if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
