@@ -30,7 +30,7 @@
                             </div>
                         </div>
                     </div>
-                    <div id="productGrid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-6">
+                    <div id="productGrid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-6 max-h-[450px] overflow-y-auto pr-1">
                         @foreach($products as $product)
                         <div class="product-card border border-gray-200 rounded-xl p-4 {{ $product->quantity > 0 ? 'cursor-pointer hover:border-primary-500' : 'opacity-50 cursor-not-allowed border-gray-300 bg-gray-50' }}" data-name="{{ strtolower($product->name) }}" onclick="{{ $product->quantity > 0 ? "addToCart({$product->id}, '" . addslashes($product->name) . "', {$product->selling_price})" : '' }}">
                             <p class="font-semibold text-primary-900">{{ $product->name }}</p>
