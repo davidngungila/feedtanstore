@@ -64,6 +64,27 @@ class StorekeeperController extends Controller
         return view('storekeeper.product-show', compact('product', 'barcodeBase64', 'barcodeValue'));
     }
 
+    public function linkBarcode(Request $request, $id)
+    {
+        $product = Product::findOrFail($id);
+
+        $request->validate([
+            'barcode' => 'required|string|max:255|unique:products,barcode,' . $product->id,
+            'expiry_date' => 'nullable|date',
+        ]);
+
+        $product->update([
+            'barcode' => $request->barcode,
+            'barcode_linked_at' => now(),
+            'expiry_date' => $request->filled('expiry_date') ? $request->expiry_date : $product->expiry_date,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'barcode' => $product->barcode,
+        ]);
+    }
+
     public function stock()
     {
         $products = Product::where('quantity', '<=', 10)
