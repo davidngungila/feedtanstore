@@ -40,17 +40,36 @@
                         </button>
                     </div>
                 </form>
-                <a href="{{ route('inventory.products.create') }}" class="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg font-medium transition-colors whitespace-nowrap">
-                    <i class="fas fa-plus mr-2"></i>Add Product
-                </a>
-                <button type="button" onclick="openImportModal()" class="border border-primary-600 text-primary-600 hover:bg-primary-50 px-4 py-2 rounded-lg font-medium transition-colors whitespace-nowrap">
-                    <i class="fas fa-file-import mr-2"></i>Import Sheet
-                </button>
-                <a href="{{ route('inventory.products.export', request()->query()) }}" class="border border-primary-600 text-primary-600 hover:bg-primary-50 px-4 py-2 rounded-lg font-medium transition-colors whitespace-nowrap">
-                    <i class="fas fa-file-export mr-2"></i>Export Excel
-                </a>
+                <div class="flex gap-3 md:hidden">
+                    <button type="button" onclick="document.getElementById('mobileActions').classList.toggle('hidden')" class="p-2 rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-50 transition-colors">
+                        <i class="fas fa-ellipsis-vertical"></i>
+                    </button>
+                </div>
+                <div class="flex gap-3 hidden md:flex">
+                    <a href="{{ route('inventory.products.create') }}" class="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg font-medium transition-colors whitespace-nowrap">
+                        <i class="fas fa-plus mr-2"></i>Add Product
+                    </a>
+                    <button type="button" onclick="openImportModal()" class="border border-primary-600 text-primary-600 hover:bg-primary-50 px-4 py-2 rounded-lg font-medium transition-colors whitespace-nowrap">
+                        <i class="fas fa-file-import mr-2"></i>Import Sheet
+                    </button>
+                    <a href="{{ route('inventory.products.export', request()->query()) }}" class="border border-primary-600 text-primary-600 hover:bg-primary-50 px-4 py-2 rounded-lg font-medium transition-colors whitespace-nowrap">
+                        <i class="fas fa-file-export mr-2"></i>Export Excel
+                    </a>
+                </div>
             </div>
         </div>
+
+        <div id="mobileActions" class="hidden w-full md:hidden mt-2 mb-2 p-3 bg-white border border-gray-200 rounded-xl shadow-lg flex flex-col gap-2">
+                    <a href="{{ route('inventory.products.create') }}" class="w-full text-left px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg font-medium transition-colors whitespace-nowrap text-sm">
+                        <i class="fas fa-plus mr-2"></i>Add Product
+                    </a>
+                    <button type="button" onclick="openImportModal(); document.getElementById('mobileActions').classList.add('hidden')" class="w-full text-left px-4 py-2 border border-primary-600 text-primary-600 hover:bg-primary-50 rounded-lg font-medium transition-colors text-sm">
+                        <i class="fas fa-file-import mr-2"></i>Import Sheet
+                    </button>
+                    <a href="{{ route('inventory.products.export', request()->query()) }}" class="w-full text-left px-4 py-2 border border-primary-600 text-primary-600 hover:bg-primary-50 rounded-lg font-medium transition-colors text-sm">
+                        <i class="fas fa-file-export mr-2"></i>Export Excel
+                    </a>
+                </div>
 
         @if(session('success'))
             <div class="mb-4 p-3 bg-green-100 border border-green-400 text-green-800 rounded-lg">
