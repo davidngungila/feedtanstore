@@ -45,11 +45,38 @@ class StorekeeperController extends Controller
         ));
     }
 
-    public function products()
+    public function products(Request $request)
     {
-        $products = Product::with('category')->orderBy('name')->paginate(20);
+        $search = $request->input('search');
+        $selectedCategory = $request->input('category');
+
+        $query = Product::with('category')
+            ->when($search, function ($q) use ($search) {
+                $q->where(function ($q2) use ($search) {
+                    $q2->where('name', 'like', '%' . $search . '%')
+                        ->orWhere('sku', 'like', '%' . $search . '%')
+                        ->orWhere('barcode', 'like', '%' . $search . '%');
+                });
+            })
+            ->when($selectedCategory, function ($q) use ($selectedCategory) {
+                $q->whereHas('category', function ($qc) use ($selectedCategory) {
+                    $qc->where('name', $selectedCategory);
+                });
+            })
+            ->orderBy('name');
+
+        if ($request->input('fetch')) {
+            $products = $query->paginate(20)->withQueryString();
+
+            return response()->json([
+                'rows_html' => view('storekeeper.partials._product_rows', compact('products'))->render(),
+                'pagination_html' => (string) $products->links(),
+            ]);
+        }
+
+        $products = $query->paginate(20)->withQueryString();
         $categories = Category::all();
-        return view('storekeeper.products', compact('products', 'categories'));
+        return view('storekeeper.products', compact('products', 'categories', 'search', 'selectedCategory'));
     }
 
     public function showProduct($id)
