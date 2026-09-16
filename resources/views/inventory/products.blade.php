@@ -203,22 +203,17 @@
         <script>
             const searchInput = document.querySelector('input[name="search"]');
             const tableBody = document.getElementById('products-table-body');
-            const rows = tableBody.querySelectorAll('tr');
             const selectAllCheckbox = document.getElementById('select-all-products');
             const productCheckboxes = document.querySelectorAll('.product-checkbox');
 
-            // Search functionality
+            // Search functionality - searches the full catalog over all pages (server-side)
+            let searchTimer;
             searchInput.addEventListener('input', function() {
-                const searchTerm = this.value.toLowerCase().trim();
-                
-                rows.forEach(row => {
-                    const searchData = row.getAttribute('data-search');
-                    if (searchData.includes(searchTerm)) {
-                        row.style.display = '';
-                    } else {
-                        row.style.display = 'none';
-                    }
-                });
+                updateBulkBar();
+                clearTimeout(searchTimer);
+                searchTimer = setTimeout(() => {
+                    this.form.submit();
+                }, 400);
             });
 
             // Select all functionality
