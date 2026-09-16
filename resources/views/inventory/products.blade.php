@@ -153,6 +153,7 @@
         </div>
 
         <script>
+            document.addEventListener('DOMContentLoaded', function () {
             const searchInput = document.querySelector('input[name="search"]');
             const tableBody = document.getElementById('products-table-body');
             const selectAllCheckbox = document.getElementById('select-all-products');
@@ -320,6 +321,7 @@
                 if (e.key === 'Escape' && !drawerBackdrop.classList.contains('hidden')) {
                     closeProductDrawer();
                 }
+            });
             });
         </script>
     </div>
