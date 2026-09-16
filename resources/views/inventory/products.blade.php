@@ -4,7 +4,7 @@
 
 @section('content')
 @php
-    $productsData = $products->map(fn($p) => [
+    $productsData = $products->getCollection()->map(fn($p) => [
         'id' => $p->id,
         'name' => $p->name,
         'sku' => $p->sku,
@@ -157,6 +157,10 @@
                     @endforeach
                 </tbody>
             </table>
+        </div>
+
+        <div class="mt-4 p-3">
+            {{ $products->links() }}
         </div>
 
         <script>

@@ -41,7 +41,9 @@ class ProductController extends Controller
                           $q->where('name', 'like', '%' . $search . '%');
                       });
             })
-            ->get();
+            ->orderBy('name')
+            ->paginate(20)
+            ->withQueryString();
         
         $lowStockCount = Product::whereColumn('quantity', '<=', 'reorder_level')->count();
         
