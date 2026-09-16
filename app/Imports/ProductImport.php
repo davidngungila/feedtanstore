@@ -68,11 +68,13 @@ class ProductImport implements OnEachRow, WithHeadingRow, SkipsOnFailure
                 'is_available_online'  => $normalized['is_available_online'],
             ];
 
-            $existing = Product::where(function ($q) use ($payload) {
-                    $q->where('sku', $payload['sku'])
-                      ->orWhere('barcode', $payload['barcode']);
-                })
-                ->first();
+            $existing = null;
+            if ($payload['sku']) {
+                $existing = Product::where('sku', $payload['sku'])->first();
+            }
+            if (!$existing && $payload['barcode']) {
+                $existing = Product::where('barcode', $payload['barcode'])->first();
+            }
 
             if ($existing) {
                 $updatePayload = $existing->barcode
@@ -116,18 +118,50 @@ class ProductImport implements OnEachRow, WithHeadingRow, SkipsOnFailure
             }
         }
 
+        $cartons = isset($row['cartons']) ? (int) $row['cartons'] : 0;
+        $piecesPerUnit = isset($row['pcs']) ? (int) $row['pcs'] : 0;
+
+        if ($cartons > 0 && $piecesPerUnit > 0) {
+            $quantity = $cartons * $piecesPerUnit;
+        } elseif ($cartons > 0) {
+            $quantity = $cartons;
+        } else {
+            $quantity = isset($row['quantity']) ? (int) $row['quantity'] : 0;
+        }
+
+        $unit = isset($row['unit']) ? trim((string) $row['unit']) : 'pcs';
+
+        $costPrice = 0;
+        if (isset($row['price_per_carton_tzs'])) {
+            $costPrice = (float) $row['price_per_carton_tzs'];
+        } elseif (isset($row['cost_price'])) {
+            $costPrice = (float) $row['cost_price'];
+        }
+
+        $sellingPrice = 0;
+        if (isset($row['price_per_item'])) {
+            $sellingPrice = (float) $row['price_per_item'];
+        } elseif (isset($row['selling_price'])) {
+            $sellingPrice = (float) $row['selling_price'];
+        }
+
+        if ($cartons > 0 && $piecesPerUnit > 0 && $costPrice > 0) {
+            $costPrice = $costPrice / $piecesPerUnit;
+            $costPrice = round($costPrice, 2);
+        }
+
         return [
-            'name'                => isset($row['name']) ? trim((string) $row['name']) : null,
+            'name'                => isset($row['product']) ? trim((string) $row['product']) : (isset($row['name']) ? trim((string) $row['name']) : null),
             'sku'                 => isset($row['sku']) ? trim((string) $row['sku']) : null,
             'barcode'             => isset($row['barcode']) ? trim((string) $row['barcode']) : null,
             'category'            => isset($row['category']) ? trim((string) $row['category']) : 'General',
             'brand'               => isset($row['brand']) ? trim((string) $row['brand']) : null,
-            'unit'                => isset($row['unit']) ? trim((string) $row['unit']) : 'pcs',
+            'unit'                => $unit,
             'description'         => isset($row['description']) ? trim((string) $row['description']) : null,
             'specifications'      => isset($row['specifications']) ? trim((string) $row['specifications']) : null,
-            'cost_price'          => isset($row['cost_price']) ? (float) $row['cost_price'] : 0,
-            'selling_price'       => isset($row['selling_price']) ? (float) $row['selling_price'] : 0,
-            'quantity'            => isset($row['quantity']) ? (int) $row['quantity'] : 0,
+            'cost_price'          => $costPrice,
+            'selling_price'       => $sellingPrice,
+            'quantity'            => $quantity,
             'reorder_level'       => isset($row['reorder_level']) ? (int) $row['reorder_level'] : 0,
             'expiry_date'         => $expiry,
             'batch_number'        => isset($row['batch_number']) ? trim((string) $row['batch_number']) : null,

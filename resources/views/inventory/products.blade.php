@@ -446,7 +446,8 @@
             <div class="p-4 bg-gray-50 rounded-xl text-sm text-gray-600 space-y-1">
                 <p class="font-semibold text-gray-800 flex items-center gap-2"><i class="fas fa-info-circle text-primary-600"></i>Instructions</p>
                 <p>The first row must be the column headings.</p>
-                <p>Required: <span class="font-medium">name</span>.</p>
+                <p>Required: <span class="font-medium">Product</span>. Optionally <span class="font-medium">Cartons</span> + <span class="font-medium">pcs</span> (quantity = cartons × pcs), <span class="font-medium">Price per carton (TZS)</span> (cost price), <span class="font-medium">Price per item</span> (selling price).</p>
+                <p>SKU, barcode, category, brand, unit and the standard field names are also accepted.</p>
                 <p>Category, brand and unit are matched by name and auto-created if missing.</p>
                 <p>Rows matching an existing SKU or barcode are updated instead of duplicated.</p>
                 <p>Blank SKU is generated automatically; blank barcode is left empty so it can be scanned and linked later.</p>
