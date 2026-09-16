@@ -14,6 +14,7 @@ class Product extends Model
         'slug',
         'sku',
         'barcode',
+        'barcode_linked_at',
         'category_id',
         'brand_id',
         'unit_id',
@@ -97,6 +98,7 @@ class Product extends Model
 
     protected $casts = [
         'expiry_date' => 'datetime',
+        'barcode_linked_at' => 'datetime',
         'is_active' => 'boolean',
         'is_available_online' => 'boolean',
     ];

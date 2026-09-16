@@ -109,7 +109,7 @@ class ProductController extends Controller
             'barcode' => 'required|string|max:255|unique:products,barcode,' . $product->id,
         ]);
 
-        $product->update(['barcode' => $request->barcode]);
+        $product->update(['barcode' => $request->barcode, 'barcode_linked_at' => now()]);
 
         return response()->json([
             'success' => true,
@@ -151,6 +151,7 @@ class ProductController extends Controller
         $payload = $request->all();
         $payload['sku'] = $request->filled('sku') ? $request->sku : $this->generateUniqueSku($request->name);
         $payload['barcode'] = $request->filled('barcode') ? $request->barcode : null;
+        $payload['barcode_linked_at'] = $request->filled('barcode') ? now() : null;
         $payload['is_available_online'] = $request->has('is_available_online');
 
         Product::create($payload);
@@ -197,7 +198,7 @@ class ProductController extends Controller
             'is_available_online' => 'boolean'
         ]);
 
-        $product->update($request->except('barcode') + ['barcode' => $request->filled('barcode') ? $request->barcode : null] + ['is_available_online' => $request->has('is_available_online')]);
+        $product->update($request->except('barcode', 'barcode_linked_at') + ['barcode' => $request->filled('barcode') ? $request->barcode : null, 'barcode_linked_at' => $request->filled('barcode') ? ($product->barcode === $request->barcode ? $product->barcode_linked_at : now()) : null] + ['is_available_online' => $request->has('is_available_online')]);
 
         return redirect()->route('inventory.products')->with('success', 'Product updated successfully!');
     }

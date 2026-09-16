@@ -52,6 +52,7 @@ class ProductImport implements OnEachRow, WithHeadingRow, SkipsOnFailure
                 'name'                 => $normalized['name'],
                 'sku'                  => $normalized['sku'] ?: $this->generateUniqueSku($normalized['name']),
                 'barcode'              => $normalized['barcode'] ?: null,
+                'barcode_linked_at'     => $normalized['barcode'] ? now() : null,
                 'category_id'          => $category->id,
                 'brand_id'             => $brand ? $brand->id : null,
                 'unit_id'              => $unit->id,
@@ -74,7 +75,11 @@ class ProductImport implements OnEachRow, WithHeadingRow, SkipsOnFailure
                 ->first();
 
             if ($existing) {
-                $existing->update($payload + ['sku' => $existing->sku]);
+                $updatePayload = $existing->barcode
+                    ? array_merge($payload, ['sku' => $existing->sku, 'barcode' => $existing->barcode, 'barcode_linked_at' => $existing->barcode_linked_at])
+                    : array_merge($payload, ['sku' => $existing->sku]);
+
+                $existing->update($updatePayload);
                 $this->updatedCount++;
             } else {
                 Product::create($payload);

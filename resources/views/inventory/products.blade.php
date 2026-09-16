@@ -9,6 +9,7 @@
         'name' => $p->name,
         'sku' => $p->sku,
         'barcode' => $p->barcode,
+        'barcode_linked_at' => $p->barcode_linked_at ? $p->barcode_linked_at->format('Y-m-d H:i:s') : null,
         'category' => $p->category->name ?? '-',
         'brand' => $p->brand->name ?? '-',
         'unit' => $p->unit->short_name ?? ($p->unit->name ?? '-'),
@@ -92,7 +93,9 @@
                         </th>
                         <th class="text-left">Name</th>
                         <th class="text-left">SKU</th>
-                        <th class="text-left">Barcode</th>
+<th class="text-left">Barcode</th>
+                        <th class="text-left">Scanned</th>
+                        <th class="text-left">Linked</th>
                         <th class="text-left">Category</th>
                         <th class="text-left">Brand</th>
                         <th class="text-left">Quantity</th>
@@ -112,7 +115,17 @@
                             <a href="{{ route('inventory.products.show', $product) }}" class="hover:underline">{{ $product->name }}</a>
                         </td>
                         <td class="text-gray-600">{{ $product->sku ?? '-' }}</td>
-                        <td class="text-gray-600">{{ $product->barcode ?? '-' }}</td>
+<td class="text-gray-600">{{ $product->barcode ?? '-' }}</td>
+                        <td>
+                            <span class="badge {{ $product->barcode_linked_at ? 'badge-green' : 'badge-yellow' }}">
+                                {{ $product->barcode_linked_at ? 'Scanned' : 'Not Scanned' }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="badge {{ $product->barcode ? 'badge-green' : 'badge-red' }}">
+                                {{ $product->barcode ? 'Linked' : 'Not Linked' }}
+                            </span>
+                        </td>
                         <td class="text-gray-600">{{ $product->category->name ?? '-' }}</td>
                         <td class="text-gray-600">{{ $product->brand->name ?? '-' }}</td>
                         <td class="font-semibold {{ $product->quantity <= $product->reorder_level ? 'text-red-600' : 'text-primary-900' }}">
@@ -239,6 +252,16 @@
                 let badge = document.createElement('span');
                 badge.className = 'px-3 py-1 rounded-full text-xs font-semibold ' + (data.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800');
                 badge.textContent = data.is_active ? 'Active' : 'Inactive';
+                badges.appendChild(badge);
+
+                badge = document.createElement('span');
+                badge.className = 'px-3 py-1 rounded-full text-xs font-semibold ' + (data.barcode_linked_at ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800');
+                badge.textContent = data.barcode_linked_at ? 'Scanned' : 'Not Scanned';
+                badges.appendChild(badge);
+
+                badge = document.createElement('span');
+                badge.className = 'px-3 py-1 rounded-full text-xs font-semibold ' + (data.barcode ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800');
+                badge.textContent = data.barcode ? 'Linked' : 'Not Linked';
                 badges.appendChild(badge);
 
                 if (data.is_available_online) {
