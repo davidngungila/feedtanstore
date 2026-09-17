@@ -420,11 +420,14 @@
                         <style>
                             @page { size: 37.29mm 25.91mm; margin: 0; }
                             * { box-sizing: border-box; margin: 0; padding: 0; }
-                            html, body { width: 37.29mm; height: 25.91mm; margin: 0; padding: 0; overflow: hidden; background: #fff; }
-                            body { display: flex; align-items: center; justify-content: center; }
-                            img { width: 37.29mm; height: 25.91mm; display: block; image-rendering: pixelated; image-rendering: crisp-edges; }
+                            html, body { margin: 0; padding: 0; background: #fff; min-height: 100vh; }
+                            body { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 16px; }
+                            img { width: 37.29mm; height: 25.91mm; display: block; image-rendering: pixelated; image-rendering: crisp-edges; background: #fff; box-shadow: 0 4px 20px rgba(0,0,0,0.12); border: 1px solid #e5e7eb; }
                             @media print {
-                                html, body { width: 37.29mm; height: 25.91mm; }
+                                html, body { min-height: auto; height: 37.91mm; }
+                                body { padding: 0; justify-content: center; align-items: center; }
+                                img { box-shadow: none; border: none; width: 37.29mm; height: 25.91mm; }
+                                @page { size: 37.29mm 25.91mm; margin: 0; }
                             }
                         </style>
                     </head>
