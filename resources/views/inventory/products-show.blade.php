@@ -402,62 +402,44 @@
     }
 
     function printBarcode() {
-        const img = document.getElementById('barcodeImage');
-        if (!img) {
+        const imgEl = document.getElementById('barcodeImage');
+        if (!imgEl) {
             alert('This product has no barcode linked yet.');
             return;
         }
-        const size = document.getElementById('barcodeSize').value;
-        const printContent = document.getElementById('barcode-print-area').innerHTML;
-        
-        const printWindow = window.open('', '_blank');
-        printWindow.document.write(`
-            <html>
-                <head>
-                    <title>Barcode - {{ $product->barcode }}</title>
-                    <style>
-                        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@700&display=swap');
-                        body {
-                            font-family: Arial, sans-serif;
-                            display: flex;
-                            justify-content: center;
-                            align-items: center;
-                            min-height: 100vh;
-                            margin: 0;
-                            padding: 20px;
-                            background: #fff;
-                        }
-                        .barcode-container {
-                            text-align: center;
-                            padding: 30px 40px;
-                            border: 1px solid #e5e7eb;
-                            border-radius: 12px;
-                            background: #fff;
-                        }
-                        .barcode-container img {
-                            width: ${size}mm;
-                            height: auto;
-                            image-rendering: pixelated;
-                        }
-                        .barcode-numbers {
-                            margin-top: 14px;
-                            font-family: 'JetBrains Mono', monospace;
-                            font-size: 16px;
-                            letter-spacing: 0.28em;
-                            font-weight: 700;
-                            color: #111827;
-                        }
-                    </style>
-                </head>
-                <body>
-                    <div class="barcode-container">${printContent}</div>
-                </body>
-            </html>
-        `);
-        printWindow.document.close();
-        printWindow.onload = function() {
-            setTimeout(function(){ printWindow.print(); }, 300);
-        };
+        // Always print at retail POS optimal size 37.29x25.91 mm (ignore preview size selector)
+        generateLabelCanvas(function(canvas, code){
+            if (!canvas) return;
+            const dataUrl = canvas.toDataURL('image/png');
+            const printWindow = window.open('', '_blank');
+            if (!printWindow) { alert('Please allow popups to print.'); return; }
+            printWindow.document.write(`
+                <html>
+                    <head>
+                        <title>Barcode - ${code} - 37.29x25.91mm</title>
+                        <style>
+                            @page { size: 37.29mm 25.91mm; margin: 0; }
+                            * { box-sizing: border-box; margin: 0; padding: 0; }
+                            html, body { width: 37.29mm; height: 25.91mm; margin: 0; padding: 0; overflow: hidden; background: #fff; }
+                            body { display: flex; align-items: center; justify-content: center; }
+                            img { width: 37.29mm; height: 25.91mm; display: block; image-rendering: pixelated; image-rendering: crisp-edges; }
+                            @media print {
+                                html, body { width: 37.29mm; height: 25.91mm; }
+                            }
+                        </style>
+                    </head>
+                    <body>
+                        <img src="${dataUrl}" alt="Barcode ${code}">
+                    </body>
+                </html>
+            `);
+            printWindow.document.close();
+            printWindow.focus();
+            // wait for image to load before printing
+            const doPrint = function(){ try { printWindow.print(); } catch(e){} };
+            printWindow.onload = function(){ setTimeout(doPrint, 400); };
+            setTimeout(doPrint, 800);
+        });
     }
 
     // --- Exact label size for retail POS scanners: 37.29mm x 25.91mm at 300 DPI ---
