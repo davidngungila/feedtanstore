@@ -30,6 +30,23 @@
         </ul>
       </div>
       <div>
+        <h4>{{ __('Staff') }}</h4>
+        <ul>
+          @auth
+            <li><a href="{{ route('dashboard') }}"><i class="fa-solid fa-gauge-high" style="margin-right:6px;"></i>{{ __('Dashboard') }}</a></li>
+            <li>
+              <form method="POST" action="{{ route('logout') }}" style="display:inline;">
+                @csrf
+                <button type="submit" style="background:none;border:none;padding:0;font:inherit;color:inherit;cursor:pointer;"><i class="fa-solid fa-right-from-bracket" style="margin-right:6px;"></i>{{ __('Logout') }}</button>
+              </form>
+            </li>
+          @else
+            <li><a href="{{ route('login') }}"><i class="fa-solid fa-right-to-bracket" style="margin-right:6px;"></i>{{ __('Login') }}</a></li>
+            <li><a href="{{ route('entry') }}"><i class="fa-solid fa-key" style="margin-right:6px;"></i>{{ __('Staff Entry') }}</a></li>
+          @endauth
+        </ul>
+      </div>
+      <div>
         <h4>{{ __('Visit our store') }}</h4>
         <ul>
           <li><i class="fa-solid fa-location-dot" style="margin-right:6px;"></i>{{ __('Location') }}</li>

@@ -396,7 +396,7 @@ html.dark .mobile-cart-bar{background:rgba(17,29,22,.97);}
 
 /* ---------- Footer ---------- */
 footer{background:var(--green-900);color:rgba(255,255,255,.85);padding:50px 0 0;margin-top:40px;}
-.footer-grid{display:grid;grid-template-columns:1.4fr 1fr 1fr 1.2fr;gap:32px;padding-bottom:36px;}
+.footer-grid{display:grid;grid-template-columns:1.4fr 0.9fr 0.9fr 1.2fr 0.9fr;gap:28px;padding-bottom:36px;}
 .footer-grid h4{color:#fff;font-family:var(--font-body);font-size:12.5px;letter-spacing:.08em;text-transform:uppercase;margin-bottom:14px;}
 .footer-grid ul{display:flex;flex-direction:column;gap:9px;font-size:13.5px;}
 .footer-grid ul a:hover{color:var(--gold);}

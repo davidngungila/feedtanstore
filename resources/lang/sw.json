@@ -215,5 +215,11 @@
     "Starting payment": "Inaanza malipo",
     "Sending USSD push to your phone...": "Inatuma mwaliko wa USSD kwenye simu yako...",
     "Payment not started": "Malipo hayajaanza",
-    "Failed to initiate payment.": "Imeshindwa kuanzisha malipo."
+    "Failed to initiate payment.": "Imeshindwa kuanzisha malipo.",
+    "Login": "Ingia",
+    "Dashboard": "Dashibodi",
+    "Staff": "Wafanyakazi",
+    "Staff Entry": "Kiingilio cha Wafanyakazi",
+    "Logout": "Toka",
+    "Toggle theme": "Badilisha mandhari"
 }

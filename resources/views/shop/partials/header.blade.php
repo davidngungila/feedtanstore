@@ -44,6 +44,21 @@
         <i class="fa-solid fa-cart-shopping"></i>
         <span class="badge" id="cartBadge" style="display:none;">0</span>
       </button>
+      @auth
+        <a href="{{ route('dashboard') }}" class="btn btn-dark btn-sm hide-on-mobile" style="margin-left:4px;" title="{{ __('Dashboard') }}">
+          <i class="fa-solid fa-gauge-high"></i> {{ __('Dashboard') }}
+        </a>
+        <a href="{{ route('dashboard') }}" class="icon-btn hide-on-desktop" aria-label="{{ __('Dashboard') }}" title="{{ __('Dashboard') }}">
+          <i class="fa-solid fa-gauge-high"></i>
+        </a>
+      @else
+        <a href="{{ route('login') }}" class="btn btn-dark btn-sm hide-on-mobile" style="margin-left:4px;" title="{{ __('Login') }}">
+          <i class="fa-solid fa-right-to-bracket"></i> {{ __('Login') }}
+        </a>
+        <a href="{{ route('login') }}" class="icon-btn hide-on-desktop" aria-label="{{ __('Login') }}" title="{{ __('Login') }}">
+          <i class="fa-solid fa-right-to-bracket"></i>
+        </a>
+      @endauth
       <div class="lang-switch">
         <a href="{{ route('lang.switch', 'en') }}" class="{{ App::getLocale() === 'en' ? 'active' : '' }}" aria-label="English">EN</a>
         <a href="{{ route('lang.switch', 'sw') }}" class="{{ App::getLocale() === 'sw' ? 'active' : '' }}" aria-label="Kiswahili">SW</a>
@@ -97,6 +112,21 @@
       <span class="mm-ic"><i class="fa-solid fa-location-dot"></i></span>
       {{ __('Track my order') }}
     </a>
+    @auth
+      <a href="{{ route('dashboard') }}">
+        <span class="mm-ic"><i class="fa-solid fa-gauge-high"></i></span>
+        {{ __('Dashboard') }}
+      </a>
+    @else
+      <a href="{{ route('login') }}">
+        <span class="mm-ic"><i class="fa-solid fa-right-to-bracket"></i></span>
+        {{ __('Login') }}
+      </a>
+      <a href="{{ route('entry') }}" style="opacity:.85;">
+        <span class="mm-ic"><i class="fa-solid fa-key"></i></span>
+        {{ __('Staff Entry') }}
+      </a>
+    @endauth
   </nav>
   <div class="mm-footer">
     <div class="lang-switch">

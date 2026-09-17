@@ -215,5 +215,11 @@
     "Starting payment": "Starting payment",
     "Sending USSD push to your phone...": "Sending USSD push to your phone...",
     "Payment not started": "Payment not started",
-    "Failed to initiate payment.": "Failed to initiate payment."
+    "Failed to initiate payment.": "Failed to initiate payment.",
+    "Login": "Login",
+    "Dashboard": "Dashboard",
+    "Staff": "Staff",
+    "Staff Entry": "Staff Entry",
+    "Logout": "Logout",
+    "Toggle theme": "Toggle theme"
 }

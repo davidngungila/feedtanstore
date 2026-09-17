@@ -6,6 +6,7 @@
 <meta name="robots" content="noindex, nofollow">
 <title>Store Closed - {{ $settings->store_name ?? 'Feedtan Store' }}</title>
 <script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <style>
   body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
 </style>
@@ -16,6 +17,20 @@
             <div class="flex items-center gap-3">
                 <img src="{{ asset('logo-image-feedtan-store.png') }}" alt="{{ $settings->store_name ?? 'Feedtan Store' }}" class="h-10 w-auto">
                 <span class="text-xl font-bold text-gray-800">{{ $settings->store_name ?? 'Feedtan Store' }}</span>
+            </div>
+            <div class="flex items-center gap-3">
+                @auth
+                    <a href="{{ route('dashboard') }}" class="inline-flex items-center gap-2 px-5 py-2.5 bg-[#013618] text-white rounded-full text-sm font-semibold hover:bg-[#014a22] transition">
+                        <i class="fa-solid fa-gauge-high"></i> {{ __('Dashboard') }}
+                    </a>
+                @else
+                    <a href="{{ route('login') }}" class="inline-flex items-center gap-2 px-5 py-2.5 bg-[#013618] text-white rounded-full text-sm font-semibold hover:bg-[#014a22] transition">
+                        <i class="fa-solid fa-right-to-bracket"></i> {{ __('Login') }}
+                    </a>
+                    <a href="{{ route('entry') }}" class="hidden sm:inline-flex items-center gap-2 px-5 py-2.5 border border-gray-300 rounded-full text-sm font-semibold hover:bg-gray-50 transition">
+                        <i class="fa-solid fa-key"></i> {{ __('Staff Entry') }}
+                    </a>
+                @endauth
             </div>
         </div>
     </header>
