@@ -123,37 +123,43 @@
         
         <!-- Barcode Display -->
         <div class="card rounded-2xl p-6">
-            <div class="flex items-center justify-between mb-6">
-                <h3 class="text-lg font-bold text-primary-900">Product Barcode</h3>
-                <div class="flex flex-wrap items-center gap-3">
+            <div class="flex flex-wrap items-center justify-between mb-6 gap-3">
+                <h3 class="text-lg font-bold text-primary-900 flex items-center gap-2"><i class="fas fa-barcode text-primary-600"></i> Product Barcode</h3>
+                <div class="flex flex-wrap items-center gap-2">
                     @if($product->barcode)
                     <div class="flex items-center gap-2">
                         <label for="barcodeSize" class="text-sm font-medium text-gray-700">Size:</label>
                         <select id="barcodeSize" onchange="updateBarcodeSize()" class="px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
-                            <option value="10">10mm</option>
-                            <option value="15">15mm</option>
-                            <option value="20" selected>20mm</option>
-                            <option value="25">25mm</option>
-                            <option value="30">30mm</option>
-                            <option value="35">35mm</option>
+                            <option value="40">40mm</option>
+                            <option value="50">50mm</option>
+                            <option value="60" selected>60mm</option>
+                            <option value="70">70mm</option>
+                            <option value="80">80mm</option>
+                            <option value="90">90mm</option>
                         </select>
                     </div>
                     @endif
-                    <button type="button" onclick="startScanner()" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors">
-                        <i class="fas fa-camera mr-2"></i>Scan &amp; Link
+                    <button type="button" onclick="startScanner()" class="px-3 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors text-sm">
+                        <i class="fas fa-camera mr-1"></i>Scan &amp; Link
                     </button>
                     @if($product->barcode)
-                    <button onclick="printBarcode()" class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors">
-                        <i class="fas fa-print mr-2"></i>Print
+                    <button onclick="printBarcode()" class="px-3 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors text-sm">
+                        <i class="fas fa-print mr-1"></i>Print
+                    </button>
+                    <button onclick="downloadBarcodePNG(event)" class="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors text-sm">
+                        <i class="fas fa-file-image mr-1"></i>PNG
+                    </button>
+                    <button onclick="downloadBarcodePDF(event)" class="px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors text-sm">
+                        <i class="fas fa-file-pdf mr-1"></i>PDF
                     </button>
                     @endif
                 </div>
             </div>
             <div id="barcodeStatus" class="hidden mb-3 text-sm"></div>
             @if($product->barcode)
-            <div id="barcode-print-area" class="flex flex-col items-center justify-center p-4 bg-gray-50 rounded-lg">
-                <h4 class="font-semibold text-gray-900 mb-2">{{ $product->name }}</h4>
-                <img id="barcodeImage" src="{{ $barcodeBase64 }}" alt="Barcode for {{ $product->name }}" style="width: 20mm;">
+            <div id="barcode-print-area" class="flex flex-col items-center justify-center p-8 bg-white rounded-xl border border-gray-200 shadow-sm">
+                <img id="barcodeImage" src="{{ $barcodeBase64 }}" alt="Barcode {{ $product->barcode }}" style="width: 60mm; height:auto; image-rendering: pixelated;">
+                <p id="barcodeNumbers" class="barcode-numbers mt-4 font-mono text-lg tracking-[0.28em] font-bold text-gray-900 select-all">{{ $product->barcode }}</p>
             </div>
             @else
             <div class="flex flex-col items-center justify-center p-8 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
@@ -213,6 +219,8 @@
 </div>
 
 <script src="{{ asset('js/html5-qrcode.min.js') }}"></script>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <script>
     let productScanner = null;
     let scannerActive = false;
@@ -406,8 +414,9 @@
         printWindow.document.write(`
             <html>
                 <head>
-                    <title>Product Barcode</title>
+                    <title>Barcode - {{ $product->barcode }}</title>
                     <style>
+                        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@700&display=swap');
                         body {
                             font-family: Arial, sans-serif;
                             display: flex;
@@ -416,14 +425,27 @@
                             min-height: 100vh;
                             margin: 0;
                             padding: 20px;
+                            background: #fff;
                         }
                         .barcode-container {
                             text-align: center;
-                            padding: 20px;
+                            padding: 30px 40px;
+                            border: 1px solid #e5e7eb;
+                            border-radius: 12px;
+                            background: #fff;
                         }
-                        img {
+                        .barcode-container img {
                             width: ${size}mm;
                             height: auto;
+                            image-rendering: pixelated;
+                        }
+                        .barcode-numbers {
+                            margin-top: 14px;
+                            font-family: 'JetBrains Mono', monospace;
+                            font-size: 16px;
+                            letter-spacing: 0.28em;
+                            font-weight: 700;
+                            color: #111827;
                         }
                     </style>
                 </head>
@@ -434,8 +456,64 @@
         `);
         printWindow.document.close();
         printWindow.onload = function() {
-            printWindow.print();
+            setTimeout(function(){ printWindow.print(); }, 300);
         };
+    }
+
+    function downloadBarcodePNG(e) {
+        const evt = e || window.event;
+        const area = document.getElementById('barcode-print-area');
+        const code = document.getElementById('barcodeNumbers') ? document.getElementById('barcodeNumbers').innerText.trim() : '{{ $product->barcode }}';
+        if (!area || typeof html2canvas === 'undefined') {
+            alert('Export library not loaded. Please try again.');
+            return;
+        }
+        const btn = evt && evt.currentTarget ? evt.currentTarget : null;
+        const origText = btn ? btn.innerHTML : '';
+        if (btn) btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>...';
+        html2canvas(area, { scale: 3, backgroundColor: '#ffffff', useCORS: true }).then(function(canvas){
+            const link = document.createElement('a');
+            link.download = 'barcode-' + code + '.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+            if (btn) btn.innerHTML = origText;
+        }).catch(function(err){
+            console.error(err);
+            alert('Failed to export PNG.');
+            if (btn) btn.innerHTML = origText;
+        });
+    }
+
+    function downloadBarcodePDF(e) {
+        const evt = e || window.event;
+        const area = document.getElementById('barcode-print-area');
+        const code = document.getElementById('barcodeNumbers') ? document.getElementById('barcodeNumbers').innerText.trim() : '{{ $product->barcode }}';
+        if (!area || typeof html2canvas === 'undefined' || typeof window.jspdf === 'undefined') {
+            alert('Export library not loaded. Please try again.');
+            return;
+        }
+        const btn = evt && evt.currentTarget ? evt.currentTarget : null;
+        const origText = btn ? btn.innerHTML : '';
+        if (btn) btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>...';
+        html2canvas(area, { scale: 3, backgroundColor: '#ffffff', useCORS: true }).then(function(canvas){
+            const imgData = canvas.toDataURL('image/png');
+            const { jsPDF } = window.jspdf;
+            // use px as unit, image covers canvas exactly
+            const pdf = new jsPDF({
+                orientation: canvas.width > canvas.height ? 'landscape' : 'portrait',
+                unit: 'pt',
+                format: [canvas.width * 0.75, canvas.height * 0.75]
+            });
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = pdf.internal.pageSize.getHeight();
+            pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+            pdf.save('barcode-' + code + '.pdf');
+            if (btn) btn.innerHTML = origText;
+        }).catch(function(err){
+            console.error(err);
+            alert('Failed to export PDF.');
+            if (btn) btn.innerHTML = origText;
+        });
     }
 </script>
 @endsection
