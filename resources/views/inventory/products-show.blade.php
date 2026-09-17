@@ -460,58 +460,138 @@
         };
     }
 
+    // --- Exact label size for retail POS scanners: 37.29mm x 25.91mm at 300 DPI ---
+    const LABEL_W_MM = 37.29;
+    const LABEL_H_MM = 25.91;
+    const LABEL_DPI = 300;
+    const LABEL_W_PX = Math.round(LABEL_W_MM * LABEL_DPI / 25.4); // ~440
+    const LABEL_H_PX = Math.round(LABEL_H_MM * LABEL_DPI / 25.4); // ~306
+
+    function generateLabelCanvas(callback) {
+        const codeEl = document.getElementById('barcodeNumbers');
+        const code = codeEl ? codeEl.innerText.trim() : '{{ $product->barcode }}';
+        const imgEl = document.getElementById('barcodeImage');
+        const src = imgEl ? imgEl.src : '{{ $barcodeBase64 }}';
+
+        const canvas = document.createElement('canvas');
+        canvas.width = LABEL_W_PX;
+        canvas.height = LABEL_H_PX;
+        const ctx = canvas.getContext('2d');
+
+        // white background
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, LABEL_W_PX, LABEL_H_PX);
+
+        // thin border as cut guide (0.18mm)
+        ctx.strokeStyle = '#e5e7eb';
+        ctx.lineWidth = Math.max(1, Math.round(0.18 * LABEL_DPI / 25.4));
+        ctx.strokeRect(ctx.lineWidth/2, ctx.lineWidth/2, LABEL_W_PX - ctx.lineWidth, LABEL_H_PX - ctx.lineWidth);
+
+        const margin = Math.round(1.6 * LABEL_DPI / 25.4); // 1.6mm
+        const gap = Math.round(1.1 * LABEL_DPI / 25.4);    // gap barcode -> numbers
+        const textSizePx = Math.round(2.4 * LABEL_DPI / 25.4); // 2.4mm font
+        const letterSpacingPx = Math.round(0.55 * LABEL_DPI / 25.4);
+
+        const availW = LABEL_W_PX - 2 * margin;
+        const availH = LABEL_H_PX - 2 * margin - textSizePx - gap;
+
+        const img = new Image();
+        img.onload = function() {
+            // preserve aspect, fit within availW x availH
+            const ratio = img.width / img.height;
+            let drawW = availW;
+            let drawH = drawW / ratio;
+            if (drawH > availH) { drawH = availH; drawW = drawH * ratio; }
+            // never upscale beyond 92% of availW to keep quiet zones
+            const maxW = availW * 0.96;
+            if (drawW > maxW) { drawW = maxW; drawH = drawW / ratio; }
+            const drawX = (LABEL_W_PX - drawW) / 2;
+            const drawY = margin + (availH - drawH) / 2;
+
+            // crisp barcode: disable smoothing
+            ctx.imageSmoothingEnabled = false;
+            ctx.drawImage(img, drawX, drawY, drawW, drawH);
+
+            // numbers
+            ctx.fillStyle = '#111827';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'top';
+            const textY = drawY + drawH + gap;
+            // use letterSpacing if supported (Chrome 99+)
+            try {
+                if ('letterSpacing' in ctx) {
+                    ctx.letterSpacing = letterSpacingPx + 'px';
+                    ctx.font = '700 ' + textSizePx + 'px "JetBrains Mono", monospace';
+                    ctx.fillText(code, LABEL_W_PX / 2, textY);
+                } else {
+                    throw new Error('no letterSpacing');
+                }
+            } catch (e) {
+                // manual spaced fallback
+                ctx.font = '700 ' + textSizePx + 'px "JetBrains Mono", monospace';
+                let totalW = 0;
+                const widths = code.split('').map(ch => ctx.measureText(ch).width);
+                totalW = widths.reduce((a,b)=>a+b,0) + letterSpacingPx * (code.length - 1);
+                let curX = (LABEL_W_PX - totalW) / 2;
+                code.split('').forEach((ch, i) => {
+                    const w = widths[i];
+                    ctx.fillText(ch, curX + w/2, textY);
+                    curX += w + letterSpacingPx;
+                });
+            }
+            callback(canvas, code);
+        };
+        img.onerror = function() {
+            alert('Failed to load barcode image.');
+            callback(null, code);
+        };
+        img.src = src;
+    }
+
     function downloadBarcodePNG(e) {
         const evt = e || window.event;
-        const area = document.getElementById('barcode-print-area');
-        const code = document.getElementById('barcodeNumbers') ? document.getElementById('barcodeNumbers').innerText.trim() : '{{ $product->barcode }}';
-        if (!area || typeof html2canvas === 'undefined') {
-            alert('Export library not loaded. Please try again.');
-            return;
-        }
         const btn = evt && evt.currentTarget ? evt.currentTarget : null;
         const origText = btn ? btn.innerHTML : '';
         if (btn) btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>...';
-        html2canvas(area, { scale: 3, backgroundColor: '#ffffff', useCORS: true }).then(function(canvas){
-            const link = document.createElement('a');
-            link.download = 'barcode-' + code + '.png';
-            link.href = canvas.toDataURL('image/png');
-            link.click();
-            if (btn) btn.innerHTML = origText;
-        }).catch(function(err){
-            console.error(err);
-            alert('Failed to export PNG.');
-            if (btn) btn.innerHTML = origText;
+        generateLabelCanvas(function(canvas, code){
+            if (!canvas) { if (btn) btn.innerHTML = origText; return; }
+            canvas.toBlob(function(blob){
+                if (!blob) { alert('Failed to export PNG.'); if (btn) btn.innerHTML = origText; return; }
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'barcode-' + code + '-' + LABEL_W_MM + 'x' + LABEL_H_MM + 'mm.png';
+                document.body.appendChild(a);
+                a.click();
+                setTimeout(function(){ URL.revokeObjectURL(url); a.remove(); }, 500);
+                if (btn) btn.innerHTML = origText;
+            }, 'image/png');
         });
     }
 
     function downloadBarcodePDF(e) {
         const evt = e || window.event;
-        const area = document.getElementById('barcode-print-area');
-        const code = document.getElementById('barcodeNumbers') ? document.getElementById('barcodeNumbers').innerText.trim() : '{{ $product->barcode }}';
-        if (!area || typeof html2canvas === 'undefined' || typeof window.jspdf === 'undefined') {
-            alert('Export library not loaded. Please try again.');
+        if (typeof window.jspdf === 'undefined') {
+            alert('PDF library not loaded. Please try again.');
             return;
         }
         const btn = evt && evt.currentTarget ? evt.currentTarget : null;
         const origText = btn ? btn.innerHTML : '';
         if (btn) btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>...';
-        html2canvas(area, { scale: 3, backgroundColor: '#ffffff', useCORS: true }).then(function(canvas){
+        generateLabelCanvas(function(canvas, code){
+            if (!canvas) { if (btn) btn.innerHTML = origText; return; }
             const imgData = canvas.toDataURL('image/png');
             const { jsPDF } = window.jspdf;
-            // use px as unit, image covers canvas exactly
             const pdf = new jsPDF({
-                orientation: canvas.width > canvas.height ? 'landscape' : 'portrait',
-                unit: 'pt',
-                format: [canvas.width * 0.75, canvas.height * 0.75]
+                orientation: LABEL_W_MM > LABEL_H_MM ? 'landscape' : 'portrait',
+                unit: 'mm',
+                format: [LABEL_W_MM, LABEL_H_MM]
             });
-            const pdfWidth = pdf.internal.pageSize.getWidth();
-            const pdfHeight = pdf.internal.pageSize.getHeight();
-            pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-            pdf.save('barcode-' + code + '.pdf');
-            if (btn) btn.innerHTML = origText;
-        }).catch(function(err){
-            console.error(err);
-            alert('Failed to export PDF.');
+            // fill background white (jsPDF default transparent)
+            pdf.setFillColor(255,255,255);
+            pdf.rect(0, 0, LABEL_W_MM, LABEL_H_MM, 'F');
+            pdf.addImage(imgData, 'PNG', 0, 0, LABEL_W_MM, LABEL_H_MM);
+            pdf.save('barcode-' + code + '-' + LABEL_W_MM + 'x' + LABEL_H_MM + 'mm.pdf');
             if (btn) btn.innerHTML = origText;
         });
     }
