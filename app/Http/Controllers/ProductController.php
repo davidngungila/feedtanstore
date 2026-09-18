@@ -123,6 +123,7 @@ class ProductController extends Controller
         $product = Product::where('barcode', $barcode)->first();
 
         if ($product) {
+            $isLinked = !is_null($product->barcode_linked_at);
             return response()->json([
                 'exists' => true,
                 'product' => [
@@ -130,6 +131,8 @@ class ProductController extends Controller
                     'name' => $product->name,
                     'sku' => $product->sku,
                     'barcode' => $product->barcode,
+                    'is_linked' => $isLinked,
+                    'linked_at' => $product->barcode_linked_at ? $product->barcode_linked_at->format('Y-m-d H:i:s') : null,
                 ]
             ]);
         }

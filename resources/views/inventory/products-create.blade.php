@@ -342,8 +342,13 @@
             .then(data => {
                 statusEl.classList.remove('hidden');
                 if (data.exists) {
-                    statusEl.className = 'mt-1 text-xs text-red-600';
-                    statusEl.innerHTML = '<i class="fas fa-exclamation-triangle mr-1"></i>Barcode already linked to: <strong>' + data.product.name + '</strong> (SKU: ' + data.product.sku + ')';
+                    if (data.product.is_linked) {
+                        statusEl.className = 'mt-1 text-xs text-yellow-600';
+                        statusEl.innerHTML = '<i class="fas fa-exclamation-triangle mr-1"></i>Barcode already linked to: <strong>' + data.product.name + '</strong> (SKU: ' + data.product.sku + ') - scanned on ' + data.product.linked_at;
+                    } else {
+                        statusEl.className = 'mt-1 text-xs text-red-600';
+                        statusEl.innerHTML = '<i class="fas fa-exclamation-triangle mr-1"></i>Barcode already exists for: <strong>' + data.product.name + '</strong> (SKU: ' + data.product.sku + ')';
+                    }
                 } else {
                     statusEl.className = 'mt-1 text-xs text-green-600';
                     statusEl.innerHTML = '<i class="fas fa-check-circle mr-1"></i>Barcode is available.';
