@@ -11,6 +11,7 @@ use App\Exports\ProductSampleExport;
 use App\Exports\ProductExport;
 use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
+use Illuminate\Database\Eloquent\Rule;
 
 class ProductController extends Controller
 {
@@ -146,9 +147,21 @@ class ProductController extends Controller
             ->orWhere('sku', $identifier)
             ->orWhere('barcode', $identifier)
             ->firstOrFail();
+        $barcode = $request->input('barcode');
+
+        $existingProduct = Product::where('barcode', $barcode)->first();
+
+        if ($existingProduct && $existingProduct->id != $product->id) {
+            if (!is_null($existingProduct->barcode_linked_at)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Barcode already linked to product: ' . $existingProduct->name . ' (SKU: ' . $existingProduct->sku . ')'
+                ], 422);
+            }
+        }
 
         $request->validate([
-            'barcode' => 'required|string|max:255|unique:products,barcode,' . $product->id,
+            'barcode' => ['required', 'string', 'max:255', Rule::unique('products', 'barcode')->ignore($product->id)],
             'expiry_date' => 'nullable|date',
         ]);
 
