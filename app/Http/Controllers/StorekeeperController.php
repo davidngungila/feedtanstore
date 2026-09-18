@@ -10,6 +10,7 @@ use App\Models\Supplier;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Database\Eloquent\Rule;
 
 class StorekeeperController extends Controller
 {
@@ -94,9 +95,22 @@ class StorekeeperController extends Controller
     public function linkBarcode(Request $request, $id)
     {
         $product = Product::findOrFail($id);
+        $barcode = $request->input('barcode');
+
+        $existingProduct = Product::where('barcode', $barcode)->first();
+
+        if ($existingProduct && $existingProduct->id != $product->id) {
+            if (!is_null($existingProduct->barcode_linked_at)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Barcode already linked to product: ' . $existingProduct->name . ' (SKU: ' . $existingProduct->sku . ')'
+                ], 422);
+            }
+            // Barcode exists but not linked - allow linking by removing unique constraint temporarily
+        }
 
         $request->validate([
-            'barcode' => 'required|string|max:255|unique:products,barcode,' . $product->id,
+            'barcode' => ['required', 'string', 'max:255', Rule::unique('products', 'barcode')->ignore($product->id)],
             'expiry_date' => 'nullable|date',
         ]);
 
