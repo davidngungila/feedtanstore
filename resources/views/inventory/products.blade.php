@@ -196,7 +196,7 @@
                 }
             };
 
-            // Live search - filters the full catalog on typing (AJAX, all pages)
+// Live search - filters the full catalog on typing (AJAX, all pages)
             let searchTimer;
             searchInput.addEventListener('input', function() {
                 updateBulkBar();
@@ -205,9 +205,9 @@
             });
 
             function performSearch(term) {
-                const statusInput = document.querySelector('input[name="status"]');
                 const url = new URL('{{ route('inventory.products') }}');
-                if (statusInput && statusInput.value) url.searchParams.set('status', statusInput.value);
+                const status = url.searchParams.get('status') || null;
+                if (status) url.searchParams.set('status', status);
                 url.searchParams.set('search', term);
                 history.replaceState(null, '', url);
 
