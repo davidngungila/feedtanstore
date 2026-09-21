@@ -24,7 +24,7 @@
                         <i class="fas fa-square mr-2"></i>Deselect All
                     </button>
                     <button type="button" onclick="exportLabelsToPNG()" class="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg font-medium transition-colors whitespace-nowrap">
-                        <i class="fas fa-file-export mr-2"></i>Export to PNG
+                        <i class="fas fa-file-export mr-2"></i>Export to PNG (ZIP)
                     </button>
                 </div>
             </div>
@@ -84,6 +84,8 @@
     </div>
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
 <script>
     let productsData = [];
 
@@ -104,8 +106,8 @@
         const exportBtn = document.querySelector('[onclick="exportLabelsToPNG()"]');
         if (exportBtn) {
             exportBtn.innerHTML = checkedCount > 0 
-                ? `<i class="fas fa-file-export mr-2"></i>Export ${checkedCount} Label(s) to PNG`
-                : `<i class="fas fa-file-export mr-2"></i>Export to PNG`;
+                ? `<i class="fas fa-file-export mr-2"></i>Export ${checkedCount} Label(s) as ZIP`
+                : `<i class="fas fa-file-export mr-2"></i>Export to PNG (ZIP)`;
         }
     }
 
@@ -128,14 +130,12 @@
 
         const btn = document.querySelector('[onclick="exportLabelsToPNG()"]');
         const originalText = btn.innerHTML;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Generating...';
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Generating ZIP...';
         btn.disabled = true;
 
         try {
-            // Create canvas for all labels
             const labels = Array.from(checkedBoxes).map(cb => cb.value);
             
-            // Fetch product data for selected products
             const response = await fetch('{{ route('inventory.products.price-labels.data') }}', {
                 method: 'POST',
                 headers: {
@@ -149,8 +149,7 @@
             const data = await response.json();
             productsData = data.products;
             
-            // Generate PNG
-            await generateLabelsPNG(productsData);
+            await generateIndividualLabelsZIP(productsData);
             
         } catch (error) {
             console.error('Export failed:', error);
@@ -161,31 +160,15 @@
         }
     }
 
-    async function generateLabelsPNG(products) {
-        // Label dimensions (in mm, converted to pixels at 300 DPI)
+    async function generateIndividualLabelsZIP(products) {
+        const zip = new JSZip();
+        
+        // Label dimensions (50mm x 30mm at 300 DPI)
         const mmToPx = (mm) => Math.round(mm * 300 / 25.4);
-        const labelWidth = mmToPx(50);  // 50mm width
-        const labelHeight = mmToPx(30); // 30mm height
-        const margin = mmToPx(3);
-        const gap = mmToPx(2);
+        const labelWidth = mmToPx(50);
+        const labelHeight = mmToPx(30);
         
-        // Calculate grid layout
-        const cols = Math.ceil(Math.sqrt(products.length));
-        const rows = Math.ceil(products.length / cols);
-        
-        const canvasWidth = cols * labelWidth + (cols - 1) * gap + margin * 2;
-        const canvasHeight = rows * labelHeight + (rows - 1) * gap + margin * 2;
-        
-        const canvas = document.createElement('canvas');
-        canvas.width = canvasWidth;
-        canvas.height = canvasHeight;
-        const ctx = canvas.getContext('2d');
-        
-        // White background
-        ctx.fillStyle = '#FFFFFF';
-        ctx.fillRect(0, 0, canvasWidth, canvasHeight);
-        
-        // Load barcode images
+        // Load all barcode images first
         const barcodePromises = products.map(product => {
             if (product.barcode_base64) {
                 return new Promise((resolve) => {
@@ -200,21 +183,39 @@
         
         const barcodeImages = await Promise.all(barcodePromises);
         
-        // Draw each label
-        barcodeImages.forEach(({ product, img }, index) => {
-            const col = index % cols;
-            const row = Math.floor(index / cols);
-            const x = margin + col * (labelWidth + gap);
-            const y = margin + row * (labelHeight + gap);
+        // Generate individual PNG for each product
+        for (const { product, img } of barcodeImages) {
+            const canvas = document.createElement('canvas');
+            canvas.width = labelWidth;
+            canvas.height = labelHeight;
+            const ctx = canvas.getContext('2d');
             
-            drawLabel(ctx, product, img, x, y, labelWidth, labelHeight);
-        });
+            // White background
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(0, 0, labelWidth, labelHeight);
+            
+            // Draw single label
+            drawLabel(ctx, product, img, 0, 0, labelWidth, labelHeight);
+            
+            // Convert to blob and add to ZIP
+            const blob = await canvasToBlob(canvas);
+            const fileName = `label_${product.sku}_${product.name.replace(/[^a-zA-Z0-9]/g, '_').slice(0, 30)}.png`;
+            zip.file(fileName, blob);
+        }
         
-        // Download
+        // Generate and download ZIP
+        const content = await zip.generateAsync({ type: 'blob' });
         const link = document.createElement('a');
-        link.download = 'price_labels_' + new Date().toISOString().slice(0,10) + '.png';
-        link.href = canvas.toDataURL('image/png');
+        link.download = `price_labels_${new Date().toISOString().slice(0, 10)}.zip`;
+        link.href = URL.createObjectURL(content);
         link.click();
+        URL.revokeObjectURL(link.href);
+    }
+
+    function canvasToBlob(canvas) {
+        return new Promise(resolve => {
+            canvas.toBlob(resolve, 'image/png', 1.0);
+        });
     }
 
     function drawLabel(ctx, product, barcodeImg, x, y, width, height) {
@@ -230,7 +231,7 @@
         
         // Store name
         ctx.font = 'bold 14px Arial';
-        ctx.fillStyle = '#1E3A8A'; // primary-900
+        ctx.fillStyle = '#1E3A8A';
         ctx.textAlign = 'center';
         ctx.fillText('FEEDTAN STORE', x + width / 2, currentY);
         currentY += 20;
