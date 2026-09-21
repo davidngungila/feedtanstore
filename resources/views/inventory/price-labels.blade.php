@@ -163,10 +163,10 @@
     async function generateIndividualLabelsZIP(products) {
         const zip = new JSZip();
         
-        // Label dimensions (50mm x 30mm at 300 DPI)
+        // Exact label dimensions: 37.29mm x 25.79mm at 300 DPI
         const mmToPx = (mm) => Math.round(mm * 300 / 25.4);
-        const labelWidth = mmToPx(50);
-        const labelHeight = mmToPx(30);
+        const labelWidth = mmToPx(37.29);   // 441px
+        const labelHeight = mmToPx(25.79);  // 305px
         
         // Load all barcode images first
         const barcodePromises = products.map(product => {
@@ -194,7 +194,7 @@
             ctx.fillStyle = '#FFFFFF';
             ctx.fillRect(0, 0, labelWidth, labelHeight);
             
-            // Draw single label
+            // Draw single label centered
             drawLabel(ctx, product, img, 0, 0, labelWidth, labelHeight);
             
             // Convert to blob and add to ZIP
@@ -219,70 +219,89 @@
     }
 
     function drawLabel(ctx, product, barcodeImg, x, y, width, height) {
-        const padding = 8;
-        const innerWidth = width - padding * 2;
+        // Small margins for print safety (1mm each side)
+        const marginMm = 1;
+        const mmToPx = (mm) => Math.round(mm * 300 / 25.4);
+        const margin = mmToPx(marginMm);
+        const innerWidth = width - margin * 2;
+        const innerHeight = height - margin * 2;
+        const centerX = x + width / 2;
         
-        // Border
-        ctx.strokeStyle = '#E5E7EB';
-        ctx.lineWidth = 1;
-        ctx.strokeRect(x + 0.5, y + 0.5, width - 1, height - 1);
+        let currentY = y + margin;
         
-        let currentY = y + padding;
-        
-        // Store name
-        ctx.font = 'bold 14px Arial';
+        // 1. FEEDTAN STORE header (top)
+        ctx.font = 'bold 11px Arial';
         ctx.fillStyle = '#1E3A8A';
         ctx.textAlign = 'center';
-        ctx.fillText('FEEDTAN STORE', x + width / 2, currentY);
-        currentY += 20;
+        ctx.fillText('FEEDTAN STORE', centerX, currentY);
+        currentY += 16;
         
-        // Separator line
+        // Thin separator line
         ctx.strokeStyle = '#E5E7EB';
-        ctx.lineWidth = 1;
+        ctx.lineWidth = 0.5;
         ctx.beginPath();
-        ctx.moveTo(x + padding, currentY);
-        ctx.lineTo(x + width - padding, currentY);
+        ctx.moveTo(x + margin, currentY);
+        ctx.lineTo(x + width - margin, currentY);
         ctx.stroke();
-        currentY += 8;
+        currentY += 6;
         
-        // Barcode
+        // 2. Barcode (centered, scaled to fit width)
         if (barcodeImg) {
-            const barcodeHeight = 40;
-            const barcodeWidth = Math.min(innerWidth, barcodeImg.width * barcodeHeight / barcodeImg.height);
-            const barcodeX = x + (width - barcodeWidth) / 2;
+            const maxBarcodeWidth = innerWidth * 0.9;
+            const maxBarcodeHeight = innerHeight * 0.35;
+            const barcodeAspect = barcodeImg.width / barcodeImg.height;
+            
+            let barcodeWidth = maxBarcodeWidth;
+            let barcodeHeight = barcodeWidth / barcodeAspect;
+            
+            if (barcodeHeight > maxBarcodeHeight) {
+                barcodeHeight = maxBarcodeHeight;
+                barcodeWidth = barcodeHeight * barcodeAspect;
+            }
+            
+            const barcodeX = centerX - barcodeWidth / 2;
             ctx.drawImage(barcodeImg, barcodeX, currentY, barcodeWidth, barcodeHeight);
             currentY += barcodeHeight + 4;
             
-            // Barcode text
-            ctx.font = '10px monospace';
+            // Barcode number text (small, centered)
+            ctx.font = '8px monospace';
             ctx.fillStyle = '#4B5563';
-            ctx.fillText(product.barcode, x + width / 2, currentY);
-            currentY += 16;
+            ctx.fillText(product.barcode, centerX, currentY);
+            currentY += 12;
         }
         
-        // Product name
-        ctx.font = 'bold 12px Arial';
+        // 3. Product name (centered, max 2 lines, ellipsis if needed)
+        ctx.font = 'bold 10px Arial';
         ctx.fillStyle = '#111827';
         ctx.textAlign = 'center';
-        const maxNameWidth = innerWidth - 10;
+        
+        const maxNameWidth = innerWidth - 4;
         const nameLines = wrapText(ctx, product.name, maxNameWidth);
-        nameLines.slice(0, 2).forEach(line => {
-            ctx.fillText(line, x + width / 2, currentY);
-            currentY += 16;
+        const linesToShow = nameLines.slice(0, 2);
+        
+        linesToShow.forEach((line, i) => {
+            ctx.fillText(line, centerX, currentY);
+            currentY += 13;
         });
         
-        // Price
+        // 4. Price (prominent, centered at bottom)
         currentY += 4;
-        ctx.font = 'bold 20px Arial';
+        ctx.font = 'bold 16px Arial';
         ctx.fillStyle = '#1E3A8A';
         const priceText = 'TZS ' + Number(product.selling_price).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-        ctx.fillText(priceText, x + width / 2, currentY);
         
-        // Unit
+        // Ensure price fits, reduce font if needed
+        const priceMetrics = ctx.measureText(priceText);
+        if (priceMetrics.width > innerWidth) {
+            ctx.font = 'bold 13px Arial';
+        }
+        ctx.fillText(priceText, centerX, currentY);
+        
+        // 5. Unit (small, below price)
         if (product.unit_short_name) {
-            ctx.font = '10px Arial';
+            ctx.font = '8px Arial';
             ctx.fillStyle = '#6B7280';
-            ctx.fillText(product.unit_short_name, x + width / 2, currentY + 18);
+            ctx.fillText(product.unit_short_name, centerX, currentY + 14);
         }
     }
 
