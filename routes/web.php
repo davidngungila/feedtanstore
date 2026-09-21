@@ -216,6 +216,8 @@ Route::middleware('auth')->group(function () {
         Route::post('/products/import', [\App\Http\Controllers\ProductController::class, 'import'])->name('products.import');
         Route::get('/products/sample/download', [\App\Http\Controllers\ProductController::class, 'downloadSample'])->name('products.sample.download');
         Route::get('/products/export', [\App\Http\Controllers\ProductController::class, 'export'])->name('products.export');
+        Route::get('/products/price-labels', [\App\Http\Controllers\ProductController::class, 'priceLabels'])->name('products.price-labels');
+        Route::post('/products/price-labels/data', [\App\Http\Controllers\ProductController::class, 'priceLabelsData'])->name('products.price-labels.data');
         Route::get('/check-barcode', [\App\Http\Controllers\ProductController::class, 'checkBarcode'])->name('check-barcode');
         Route::post('/products/{identifier}/link-barcode', [\App\Http\Controllers\ProductController::class, 'linkBarcode'])->name('products.link-barcode');
         Route::get('/products/{identifier}', [\App\Http\Controllers\ProductController::class, 'show'])->name('products.show');

@@ -10,6 +10,7 @@ use App\Imports\ProductImport;
 use App\Exports\ProductSampleExport;
 use App\Exports\ProductExport;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Database\Eloquent\Rule;
 
@@ -361,5 +362,68 @@ class ProductController extends Controller
             'lowStockCount', 
             'outOfStockCount'
         ));
+    }
+
+    public function priceLabels(Request $request)
+    {
+        $search = $request->input('search');
+
+        $query = Product::with(['category', 'brand', 'unit'])
+            ->where('is_active', true)
+            ->when($search, function ($query) use ($search) {
+                $query->where('name', 'like', '%' . $search . '%')
+                      ->orWhere('sku', 'like', '%' . $search . '%')
+                      ->orWhere('barcode', 'like', '%' . $search . '%');
+            })
+            ->orderBy('name');
+
+        $products = $query->paginate(30)->withQueryString();
+
+        // Generate barcode images
+        $generator = new \Picqer\Barcode\BarcodeGeneratorPNG();
+        $products->getCollection()->transform(function ($product) use ($generator) {
+            $barcodeBase64 = null;
+            if ($product->barcode) {
+                $barcodePng = $generator->getBarcode($product->barcode, \Picqer\Barcode\BarcodeGeneratorPNG::TYPE_CODE_128);
+                $barcodeBase64 = 'data:image/png;base64,' . base64_encode($barcodePng);
+            }
+            $product->barcode_base64 = $barcodeBase64;
+            return $product;
+        });
+
+        return view('inventory.price-labels', compact('products', 'search'));
+    }
+
+    public function priceLabelsData(Request $request)
+    {
+        $request->validate([
+            'product_ids' => 'required|array',
+            'product_ids.*' => 'exists:products,id',
+        ]);
+
+        $products = Product::with(['unit'])
+            ->whereIn('id', $request->product_ids)
+            ->get();
+
+        $generator = new \Picqer\Barcode\BarcodeGeneratorPNG();
+        
+        $data = $products->map(function ($product) use ($generator) {
+            $barcodeBase64 = null;
+            if ($product->barcode) {
+                $barcodePng = $generator->getBarcode($product->barcode, \Picqer\Barcode\BarcodeGeneratorPNG::TYPE_CODE_128);
+                $barcodeBase64 = 'data:image/png;base64,' . base64_encode($barcodePng);
+            }
+            return [
+                'id' => $product->id,
+                'name' => $product->name,
+                'sku' => $product->sku,
+                'barcode' => $product->barcode,
+                'barcode_base64' => $barcodeBase64,
+                'selling_price' => $product->selling_price,
+                'unit_short_name' => $product->unit->short_name ?? '',
+            ];
+        });
+
+        return response()->json(['products' => $data]);
     }
 }

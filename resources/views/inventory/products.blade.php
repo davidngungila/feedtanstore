@@ -55,6 +55,9 @@
                     <a href="{{ route('inventory.products.export', request()->query()) }}" class="border border-primary-600 text-primary-600 hover:bg-primary-50 px-4 py-2 rounded-lg font-medium transition-colors whitespace-nowrap">
                         <i class="fas fa-file-export mr-2"></i>Export Excel
                     </a>
+                    <a href="{{ route('inventory.products.price-labels', request()->query()) }}" class="border border-primary-600 text-primary-600 hover:bg-primary-50 px-4 py-2 rounded-lg font-medium transition-colors whitespace-nowrap">
+                        <i class="fas fa-barcode mr-2"></i>Price Labels
+                    </a>
                 </div>
             </div>
         </div>
@@ -68,6 +71,9 @@
                     </button>
                     <a href="{{ route('inventory.products.export', request()->query()) }}" class="w-full text-left px-4 py-2 border border-primary-600 text-primary-600 hover:bg-primary-50 rounded-lg font-medium transition-colors text-sm">
                         <i class="fas fa-file-export mr-2"></i>Export Excel
+                    </a>
+                    <a href="{{ route('inventory.products.price-labels', request()->query()) }}" class="w-full text-left px-4 py-2 border border-primary-600 text-primary-600 hover:bg-primary-50 rounded-lg font-medium transition-colors text-sm">
+                        <i class="fas fa-barcode mr-2"></i>Price Labels
                     </a>
                 </div>
 
