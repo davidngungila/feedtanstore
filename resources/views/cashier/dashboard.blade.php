@@ -581,28 +581,10 @@ function showDemandModal(){
         }
     });
 }
-function showRatingModal(saleId){
-    Swal.fire({
-        title:'Rate your shopping experience (1-5 ★)',
-        html:`<input id="ratingStars" type="number" min="1" max="5" class="swal2-input" placeholder="Rating 1-5">
-              <textarea id="ratingComment" class="swal2-textarea" placeholder="Comment (staff service, waiting time, etc.)"></textarea>`,
-        showCancelButton:true, confirmButtonText:'Submit Rating',
-        preConfirm:()=>{
-            const rating=parseInt(document.getElementById('ratingStars').value);
-            if(!rating||rating<1||rating>5){ Swal.showValidationMessage('Rating 1-5 required'); return false; }
-            return {rating:rating, comment:document.getElementById('ratingComment').value, sale_id:saleId};
-        }
-    }).then(res=>{
-        if(res.isConfirmed){
-            fetch('/customer-ratings',{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-TOKEN':document.querySelector('meta[name="csrf-token"]').content},body:JSON.stringify(res.value)})
-            .then(()=>Swal.fire('Thank you!','Rating submitted','success'));
-        }
-    });
-}
-// Hook after successful sale to offer demand + rating
+// Hook after successful sale to offer demand
 const origCompleteSaleCatchPatch = true;
 </script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11">// ==================== OFFLINE POS + SERVICE TIMER + DEMAND + RATING ENHANCEMENTS ====================
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11">// ==================== OFFLINE POS + SERVICE TIMER + DEMAND ENHANCEMENTS ====================
 let serviceTimerActive = false;
 let serviceStartTime = null;
 let pendingSyncCount = 0;
@@ -743,25 +725,7 @@ function showDemandModal(){
         }
     });
 }
-function showRatingModal(saleId){
-    Swal.fire({
-        title:'Rate your shopping experience (1-5 ★)',
-        html:`<input id="ratingStars" type="number" min="1" max="5" class="swal2-input" placeholder="Rating 1-5">
-              <textarea id="ratingComment" class="swal2-textarea" placeholder="Comment (staff service, waiting time, etc.)"></textarea>`,
-        showCancelButton:true, confirmButtonText:'Submit Rating',
-        preConfirm:()=>{
-            const rating=parseInt(document.getElementById('ratingStars').value);
-            if(!rating||rating<1||rating>5){ Swal.showValidationMessage('Rating 1-5 required'); return false; }
-            return {rating:rating, comment:document.getElementById('ratingComment').value, sale_id:saleId};
-        }
-    }).then(res=>{
-        if(res.isConfirmed){
-            fetch('/customer-ratings',{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-TOKEN':document.querySelector('meta[name="csrf-token"]').content},body:JSON.stringify(res.value)})
-            .then(()=>Swal.fire('Thank you!','Rating submitted','success'));
-        }
-    });
-}
-// Hook after successful sale to offer demand + rating
+// Hook after successful sale to offer demand
 const origCompleteSaleCatchPatch = true;
 </script>
 <script>
@@ -2001,14 +1965,13 @@ function completeSale() {
                                 loadDashboardData();
                                 playSuccessSound();
                                 
-                                // End service timer and offer demand/rating
+                                // End service timer and offer demand
                                 try{ endServiceTimer(currentSaleId); }catch(e){}
                                 setTimeout(()=>{
                                     if(currentSaleId && Swal){
                                         Swal.fire({title:'Sale Completed',text:'Ask: What product would you like us to have next time?', icon:'question', showCancelButton:true, confirmButtonText:'Record Demand', cancelButtonText:'Skip'}).then(r=>{ if(r.isConfirmed) showDemandModal(); });
                                     }
                                 },800);
-                                setTimeout(()=>{ if(currentSaleId) showRatingModal(currentSaleId); },1500);
                                 // Auto-print receipt after showing success modal
                                 setTimeout(() => {
                                     if (currentSaleId) {
@@ -2756,25 +2719,7 @@ function showDemandModal(){
         }
     });
 }
-function showRatingModal(saleId){
-    Swal.fire({
-        title:'Rate your shopping experience (1-5 ★)',
-        html:`<input id="ratingStars" type="number" min="1" max="5" class="swal2-input" placeholder="Rating 1-5">
-              <textarea id="ratingComment" class="swal2-textarea" placeholder="Comment (staff service, waiting time, etc.)"></textarea>`,
-        showCancelButton:true, confirmButtonText:'Submit Rating',
-        preConfirm:()=>{
-            const rating=parseInt(document.getElementById('ratingStars').value);
-            if(!rating||rating<1||rating>5){ Swal.showValidationMessage('Rating 1-5 required'); return false; }
-            return {rating:rating, comment:document.getElementById('ratingComment').value, sale_id:saleId};
-        }
-    }).then(res=>{
-        if(res.isConfirmed){
-            fetch('/customer-ratings',{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-TOKEN':document.querySelector('meta[name="csrf-token"]').content},body:JSON.stringify(res.value)})
-            .then(()=>Swal.fire('Thank you!','Rating submitted','success'));
-        }
-    });
-}
-// Hook after successful sale to offer demand + rating
+// Hook after successful sale to offer demand
 const origCompleteSaleCatchPatch = true;
 </script>
 @endsection
