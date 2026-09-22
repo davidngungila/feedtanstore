@@ -321,7 +321,8 @@
                 statusEl.classList.remove('hidden');
                 if (data.exists && data.product.id != productId) {
                     statusEl.className = 'mt-1 text-xs text-red-600';
-                    statusEl.innerHTML = '<i class="fas fa-exclamation-triangle mr-1"></i>Barcode already linked to product ID: <strong data-product-id="' + data.product.id + '" style="cursor:pointer; color: red;">' + data.product.name + '</strong> (SKU: ' + data.product.sku + ')';
+                    const productLink = `<a href="${window.location.origin}/inventory/products/${data.product.barcode}" class="text-primary-600 hover:text-primary-800 underline">${data.product.name}</a>`;
+                    statusEl.innerHTML = '<i class="fas fa-exclamation-triangle mr-1"></i>Barcode already linked to: ' + productLink + ' (SKU: ' + data.product.sku + ')';
                 } else if (data.exists && data.product.id == productId) {
                     statusEl.className = 'mt-1 text-xs text-blue-600';
                     statusEl.innerHTML = '<i class="fas fa-info-circle mr-1"></i>This is the current product\'s barcode.';
@@ -343,15 +344,6 @@
             debounceTimer = setTimeout(() => {
                 checkBarcodeUniqueness(this.value.trim());
             }, 500);
-        });
-
-        // Handle click on linked product name to open product
-        document.addEventListener('click', function(e) {
-            const strong = e.target.closest('strong[data-product-id]');
-            if (strong) {
-                const productId = strong.getAttribute('data-product-id');
-                window.location = '/inventory/products/' + productId;
-            }
         });
 
         document.getElementById('manualBarcodeInput').addEventListener('keydown', function(e) {

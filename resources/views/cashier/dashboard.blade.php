@@ -888,27 +888,27 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 }
             });
-}
-    });
-
-    // Held sales initialization
-    updateHeldSalesBadge();
-    startAutoSaveDraft();
-    restoreDraft();
-
-    // Keyboard shortcuts
-    document.addEventListener('keydown', function(e) {
-        // Ctrl+H to hold sale
-        if (e.ctrlKey && e.key.toLowerCase() === 'h') {
-            e.preventDefault();
-            holdSale();
         }
-        // Ctrl+R to retrieve held sales
-        if (e.ctrlKey && e.key.toLowerCase() === 'r') {
-            e.preventDefault();
-            showHeldSalesModal();
-        }
-    });
+
+        // Held sales initialization
+        updateHeldSalesBadge();
+        startAutoSaveDraft();
+        restoreDraft();
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            // Ctrl+H to hold sale
+            if (e.ctrlKey && e.key.toLowerCase() === 'h') {
+                e.preventDefault();
+                holdSale();
+            }
+            // Ctrl+R to retrieve held sales
+            if (e.ctrlKey && e.key.toLowerCase() === 'r') {
+                e.preventDefault();
+                showHeldSalesModal();
+            }
+        });
+    }
 });
 
 window.addEventListener('beforeunload', function() {
@@ -2488,7 +2488,7 @@ function showHeldSalesModal() {
                     </div>
                 </div>
             </div>
-        `).join('');
+        `}).join('');
 
         // Add click to expand preview
         setTimeout(() => {

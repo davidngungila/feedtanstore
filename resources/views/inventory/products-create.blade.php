@@ -344,7 +344,8 @@
                 if (data.exists) {
                     if (data.product.is_linked) {
                         statusEl.className = 'mt-1 text-xs text-yellow-600';
-                        statusEl.innerHTML = '<i class="fas fa-exclamation-triangle mr-1"></i>Barcode already linked to product ID: <strong data-product-id="' + data.product.id + '" style="cursor:pointer; color: primary;">' + data.product.name + '</strong> (SKU: ' + data.product.sku + ') - scanned on ' + data.product.linked_at;
+                        const productLink = `<a href="${window.location.origin}/inventory/products/${data.product.barcode}" class="text-primary-600 hover:text-primary-800 underline">${data.product.name}</a>`;
+                        statusEl.innerHTML = '<i class="fas fa-exclamation-triangle mr-1"></i>Barcode already linked to: ' + productLink + ' (SKU: ' + data.product.sku + ') - scanned on ' + data.product.linked_at;
                     } else {
                         statusEl.className = 'mt-1 text-xs text-red-600';
                         statusEl.innerHTML = '<i class="fas fa-exclamation-triangle mr-1"></i>Barcode already exists for: <strong>' + data.product.name + '</strong> (SKU: ' + data.product.sku + ')';
@@ -361,15 +362,6 @@
 
     document.addEventListener('DOMContentLoaded', function() {
         const barcodeInput = document.getElementById('barcode');
-
-        // Handle click on linked product name to open product
-        document.addEventListener('click', function(e) {
-            const strong = e.target.closest('strong[data-product-id]');
-            if (strong) {
-                const productId = strong.getAttribute('data-product-id');
-                window.location = '/inventory/products/' + productId;
-            }
-        });
         let debounceTimer;
         barcodeInput.addEventListener('input', function() {
             clearTimeout(debounceTimer);
