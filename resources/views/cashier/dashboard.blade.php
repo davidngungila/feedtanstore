@@ -189,11 +189,12 @@
                     <button type="button" onclick="toggleFullscreen()" class="py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-700 text-sm font-medium" id="fullscreenBtn">
                         <i class="fas fa-expand mr-1"></i>Fullscreen
                     </button>
-                    <button type="button" onclick="holdSale()" class="py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-700 text-sm font-medium">
+                    <button type="button" onclick="holdSale()" class="py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-700 text-sm font-medium" title="Hold Sale (Ctrl+H)">
                         <i class="fas fa-pause mr-1"></i>Hold Sale
                     </button>
-                    <button type="button" onclick="showHeldSalesModal()" class="py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-700 text-sm font-medium">
+                    <button type="button" onclick="showHeldSalesModal()" class="py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-700 text-sm font-medium relative">
                         <i class="fas fa-folder-open mr-1"></i>Retrieve Sale
+                        <span id="heldSalesBadge" class="ml-2 px-1.5 py-0.5 bg-red-600 text-white text-xs rounded-full hidden">0</span>
                     </button>
                     <button type="button" onclick="clearCart()" class="py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-700 text-sm font-medium">
                         <i class="fas fa-trash mr-1"></i>Clear Cart
@@ -887,8 +888,27 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 }
             });
+}
+    });
+
+    // Held sales initialization
+    updateHeldSalesBadge();
+    startAutoSaveDraft();
+    restoreDraft();
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', function(e) {
+        // Ctrl+H to hold sale
+        if (e.ctrlKey && e.key.toLowerCase() === 'h') {
+            e.preventDefault();
+            holdSale();
         }
-    }
+        // Ctrl+R to retrieve held sales
+        if (e.ctrlKey && e.key.toLowerCase() === 'r') {
+            e.preventDefault();
+            showHeldSalesModal();
+        }
+    });
 });
 
 window.addEventListener('beforeunload', function() {
@@ -2324,29 +2344,83 @@ function showNotification(message, type) {
     setTimeout(() => notification.remove(), 3000);
 }
 
-// Held Sales Functions
+// ============ HELD SALES (Park/Resume) ============
+function updateHeldSalesBadge() {
+    const heldSales = JSON.parse(localStorage.getItem('heldSales') || '[]');
+    const badge = document.getElementById('heldSalesBadge');
+    const retrieveBtn = document.querySelector('[onclick="showHeldSalesModal()"]');
+    if (badge) {
+        badge.textContent = heldSales.length;
+        badge.style.display = heldSales.length > 0 ? 'inline-flex' : 'none';
+    }
+    if (retrieveBtn) {
+        retrieveBtn.innerHTML = heldSales.length > 0
+            ? `<i class="fas fa-folder-open mr-1"></i>Retrieve Sale <span id="heldSalesBadge" class="ml-2 px-1.5 py-0.5 bg-red-600 text-white text-xs rounded-full">${heldSales.length}</span>`
+            : `<i class="fas fa-folder-open mr-1"></i>Retrieve Sale`;
+    }
+}
+
 function holdSale() {
     if (cart.length === 0) {
         showNotification('Cart is empty!', 'error');
         return;
     }
 
-    const heldSales = JSON.parse(localStorage.getItem('heldSales') || '[]');
-    const heldSale = {
-        id: Date.now(),
-        timestamp: new Date().toLocaleString(),
-        cart: [...cart],
-        customerId: document.getElementById('customerSelect').value,
-        discountType: document.getElementById('discountType').value,
-        discountValue: parseFloat(document.getElementById('discountInput').value) || 0
-    };
+    Swal.fire({
+        title: 'Hold Sale (Park)',
+        html: `
+            <div class="space-y-3 text-left">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Reference / Note <span class="text-primary-600">(optional)</span></label>
+                    <input type="text" id="holdNote" class="swal2-input" placeholder="e.g., Customer at counter 2, Phone order - John, Waiting for price check..." maxlength="100">
+                </div>
+                <div class="bg-gray-50 p-3 rounded-lg text-sm">
+                    <p class="font-medium text-gray-900 mb-1">Current Cart:</p>
+                    <p class="text-gray-600">${cart.length} items • ${formatNumber(cart.reduce((sum, item) => sum + item.selling_price * item.quantity, 0))} TZS</p>
+                    ${cart.slice(0, 3).map(item => `<span class="block text-xs text-gray-500 truncate">${item.name} x${item.quantity}</span>`).join('')}
+                    ${cart.length > 3 ? `<span class="block text-xs text-gray-400">+${cart.length - 3} more...</span>` : ''}
+                </div>
+            </div>
+        `,
+        showCancelButton: true,
+        confirmButtonText: 'Hold Sale',
+        confirmButtonColor: '#3B82F6',
+        focusConfirm: false,
+        preConfirm: () => {
+            return {
+                note: document.getElementById('holdNote').value.trim()
+            };
+        }
+    }).then(result => {
+        if (result.isConfirmed) {
+            const heldSales = JSON.parse(localStorage.getItem('heldSales') || '[]');
+            const now = new Date();
+            const heldSale = {
+                id: Date.now(),
+                timestamp: now.toLocaleString(),
+                timestampISO: now.toISOString(),
+                note: result.value.note || '',
+                cart: [...cart],
+                customerId: document.getElementById('customerSelect')?.value || null,
+                discountType: document.getElementById('discountType')?.value || 'none',
+                discountValue: parseFloat(document.getElementById('discountInput')?.value) || 0,
+                subtotal: cart.reduce((sum, item) => sum + item.selling_price * item.quantity, 0)
+            };
 
-    heldSales.push(heldSale);
-    localStorage.setItem('heldSales', JSON.stringify(heldSales));
+            heldSales.unshift(heldSale); // newest first
+            localStorage.setItem('heldSales', JSON.stringify(heldSales));
 
-    cart = [];
-    renderCart();
-    showNotification('Sale held successfully!', 'success');
+            cart = [];
+            const discountInputEl = document.getElementById('discountInput');
+            if (discountInputEl) discountInputEl.value = '';
+            const discountTypeEl = document.getElementById('discountType');
+            if (discountTypeEl) discountTypeEl.value = 'none';
+            selectCustomer(null, '');
+            renderCart();
+            updateHeldSalesBadge();
+            showNotification('Sale held successfully!', 'success');
+        }
+    });
 }
 
 function showHeldSalesModal() {
@@ -2354,47 +2428,123 @@ function showHeldSalesModal() {
     const content = document.getElementById('heldSalesModalContent');
 
     if (heldSales.length === 0) {
-        content.innerHTML = '<p class="text-gray-500 text-center py-8">No held sales</p>';
+        content.innerHTML = `
+            <div class="text-center py-12">
+                <i class="fas fa-folder-open text-4xl text-gray-300 mb-3"></i>
+                <p class="text-gray-500 text-lg">No held sales</p>
+                <p class="text-sm text-gray-400 mt-1">Park a sale to free up the register</p>
+            </div>
+        `;
     } else {
-        content.innerHTML = heldSales.map((sale, index) => `
-            <div class="border border-gray-200 rounded-xl p-4 hover:border-gray-300 transition-colors">
-                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3">
-                    <div>
-                        <p class="font-semibold text-primary-900">Held Sale #${sale.id}</p>
+        content.innerHTML = heldSales.map((sale, index) => {
+            const itemsHtml = sale.cart.map(item => `
+                <div class="flex items-center justify-between py-1 border-t border-gray-100">
+                    <span class="text-sm text-gray-700 truncate pr-2">${item.name} × ${item.quantity}</span>
+                    <span class="text-sm font-medium text-gray-900 whitespace-nowrap">${formatNumber(item.selling_price * item.quantity)} TZS</span>
+                </div>
+            `).join('');
+
+            return `
+            <div class="held-sale-card border border-gray-200 rounded-xl p-4 hover:border-primary-300 hover:bg-primary-50 transition-all cursor-pointer" data-index="${index}">
+                <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-3">
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="font-semibold text-primary-900">Held Sale #${sale.id}</span>
+                            ${sale.note ? `<span class="px-2 py-0.5 bg-primary-100 text-primary-700 text-xs rounded-full font-medium">${sale.note}</span>` : ''}
+                        </div>
                         <p class="text-sm text-gray-500">${sale.timestamp}</p>
                     </div>
-                    <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-                        <button onclick="retrieveSale(${index})" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium">
-                            <i class="fas fa-folder-open mr-1"></i>Retrieve
+                    <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto shrink-0">
+                        <button onclick="event.stopPropagation(); retrieveSale(${index})" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium flex items-center justify-center gap-1">
+                            <i class="fas fa-folder-open"></i> Resume
                         </button>
-                        <button onclick="deleteHeldSale(${index})" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium">
-                            <i class="fas fa-trash mr-1"></i>Delete
+                        <button onclick="event.stopPropagation(); deleteHeldSale(${index})" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium flex items-center justify-center gap-1">
+                            <i class="fas fa-trash"></i> Delete
                         </button>
                     </div>
                 </div>
-                <div class="text-sm text-gray-600">
-                    <p class="font-medium mb-1">${sale.cart.length} items</p>
+                
+                <!-- Cart Preview (collapsible) -->
+                <div class="cart-preview overflow-hidden transition-all duration-200 max-h-0 opacity-0">
+                    <div class="pt-3 border-t border-gray-200">
+                        <div class="flex items-center justify-between text-xs text-gray-500 mb-2">
+                            <span>${sale.cart.length} items</span>
+                            <span class="font-medium text-primary-900">${formatNumber(sale.subtotal)} TZS</span>
+                        </div>
+                        <div class="max-h-40 overflow-y-auto">
+                            ${itemsHtml}
+                        </div>
+                        ${sale.customerId ? `
+                            <div class="mt-2 pt-2 border-t border-gray-100 flex items-center gap-2 text-xs text-gray-500">
+                                <i class="fas fa-user"></i>
+                                <span>Customer: ${customersData.find(c => c.id === sale.customerId)?.name || 'Unknown'}</span>
+                            </div>
+                        ` : ''}
+                        ${sale.discountValue > 0 ? `
+                            <div class="mt-2 pt-2 border-t border-gray-100 flex items-center gap-2 text-xs text-gray-500">
+                                <i class="fas fa-tag"></i>
+                                <span>Discount: ${sale.discountType === 'percentage' ? sale.discountValue + '%' : formatNumber(sale.discountValue) + ' TZS'}</span>
+                            </div>
+                        ` : ''}
+                    </div>
                 </div>
             </div>
         `).join('');
+
+        // Add click to expand preview
+        setTimeout(() => {
+            document.querySelectorAll('.held-sale-card').forEach(card => {
+                card.addEventListener('click', function() {
+                    const preview = this.querySelector('.cart-preview');
+                    const isOpen = preview.style.maxHeight && preview.style.maxHeight !== '0px';
+                    preview.style.maxHeight = isOpen ? '0px' : preview.scrollHeight + 'px';
+                    preview.style.opacity = isOpen ? '0' : '1';
+                });
+            });
+        }, 0);
     }
 
     document.getElementById('heldSalesModal').classList.remove('hidden');
+    document.getElementById('heldSalesModal').classList.add('flex');
 }
 
 function hideHeldSalesModal() {
     document.getElementById('heldSalesModal').classList.add('hidden');
+    document.getElementById('heldSalesModal').classList.remove('flex');
 }
 
 function retrieveSale(index) {
     const heldSales = JSON.parse(localStorage.getItem('heldSales') || '[]');
+    if (index >= heldSales.length) return;
+    
     const sale = heldSales[index];
 
+    // Confirm if current cart has items
+    if (cart.length > 0) {
+        Swal.fire({
+            title: 'Replace Current Cart?',
+            text: 'You have items in the current cart. Retrieving this held sale will replace them.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Yes, Replace',
+            cancelButtonText: 'Keep Current'
+        }).then(result => {
+            if (!result.isConfirmed) return;
+            doRetrieveSale(sale, index, heldSales);
+        });
+        return;
+    }
+    
+    doRetrieveSale(sale, index, heldSales);
+}
+
+function doRetrieveSale(sale, index, heldSales) {
     cart = [...sale.cart];
+    
     const discountTypeEl = document.getElementById('discountType');
     const discountInputEl = document.getElementById('discountInput');
     if (discountTypeEl) discountTypeEl.value = sale.discountType;
-    if (discountInputEl) discountInputEl.value = sale.discountValue;
+    if (discountInputEl) discountInputEl.value = sale.discountValue > 0 ? sale.discountValue : '';
     
     // Restore customer selection
     if (sale.customerId) {
@@ -2415,16 +2565,79 @@ function retrieveSale(index) {
 
     hideHeldSalesModal();
     renderCart();
+    updateHeldSalesBadge();
     showNotification('Sale retrieved successfully!', 'success');
 }
 
 function deleteHeldSale(index) {
-    if (confirm('Delete this held sale?')) {
-        const heldSales = JSON.parse(localStorage.getItem('heldSales') || '[]');
-        heldSales.splice(index, 1);
-        localStorage.setItem('heldSales', JSON.stringify(heldSales));
-        showHeldSalesModal();
-        showNotification('Held sale deleted', 'success');
+    Swal.fire({
+        title: 'Delete Held Sale?',
+        text: 'This cannot be undone.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, Delete',
+        confirmButtonColor: '#EF4444',
+        cancelButtonText: 'Cancel'
+    }).then(result => {
+        if (result.isConfirmed) {
+            const heldSales = JSON.parse(localStorage.getItem('heldSales') || '[]');
+            heldSales.splice(index, 1);
+            localStorage.setItem('heldSales', JSON.stringify(heldSales));
+            showHeldSalesModal();
+            updateHeldSalesBadge();
+            showNotification('Held sale deleted', 'success');
+        }
+    });
+}
+
+// Auto-save draft every 30 seconds
+function startAutoSaveDraft() {
+    setInterval(() => {
+        if (cart.length > 0) {
+            const draft = {
+                timestamp: new Date().toISOString(),
+                cart: [...cart],
+                customerId: document.getElementById('customerSelect')?.value || null,
+                discountType: document.getElementById('discountType')?.value || 'none',
+                discountValue: parseFloat(document.getElementById('discountInput')?.value) || 0
+            };
+            localStorage.setItem('cartDraft', JSON.stringify(draft));
+        } else {
+            localStorage.removeItem('cartDraft');
+        }
+    }, 30000);
+}
+
+// Restore draft on page load
+function restoreDraft() {
+    const draft = JSON.parse(localStorage.getItem('cartDraft') || 'null');
+    if (draft && draft.cart && draft.cart.length > 0) {
+        Swal.fire({
+            title: 'Recover Draft?',
+            html: `Found a saved draft from ${new Date(draft.timestamp).toLocaleString()} with <b>${draft.cart.length} items</b> (${formatNumber(draft.cart.reduce((sum, item) => sum + item.selling_price * item.quantity, 0))} TZS).`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Restore',
+            cancelButtonText: 'Discard'
+        }).then(result => {
+            if (result.isConfirmed) {
+                cart = [...draft.cart];
+                const discountTypeEl = document.getElementById('discountType');
+                const discountInputEl = document.getElementById('discountInput');
+                if (discountTypeEl) discountTypeEl.value = draft.discountType;
+                if (discountInputEl) discountInputEl.value = draft.discountValue > 0 ? draft.discountValue : '';
+                if (draft.customerId) {
+                    const customer = customersData.find(c => c.id === draft.customerId);
+                    if (customer) {
+                        selectCustomer(customer.id, customer.name + ' (' + (customer.phone || 'No phone') + ')');
+                    }
+                }
+                renderCart();
+                showNotification('Draft restored!', 'success');
+            } else {
+                localStorage.removeItem('cartDraft');
+            }
+        });
     }
 }
 
