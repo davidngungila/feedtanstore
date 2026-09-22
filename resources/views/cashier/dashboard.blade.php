@@ -2464,7 +2464,6 @@ function showHeldSalesModal() {
                     </div>
                 </div>
                 
-                <!-- Cart Preview (collapsible) -->
                 <div class="cart-preview overflow-hidden transition-all duration-200 max-h-0 opacity-0">
                     <div class="pt-3 border-t border-gray-200">
                         <div class="flex items-center justify-between text-xs text-gray-500 mb-2">
