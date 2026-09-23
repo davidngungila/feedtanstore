@@ -27,7 +27,7 @@
             <p class="text-xl font-bold text-blue-700" id="todayCard">TZS 0.00</p>
         </div>
         <div class="card rounded-2xl p-4">
-            <h4 class="text-sm font-medium text-gray-600 mb-1">Total Mobile</h4>
+            <h4 class="text-sm font-medium text-gray-600 mb-1">Lipa namba</h4>
             <p class="text-xl font-bold text-purple-700" id="todayMobile">TZS 0.00</p>
         </div>
         <div class="card rounded-2xl p-4">
@@ -41,66 +41,31 @@
         <div class="lg:col-span-3 space-y-4">
             <!-- Scan & Search + Customer -->
             <div class="card rounded-2xl p-4">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <h2 class="text-lg font-bold text-primary-900 mb-3">Scan & Search Products</h2>
-                        <div class="mb-3 p-2 bg-green-50 border border-green-200 rounded-lg">
-                            <p class="text-xs text-green-700"><i class="fas fa-barcode mr-2"></i>Use a barcode scanner, your phone/PC camera, or manual code entry to add products fast.</p>
-                        </div>
-                        <div class="flex flex-col sm:flex-row gap-2 sm:items-center mb-3">
-                            <div class="flex-1 relative">
-                                <i class="fas fa-barcode absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
-                                <input type="text" id="barcodeInput" placeholder="Scan or type barcode / SKU..." class="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm" autofocus>
-                            </div>
-                            <div class="text-green-600 text-sm font-medium scan-indicator sm:whitespace-nowrap">
-                                <i class="fas fa-circle mr-1 text-xs"></i>Scan Ready
-                            </div>
-                        </div>
-                        <div class="flex flex-wrap gap-2 mb-3">
-                            <button type="button" id="openCashierCameraBtn" onclick="startCashierCameraScanner()" class="px-3 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg text-sm font-medium">
-                                <i class="fas fa-camera mr-1"></i>Scan With Camera
-                            </button>
-                            <button type="button" id="stopCashierCameraBtn" onclick="stopCashierCameraScanner()" class="px-3 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hidden">
-                                <i class="fas fa-stop-circle mr-1"></i>Stop Camera
-                            </button>
-                            <span id="cashierScannerStatus" class="text-xs text-gray-500 flex items-center">Camera scanner is off.</span>
-                        </div>
-                        <div id="cashierCameraPanel" class="hidden mb-3 border border-gray-200 rounded-xl p-3 bg-gray-50">
-                            <div id="cashierScannerViewport" class="w-full min-h-[260px] rounded-lg overflow-hidden bg-black"></div>
-                            <p class="mt-2 text-xs text-gray-500">Point the camera at a product barcode. Supported on phone and desktop cameras.</p>
-                        </div>
-                        <div class="relative">
-                            <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
-                            <input type="text" id="searchProduct" placeholder="Search Products..." class="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm">
-                            <div id="searchResults" class="absolute w-full bg-white border border-gray-300 rounded-lg mt-1 shadow-lg max-h-64 overflow-y-auto hidden z-50"></div>
-                        </div>
+                <div class="flex flex-wrap items-center gap-2">
+                    <div class="flex-1 relative min-w-[180px]">
+                        <i class="fas fa-barcode absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+                        <input type="text" id="barcodeInput" placeholder="Scan or type barcode / SKU..." class="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm" autofocus>
                     </div>
-                    <div>
-                        <h2 class="text-lg font-bold text-primary-900 mb-3">Customer</h2>
-                        <div class="relative mb-3">
-                            <i class="fas fa-user absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
-                            <input type="text" id="customerSearchInput" placeholder="Search or select customer..." class="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm">
-                            <input type="hidden" id="customerSelect" value="">
-                            <div id="customerSearchResults" class="absolute w-full bg-white border border-gray-300 rounded-lg mt-1 shadow-lg max-h-64 overflow-y-auto hidden z-50">
-                                <div class="px-4 py-2 cursor-pointer hover:bg-gray-100" onclick="selectCustomer(null, 'Walk-in Customer')">
-                                    Walk-in Customer
-                                </div>
-                                @foreach($customers as $customer)
-                                    <div class="px-4 py-2 cursor-pointer hover:bg-gray-100" onclick="selectCustomer({{ $customer->id }}, '{{ $customer->name }} ({{ $customer->phone ?? 'No phone' }})')">
-                                        {{ $customer->name }} ({{ $customer->phone ?? 'No phone' }})
-                                    </div>
-                                @endforeach
-                            </div>
-                        </div>
-                        <div class="mt-2 flex flex-col sm:flex-row gap-2">
-                            <button onclick="showCreateCustomerModal()" class="text-sm text-primary-600 hover:text-primary-800 font-medium">
-                                <i class="fas fa-plus mr-1"></i>Add New Customer
-                            </button>
-                            <button type="button" onclick="showOnlinePaymentOptionsModal()" class="text-sm text-blue-600 hover:text-blue-800 font-medium">
-                                <i class="fas fa-credit-card mr-1"></i>Initiate Online Payment
-                            </button>
-                        </div>
+                    <div class="text-green-600 text-sm font-medium scan-indicator sm:whitespace-nowrap">
+                        <i class="fas fa-circle mr-1 text-xs"></i>Scan Ready
                     </div>
+                    <button type="button" id="openCashierCameraBtn" onclick="startCashierCameraScanner()" class="px-3 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg text-sm font-medium whitespace-nowrap">
+                        <i class="fas fa-camera mr-1"></i>Scan With Camera
+                    </button>
+                    <button type="button" id="stopCashierCameraBtn" onclick="stopCashierCameraScanner()" class="px-3 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hidden whitespace-nowrap">
+                        <i class="fas fa-stop-circle mr-1"></i>Stop Camera
+                    </button>
+                    <span id="cashierScannerStatus" class="text-xs text-gray-500 flex items-center whitespace-nowrap">Camera scanner is off.</span>
+                    <div class="relative flex-1 min-w-[180px]">
+                        <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+                        <input type="text" id="searchProduct" placeholder="Search Products..." class="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm">
+                        <div id="searchResults" class="absolute w-full bg-white border border-gray-300 rounded-lg mt-1 shadow-lg max-h-64 overflow-y-auto hidden z-50"></div>
+                    </div>
+                    <input type="hidden" id="customerSelect" value="">
+                </div>
+                <div id="cashierCameraPanel" class="hidden mt-2 border border-gray-200 rounded-xl p-3 bg-gray-50">
+                    <div id="cashierScannerViewport" class="w-full min-h-[260px] rounded-lg overflow-hidden bg-black"></div>
+                    <p class="mt-2 text-xs text-gray-500">Point the camera at a product barcode. Supported on phone and desktop cameras.</p>
                 </div>
             </div>
 
@@ -867,22 +832,23 @@ document.addEventListener('DOMContentLoaded', function() {
         // Lock keyboard shortcuts
         if (kioskLockKeyboardShortcuts) {
             document.addEventListener('keydown', function(e) {
-                if (e.key.startsWith('F') && !isNaN(e.key.slice(1))) {
+                const key = e.key || '';
+                if (key.startsWith('F') && !isNaN(key.slice(1))) {
                     e.preventDefault();
                     return false;
                 }
                 if (e.ctrlKey || e.metaKey) {
-                    if (['w', 'n', 't', 'r', 'q', 'Tab'].includes(e.key.toLowerCase())) {
+                    if (['w', 'n', 't', 'r', 'q', 'Tab'].includes(key.toLowerCase())) {
                         e.preventDefault();
                         return false;
                     }
-                    if (e.shiftKey && ['i', 'j', 'c', 't', 'n'].includes(e.key.toLowerCase())) {
+                    if (e.shiftKey && ['i', 'j', 'c', 't', 'n'].includes(key.toLowerCase())) {
                         e.preventDefault();
                         return false;
                     }
                 }
                 if (e.altKey) {
-                    if (['F4', 'Tab'].includes(e.key)) {
+                    if (['F4', 'Tab'].includes(key)) {
                         e.preventDefault();
                         return false;
                     }
@@ -897,13 +863,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Keyboard shortcuts
         document.addEventListener('keydown', function(e) {
+            const key = (e.key || '').toLowerCase();
             // Ctrl+H to hold sale
-            if (e.ctrlKey && e.key.toLowerCase() === 'h') {
+            if (e.ctrlKey && key === 'h') {
                 e.preventDefault();
                 holdSale();
             }
             // Ctrl+R to retrieve held sales
-            if (e.ctrlKey && e.key.toLowerCase() === 'r') {
+            if (e.ctrlKey && key === 'r') {
                 e.preventDefault();
                 showHeldSalesModal();
             }
@@ -928,12 +895,15 @@ function hideCreateCustomerModal() {
 
 function selectCustomer(id, displayText) {
     document.getElementById('customerSelect').value = id || '';
-    document.getElementById('customerSearchInput').value = displayText;
-    document.getElementById('customerSearchResults').classList.add('hidden');
+    const searchInput = document.getElementById('customerSearchInput');
+    const resultsDiv = document.getElementById('customerSearchResults');
+    if (searchInput) searchInput.value = displayText;
+    if (resultsDiv) resultsDiv.classList.add('hidden');
 }
 
 function setupCustomerSearch() {
     const searchInput = document.getElementById('customerSearchInput');
+    if (!searchInput) return;
     const resultsDiv = document.getElementById('customerSearchResults');
     
     // Show results when input is focused
@@ -987,7 +957,9 @@ function renderCustomerSearchResults(searchTerm) {
 }
 
 function setupCreateCustomerForm() {
-    document.getElementById('createCustomerForm').addEventListener('submit', function(e) {
+    const form = document.getElementById('createCustomerForm');
+    if (!form) return;
+    form.addEventListener('submit', function(e) {
         e.preventDefault();
         e.stopPropagation();
         
@@ -1161,7 +1133,7 @@ function setupBarcodeScanner() {
             return;
         }
         // Only add to buffer if it's a printable character and not a modifier key
-        if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
+        if ((e.key || '').length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
             barcodeBuffer += e.key;
         }
     });
@@ -1495,6 +1467,8 @@ function clearCart() {
 }
 
 function formatNumber(num) {
+    num = parseFloat(num);
+    if (isNaN(num)) num = 0;
     return num.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
 
