@@ -4,35 +4,53 @@
 
 @section('content')
 <div class="animate-[fadeIn_0.4s_ease] min-h-screen p-3 sm:p-4">
-    <!-- Toggle for balances -->
-    <div class="flex justify-end mb-3">
-        <button type="button" id="dashboardStatsToggle" onclick="toggleDashboardStats()" class="px-3 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg text-sm font-medium">
-            <i class="fas fa-chart-bar mr-1"></i>View Balances
-        </button>
-    </div>
-    
-    <!-- Dashboard Stats -->
-    <div id="dashboardStats" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-4 hidden">
-        <div class="card rounded-2xl p-4">
-            <h4 class="text-sm font-medium text-gray-600 mb-1">Shift Sales</h4>
-            <p class="text-xl font-bold text-primary-900" id="shiftSales">TZS 0.00</p>
+    <!-- Balances (single row, toggle each with the eye icon) -->
+    <div id="dashboardStats" class="grid grid-cols-2 md:grid-cols-5 gap-3 mb-4">
+        <div class="card rounded-2xl p-3">
+            <div class="flex items-center justify-between gap-1 mb-1">
+                <h4 class="text-sm font-medium text-gray-600 truncate">Shift Sales</h4>
+                <button type="button" onclick="toggleBalance(this)" class="text-gray-400 hover:text-gray-600 transition-colors" title="Show / hide value">
+                    <i class="fas fa-eye"></i>
+                </button>
+            </div>
+            <p class="text-xl font-bold text-primary-900 truncate balance-value" id="shiftSales" data-visible="0">TZS ••••</p>
             <p class="text-xs text-gray-500" id="shiftItems">0 items</p>
         </div>
-        <div class="card rounded-2xl p-4">
-            <h4 class="text-sm font-medium text-gray-600 mb-1">Total Cash</h4>
-            <p class="text-xl font-bold text-green-700" id="todayCash">TZS 0.00</p>
+        <div class="card rounded-2xl p-3">
+            <div class="flex items-center justify-between gap-1 mb-1">
+                <h4 class="text-sm font-medium text-gray-600 truncate">Total Cash</h4>
+                <button type="button" onclick="toggleBalance(this)" class="text-gray-400 hover:text-gray-600 transition-colors" title="Show / hide value">
+                    <i class="fas fa-eye"></i>
+                </button>
+            </div>
+            <p class="text-xl font-bold text-green-700 truncate balance-value" id="todayCash" data-visible="0">TZS ••••</p>
         </div>
-        <div class="card rounded-2xl p-4">
-            <h4 class="text-sm font-medium text-gray-600 mb-1">Total Card</h4>
-            <p class="text-xl font-bold text-blue-700" id="todayCard">TZS 0.00</p>
+        <div class="card rounded-2xl p-3">
+            <div class="flex items-center justify-between gap-1 mb-1">
+                <h4 class="text-sm font-medium text-gray-600 truncate">Total Card</h4>
+                <button type="button" onclick="toggleBalance(this)" class="text-gray-400 hover:text-gray-600 transition-colors" title="Show / hide value">
+                    <i class="fas fa-eye"></i>
+                </button>
+            </div>
+            <p class="text-xl font-bold text-blue-700 truncate balance-value" id="todayCard" data-visible="0">TZS ••••</p>
         </div>
-        <div class="card rounded-2xl p-4">
-            <h4 class="text-sm font-medium text-gray-600 mb-1">Lipa namba</h4>
-            <p class="text-xl font-bold text-purple-700" id="todayMobile">TZS 0.00</p>
+        <div class="card rounded-2xl p-3">
+            <div class="flex items-center justify-between gap-1 mb-1">
+                <h4 class="text-sm font-medium text-gray-600 truncate">Lipa namba</h4>
+                <button type="button" onclick="toggleBalance(this)" class="text-gray-400 hover:text-gray-600 transition-colors" title="Show / hide value">
+                    <i class="fas fa-eye"></i>
+                </button>
+            </div>
+            <p class="text-xl font-bold text-purple-700 truncate balance-value" id="todayMobile" data-visible="0">TZS ••••</p>
         </div>
-        <div class="card rounded-2xl p-4">
-            <h4 class="text-sm font-medium text-gray-600 mb-1">Total ClickPesa</h4>
-            <p class="text-xl font-bold text-orange-700" id="todayClickpesa">TZS 0.00</p>
+        <div class="card rounded-2xl p-3">
+            <div class="flex items-center justify-between gap-1 mb-1">
+                <h4 class="text-sm font-medium text-gray-600 truncate">Total ClickPesa</h4>
+                <button type="button" onclick="toggleBalance(this)" class="text-gray-400 hover:text-gray-600 transition-colors" title="Show / hide value">
+                    <i class="fas fa-eye"></i>
+                </button>
+            </div>
+            <p class="text-xl font-bold text-orange-700 truncate balance-value" id="todayClickpesa" data-visible="0">TZS ••••</p>
         </div>
     </div>
 
@@ -741,16 +759,32 @@ function playSuccessSound() {
     }
 }
 
-function toggleDashboardStats() {
-    const statsEl = document.getElementById('dashboardStats');
-    const isHidden = statsEl.classList.contains('hidden');
-    statsEl.classList.toggle('hidden');
-    statsEl.classList.toggle('grid');
-    const btn = document.getElementById('dashboardStatsToggle');
-    if (btn) {
-        btn.innerHTML = isHidden
-            ? '<i class="fas fa-chart-bar mr-1"></i>Hide Balances'
-            : '<i class="fas fa-chart-bar mr-1"></i>View Balances';
+function setBalanceValue(elId, money) {
+    const el = document.getElementById(elId);
+    if (!el) return;
+    const value = 'TZS ' + formatNumber(money);
+    if (el.dataset.visible === '1') {
+        el.textContent = value;
+    } else {
+        el.dataset.real = value;
+        el.textContent = 'TZS ••••';
+    }
+}
+
+function toggleBalance(btn) {
+    const card = btn.closest('.card');
+    const valueEl = card.querySelector('.balance-value');
+    if (!valueEl) return;
+    const nowVisible = valueEl.dataset.visible === '1';
+    if (nowVisible) {
+        valueEl.dataset.real = valueEl.textContent;
+        valueEl.textContent = 'TZS ••••';
+        valueEl.dataset.visible = '0';
+        btn.innerHTML = '<i class="fas fa-eye"></i>';
+    } else {
+        valueEl.textContent = valueEl.dataset.real || 'TZS 0.00';
+        valueEl.dataset.visible = '1';
+        btn.innerHTML = '<i class="fas fa-eye-slash"></i>';
     }
 }
 
@@ -1053,12 +1087,12 @@ function updateDashboardDisplay() {
     // Calculate total of all payment methods
     const totalPayments = todayCash + todayCard + todayMobile + todayClickpesa;
     
-    document.getElementById('shiftSales').textContent = 'TZS ' + formatNumber(totalPayments);
+    setBalanceValue('shiftSales', totalPayments);
     document.getElementById('shiftItems').textContent = sessionItemsCount + ' items';
-    document.getElementById('todayCash').textContent = 'TZS ' + formatNumber(todayCash);
-    document.getElementById('todayCard').textContent = 'TZS ' + formatNumber(todayCard);
-    document.getElementById('todayMobile').textContent = 'TZS ' + formatNumber(todayMobile);
-    document.getElementById('todayClickpesa').textContent = 'TZS ' + formatNumber(todayClickpesa);
+    setBalanceValue('todayCash', todayCash);
+    setBalanceValue('todayCard', todayCard);
+    setBalanceValue('todayMobile', todayMobile);
+    setBalanceValue('todayClickpesa', todayClickpesa);
 }
 
 function updateTime() {
