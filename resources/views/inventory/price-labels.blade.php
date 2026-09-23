@@ -16,9 +16,12 @@
                         </button>
                     </div>
                 </form>
-                <div class="flex gap-3">
+                <div class="flex flex-wrap gap-3">
                     <button type="button" onclick="selectAllLabels()" class="border border-primary-600 text-primary-600 hover:bg-primary-50 px-4 py-2 rounded-lg font-medium transition-colors whitespace-nowrap">
-                        <i class="fas fa-check-square mr-2"></i>Select All
+                        <i class="fas fa-check-square mr-2"></i>Select Page
+                    </button>
+                    <button type="button" onclick="selectAllProducts()" class="border border-primary-600 text-primary-600 hover:bg-primary-50 px-4 py-2 rounded-lg font-medium transition-colors whitespace-nowrap">
+                        <i class="fas fa-list-check mr-2"></i>Select All Products
                     </button>
                     <button type="button" onclick="deselectAllLabels()" class="border border-gray-300 text-gray-600 hover:bg-gray-50 px-4 py-2 rounded-lg font-medium transition-colors whitespace-nowrap">
                         <i class="fas fa-square mr-2"></i>Deselect All
@@ -29,6 +32,8 @@
                 </div>
             </div>
         </div>
+
+        <div id="selectAllStatus" class="hidden mb-4 p-3 bg-blue-50 border border-blue-200 text-blue-700 rounded-lg text-sm"></div>
 
         @if(session('success'))
             <div class="mb-4 p-3 bg-green-100 border border-green-400 text-green-800 rounded-lg">
@@ -73,6 +78,7 @@
 
 <script>
     let productsData = [];
+    let selectedIds = new Set();
 
     document.addEventListener('DOMContentLoaded', function () {
         bindCheckboxes();
@@ -81,13 +87,18 @@
     function bindCheckboxes() {
         const checkboxes = document.querySelectorAll('.label-checkbox');
         checkboxes.forEach(checkbox => {
-            checkbox.addEventListener('change', updateExportButton);
+            checkbox.addEventListener('change', () => {
+                if (checkbox.checked) selectedIds.add(Number(checkbox.value));
+                else selectedIds.delete(Number(checkbox.value));
+                updateExportButton();
+            });
+            if (checkbox.checked) selectedIds.add(Number(checkbox.value));
         });
         updateExportButton();
     }
 
     function updateExportButton() {
-        const checkedCount = document.querySelectorAll('.label-checkbox:checked').length;
+        const checkedCount = selectedIds.size;
         const exportBtn = document.querySelector('[onclick="exportLabelsToPNG()"]');
         if (exportBtn) {
             exportBtn.innerHTML = checkedCount > 0 
@@ -97,18 +108,60 @@
     }
 
     function selectAllLabels() {
-        document.querySelectorAll('.label-checkbox').forEach(cb => cb.checked = true);
+        document.querySelectorAll('.label-checkbox').forEach(cb => {
+            cb.checked = true;
+            selectedIds.add(Number(cb.value));
+        });
         updateExportButton();
     }
 
     function deselectAllLabels() {
         document.querySelectorAll('.label-checkbox').forEach(cb => cb.checked = false);
+        selectedIds.clear();
+        document.getElementById('selectAllStatus').classList.add('hidden');
         updateExportButton();
     }
 
+    async function selectAllProducts() {
+        const btn = document.querySelector('[onclick="selectAllProducts()"]');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Fetching...';
+        btn.disabled = true;
+
+        try {
+            const search = new URLSearchParams(window.location.search).get('search') || '';
+            const response = await fetch('{{ route('inventory.products.price-labels.ids') }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json',
+                },
+                body: JSON.stringify({ search: search })
+            });
+            const data = await response.json();
+            const ids = data.ids || [];
+
+            selectedIds = new Set(ids.map(Number));
+            document.querySelectorAll('.label-checkbox').forEach(cb => {
+                cb.checked = selectedIds.has(Number(cb.value));
+            });
+
+            const statusEl = document.getElementById('selectAllStatus');
+            statusEl.classList.remove('hidden');
+            statusEl.innerHTML = `<i class="fas fa-info-circle mr-2"></i>Selected all <strong>${selectedIds.size}</strong> product(s) matching the current search across the entire database.`;
+            updateExportButton();
+        } catch (error) {
+            console.error('Select all failed:', error);
+            alert('Failed to load all products. Please try again.');
+        } finally {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }
+    }
+
     async function exportLabelsToPNG() {
-        const checkedBoxes = document.querySelectorAll('.label-checkbox:checked');
-        if (checkedBoxes.length === 0) {
+        if (selectedIds.size === 0) {
             alert('Please select at least one product');
             return;
         }
@@ -119,7 +172,7 @@
         btn.disabled = true;
 
         try {
-            const labels = Array.from(checkedBoxes).map(cb => cb.value);
+            const labels = Array.from(selectedIds);
             
             const response = await fetch('{{ route('inventory.products.price-labels.data') }}', {
                 method: 'POST',
@@ -225,20 +278,18 @@
         ctx.textAlign = 'center';
         ctx.textBaseline = 'top';
         
-        // 1. Price (prominent, centered at bottom)
+        // 1. Price (prominent)
         let priceFont = mmToPx(4.5);
         ctx.font = '700 ' + priceFont + 'px Arial';
         while (ctx.measureText(price).width > availW && priceFont > 8) {
             priceFont--;
             ctx.font = '700 ' + priceFont + 'px Arial';
         }
-        const priceY = height - margin - priceFont;
-        ctx.fillStyle = '#1E3A8A';
-        ctx.fillText(price, width / 2, priceY);
         
-        // 2. Product name (centered, max 2 lines, fills space above price)
+        // 2. Product name (max 2 lines), keeps price clamped below it
         let nameFont = mmToPx(3.0);
-        const maxNameH = priceY - margin;
+        const gap = mmToPx(0.8);
+        const maxNameH = height - margin * 2 - gap - priceFont;
         const lineH = Math.round(nameFont * 1.15);
         
         function wrapName() {
@@ -252,15 +303,20 @@
             nameLines = wrapName();
         }
         
-        ctx.font = '700 ' + nameFont + 'px Arial';
-        const totalH = nameLines.length * lineH;
-        let nameY = margin + (maxNameH - totalH) / 2;
+        // group name + price as a single centered block with a small gap
+        const blockH = nameLines.length * lineH + gap + priceFont;
+        const blockY = (height - blockH) / 2;
         
+        ctx.font = '700 ' + nameFont + 'px Arial';
+        let nameY = blockY;
         ctx.fillStyle = '#111827';
         nameLines.forEach(line => {
             ctx.fillText(line, width / 2, nameY);
             nameY += lineH;
         });
+        
+        ctx.fillStyle = '#1E3A8A';
+        ctx.fillText(price, width / 2, blockY + nameLines.length * lineH + gap);
     }
 </script>
 @endsection

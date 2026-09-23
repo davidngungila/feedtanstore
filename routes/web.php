@@ -68,6 +68,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/cash-drawer-sessions/create', [\App\Http\Controllers\CashDrawerSessionController::class, 'create'])->name('cash-drawer-sessions.create');
     Route::post('/cash-drawer-sessions', [\App\Http\Controllers\CashDrawerSessionController::class, 'store'])->name('cash-drawer-sessions.store');
     Route::get('/cash-drawer-sessions/reconciliations', [\App\Http\Controllers\CashDrawerSessionController::class, 'pendingReconciliations'])->name('cash-drawer-sessions.reconciliations');
+    Route::get('/cash-drawer-sessions/daily-reconciliation', [\App\Http\Controllers\CashDrawerSessionController::class, 'dailyReconciliation'])->name('cash-drawer-sessions.daily');
     Route::get('/cash-drawer-sessions/{cashDrawerSession}', [\App\Http\Controllers\CashDrawerSessionController::class, 'show'])->name('cash-drawer-sessions.show');
     Route::get('/cash-drawer-sessions/{cashDrawerSession}/close', [\App\Http\Controllers\CashDrawerSessionController::class, 'editClose'])->name('cash-drawer-sessions.edit-close');
     Route::put('/cash-drawer-sessions/{cashDrawerSession}/close', [\App\Http\Controllers\CashDrawerSessionController::class, 'close'])->name('cash-drawer-sessions.close');
@@ -219,6 +220,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/products/export', [\App\Http\Controllers\ProductController::class, 'export'])->name('products.export');
         Route::get('/products/price-labels', [\App\Http\Controllers\ProductController::class, 'priceLabels'])->name('products.price-labels');
         Route::post('/products/price-labels/data', [\App\Http\Controllers\ProductController::class, 'priceLabelsData'])->name('products.price-labels.data');
+        Route::post('/products/price-labels/ids', [\App\Http\Controllers\ProductController::class, 'priceLabelsIds'])->name('products.price-labels.ids');
         Route::get('/check-barcode', [\App\Http\Controllers\ProductController::class, 'checkBarcode'])->name('check-barcode');
         Route::post('/products/{identifier}/link-barcode', [\App\Http\Controllers\ProductController::class, 'linkBarcode'])->name('products.link-barcode');
         Route::get('/products/{identifier}', [\App\Http\Controllers\ProductController::class, 'show'])->name('products.show');

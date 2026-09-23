@@ -379,18 +379,6 @@ class ProductController extends Controller
 
         $products = $query->paginate(30)->withQueryString();
 
-        // Generate barcode images
-        $generator = new \Picqer\Barcode\BarcodeGeneratorPNG();
-        $products->getCollection()->transform(function ($product) use ($generator) {
-            $barcodeBase64 = null;
-            if ($product->barcode) {
-                $barcodePng = $generator->getBarcode($product->barcode, \Picqer\Barcode\BarcodeGeneratorPNG::TYPE_CODE_128);
-                $barcodeBase64 = 'data:image/png;base64,' . base64_encode($barcodePng);
-            }
-            $product->barcode_base64 = $barcodeBase64;
-            return $product;
-        });
-
         return view('inventory.price-labels', compact('products', 'search'));
     }
 
@@ -405,25 +393,34 @@ class ProductController extends Controller
             ->whereIn('id', $request->product_ids)
             ->get();
 
-        $generator = new \Picqer\Barcode\BarcodeGeneratorPNG();
-        
-        $data = $products->map(function ($product) use ($generator) {
-            $barcodeBase64 = null;
-            if ($product->barcode) {
-                $barcodePng = $generator->getBarcode($product->barcode, \Picqer\Barcode\BarcodeGeneratorPNG::TYPE_CODE_128);
-                $barcodeBase64 = 'data:image/png;base64,' . base64_encode($barcodePng);
-            }
+        $data = $products->map(function ($product) {
             return [
                 'id' => $product->id,
                 'name' => $product->name,
                 'sku' => $product->sku,
-                'barcode' => $product->barcode,
-                'barcode_base64' => $barcodeBase64,
                 'selling_price' => $product->selling_price,
                 'unit_short_name' => $product->unit->short_name ?? '',
             ];
         });
 
         return response()->json(['products' => $data]);
+    }
+
+    public function priceLabelsIds(Request $request)
+    {
+        $search = $request->input('search');
+
+        $query = Product::where('is_active', true)
+            ->when($search, function ($query) use ($search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('name', 'like', '%' . $search . '%')
+                      ->orWhere('sku', 'like', '%' . $search . '%')
+                      ->orWhere('barcode', 'like', '%' . $search . '%');
+                });
+            });
+
+        return response()->json([
+            'ids' => $query->pluck('id')->map(fn($id) => (int) $id),
+        ]);
     }
 }

@@ -556,19 +556,16 @@
         ctx.textAlign = 'center';
         ctx.textBaseline = 'top';
 
-        // price - prominent, centered at bottom
+        // price - prominent
         let priceFont = Math.round(4.5 * PRODUCT_LABEL_DPI / 25.4);
         ctx.font = '700 ' + priceFont + 'px Arial';
         while (ctx.measureText(priceText).width > availW && priceFont > 8) {
             priceFont--;
             ctx.font = '700 ' + priceFont + 'px Arial';
         }
-        const priceY = PRODUCT_LABEL_H_PX - margin - priceFont;
 
-        // name - centered, wrapped to max 2 lines, fill remaining space
+        // name - wrapped to max 2 lines, keeps price clamped below it
         let nameFont = Math.round(3.0 * PRODUCT_LABEL_DPI / 25.4);
-        const maxNameH = priceY - margin;
-        const lineH = Math.round(nameFont * 1.15);
 
         function wrapName() {
             ctx.font = '700 ' + nameFont + 'px Arial';
@@ -588,14 +585,22 @@
             return lines.slice(0, 2);
         }
 
+        const gap = Math.round(0.8 * PRODUCT_LABEL_DPI / 25.4);
+        const maxNameH = PRODUCT_LABEL_H_PX - 2 * margin - gap - priceFont;
+
         let nameLines = wrapName();
+        let lineH = Math.round(nameFont * 1.15);
         while (nameLines.length > 1 && (nameLines.length * lineH > maxNameH || ctx.measureText(nameLines[0]).width > availW) && nameFont > 6) {
             nameFont--;
+            lineH = Math.round(nameFont * 1.15);
             nameLines = wrapName();
         }
 
-        const totalH = nameLines.length * lineH;
-        let nameY = margin + (maxNameH - totalH) / 2;
+        // group name + price as a single centered block with a small gap
+        const blockH = nameLines.length * lineH + gap + priceFont;
+        const blockY = (PRODUCT_LABEL_H_PX - blockH) / 2;
+
+        let nameY = blockY;
 
         ctx.fillStyle = '#111827';
         nameLines.forEach(line => {
@@ -604,7 +609,7 @@
         });
 
         ctx.fillStyle = '#1E3A8A';
-        ctx.fillText(priceText, PRODUCT_LABEL_W_PX / 2, priceY);
+        ctx.fillText(priceText, PRODUCT_LABEL_W_PX / 2, blockY + nameLines.length * lineH + gap);
 
         return canvas;
     }

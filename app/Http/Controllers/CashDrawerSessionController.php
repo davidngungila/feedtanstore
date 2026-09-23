@@ -41,6 +41,39 @@ class CashDrawerSessionController extends Controller
         ));
     }
 
+    public function dailyReconciliation(Request $request)
+    {
+        if (!in_array(auth()->user()->role, ['manager', 'admin'])) {
+            return back()->with('error', 'Only managers and admins can review daily reconciliations.');
+        }
+
+        $date = $request->input('date', now()->format('Y-m-d'));
+
+        $sessions = CashDrawerSession::with(['user', 'reconciler'])
+            ->whereDate('closed_at', $date)
+            ->latest('closed_at')
+            ->paginate(20);
+
+        $daySessions = CashDrawerSession::whereDate('closed_at', $date)->get();
+        $pendingCount = $daySessions->where('status', 'closed')->count();
+        $reconciledCount = $daySessions->where('status', 'reconciled')->count();
+        $pendingValue = $daySessions->where('status', 'closed')->sum('closing_balance');
+        $totalExpected = $daySessions->sum('expected_balance');
+        $totalClosing = $daySessions->sum('closing_balance');
+        $totalDifference = $daySessions->sum('difference');
+
+        return view('cash-drawer-sessions.daily', compact(
+            'sessions',
+            'date',
+            'pendingCount',
+            'reconciledCount',
+            'pendingValue',
+            'totalExpected',
+            'totalClosing',
+            'totalDifference'
+        ));
+    }
+
     public function create()
     {
         return view('cash-drawer-sessions.open');
