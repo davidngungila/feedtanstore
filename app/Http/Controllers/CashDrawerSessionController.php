@@ -17,6 +17,30 @@ class CashDrawerSessionController extends Controller
         return view('cash-drawer-sessions.index', compact('sessions'));
     }
 
+    public function pendingReconciliations()
+    {
+        if (!in_array(auth()->user()->role, ['manager', 'admin'])) {
+            return back()->with('error', 'Only managers and admins can review pending reconciliations.');
+        }
+
+        $pendingSessions = CashDrawerSession::with(['user', 'sales'])
+            ->where('status', 'closed')
+            ->latest('closed_at')
+            ->paginate(20);
+
+        $allPending = CashDrawerSession::where('status', 'closed')->get();
+        $pendingCount = $allPending->count();
+        $pendingValue = $allPending->sum('closing_balance');
+        $pendingDifference = $allPending->sum('difference');
+
+        return view('cash-drawer-sessions.pending', compact(
+            'pendingSessions',
+            'pendingCount',
+            'pendingValue',
+            'pendingDifference'
+        ));
+    }
+
     public function create()
     {
         return view('cash-drawer-sessions.open');
