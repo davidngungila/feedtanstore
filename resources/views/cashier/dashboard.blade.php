@@ -249,7 +249,7 @@
                     <i class="fas fa-print mr-2"></i>Invoice
                 </button>
                 <button onclick="printEfdReceipt()" class="flex-1 py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl font-semibold text-lg">
-                    <i class="fas fa-receipt mr-2"></i>EFD Receipt
+                    <i class="fas fa-receipt mr-2"></i>EFD
                 </button>
                 <button onclick="newSale()" class="flex-1 py-3 bg-primary-600 hover:bg-primary-700 text-white rounded-xl font-semibold text-lg">
                     <i class="fas fa-plus mr-2"></i>New Sale
