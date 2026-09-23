@@ -4,15 +4,15 @@
 
 @section('content')
 <div class="animate-[fadeIn_0.4s_ease] min-h-screen p-3 sm:p-4">
-    <!-- Toggle for dashboard stats on small screens -->
-    <div class="flex justify-end mb-3 lg:hidden">
-        <button type="button" onclick="toggleDashboardStats()" class="px-3 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg text-sm font-medium">
-            <i class="fas fa-chart-bar mr-1"></i>Stats
+    <!-- Toggle for balances -->
+    <div class="flex justify-end mb-3">
+        <button type="button" id="dashboardStatsToggle" onclick="toggleDashboardStats()" class="px-3 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg text-sm font-medium">
+            <i class="fas fa-chart-bar mr-1"></i>View Balances
         </button>
     </div>
     
     <!-- Dashboard Stats -->
-    <div id="dashboardStats" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-4 hidden lg:grid">
+    <div id="dashboardStats" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-4 hidden">
         <div class="card rounded-2xl p-4">
             <h4 class="text-sm font-medium text-gray-600 mb-1">Shift Sales</h4>
             <p class="text-xl font-bold text-primary-900" id="shiftSales">TZS 0.00</p>
@@ -743,8 +743,15 @@ function playSuccessSound() {
 
 function toggleDashboardStats() {
     const statsEl = document.getElementById('dashboardStats');
+    const isHidden = statsEl.classList.contains('hidden');
     statsEl.classList.toggle('hidden');
     statsEl.classList.toggle('grid');
+    const btn = document.getElementById('dashboardStatsToggle');
+    if (btn) {
+        btn.innerHTML = isHidden
+            ? '<i class="fas fa-chart-bar mr-1"></i>Hide Balances'
+            : '<i class="fas fa-chart-bar mr-1"></i>View Balances';
+    }
 }
 
 function toggleQuickActions() {
