@@ -16,6 +16,9 @@
                 <a href="{{ route('inventory.products.edit', $product) }}" class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors">
                     Edit
                 </a>
+                <button onclick="downloadProductLabelPNG(event)" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors whitespace-nowrap" data-name="{{ $product->name }}" data-price="{{ $product->selling_price }}">
+                    <i class="fas fa-tag mr-2"></i>Product Label
+                </button>
                 <a href="{{ route('inventory.products') }}" class="text-primary-600 hover:text-primary-800 font-medium">
                     <i class="fas fa-arrow-left mr-2"></i>Back to Products
                 </a>
@@ -579,6 +582,106 @@
             pdf.save('barcode-' + code + '-' + LABEL_W_MM + 'x' + LABEL_H_MM + 'mm.pdf');
             if (btn) btn.innerHTML = origText;
         });
+    }
+
+    // --- Product label (name + price) at same size as barcode label: 37.29x25.91mm @ 300 DPI ---
+    const PRODUCT_LABEL_W_MM = 37.29;
+    const PRODUCT_LABEL_H_MM = 25.91;
+    const PRODUCT_LABEL_DPI = 300;
+    const PRODUCT_LABEL_W_PX = Math.round(PRODUCT_LABEL_W_MM * PRODUCT_LABEL_DPI / 25.4);
+    const PRODUCT_LABEL_H_PX = Math.round(PRODUCT_LABEL_H_MM * PRODUCT_LABEL_DPI / 25.4);
+
+    function generateProductLabelCanvas(name, price) {
+        const canvas = document.createElement('canvas');
+        canvas.width = PRODUCT_LABEL_W_PX;
+        canvas.height = PRODUCT_LABEL_H_PX;
+        const ctx = canvas.getContext('2d');
+
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, PRODUCT_LABEL_W_PX, PRODUCT_LABEL_H_PX);
+
+        ctx.strokeStyle = '#e5e7eb';
+        ctx.lineWidth = Math.max(1, Math.round(0.18 * PRODUCT_LABEL_DPI / 25.4));
+        ctx.strokeRect(ctx.lineWidth / 2, ctx.lineWidth / 2, PRODUCT_LABEL_W_PX - ctx.lineWidth, PRODUCT_LABEL_H_PX - ctx.lineWidth);
+
+        const margin = Math.round(2 * PRODUCT_LABEL_DPI / 25.4);
+        const availW = PRODUCT_LABEL_W_PX - 2 * margin;
+        const priceText = 'TZS ' + Number(price).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'top';
+
+        let priceFont = Math.round(4.5 * PRODUCT_LABEL_DPI / 25.4);
+        ctx.font = '700 ' + priceFont + 'px Arial';
+        while (ctx.measureText(priceText).width > availW && priceFont > 8) {
+            priceFont--;
+            ctx.font = '700 ' + priceFont + 'px Arial';
+        }
+        const priceY = PRODUCT_LABEL_H_PX - margin - priceFont;
+
+        let nameFont = Math.round(3.0 * PRODUCT_LABEL_DPI / 25.4);
+        const maxNameH = priceY - margin;
+        const lineH = Math.round(nameFont * 1.15);
+
+        function wrapName() {
+            ctx.font = '700 ' + nameFont + 'px Arial';
+            const words = String(name).split(' ');
+            const lines = [];
+            let cur = '';
+            words.forEach(w => {
+                const test = cur ? cur + ' ' + w : w;
+                if (cur && ctx.measureText(test).width > availW) {
+                    lines.push(cur);
+                    cur = w;
+                } else {
+                    cur = test;
+                }
+            });
+            if (cur) lines.push(cur);
+            return lines.slice(0, 2);
+        }
+
+        let nameLines = wrapName();
+        while (nameLines.length > 1 && (nameLines.length * lineH > maxNameH || ctx.measureText(nameLines[0]).width > availW) && nameFont > 6) {
+            nameFont--;
+            nameLines = wrapName();
+        }
+
+        const totalH = nameLines.length * lineH;
+        let nameY = margin + (maxNameH - totalH) / 2;
+
+        ctx.fillStyle = '#111827';
+        nameLines.forEach(line => {
+            ctx.fillText(line, PRODUCT_LABEL_W_PX / 2, nameY);
+            nameY += lineH;
+        });
+
+        ctx.fillStyle = '#1E3A8A';
+        ctx.fillText(priceText, PRODUCT_LABEL_W_PX / 2, priceY);
+
+        return canvas;
+    }
+
+    function downloadProductLabelPNG(e) {
+        const evt = e || window.event;
+        const btn = evt && evt.currentTarget ? evt.currentTarget : null;
+        const origText = btn ? btn.innerHTML : '';
+        if (btn) btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>...';
+        const name = (btn && btn.getAttribute('data-name')) || '{{ $product->name }}';
+        const price = (btn && btn.getAttribute('data-price')) || '{{ $product->selling_price }}';
+        const canvas = generateProductLabelCanvas(name, price);
+        const code = '{{ $product->barcode ?? '' }}';
+        canvas.toBlob(function(blob){
+            if (!blob) { alert('Failed to export label PNG.'); if (btn) btn.innerHTML = origText; return; }
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'label-' + (code || '{{ $product->id }}') + '-' + PRODUCT_LABEL_W_MM + 'x' + PRODUCT_LABEL_H_MM + 'mm.png';
+            document.body.appendChild(a);
+            a.click();
+            setTimeout(function(){ URL.revokeObjectURL(url); a.remove(); }, 500);
+            if (btn) btn.innerHTML = origText;
+        }, 'image/png');
     }
 </script>
 @endsection

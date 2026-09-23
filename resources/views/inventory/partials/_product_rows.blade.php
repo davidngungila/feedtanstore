@@ -31,6 +31,9 @@
                             </span>
                         </td>
                         <td class="flex items-center gap-2">
+                            <button type="button" onclick="downloadProductLabel({{ $product->id }})" class="text-primary-600 hover:text-primary-800 p-1" title="Product Label">
+                                <i class="fas fa-tag"></i>
+                            </button>
                             <a href="{{ route('inventory.products.show', $product) }}" class="text-primary-600 hover:text-primary-800 p-1" title="View">
                                 <i class="fas fa-eye"></i>
                             </a>

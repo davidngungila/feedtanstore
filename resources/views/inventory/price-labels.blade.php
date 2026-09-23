@@ -52,25 +52,10 @@
                     
                     <div class="label-preview min-h-[120px] flex flex-col items-center justify-center p-2">
                         <div class="text-center w-full">
-                            <div class="font-bold text-primary-900 text-sm mb-1">FEEDTAN STORE</div>
-                            <div class="text-xs text-gray-500 mb-2 border-t border-gray-200 pt-1"></div>
-                            
-                            @if($product->barcode)
-                                <div class="barcode-container mb-2 flex justify-center">
-                                    <img src="{{ $product->barcode_base64 }}" alt="Barcode" class="h-16 w-auto">
-                                </div>
-                                <div class="text-xs text-gray-600 mb-2 font-mono">{{ $product->barcode }}</div>
-                            @else
-                                <div class="text-xs text-gray-400 mb-2">No Barcode</div>
-                            @endif
-                            
-                            <div class="text-sm font-semibold text-gray-900 truncate mb-1">{{ $product->name }}</div>
-                            
-                            <div class="flex items-center justify-center gap-2">
+                            <div class="font-bold text-primary-900 text-sm mb-1">{{ $product->name }}</div>
+                            <div class="mt-2 pt-2 border-t border-gray-200 w-full"></div>
+                            <div class="mt-2">
                                 <span class="text-lg font-bold text-primary-600">TZS {{ number_format($product->selling_price, 2) }}</span>
-                                @if($product->unit)
-                                    <span class="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded">{{ $product->unit->short_name }}</span>
-                                @endif
                             </div>
                         </div>
                     </div>
@@ -163,28 +148,13 @@
     async function generateIndividualLabelsZIP(products) {
         const zip = new JSZip();
         
-        // Exact label dimensions: 37.29mm x 25.79mm at 300 DPI
+        // Exact label dimensions: 37.29mm x 25.91mm at 300 DPI (matches barcode label)
         const mmToPx = (mm) => Math.round(mm * 300 / 25.4);
         const labelWidth = mmToPx(37.29);   // 441px
-        const labelHeight = mmToPx(25.79);  // 305px
-        
-        // Load all barcode images first
-        const barcodePromises = products.map(product => {
-            if (product.barcode_base64) {
-                return new Promise((resolve) => {
-                    const img = new Image();
-                    img.onload = () => resolve({ product, img });
-                    img.onerror = () => resolve({ product, img: null });
-                    img.src = product.barcode_base64;
-                });
-            }
-            return Promise.resolve({ product, img: null });
-        });
-        
-        const barcodeImages = await Promise.all(barcodePromises);
+        const labelHeight = mmToPx(25.91);  // 306px
         
         // Generate individual PNG for each product
-        for (const { product, img } of barcodeImages) {
+        for (const product of products) {
             const canvas = document.createElement('canvas');
             canvas.width = labelWidth;
             canvas.height = labelHeight;
@@ -195,7 +165,7 @@
             ctx.fillRect(0, 0, labelWidth, labelHeight);
             
             // Draw single label centered
-            drawLabel(ctx, product, img, 0, 0, labelWidth, labelHeight);
+            drawLabel(ctx, product, 0, 0, labelWidth, labelHeight);
             
             // Convert to blob and add to ZIP
             const blob = await canvasToBlob(canvas);
@@ -218,95 +188,8 @@
         });
     }
 
-    function drawLabel(ctx, product, barcodeImg, x, y, width, height) {
-        // Small margins for print safety (1mm each side)
-        const marginMm = 1;
-        const mmToPx = (mm) => Math.round(mm * 300 / 25.4);
-        const margin = mmToPx(marginMm);
-        const innerWidth = width - margin * 2;
-        const innerHeight = height - margin * 2;
-        const centerX = x + width / 2;
-        
-        let currentY = y + margin;
-        
-        // 1. FEEDTAN STORE header (top)
-        ctx.font = 'bold 11px Arial';
-        ctx.fillStyle = '#1E3A8A';
-        ctx.textAlign = 'center';
-        ctx.fillText('FEEDTAN STORE', centerX, currentY);
-        currentY += 16;
-        
-        // Thin separator line
-        ctx.strokeStyle = '#E5E7EB';
-        ctx.lineWidth = 0.5;
-        ctx.beginPath();
-        ctx.moveTo(x + margin, currentY);
-        ctx.lineTo(x + width - margin, currentY);
-        ctx.stroke();
-        currentY += 6;
-        
-        // 2. Barcode (centered, scaled to fit width)
-        if (barcodeImg) {
-            const maxBarcodeWidth = innerWidth * 0.9;
-            const maxBarcodeHeight = innerHeight * 0.35;
-            const barcodeAspect = barcodeImg.width / barcodeImg.height;
-            
-            let barcodeWidth = maxBarcodeWidth;
-            let barcodeHeight = barcodeWidth / barcodeAspect;
-            
-            if (barcodeHeight > maxBarcodeHeight) {
-                barcodeHeight = maxBarcodeHeight;
-                barcodeWidth = barcodeHeight * barcodeAspect;
-            }
-            
-            const barcodeX = centerX - barcodeWidth / 2;
-            ctx.drawImage(barcodeImg, barcodeX, currentY, barcodeWidth, barcodeHeight);
-            currentY += barcodeHeight + 4;
-            
-            // Barcode number text (small, centered)
-            ctx.font = '8px monospace';
-            ctx.fillStyle = '#4B5563';
-            ctx.fillText(product.barcode, centerX, currentY);
-            currentY += 12;
-        }
-        
-        // 3. Product name (centered, max 2 lines, ellipsis if needed)
-        ctx.font = 'bold 10px Arial';
-        ctx.fillStyle = '#111827';
-        ctx.textAlign = 'center';
-        
-        const maxNameWidth = innerWidth - 4;
-        const nameLines = wrapText(ctx, product.name, maxNameWidth);
-        const linesToShow = nameLines.slice(0, 2);
-        
-        linesToShow.forEach((line, i) => {
-            ctx.fillText(line, centerX, currentY);
-            currentY += 13;
-        });
-        
-        // 4. Price (prominent, centered at bottom)
-        currentY += 4;
-        ctx.font = 'bold 16px Arial';
-        ctx.fillStyle = '#1E3A8A';
-        const priceText = 'TZS ' + Number(product.selling_price).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-        
-        // Ensure price fits, reduce font if needed
-        const priceMetrics = ctx.measureText(priceText);
-        if (priceMetrics.width > innerWidth) {
-            ctx.font = 'bold 13px Arial';
-        }
-        ctx.fillText(priceText, centerX, currentY);
-        
-        // 5. Unit (small, below price)
-        if (product.unit_short_name) {
-            ctx.font = '8px Arial';
-            ctx.fillStyle = '#6B7280';
-            ctx.fillText(product.unit_short_name, centerX, currentY + 14);
-        }
-    }
-
-    function wrapText(ctx, text, maxWidth) {
-        const words = text.split(' ');
+    function wrapLabelText(ctx, text, maxWidth, maxLines) {
+        const words = String(text).split(' ');
         const lines = [];
         let currentLine = '';
         
@@ -321,7 +204,63 @@
             }
         }
         if (currentLine) lines.push(currentLine);
-        return lines;
+        return lines.slice(0, maxLines || 2);
+    }
+
+    function drawLabel(ctx, product, x, y, width, height) {
+        // White background
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillRect(0, 0, width, height);
+        
+        // Thin cut-guide border (0.18mm) like the barcode label
+        const mmToPx = (mm) => Math.round(mm * 300 / 25.4);
+        ctx.strokeStyle = '#E5E7EB';
+        ctx.lineWidth = Math.max(1, mmToPx(0.18));
+        ctx.strokeRect(ctx.lineWidth / 2, ctx.lineWidth / 2, width - ctx.lineWidth, height - ctx.lineWidth);
+        
+        const margin = mmToPx(2);
+        const availW = width - margin * 2;
+        const price = 'TZS ' + Number(product.selling_price).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'top';
+        
+        // 1. Price (prominent, centered at bottom)
+        let priceFont = mmToPx(4.5);
+        ctx.font = '700 ' + priceFont + 'px Arial';
+        while (ctx.measureText(price).width > availW && priceFont > 8) {
+            priceFont--;
+            ctx.font = '700 ' + priceFont + 'px Arial';
+        }
+        const priceY = height - margin - priceFont;
+        ctx.fillStyle = '#1E3A8A';
+        ctx.fillText(price, width / 2, priceY);
+        
+        // 2. Product name (centered, max 2 lines, fills space above price)
+        let nameFont = mmToPx(3.0);
+        const maxNameH = priceY - margin;
+        const lineH = Math.round(nameFont * 1.15);
+        
+        function wrapName() {
+            ctx.font = '700 ' + nameFont + 'px Arial';
+            return wrapLabelText(ctx, product.name, availW, 2);
+        }
+        
+        let nameLines = wrapName();
+        while (nameLines.length > 1 && (nameLines.length * lineH > maxNameH || ctx.measureText(nameLines[0]).width > availW) && nameFont > 6) {
+            nameFont--;
+            nameLines = wrapName();
+        }
+        
+        ctx.font = '700 ' + nameFont + 'px Arial';
+        const totalH = nameLines.length * lineH;
+        let nameY = margin + (maxNameH - totalH) / 2;
+        
+        ctx.fillStyle = '#111827';
+        nameLines.forEach(line => {
+            ctx.fillText(line, width / 2, nameY);
+            nameY += lineH;
+        });
     }
 </script>
 @endsection
