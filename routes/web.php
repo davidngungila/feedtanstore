@@ -62,6 +62,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/cashier/dashboard-data', [\App\Http\Controllers\CashierController::class, 'getDashboardData'])->name('cashier.dashboard-data');
     Route::post('/cashier/sale', [\App\Http\Controllers\CashierController::class, 'completeSale'])->name('cashier.sale');
     Route::post('/cashier/initiate-online-payment', [\App\Http\Controllers\CashierController::class, 'initiateOnlinePayment'])->name('cashier.initiate-online-payment');
+    // Cashier product returns with reasons (pending approval workflow)
+    Route::get('/cashier/sale-lookup', [\App\Http\Controllers\CashierController::class, 'lookupSale'])->name('cashier.sale-lookup');
+    Route::post('/cashier/returns', [\App\Http\Controllers\CashierController::class, 'processReturn'])->name('cashier.returns.store');
+    Route::get('/cashier/returns', [\App\Http\Controllers\CashierController::class, 'myReturns'])->name('cashier.returns.index');
     
     // Cash Drawer Sessions
     Route::get('/cash-drawer-sessions', [\App\Http\Controllers\CashDrawerSessionController::class, 'index'])->name('cash-drawer-sessions');

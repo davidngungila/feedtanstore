@@ -185,13 +185,19 @@
                     <button type="button" onclick="cancelSale()" class="py-2 border border-red-300 rounded-lg hover:bg-red-50 text-red-700 text-sm font-medium sm:col-span-2">
                         <i class="fas fa-times mr-1"></i>Cancel Sale
                     </button>
+                    <button type="button" onclick="showReturnModal()" class="py-2 border border-orange-300 rounded-lg hover:bg-orange-50 text-orange-700 text-sm font-medium sm:col-span-2">
+                        <i class="fas fa-undo mr-1"></i>Return Product
+                    </button>
                 </div>
             </div>
 
             <!-- Recent Transactions Button -->
-            <div class="card rounded-2xl p-4">
+            <div class="card rounded-2xl p-4 space-y-2">
                 <button type="button" onclick="showTransactionsModal()" class="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold text-base">
                     <i class="fas fa-history mr-1"></i>Recent Transactions
+                </button>
+                <button type="button" onclick="showReturnModal()" class="w-full py-2.5 bg-orange-600 hover:bg-orange-700 text-white rounded-lg font-semibold text-base">
+                    <i class="fas fa-undo mr-1"></i>Return Product
                 </button>
             </div>
         </div>
@@ -386,6 +392,76 @@
         </div>
         <div id="heldSalesModalContent" class="space-y-3">
             <!-- Held sales will be loaded here -->
+        </div>
+    </div>
+</div>
+
+<!-- Return Product Modal (cashier) -->
+<div id="returnModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+    <div class="bg-white rounded-2xl p-4 sm:p-6 max-w-3xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+        <div class="flex items-center justify-between gap-4 mb-4">
+            <h2 class="text-xl font-bold text-primary-900"><i class="fas fa-undo mr-2 text-orange-600"></i>Return Product</h2>
+            <button type="button" onclick="hideReturnModal()" class="text-gray-500 hover:text-gray-700">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+        </div>
+        <p class="text-xs text-gray-500 mb-4">Search the receipt, select items, give a reason per item. Returns go to <span class="font-semibold">pending approval</span> — stock is restored after supervisor/manager approval.</p>
+
+        <!-- Step 1: find sale -->
+        <div class="flex flex-col sm:flex-row gap-2 mb-4">
+            <input type="text" id="returnInvoiceInput" placeholder="Enter receipt / invoice no. e.g. INV-20240101..." class="flex-1 px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm">
+            <button type="button" onclick="lookupReturnSale()" id="returnLookupBtn" class="px-4 py-2.5 bg-orange-600 hover:bg-orange-700 text-white rounded-lg text-sm font-semibold whitespace-nowrap">
+                <i class="fas fa-search mr-1"></i>Find Sale
+            </button>
+        </div>
+        <div id="returnLookupError" class="hidden mb-3 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm"></div>
+        <div id="returnSaleInfo" class="hidden mb-4 p-3 bg-gray-50 rounded-xl text-sm"></div>
+
+        <!-- Step 2: items -->
+        <div id="returnItemsWrap" class="hidden">
+            <div class="overflow-x-auto mb-4">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="border-b border-gray-200 text-left text-gray-500">
+                            <th class="py-2 pr-2 w-8"></th>
+                            <th class="py-2 pr-2">Product</th>
+                            <th class="py-2 pr-2">Sold / Avail</th>
+                            <th class="py-2 pr-2">Return Qty</th>
+                            <th class="py-2 pr-2">Reason <span class="text-red-500">*</span></th>
+                        </tr>
+                    </thead>
+                    <tbody id="returnItemsBody"></tbody>
+                </table>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+                <label class="block">
+                    <span class="text-gray-700 font-medium mb-1.5 text-sm">Refund Method</span>
+                    <select id="returnRefundMethod" class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm">
+                        <option value="cash">Cash</option>
+                        <option value="mobile">Mobile</option>
+                        <option value="card">Card</option>
+                        <option value="clickpesa">ClickPesa</option>
+                    </select>
+                </label>
+                <div class="text-right">
+                    <p class="text-xs text-gray-500">Refund Total</p>
+                    <p class="text-xl font-bold text-orange-700" id="returnTotal">TZS 0.00</p>
+                </div>
+            </div>
+            <label class="block mb-4">
+                <span class="text-gray-700 font-medium mb-1.5 text-sm">Overall Note (optional)</span>
+                <textarea id="returnOverallNote" rows="2" placeholder="e.g. customer brought back items same day..." class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm"></textarea>
+            </label>
+            <div class="flex flex-col sm:flex-row gap-2">
+                <button type="button" onclick="hideReturnModal()" class="flex-1 py-2.5 border border-gray-300 rounded-lg text-sm font-semibold">Cancel</button>
+                <button type="button" onclick="submitReturn()" id="returnSubmitBtn" class="flex-1 py-2.5 bg-orange-600 hover:bg-orange-700 text-white rounded-lg text-sm font-semibold">
+                    <i class="fas fa-check mr-1"></i>Submit Return for Approval
+                </button>
+            </div>
+            <div class="mt-4">
+                <button type="button" onclick="toggleMyReturns()" class="text-xs text-blue-600 hover:text-blue-800">View my recent returns</button>
+                <div id="myReturnsList" class="hidden mt-2 space-y-2 text-sm"></div>
+            </div>
         </div>
     </div>
 </div>
@@ -2217,9 +2293,14 @@ function showTransactionsModal() {
                 </div>
                 <div class="flex flex-col sm:flex-row sm:justify-between gap-2 text-xs">
                     <span class="text-gray-500">${t.payment_method.toUpperCase()}</span>
-                    <button type="button" onclick="printSpecificReceipt('${t.id}')" class="text-blue-600 hover:text-blue-800">
-                        <i class="fas fa-print mr-1"></i>Print
-                    </button>
+                    <div class="flex gap-3">
+                        <button type="button" onclick="printSpecificReceipt('${t.id}')" class="text-blue-600 hover:text-blue-800">
+                            <i class="fas fa-print mr-1"></i>Print
+                        </button>
+                        <button type="button" onclick="hideTransactionsModal(); showReturnModal('${t.invoice_number}'); lookupReturnSale();" class="text-orange-600 hover:text-orange-800 font-semibold">
+                            <i class="fas fa-undo mr-1"></i>Return
+                        </button>
+                    </div>
                 </div>
             </div>
         `).join('');
@@ -2358,6 +2439,216 @@ function showNotification(message, type) {
     document.body.appendChild(notification);
     setTimeout(() => notification.remove(), 3000);
 }
+
+// ============ CASHIER PRODUCT RETURNS WITH REASONS ============
+let returnSaleData = null;
+let returnReasonsMap = {};
+
+function showReturnModal(prefillInvoice) {
+    document.getElementById('returnModal').classList.remove('hidden');
+    document.getElementById('returnLookupError').classList.add('hidden');
+    if (prefillInvoice) document.getElementById('returnInvoiceInput').value = prefillInvoice;
+    setTimeout(() => document.getElementById('returnInvoiceInput').focus(), 100);
+}
+function hideReturnModal() {
+    document.getElementById('returnModal').classList.add('hidden');
+}
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') hideReturnModal();
+});
+
+async function lookupReturnSale() {
+    const invoice = document.getElementById('returnInvoiceInput').value.trim();
+    const errBox = document.getElementById('returnLookupError');
+    const infoBox = document.getElementById('returnSaleInfo');
+    const wrap = document.getElementById('returnItemsWrap');
+    errBox.classList.add('hidden');
+    infoBox.classList.add('hidden');
+    wrap.classList.add('hidden');
+    if (!invoice) {
+        errBox.textContent = 'Enter a receipt / invoice number.';
+        errBox.classList.remove('hidden');
+        return;
+    }
+    const btn = document.getElementById('returnLookupBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>Searching...';
+    try {
+        const res = await fetch('/cashier/sale-lookup?invoice_number=' + encodeURIComponent(invoice), {
+            headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' }
+        });
+        const data = await res.json();
+        if (!res.ok) throw data;
+        returnSaleData = data.sale;
+        returnSaleData.sale_id = data.sale.id;
+        returnReasonsMap = data.return_reasons || {};
+        renderReturnSale(data);
+        if (data.refund_methods && data.sale.payment_method) {
+            document.getElementById('returnRefundMethod').value = data.sale.payment_method;
+        }
+    } catch (e) {
+        errBox.textContent = e.error || e.message || 'Sale not found';
+        errBox.classList.remove('hidden');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-search mr-1"></i>Find Sale';
+    }
+}
+
+function renderReturnSale(data) {
+    const infoBox = document.getElementById('returnSaleInfo');
+    const wrap = document.getElementById('returnItemsWrap');
+    const body = document.getElementById('returnItemsBody');
+    const sale = data.sale;
+    infoBox.innerHTML = '<span class="font-bold text-primary-900">' + sale.invoice_number + '</span>' +
+        '<span class="text-gray-500 ml-2">' + sale.created_at + ' • ' + sale.customer_name + '</span>' +
+        '<span class="ml-2 font-semibold">TZS ' + formatNumber(sale.total) + '</span>' +
+        '<span class="ml-2 text-xs px-2 py-0.5 bg-gray-200 rounded-full">' + sale.payment_method.toUpperCase() + '</span>';
+    infoBox.classList.remove('hidden');
+
+    const reasonOptions = Object.entries(data.return_reasons || {}).map(([code, label]) =>
+        '<option value="' + code + '">' + label + '</option>').join('');
+
+    body.innerHTML = data.items.map((it, idx) => {
+        const disabled = it.quantity_returnable <= 0 ? 'disabled' : '';
+        const checked = it.quantity_returnable > 0 ? '' : '';
+        return '<tr class="border-b border-gray-100" data-idx="' + idx + '">' +
+            '<td class="py-2 pr-2"><input type="checkbox" class="ret-check w-4 h-4" ' + (it.quantity_returnable > 0 ? 'checked' : '') + ' ' + disabled + ' onchange="updateReturnTotal()"></td>' +
+            '<td class="py-2 pr-2"><p class="font-medium text-gray-800">' + it.product_name + '</p>' +
+            '<p class="text-xs text-gray-500">TZS ' + formatNumber(it.unit_price) + ' • ' +
+            (it.quantity_returned > 0 ? '<span class="text-orange-600">' + it.quantity_returned + ' already returned</span>' : 'no prior return') + '</p></td>' +
+            '<td class="py-2 pr-2 text-center">' + it.quantity_sold + ' / <span class="font-bold">' + it.quantity_returnable + '</span></td>' +
+            '<td class="py-2 pr-2"><input type="number" class="ret-qty w-16 px-2 py-1.5 border border-gray-300 rounded text-center" min="1" max="' + it.quantity_returnable + '" value="1" ' + disabled + ' oninput="updateReturnTotal()"></td>' +
+            '<td class="py-2 pr-2 min-w-[180px]"><select class="ret-reason-code w-full px-2 py-1.5 border border-gray-300 rounded text-xs mb-1" ' + disabled + '>' + reasonOptions + '</select>' +
+            '<input type="text" class="ret-reason w-full px-2 py-1.5 border border-gray-300 rounded text-xs" placeholder="Details * e.g. seal broken..." ' + disabled + ' oninput="updateReturnTotal()"></td>' +
+            '<td class="hidden ret-meta" data-sale-item-id="' + it.sale_item_id + '" data-price="' + it.unit_price + '" data-max="' + it.quantity_returnable + '"></td>' +
+            '</tr>';
+    }).join('');
+    // store items for submit
+    returnSaleData._items = data.items;
+    wrap.classList.remove('hidden');
+    updateReturnTotal();
+}
+
+function updateReturnTotal() {
+    let total = 0;
+    document.querySelectorAll('#returnItemsBody tr').forEach(tr => {
+        const check = tr.querySelector('.ret-check');
+        if (!check || !check.checked) return;
+        const qty = parseInt(tr.querySelector('.ret-qty').value) || 0;
+        const price = parseFloat(tr.querySelector('.ret-meta').dataset.price) || 0;
+        total += qty * price;
+    });
+    document.getElementById('returnTotal').textContent = 'TZS ' + formatNumber(total);
+}
+
+async function submitReturn() {
+    if (!returnSaleData) {
+        showNotification('Find a sale first', 'error');
+        return;
+    }
+    const rows = [...document.querySelectorAll('#returnItemsBody tr')];
+    const items = [];
+    for (const tr of rows) {
+        const check = tr.querySelector('.ret-check');
+        if (!check || !check.checked || check.disabled) continue;
+        const meta = tr.querySelector('.ret-meta');
+        const qtyInput = tr.querySelector('.ret-qty');
+        const codeSel = tr.querySelector('.ret-reason-code');
+        const reasonInput = tr.querySelector('.ret-reason');
+        const qty = parseInt(qtyInput.value) || 0;
+        const max = parseInt(meta.dataset.max) || 0;
+        const reason = (reasonInput.value || '').trim();
+        if (qty < 1 || qty > max) {
+            showNotification('Invalid quantity (max ' + max + ')', 'error');
+            return;
+        }
+        if (!reason) {
+            showNotification('Reason is required for each returned item', 'error');
+            reasonInput.focus();
+            return;
+        }
+        items.push({
+            sale_item_id: parseInt(meta.dataset.saleItemId),
+            quantity: qty,
+            reason_code: codeSel.value,
+            reason: reason
+        });
+    }
+    if (items.length === 0) {
+        showNotification('Select at least one item to return', 'error');
+        return;
+    }
+    const btn = document.getElementById('returnSubmitBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>Submitting...';
+    try {
+        const res = await fetch('{{ route('cashier.returns.store') }}', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+            body: JSON.stringify({
+                sale_id: returnSaleData.sale_id,
+                items: items,
+                refund_method: document.getElementById('returnRefundMethod').value,
+                reason: document.getElementById('returnOverallNote').value.trim() || items.map(i => i.reason).join('; ')
+            })
+        });
+        const data = await res.json();
+        if (!res.ok) throw data;
+        showNotification(data.message || 'Return submitted!', 'success');
+        hideReturnModal();
+        document.getElementById('returnItemsWrap').classList.add('hidden');
+        document.getElementById('returnSaleInfo').classList.add('hidden');
+        document.getElementById('returnInvoiceInput').value = '';
+        document.getElementById('returnOverallNote').value = '';
+        returnSaleData = null;
+        loadDashboardData();
+    } catch (e) {
+        showNotification(e.error || e.message || 'Return failed', 'error');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-check mr-1"></i>Submit Return for Approval';
+    }
+}
+
+async function toggleMyReturns() {
+    const list = document.getElementById('myReturnsList');
+    if (!list.classList.contains('hidden')) {
+        list.classList.add('hidden');
+        return;
+    }
+    list.innerHTML = '<p class="text-gray-500">Loading...</p>';
+    list.classList.remove('hidden');
+    try {
+        const res = await fetch('{{ route('cashier.returns.index') }}', { headers: { 'Accept': 'application/json' } });
+        const data = await res.json();
+        if (!data.returns || data.returns.length === 0) {
+            list.innerHTML = '<p class="text-gray-500">No returns yet.</p>';
+            return;
+        }
+        list.innerHTML = data.returns.map(r => {
+            const badge = r.approval_status === 'approved'
+                ? '<span class="px-2 py-0.5 bg-green-100 text-green-700 rounded-full text-xs font-semibold">Approved</span>'
+                : (r.approval_status === 'rejected'
+                    ? '<span class="px-2 py-0.5 bg-red-100 text-red-700 rounded-full text-xs font-semibold">Rejected</span>'
+                    : '<span class="px-2 py-0.5 bg-yellow-100 text-yellow-700 rounded-full text-xs font-semibold">Pending</span>');
+            return '<div class="p-2 border border-gray-200 rounded-lg flex justify-between gap-2">' +
+                '<div><p class="font-semibold">' + r.return_number + ' <span class="text-gray-500 font-normal">→ ' + r.invoice_number + '</span></p>' +
+                '<p class="text-xs text-gray-500">' + r.created_at + ' • ' + r.items_count + ' items • TZS ' + formatNumber(r.total) + '</p></div>' +
+                '<div>' + badge + '</div></div>';
+        }).join('');
+    } catch (e) {
+        list.innerHTML = '<p class="text-red-500">Failed to load returns.</p>';
+    }
+}
+
+// Allow Enter in invoice input to search
+document.addEventListener('DOMContentLoaded', function() {
+    const inv = document.getElementById('returnInvoiceInput');
+    if (inv) inv.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') { e.preventDefault(); lookupReturnSale(); }
+    });
+});
 
 // ============ HELD SALES (Park/Resume) ============
 function updateHeldSalesBadge() {

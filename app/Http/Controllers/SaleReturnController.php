@@ -58,20 +58,49 @@ class SaleReturnController extends Controller {
             'items' => 'required|array|min:1',
             'items.*.sale_item_id' => 'required|exists:sale_items,id',
             'items.*.quantity' => 'required|integer|min:1',
+            'items.*.reason' => 'nullable|string|max:500',
+            'items.*.reason_code' => 'nullable|string|max:50',
             'reason' => 'nullable|string|max:1000',
-            'refund_method' => 'nullable|in:cash,mobile,card,credit',
+            'reason_code' => 'nullable|string|max:50',
+            'refund_method' => 'nullable|in:cash,mobile,card,credit,clickpesa',
         ]);
 
         $sale = Sale::with('items')->findOrFail($request->sale_id);
         if ($sale->status !== 'completed') return back()->with('error','Only completed sales can be returned');
 
         // Validate return quantity does not exceed sold minus previously returned
-        foreach ($request->items as $itemData) {
+        // Normalize items: drop unchecked rows (web form sends sale_item_id=0/off when unchecked)
+        $items = collect($request->items)->filter(function ($itemData) {
+            return !empty($itemData['sale_item_id']);
+        })->values()->all();
+        if (empty($items)) {
+            if ($request->expectsJson()) return response()->json(['error' => 'Select at least one item to return'], 422);
+            return back()->with('error','Select at least one item to return');
+        }
+        foreach ($items as $itemData) {
             $saleItem = \App\Models\SaleItem::find($itemData['sale_item_id']);
-            if ((int)$saleItem->sale_id !== (int)$sale->id) return back()->with('error','Sale item does not belong to this sale');
+            if (!$saleItem) {
+                if ($request->expectsJson()) return response()->json(['error' => 'Invalid sale item'], 422);
+                return back()->with('error','Invalid sale item');
+            }
+            if ((int)$saleItem->sale_id !== (int)$sale->id) {
+                if ($request->expectsJson()) return response()->json(['error' => 'Sale item does not belong to this sale'], 422);
+                return back()->with('error','Sale item does not belong to this sale');
+            }
             $alreadyReturned = SaleReturnItem::where('sale_item_id',$saleItem->id)->sum('quantity');
             $available = $saleItem->quantity - $alreadyReturned;
-            if ($itemData['quantity'] > $available) return back()->with('error',"Return quantity for {$saleItem->product->name} exceeds available {$available}");
+            if ($itemData['quantity'] > $available) {
+                $msg = "Return quantity for {$saleItem->product->name} exceeds available {$available}";
+                if ($request->expectsJson()) return response()->json(['error' => $msg], 422);
+                return back()->with('error',$msg);
+            }
+            // Per-item reason is required
+            $itemReason = trim($itemData['reason'] ?? '');
+            if ($itemReason === '') {
+                $msg = "Reason is required for {$saleItem->product->name}";
+                if ($request->expectsJson()) return response()->json(['error' => $msg], 422);
+                return back()->with('error',$msg);
+            }
         }
 
         $returnNumber = 'RET-' . date('YmdHis');
@@ -97,12 +126,19 @@ class SaleReturnController extends Controller {
 
             $returnItemsTotal = 0;
             $refundAmount = 0;
-            foreach ($request->items as $itemData) {
+            foreach ($items as $itemData) {
                 $saleItem = \App\Models\SaleItem::find($itemData['sale_item_id']);
                 $itemTotal = $itemData['quantity'] * $saleItem->unit_price;
                 $total += $itemTotal;
                 $refundAmount += $itemTotal;
                 $returnItemsTotal += $itemData['quantity'] * ($saleItem->product->cost_price ?? 0);
+
+                // Per-item reason (label or free text). Fall back to overall reason.
+                $itemReasonCode = $itemData['reason_code'] ?? $request->reason_code;
+                $itemReasonText = trim($itemData['reason'] ?? '') !== '' ? trim($itemData['reason']) : $request->reason;
+                if ($itemReasonCode && isset(SaleReturn::REASONS[$itemReasonCode])) {
+                    $itemReasonText = SaleReturn::REASONS[$itemReasonCode] . ($itemReasonText && $itemReasonText !== SaleReturn::REASONS[$itemReasonCode] ? ' - ' . $itemReasonText : '');
+                }
 
                 $return->items()->create([
                     'sale_item_id' => $itemData['sale_item_id'],
@@ -110,7 +146,7 @@ class SaleReturnController extends Controller {
                     'quantity_sold' => $saleItem->quantity,
                     'unit_price' => $saleItem->unit_price,
                     'total' => $itemTotal,
-                    'reason' => $request->reason,
+                    'reason' => $itemReasonText,
                 ]);
 
                 // Only update stock if approved (manager/admin auto-approved)
@@ -146,10 +182,15 @@ class SaleReturnController extends Controller {
             \Illuminate\Support\Facades\DB::commit();
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\DB::rollBack();
+            if ($request->expectsJson()) return response()->json(['error' => 'Return failed: '.$e->getMessage()], 500);
             return back()->with('error','Return failed: '.$e->getMessage());
         }
 
         $msg = $return->approval_status==='approved' ? 'Return processed and approved!' : 'Return submitted for approval!';
+        if ($request->expectsJson()) {
+            $return->load(['items.saleItem.product', 'sale']);
+            return response()->json(['success' => true, 'message' => $msg, 'return' => $return], 201);
+        }
         return redirect()->route('sales.returns')->with('success', $msg);
     }
 

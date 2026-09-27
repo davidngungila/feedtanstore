@@ -36,7 +36,28 @@
                 <p class="text-sm text-gray-500 mb-1">Total</p>
                 <p class="font-medium text-red-600">TZS {{ number_format($return->total, 2) }}</p>
             </div>
+            <div>
+                <p class="text-sm text-gray-500 mb-1">Approval Status</p>
+                @if($return->approval_status === 'approved')
+                    <span class="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-semibold">Approved</span>
+                @elseif($return->approval_status === 'rejected')
+                    <span class="px-2 py-1 bg-red-100 text-red-700 rounded-full text-xs font-semibold">Rejected</span>
+                @else
+                    <span class="px-2 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs font-semibold">Pending</span>
+                @endif
+            </div>
+            <div>
+                <p class="text-sm text-gray-500 mb-1">Refund Method</p>
+                <p class="font-medium">{{ ucfirst($return->refund_method ?? '-') }}</p>
+            </div>
         </div>
+
+        @if($return->approval_status !== 'approved' && in_array(auth()->user()->role ?? '', ['admin','manager','store_supervisor']))
+        <form action="{{ route('sales.returns.approve', $return) }}" method="POST" class="mb-6">
+            @csrf
+            <button class="px-4 py-2 bg-green-600 text-white rounded-lg"><i class="fas fa-check mr-2"></i>Approve & Restore Stock</button>
+        </form>
+        @endif
 
         <div class="mb-6">
             <p class="text-sm text-gray-500 mb-1">Reason for Return</p>
@@ -50,7 +71,8 @@
                     <tr>
                         <th class="text-left">Product</th>
                         <th class="text-left">Price</th>
-                        <th class="text-left">Quantity</th>
+                        <th class="text-left">Qty</th>
+                        <th class="text-left">Reason</th>
                         <th class="text-left">Total</th>
                     </tr>
                 </thead>
@@ -61,7 +83,8 @@
                             {{ $item->saleItem->product->name ?? 'Product' }}
                         </td>
                         <td>TZS {{ number_format($item->unit_price, 2) }}</td>
-                        <td>{{ $item->quantity }}</td>
+                        <td>{{ $item->quantity }} <span class="text-xs text-gray-400">(sold {{ $item->quantity_sold ?? $item->saleItem->quantity ?? '-' }})</span></td>
+                        <td class="text-sm text-gray-700">{{ $item->reason ?? '-' }}</td>
                         <td>TZS {{ number_format($item->total, 2) }}</td>
                     </tr>
                     @endforeach

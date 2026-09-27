@@ -720,4 +720,193 @@ class CashierController extends Controller
             // Don't fail the sale if cash drawer doesn't open
         }
     }
+
+    /**
+     * Cashier: lookup a completed sale by invoice number for return.
+     * GET /cashier/sale-lookup?invoice_number=INV-...
+     */
+    public function lookupSale(Request $request)
+    {
+        $request->validate([
+            'invoice_number' => 'required|string|max:100',
+        ]);
+
+        $term = trim($request->invoice_number);
+        $sale = Sale::with(['items.product', 'customer'])
+            ->where('invoice_number', $term)
+            ->orWhere('sale_number', $term)
+            ->orderBy('id', 'desc')
+            ->first();
+
+        if (!$sale) {
+            return response()->json(['error' => 'Sale not found for: ' . $term], 404);
+        }
+        if ($sale->status !== 'completed') {
+            return response()->json(['error' => 'Only completed sales can be returned (status: ' . $sale->status . ')'], 422);
+        }
+
+        $items = $sale->items->map(function ($saleItem) {
+            $alreadyReturned = \App\Models\SaleReturnItem::where('sale_item_id', $saleItem->id)->sum('quantity');
+            return [
+                'sale_item_id' => $saleItem->id,
+                'product_id' => $saleItem->product_id,
+                'product_name' => $saleItem->product->name ?? 'Product',
+                'barcode' => $saleItem->product->barcode ?? null,
+                'unit_price' => (float) $saleItem->unit_price,
+                'quantity_sold' => (int) $saleItem->quantity,
+                'quantity_returned' => (int) $alreadyReturned,
+                'quantity_returnable' => max(0, (int) $saleItem->quantity - (int) $alreadyReturned),
+                'line_total' => (float) $saleItem->total,
+            ];
+        });
+
+        return response()->json([
+            'sale' => [
+                'id' => $sale->id,
+                'invoice_number' => $sale->invoice_number,
+                'sale_number' => $sale->sale_number,
+                'total' => (float) $sale->total,
+                'payment_method' => $sale->payment_method,
+                'created_at' => $sale->created_at->format('Y-m-d H:i'),
+                'customer_name' => $sale->customer->name ?? 'Walk-in Customer',
+                'cashier' => $sale->user->name ?? null,
+            ],
+            'items' => $items,
+            'return_reasons' => \App\Models\SaleReturn::REASONS,
+            'refund_methods' => ['cash', 'mobile', 'card', 'clickpesa'],
+        ]);
+    }
+
+    /**
+     * Cashier: submit a product return with per-item reasons.
+     * POST /cashier/returns
+     */
+    public function processReturn(Request $request)
+    {
+        $data = $request->validate([
+            'sale_id' => 'required|exists:sales,id',
+            'items' => 'required|array|min:1',
+            'items.*.sale_item_id' => 'required|exists:sale_items,id',
+            'items.*.quantity' => 'required|integer|min:1',
+            'items.*.reason_code' => 'nullable|string|max:50',
+            'items.*.reason' => 'required|string|max:500',
+            'reason' => 'nullable|string|max:1000',
+            'refund_method' => 'nullable|in:cash,mobile,card,clickpesa,credit',
+        ]);
+
+        $sale = Sale::with('items.product')->findOrFail($data['sale_id']);
+        if ($sale->status !== 'completed') {
+            return response()->json(['error' => 'Only completed sales can be returned'], 422);
+        }
+
+        // Validate each line: belongs to sale, qty available, reason present + valid code
+        $validCodes = array_keys(\App\Models\SaleReturn::REASONS);
+        foreach ($data['items'] as $itemData) {
+            $saleItem = SaleItem::find($itemData['sale_item_id']);
+            if ((int) $saleItem->sale_id !== (int) $sale->id) {
+                return response()->json(['error' => 'Sale item does not belong to this sale'], 422);
+            }
+            $alreadyReturned = \App\Models\SaleReturnItem::where('sale_item_id', $saleItem->id)->sum('quantity');
+            $available = $saleItem->quantity - $alreadyReturned;
+            if ($itemData['quantity'] > $available) {
+                return response()->json(['error' => "Return quantity for {$saleItem->product->name} exceeds available ({$available})"], 422);
+            }
+            if (empty(trim($itemData['reason'] ?? ''))) {
+                return response()->json(['error' => "Reason is required for {$saleItem->product->name}"], 422);
+            }
+            if (!empty($itemData['reason_code']) && !in_array($itemData['reason_code'], $validCodes, true)) {
+                return response()->json(['error' => "Invalid reason for {$saleItem->product->name}"], 422);
+            }
+            if (($itemData['reason_code'] ?? '') === 'other' && strlen(trim($itemData['reason'])) < 3) {
+                return response()->json(['error' => "Please specify the reason for {$saleItem->product->name}"], 422);
+            }
+        }
+
+        \Illuminate\Support\Facades\DB::beginTransaction();
+        try {
+            $returnNumber = 'RET-' . date('YmdHis') . '-' . strtoupper(\Illuminate\Support\Str::random(4));
+            // Cashier returns always go to pending approval (supervisor/manager approves, restores stock)
+            $return = \App\Models\SaleReturn::create([
+                'return_number' => $returnNumber,
+                'receipt_number' => $sale->invoice_number,
+                'sale_id' => $sale->id,
+                'branch_id' => $sale->branch_id ?? null,
+                'location_id' => $sale->location_id ?? null,
+                'user_id' => Auth::id(),
+                'total' => 0,
+                'refund_amount' => 0,
+                'reason' => $data['reason'] ?? collect($data['items'])->map(fn($i) => trim($i['reason']))->filter()->implode('; '),
+                'approval_status' => 'pending',
+                'refund_method' => $data['refund_method'] ?? $sale->payment_method ?? 'cash',
+            ]);
+
+            $total = 0;
+            foreach ($data['items'] as $itemData) {
+                $saleItem = SaleItem::find($itemData['sale_item_id']);
+                $itemTotal = $itemData['quantity'] * $saleItem->unit_price;
+                $total += $itemTotal;
+
+                $code = $itemData['reason_code'] ?? null;
+                $text = trim($itemData['reason']);
+                if ($code && isset(\App\Models\SaleReturn::REASONS[$code]) && $code !== 'other') {
+                    $label = \App\Models\SaleReturn::REASONS[$code];
+                    // Avoid duplicating label if cashier typed it
+                    $reasonText = strcasecmp($text, $label) === 0 ? $label : $label . ' - ' . $text;
+                } else {
+                    $reasonText = $text;
+                }
+
+                $return->items()->create([
+                    'sale_item_id' => $saleItem->id,
+                    'quantity' => $itemData['quantity'],
+                    'quantity_sold' => $saleItem->quantity,
+                    'unit_price' => $saleItem->unit_price,
+                    'total' => $itemTotal,
+                    'reason' => $reasonText,
+                ]);
+            }
+
+            $return->update(['total' => $total, 'refund_amount' => $total, 'stock_updated' => false]);
+
+            \App\Services\AuditService::log('create_sale_return_pending', 'sales', \App\Models\SaleReturn::class, $return->id, null, $return->toArray(), 'Cashier return pending approval ' . $return->return_number . ' for ' . $sale->invoice_number);
+
+            \Illuminate\Support\Facades\DB::commit();
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\DB::rollBack();
+            \Log::error('Cashier return failed: ' . $e->getMessage());
+            return response()->json(['error' => 'Return failed: ' . $e->getMessage()], 500);
+        }
+
+        $return->load(['items.saleItem.product', 'sale']);
+        return response()->json([
+            'success' => true,
+            'message' => 'Return ' . $return->return_number . ' submitted for approval!',
+            'return' => $return,
+        ], 201);
+    }
+
+    /**
+     * Cashier: list returns created by the logged-in cashier (today + recent).
+     */
+    public function myReturns(Request $request)
+    {
+        $returns = \App\Models\SaleReturn::with(['sale', 'items.saleItem.product'])
+            ->where('user_id', Auth::id())
+            ->orderBy('created_at', 'desc')
+            ->limit(30)
+            ->get()
+            ->map(fn($r) => [
+                'id' => $r->id,
+                'return_number' => $r->return_number,
+                'invoice_number' => $r->sale->invoice_number ?? $r->receipt_number,
+                'total' => (float) $r->total,
+                'approval_status' => $r->approval_status,
+                'refund_method' => $r->refund_method,
+                'reason' => $r->reason,
+                'created_at' => $r->created_at->format('Y-m-d H:i'),
+                'items_count' => $r->items->sum('quantity'),
+            ]);
+
+        return response()->json(['returns' => $returns]);
+    }
 }
