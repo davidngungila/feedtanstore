@@ -732,11 +732,24 @@ class CashierController extends Controller
         ]);
 
         $term = trim($request->invoice_number);
-        $sale = Sale::with(['items.product', 'customer'])
-            ->where('invoice_number', $term)
-            ->orWhere('sale_number', $term)
-            ->orderBy('id', 'desc')
-            ->first();
+        // NOTE: sale_number column may not exist on older databases (added by
+        // 2026_09_27 migration), so only query it when present.
+        $hasSaleNumber = \Illuminate\Support\Facades\Schema::hasColumn('sales', 'sale_number');
+        $query = Sale::with(['items.product', 'customer', 'user'])
+            ->where('invoice_number', $term);
+        if ($hasSaleNumber) {
+            $query->orWhere('sale_number', $term);
+        }
+        $sale = $query->orderBy('id', 'desc')->first();
+
+        // Fallback: partial match (helps when receipt number is mistyped)
+        if (!$sale) {
+            $like = Sale::with(['items.product', 'customer', 'user'])
+                ->where('invoice_number', 'like', '%' . $term . '%')
+                ->orderBy('id', 'desc')
+                ->first();
+            if ($like && strlen($term) >= 6) $sale = $like;
+        }
 
         if (!$sale) {
             return response()->json(['error' => 'Sale not found for: ' . $term], 404);
@@ -764,7 +777,7 @@ class CashierController extends Controller
             'sale' => [
                 'id' => $sale->id,
                 'invoice_number' => $sale->invoice_number,
-                'sale_number' => $sale->sale_number,
+                'sale_number' => $sale->getAttribute('sale_number'),
                 'total' => (float) $sale->total,
                 'payment_method' => $sale->payment_method,
                 'created_at' => $sale->created_at->format('Y-m-d H:i'),

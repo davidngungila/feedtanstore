@@ -2473,11 +2473,20 @@ async function lookupReturnSale() {
     const btn = document.getElementById('returnLookupBtn');
     btn.disabled = true;
     btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>Searching...';
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 20000);
     try {
         const res = await fetch('/cashier/sale-lookup?invoice_number=' + encodeURIComponent(invoice), {
-            headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' }
+            headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+            signal: controller.signal
         });
-        const data = await res.json();
+        const raw = await res.text();
+        let data = {};
+        try { data = raw ? JSON.parse(raw) : {}; }
+        catch (parseErr) {
+            // Server returned HTML (e.g. login redirect or debug page) instead of JSON
+            throw { error: res.status === 401 || res.status === 419 ? 'Session expired. Refresh the page and try again.' : 'Server error (' + res.status + '). Please try again.' };
+        }
         if (!res.ok) throw data;
         returnSaleData = data.sale;
         returnSaleData.sale_id = data.sale.id;
@@ -2487,9 +2496,14 @@ async function lookupReturnSale() {
             document.getElementById('returnRefundMethod').value = data.sale.payment_method;
         }
     } catch (e) {
-        errBox.textContent = e.error || e.message || 'Sale not found';
+        if (e && e.name === 'AbortError') {
+            errBox.textContent = 'Request timed out. Check connection and try again.';
+        } else {
+            errBox.textContent = (e && (e.error || e.message)) || 'Sale not found';
+        }
         errBox.classList.remove('hidden');
     } finally {
+        clearTimeout(timeoutId);
         btn.disabled = false;
         btn.innerHTML = '<i class="fas fa-search mr-1"></i>Find Sale';
     }
@@ -2593,7 +2607,12 @@ async function submitReturn() {
                 reason: document.getElementById('returnOverallNote').value.trim() || items.map(i => i.reason).join('; ')
             })
         });
-        const data = await res.json();
+        const raw = await res.text();
+        let data = {};
+        try { data = raw ? JSON.parse(raw) : {}; }
+        catch (parseErr) {
+            throw { error: res.status === 401 || res.status === 419 ? 'Session expired. Refresh the page and try again.' : 'Server error (' + res.status + '). Please try again.' };
+        }
         if (!res.ok) throw data;
         showNotification(data.message || 'Return submitted!', 'success');
         hideReturnModal();
@@ -2604,7 +2623,7 @@ async function submitReturn() {
         returnSaleData = null;
         loadDashboardData();
     } catch (e) {
-        showNotification(e.error || e.message || 'Return failed', 'error');
+        showNotification((e && (e.error || e.message)) || 'Return failed', 'error');
     } finally {
         btn.disabled = false;
         btn.innerHTML = '<i class="fas fa-check mr-1"></i>Submit Return for Approval';
