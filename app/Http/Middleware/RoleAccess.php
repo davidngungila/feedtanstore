@@ -14,7 +14,7 @@ class RoleAccess
         $user = Auth::user();
         if (!$user) {
             if ($request->expectsJson()) return response()->json(['message'=>'Unauthenticated'],401);
-            return redirect()->route('login');
+            return redirect()->route('entry');
         }
         // admin always passes unless explicitly restricted? No - strict for stock_auditor isolation but admin can do everything
         if ($user->role === 'admin') return $next($request);

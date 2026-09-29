@@ -19,6 +19,11 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 Route::redirect('/admin', '/');
 Route::get('/', [\App\Http\Controllers\OnlineOrderController::class, 'shop'])->name('home');
 
+// Design system previews (alpha)
+Route::get('/design/airbnb', function () {
+    return view('design.airbnb');
+})->name('design.airbnb');
+
 // Public verify route
 Route::get('/sales/receipts/{sale}/verify', [\App\Http\Controllers\ReceiptController::class, 'verify'])->name('sales.receipts.verify');
 Route::get('/sales/receipts/{sale}/download', [\App\Http\Controllers\ReceiptController::class, 'download'])->name('sales.receipts.download');
@@ -504,6 +509,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/orders/{order}/assign-rider', [\App\Http\Controllers\OnlineOrderController::class, 'assignRider'])->name('orders.assign-rider');
         
         Route::get('/catalog', [\App\Http\Controllers\ProductCatalogController::class, 'index'])->name('catalog');
+        Route::post('/catalog/bulk-toggle', [\App\Http\Controllers\ProductCatalogController::class, 'bulkToggleOnlineStatus'])->name('catalog.bulk-toggle');
         Route::get('/catalog/{product}', [\App\Http\Controllers\ProductCatalogController::class, 'show'])->name('catalog.show');
         Route::post('/catalog/{product}/toggle', [\App\Http\Controllers\ProductCatalogController::class, 'toggleOnlineStatus'])->name('catalog.toggle');
         Route::post('/catalog/{product}/images', [\App\Http\Controllers\ProductCatalogController::class, 'uploadImage'])->name('catalog.images.upload');

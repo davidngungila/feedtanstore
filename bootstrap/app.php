@@ -30,6 +30,29 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->shouldRenderJsonWhen(
             fn (Request $request) => $request->is('api/*'),
         );
+
+        // Session expire / unauthenticated: always go to /entry (never /login)
+        $exceptions->render(function (\Illuminate\Auth\AuthenticationException $e, Request $request) {
+            if ($request->expectsJson() || $request->is('api/*')) {
+                return null;
+            }
+
+            return redirect()->route('entry');
+        });
+
+        // CSRF token mismatch (419 - session expired on POST): go to /entry for admin pages
+        $exceptions->render(function (\Illuminate\Session\TokenMismatchException $e, Request $request) {
+            if ($request->expectsJson() || $request->is('api/*')) {
+                return null;
+            }
+
+            // Keep public shop / receipt verification on the 419 page (it now links to /entry)
+            if ($request->is('/', 'shop*', 'sales/receipts/*', 'sitemap.xml')) {
+                return null;
+            }
+
+            return redirect()->route('entry');
+        });
     })->create();
 
 // Rate limit for rider GPS location updates (throttle: 1 request per 4 seconds, 45/minute)

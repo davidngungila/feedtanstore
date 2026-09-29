@@ -28,6 +28,29 @@ class ProductCatalogController extends Controller
         return back()->with('success', 'Product online status updated!');
     }
 
+    public function bulkToggleOnlineStatus(Request $request)
+    {
+        $validated = $request->validate([
+            'action' => ['required', 'in:activate,deactivate'],
+            'product_ids' => ['nullable', 'array'],
+            'product_ids.*' => ['integer', 'exists:products,id'],
+        ]);
+
+        $makeAvailable = $validated['action'] === 'activate';
+        $ids = $validated['product_ids'] ?? [];
+
+        if (empty($ids)) {
+            // No selection = apply to ALL products
+            $count = Product::query()->update(['is_available_online' => $makeAvailable, 'updated_at' => now()]);
+        } else {
+            $count = Product::whereIn('id', $ids)->update(['is_available_online' => $makeAvailable, 'updated_at' => now()]);
+        }
+
+        $label = $makeAvailable ? 'activated (Online)' : 'deactivated (Offline)';
+
+        return back()->with('success', "{$count} product(s) {$label} successfully!");
+    }
+
     public function uploadImage(Request $request, Product $product)
     {
         $request->validate([

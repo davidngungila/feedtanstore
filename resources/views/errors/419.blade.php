@@ -21,7 +21,7 @@
         </div>
         <h1 class="text-6xl font-bold text-gray-800 mb-4">419</h1>
         <h2 class="text-2xl font-semibold text-gray-700 mb-4">Page Expired</h2>
-        <p class="text-gray-600 mb-4">Your session has expired. Please refresh and try again.</p>
+        <p class="text-gray-600 mb-4">Your session has expired. Please re-enter to continue.</p>
         <div class="mb-8">
             <p class="text-gray-600 mb-2">If the problem persists, please contact our system administrator:</p>
             <div class="flex flex-col items-center gap-2 text-emerald-700">
@@ -39,8 +39,8 @@
                 </a>
             </div>
         </div>
-        <a href="{{ url()->current() }}" class="inline-block bg-emerald-700 hover:bg-emerald-800 text-white font-semibold py-3 px-8 rounded-lg transition-colors duration-200">
-            Refresh
+        <a href="{{ route('entry') }}" class="inline-block bg-emerald-700 hover:bg-emerald-800 text-white font-semibold py-3 px-8 rounded-lg transition-colors duration-200">
+            Go to Entry
         </a>
     </div>
 </body>
