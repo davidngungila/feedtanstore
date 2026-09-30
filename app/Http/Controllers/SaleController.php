@@ -255,7 +255,7 @@ class SaleController extends Controller {
                 $currentShift->increment('cash_sales', $total);
             } elseif ($request->payment_method == 'card') {
                 $currentShift->increment('card_sales', $total);
-            } elseif ($request->payment_method == 'mobile') {
+            } elseif (in_array($request->payment_method, ['mobile', 'lipa_namba'])) {
                 $currentShift->increment('mobile_sales', $total);
             }
         }
@@ -474,7 +474,7 @@ class SaleController extends Controller {
             if ($oldShiftId) {
                 $shift = Shift::find($oldShiftId);
                 if ($shift) {
-                    $column = $oldPaymentMethod == 'card' ? 'card_sales' : ($oldPaymentMethod == 'mobile' ? 'mobile_sales' : 'cash_sales');
+                    $column = $oldPaymentMethod == 'card' ? 'card_sales' : (in_array($oldPaymentMethod, ['mobile', 'lipa_namba']) ? 'mobile_sales' : 'cash_sales');
                     $shift->decrement($column, $oldTotal);
                 }
             }
@@ -520,7 +520,7 @@ class SaleController extends Controller {
             if ($targetShiftId) {
                 $shift = Shift::find($targetShiftId);
                 if ($shift) {
-                    $column = $request->payment_method == 'card' ? 'card_sales' : ($request->payment_method == 'mobile' ? 'mobile_sales' : 'cash_sales');
+                    $column = $request->payment_method == 'card' ? 'card_sales' : (in_array($request->payment_method, ['mobile', 'lipa_namba']) ? 'mobile_sales' : 'cash_sales');
                     $shift->increment($column, $total);
                     // Keep sale linked to a shift
                     if (!$sale->shift_id) {

@@ -56,6 +56,7 @@ class ReportController extends Controller
         $cashTotal = $paymentMethods->where('payment_method', 'cash')->sum('total');
         $cardTotal = $paymentMethods->where('payment_method', 'card')->sum('total');
         $mobileMoneyTotal = $paymentMethods->where('payment_method', 'mobile')->sum('total');
+        $lipaNambaTotal = $paymentMethods->where('payment_method', 'lipa_namba')->sum('total');
         $creditTotal = $paymentMethods->whereIn('payment_method', ['clickpesa', 'online'])->sum('total');
         
         $transactions = Sale::with(['customer', 'user'])
@@ -65,7 +66,7 @@ class ReportController extends Controller
         
         return view('reports.sales.daily', compact(
             'date', 'totalSales', 'transactionCount', 'averageSale', 'itemsSold',
-            'cashTotal', 'cardTotal', 'mobileMoneyTotal', 'creditTotal', 'transactions'
+            'cashTotal', 'cardTotal', 'mobileMoneyTotal', 'lipaNambaTotal', 'creditTotal', 'transactions'
         ));
     }
 

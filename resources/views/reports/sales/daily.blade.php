@@ -76,6 +76,10 @@
                         <span class="font-semibold text-primary-900">TZS {{ number_format($mobileMoneyTotal, 2) }}</span>
                     </div>
                     <div class="flex items-center justify-between">
+                        <span class="text-gray-700">Lipa Namba</span>
+                        <span class="font-semibold text-primary-900">TZS {{ number_format($lipaNambaTotal, 2) }}</span>
+                    </div>
+                    <div class="flex items-center justify-between">
                         <span class="text-gray-700">Online / ClickPesa</span>
                         <span class="font-semibold text-primary-900">TZS {{ number_format($creditTotal, 2) }}</span>
                     </div>

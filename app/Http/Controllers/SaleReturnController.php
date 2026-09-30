@@ -62,7 +62,7 @@ class SaleReturnController extends Controller {
             'items.*.reason_code' => 'nullable|string|max:50',
             'reason' => 'nullable|string|max:1000',
             'reason_code' => 'nullable|string|max:50',
-            'refund_method' => 'nullable|in:cash,mobile,card,credit,clickpesa',
+            'refund_method' => 'nullable|in:cash,mobile,card,credit,clickpesa,lipa_namba',
         ]);
 
         $sale = Sale::with('items')->findOrFail($request->sale_id);

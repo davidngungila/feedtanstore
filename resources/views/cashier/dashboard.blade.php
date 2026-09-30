@@ -36,12 +36,12 @@
         </div>
         <div class="card rounded-2xl p-3">
             <div class="flex items-center justify-between gap-1 mb-1">
-                <h4 class="text-sm font-medium text-gray-600 truncate">Lipa namba</h4>
+                <h4 class="text-sm font-medium text-gray-600 truncate">Lipa Namba</h4>
                 <button type="button" onclick="toggleBalance(this)" class="text-gray-400 hover:text-gray-600 transition-colors" title="Show / hide value">
                     <i class="fas fa-eye"></i>
                 </button>
             </div>
-            <p class="text-xl font-bold text-purple-700 truncate balance-value" id="todayMobile" data-visible="0">TZS ••••</p>
+            <p class="text-xl font-bold text-purple-700 truncate balance-value" id="todayLipaNamba" data-visible="0">TZS ••••</p>
         </div>
         <div class="card rounded-2xl p-3">
             <div class="flex items-center justify-between gap-1 mb-1">
@@ -131,8 +131,8 @@
                         <button type="button" class="flex-1 py-2.5 border-2 border-gray-300 text-gray-700 hover:border-primary-500 rounded-lg font-semibold text-sm" id="methodCard" onclick="selectPaymentMethod('card')">
                             <i class="fas fa-credit-card mr-1"></i>Card
                         </button>
-                        <button type="button" class="flex-1 py-2.5 border-2 border-gray-300 text-gray-700 hover:border-primary-500 rounded-lg font-semibold text-sm" id="methodMobile" onclick="selectPaymentMethod('mobile')">
-                            <i class="fas fa-mobile-alt mr-1"></i>Mobile
+                        <button type="button" class="flex-1 py-2.5 border-2 border-gray-300 text-gray-700 hover:border-primary-500 rounded-lg font-semibold text-sm" id="methodLipa_namba" onclick="selectPaymentMethod('lipa_namba')">
+                            <i class="fas fa-store mr-1"></i>Lipa Namba
                         </button>
                         <button type="button" class="flex-1 py-2.5 border-2 border-gray-300 text-gray-700 hover:border-primary-500 rounded-lg font-semibold text-sm" id="methodClickpesa" onclick="selectPaymentMethod('clickpesa')">
                             <i class="fas fa-mobile-alt mr-1"></i>ClickPesa
@@ -438,9 +438,10 @@
                     <span class="text-gray-700 font-medium mb-1.5 text-sm">Refund Method</span>
                     <select id="returnRefundMethod" class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm">
                         <option value="cash">Cash</option>
-                        <option value="mobile">Mobile</option>
+                        <option value="mobile">Mobile (legacy)</option>
                         <option value="card">Card</option>
                         <option value="clickpesa">ClickPesa</option>
+                        <option value="lipa_namba">Lipa Namba</option>
                     </select>
                 </label>
                 <div class="text-right">
@@ -804,8 +805,8 @@ let dashboardData = {
     shiftSales: 0,
     todayItems: 0,
     shiftItems: 0,
-    todayBreakdown: {cash: 0, card: 0, mobile: 0},
-    shiftBreakdown: {cash: 0, card: 0, mobile: 0},
+    todayBreakdown: {cash: 0, card: 0, mobile: 0, clickpesa: 0, lipa_namba: 0},
+    shiftBreakdown: {cash: 0, card: 0, mobile: 0, clickpesa: 0, lipa_namba: 0},
     transactions: []
 };
 
@@ -1151,23 +1152,30 @@ async function loadDashboardData() {
     }
 }
 
+function prettyMethod(m) {
+    return String(m || '').toUpperCase().replace(/_/g, ' ');
+}
+
 function updateDashboardDisplay() {
     // Safely parse all numbers
     const sessionTotal = parseFloat(dashboardData.sessionTotal || 0);
     const sessionItemsCount = parseInt(dashboardData.sessionItems || 0);
     const todayCash = parseFloat(dashboardData.sessionBreakdown?.cash || 0);
-    const todayMobile = parseFloat(dashboardData.sessionBreakdown?.mobile || 0);
+    const todayMobileLegacy = parseFloat(dashboardData.sessionBreakdown?.mobile || 0);
+    const todayLipa = parseFloat(dashboardData.sessionBreakdown?.lipa_namba || 0);
     const todayCard = parseFloat(dashboardData.sessionBreakdown?.card || 0);
     const todayClickpesa = parseFloat(dashboardData.sessionBreakdown?.clickpesa || 0);
+    // Lipa Namba card combines current lipa_namba sales with legacy mobile sales (same mobile-money bucket)
+    const todayLipaNamba = todayLipa + todayMobileLegacy;
     
-    // Calculate total of all payment methods
-    const totalPayments = todayCash + todayCard + todayMobile + todayClickpesa;
+    // Calculate total of all payment methods (each sale counted exactly once)
+    const totalPayments = todayCash + todayCard + todayClickpesa + todayLipaNamba;
     
     setBalanceValue('shiftSales', totalPayments);
     document.getElementById('shiftItems').textContent = sessionItemsCount + ' items';
     setBalanceValue('todayCash', todayCash);
     setBalanceValue('todayCard', todayCard);
-    setBalanceValue('todayMobile', todayMobile);
+    setBalanceValue('todayLipaNamba', todayLipaNamba);
     setBalanceValue('todayClickpesa', todayClickpesa);
 }
 
@@ -2292,7 +2300,7 @@ function showTransactionsModal() {
                     <span class="font-semibold text-gray-800">TZS ${formatNumber(parseFloat(t.total))}</span>
                 </div>
                 <div class="flex flex-col sm:flex-row sm:justify-between gap-2 text-xs">
-                    <span class="text-gray-500">${t.payment_method.toUpperCase()}</span>
+                    <span class="text-gray-500">${prettyMethod(t.payment_method)}</span>
                     <div class="flex gap-3">
                         <button type="button" onclick="printSpecificReceipt('${t.id}')" class="text-blue-600 hover:text-blue-800">
                             <i class="fas fa-print mr-1"></i>Print
@@ -2366,10 +2374,14 @@ function showAllDetails() {
     const shiftItemsCount = parseInt(dashboardData.shiftItems || 0);
     const todayCash = parseFloat(dashboardData.todayBreakdown?.cash || 0);
     const todayCard = parseFloat(dashboardData.todayBreakdown?.card || 0);
-    const todayMobile = parseFloat(dashboardData.todayBreakdown?.mobile || 0);
-    const shiftCash = parseFloat(dashboardData.shiftBreakdown?.cash || 0);
-    const shiftCard = parseFloat(dashboardData.shiftBreakdown?.card || 0);
-    const shiftMobile = parseFloat(dashboardData.shiftBreakdown?.mobile || 0);
+    const todayMobileLegacy = parseFloat(dashboardData.todayBreakdown?.mobile || 0);
+    const todayClickpesa = parseFloat(dashboardData.todayBreakdown?.clickpesa || 0);
+    const todayLipaNamba = parseFloat(dashboardData.todayBreakdown?.lipa_namba || 0) + todayMobileLegacy;
+    const shiftCash = parseFloat(dashboardData.sessionBreakdown?.cash || 0);
+    const shiftCard = parseFloat(dashboardData.sessionBreakdown?.card || 0);
+    const shiftMobileLegacy = parseFloat(dashboardData.sessionBreakdown?.mobile || 0);
+    const shiftClickpesa = parseFloat(dashboardData.sessionBreakdown?.clickpesa || 0);
+    const shiftLipaNamba = parseFloat(dashboardData.sessionBreakdown?.lipa_namba || 0) + shiftMobileLegacy;
 
         html += '<div class="grid grid-cols-1 md:grid-cols-2 gap-4">';
     html += '<div class="p-4 bg-gray-50 rounded-xl">';
@@ -2378,7 +2390,8 @@ function showAllDetails() {
     html += '<p class="mb-2"><strong>Items:</strong> ' + todayItemsCount + '</p>';
     html += '<p class="mb-2"><strong>Cash:</strong> TZS ' + todayCash.toFixed(2) + '</p>';
     html += '<p class="mb-2"><strong>Card:</strong> TZS ' + todayCard.toFixed(2) + '</p>';
-    html += '<p><strong>Mobile:</strong> TZS ' + todayMobile.toFixed(2) + '</p>';
+    html += '<p class="mb-2"><strong>Lipa Namba:</strong> TZS ' + todayLipaNamba.toFixed(2) + '</p>';
+    html += '<p><strong>ClickPesa:</strong> TZS ' + todayClickpesa.toFixed(2) + '</p>';
     html += '</div>';
 
     html += '<div class="p-4 bg-gray-50 rounded-xl">';
@@ -2387,7 +2400,8 @@ function showAllDetails() {
     html += '<p class="mb-2"><strong>Items:</strong> ' + shiftItemsCount + '</p>';
     html += '<p class="mb-2"><strong>Cash:</strong> TZS ' + shiftCash.toFixed(2) + '</p>';
     html += '<p class="mb-2"><strong>Card:</strong> TZS ' + shiftCard.toFixed(2) + '</p>';
-    html += '<p><strong>Mobile:</strong> TZS ' + shiftMobile.toFixed(2) + '</p>';
+    html += '<p class="mb-2"><strong>Lipa Namba:</strong> TZS ' + shiftLipaNamba.toFixed(2) + '</p>';
+    html += '<p><strong>ClickPesa:</strong> TZS ' + shiftClickpesa.toFixed(2) + '</p>';
     html += '</div>';
     html += '</div>';
 
@@ -2411,7 +2425,7 @@ function showAllDetails() {
             html += '<td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">' + t.invoice_number + '</td>';
             html += '<td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">' + t.created_at + '</td>';
             html += '<td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">' + t.items_count + '</td>';
-            html += '<td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">' + t.payment_method.toUpperCase() + '</td>';
+            html += '<td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">' + prettyMethod(t.payment_method) + '</td>';
             html += '<td class="px-4 py-3 whitespace-nowrap text-sm text-right font-semibold text-gray-900">TZS ' + parseFloat(t.total).toFixed(2) + '</td>';
             html += '</tr>';
         });
@@ -2517,7 +2531,7 @@ function renderReturnSale(data) {
     infoBox.innerHTML = '<span class="font-bold text-primary-900">' + sale.invoice_number + '</span>' +
         '<span class="text-gray-500 ml-2">' + sale.created_at + ' • ' + sale.customer_name + '</span>' +
         '<span class="ml-2 font-semibold">TZS ' + formatNumber(sale.total) + '</span>' +
-        '<span class="ml-2 text-xs px-2 py-0.5 bg-gray-200 rounded-full">' + sale.payment_method.toUpperCase() + '</span>';
+        '<span class="ml-2 text-xs px-2 py-0.5 bg-gray-200 rounded-full">' + prettyMethod(sale.payment_method) + '</span>';
     infoBox.classList.remove('hidden');
 
     const reasonOptions = Object.entries(data.return_reasons || {}).map(([code, label]) =>

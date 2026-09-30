@@ -41,7 +41,7 @@ class ShiftController extends Controller {
         $sales = Sale::where('shift_id', $shift->id)->get();
         $cashSales = $sales->where('payment_method', 'cash')->sum('total');
         $cardSales = $sales->where('payment_method', 'card')->sum('total');
-        $mobileSales = $sales->where('payment_method', 'mobile')->sum('total');
+        $mobileSales = $sales->whereIn('payment_method', ['mobile', 'lipa_namba'])->sum('total');
 
         $shift->update([
             'closed_at' => now(),

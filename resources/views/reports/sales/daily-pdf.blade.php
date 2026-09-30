@@ -232,10 +232,14 @@
                          <td>Card</td>
                          <td style="text-align: right;">TZS {{ number_format($cardTotal, 2) }}</td>
                      </tr>
-                     <tr>
-                         <td>Mobile Money</td>
-                         <td style="text-align: right;">TZS {{ number_format($mobileMoneyTotal, 2) }}</td>
-                     </tr>
+                      <tr>
+                          <td>Mobile Money</td>
+                          <td style="text-align: right;">TZS {{ number_format($mobileMoneyTotal, 2) }}</td>
+                      </tr>
+                      <tr>
+                          <td>Lipa Namba</td>
+                          <td style="text-align: right;">TZS {{ number_format($lipaNambaTotal, 2) }}</td>
+                      </tr>
                      <tr>
                          <td>Credit</td>
                          <td style="text-align: right;">TZS {{ number_format($creditTotal, 2) }}</td>

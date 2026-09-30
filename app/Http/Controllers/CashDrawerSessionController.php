@@ -133,7 +133,7 @@ class CashDrawerSessionController extends Controller
             ->sum('total');
         
         $totalMobileSales = Sale::where('cash_drawer_session_id', $cashDrawerSession->id)
-            ->where('payment_method', 'mobile')
+            ->whereIn('payment_method', ['mobile', 'lipa_namba'])
             ->sum('total');
         
         $totalCardSales = Sale::where('cash_drawer_session_id', $cashDrawerSession->id)
@@ -171,7 +171,7 @@ class CashDrawerSessionController extends Controller
             ->sum('total');
         
         $totalMobileSales = Sale::where('cash_drawer_session_id', $cashDrawerSession->id)
-            ->where('payment_method', 'mobile')
+            ->whereIn('payment_method', ['mobile', 'lipa_namba'])
             ->sum('total');
         
         $totalCardSales = Sale::where('cash_drawer_session_id', $cashDrawerSession->id)
@@ -227,7 +227,7 @@ class CashDrawerSessionController extends Controller
             ->sum('total');
         
         $totalMobileSales = Sale::where('cash_drawer_session_id', $cashDrawerSession->id)
-            ->where('payment_method', 'mobile')
+            ->whereIn('payment_method', ['mobile', 'lipa_namba'])
             ->sum('total');
         
         $totalCardSales = Sale::where('cash_drawer_session_id', $cashDrawerSession->id)
@@ -295,7 +295,7 @@ class CashDrawerSessionController extends Controller
             ->where('payment_method', 'card')
             ->sum('total');
         $totalMobileSales = Sale::where('cash_drawer_session_id', $cashDrawerSession->id)
-            ->where('payment_method', 'mobile')
+            ->whereIn('payment_method', ['mobile', 'lipa_namba'])
             ->sum('total');
         
         return view('cash-drawer-sessions.report', compact(

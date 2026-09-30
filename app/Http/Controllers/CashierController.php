@@ -126,6 +126,7 @@ class CashierController extends Controller
             'card' => $todaySales->where('payment_method', 'card')->sum('total'),
             'mobile' => $todaySales->where('payment_method', 'mobile')->sum('total'),
             'clickpesa' => $todaySales->where('payment_method', 'clickpesa')->sum('total'),
+            'lipa_namba' => $todaySales->where('payment_method', 'lipa_namba')->sum('total'),
         ];
         
         $sessionBreakdown = [
@@ -133,6 +134,7 @@ class CashierController extends Controller
             'card' => $sessionSales->where('payment_method', 'card')->sum('total'),
             'mobile' => $sessionSales->where('payment_method', 'mobile')->sum('total'),
             'clickpesa' => $sessionSales->where('payment_method', 'clickpesa')->sum('total'),
+            'lipa_namba' => $sessionSales->where('payment_method', 'lipa_namba')->sum('total'),
         ];
         
         return response()->json([
@@ -164,7 +166,7 @@ class CashierController extends Controller
                 'items.*.quantity' => 'required|integer|min:1',
                 'items.*.price' => 'required|numeric|min:0',
                 'paid' => 'required|numeric|min:0',
-                'payment_method' => 'required|string|in:cash,card,mobile,clickpesa',
+                'payment_method' => 'required|string|in:cash,card,mobile,clickpesa,lipa_namba',
                 'customer_id' => 'nullable|exists:customers,id',
                 'total' => 'required|numeric|min:0',
                 'discount' => 'nullable|numeric|min:0',
@@ -298,7 +300,7 @@ class CashierController extends Controller
                     $currentShift->increment('cash_sales', $total);
                 } elseif ($data['payment_method'] == 'card') {
                     $currentShift->increment('card_sales', $total);
-                } elseif ($data['payment_method'] == 'mobile') {
+                } elseif (in_array($data['payment_method'], ['mobile', 'lipa_namba'])) {
                     $currentShift->increment('mobile_sales', $total);
                 }
             }
@@ -804,7 +806,7 @@ class CashierController extends Controller
             'items.*.reason_code' => 'nullable|string|max:50',
             'items.*.reason' => 'required|string|max:500',
             'reason' => 'nullable|string|max:1000',
-            'refund_method' => 'nullable|in:cash,mobile,card,clickpesa,credit',
+                'refund_method' => 'nullable|in:cash,mobile,card,clickpesa,lipa_namba,credit',
         ]);
 
         $sale = Sale::with('items.product')->findOrFail($data['sale_id']);
