@@ -35,21 +35,21 @@ class ReceiptController extends Controller {
         return view('sales.receipts', compact('sales', 'search'));
     }
 
-    public function show($id) {
-        $sale = Sale::withTrashed()->findOrFail($id);
+    public function show($key) {
+        $sale = Sale::findByAnyKeyOrFail($key, true);
         $sale->load(['customer', 'user', 'items.product']);
         return view('sales.show', compact('sale'));
     }
 
-    public function verify($id) {
-        $sale = Sale::withTrashed()->findOrFail($id);
+    public function verify($key) {
+        $sale = Sale::findByAnyKeyOrFail($key, true);
         $sale->load(['customer', 'user', 'items.product']);
         $isVerified = $sale->status === 'completed' && !$sale->trashed();
         return view('sales.verify', compact('sale', 'isVerified'));
     }
 
-    public function download($id) {
-        $sale = Sale::withTrashed()->findOrFail($id);
+    public function download($key) {
+        $sale = Sale::findByAnyKeyOrFail($key, true);
         $sale->load(['customer', 'user', 'items.product']);
         
         // Generate SVG QR code (no imagick needed)
@@ -71,8 +71,8 @@ class ReceiptController extends Controller {
         return $dompdf->stream('receipt-' . $sale->invoice_number . '.pdf');
     }
 
-    public function print($id) {
-        $sale = Sale::withTrashed()->findOrFail($id);
+    public function print($key) {
+        $sale = Sale::findByAnyKeyOrFail($key, true);
         $sale->load(['customer', 'user', 'items.product']);
         
         // Generate SVG QR code (no imagick needed)
@@ -85,8 +85,8 @@ class ReceiptController extends Controller {
     /**
      * Print EFD receipt for a sale
      */
-    public function efdPrint($id) {
-        $sale = Sale::withTrashed()->findOrFail($id);
+    public function efdPrint($key) {
+        $sale = Sale::findByAnyKeyOrFail($key, true);
         $sale->load(['customer', 'user', 'items.product']);
 
         $settings = StoreSetting::first();
@@ -110,7 +110,7 @@ class ReceiptController extends Controller {
      */
     public function postToTra(Request $request) {
         $saleId = $request->input('sale_id');
-        $sale = Sale::withTrashed()->findOrFail($saleId);
+        $sale = Sale::findByAnyKeyOrFail($saleId, true);
         $sale->load(['customer', 'user', 'items.product']);
 
         $traService = new TraVfdService();
@@ -135,8 +135,8 @@ class ReceiptController extends Controller {
     /**
      * Generate XML preview for a sale (for debugging)
      */
-    public function traXmlPreview($id) {
-        $sale = Sale::withTrashed()->findOrFail($id);
+    public function traXmlPreview($key) {
+        $sale = Sale::findByAnyKeyOrFail($key, true);
         $sale->load(['customer', 'user', 'items.product']);
 
         $traService = new TraVfdService();

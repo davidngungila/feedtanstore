@@ -138,7 +138,8 @@
                         <select name="payment_method" id="paymentMethod" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
                             <option value="cash">Cash</option>
                             <option value="card">Card</option>
-                            <option value="mobile">Mobile Money</option>
+                            <option value="clickpesa">ClickPesa</option>
+                            <option value="lipa_namba">Lipa Namba</option>
                         </select>
                     </div>
 
@@ -203,6 +204,7 @@ let html5QrCodeScanner = null;
 let barcodeBuffer = '';
 let lastKeyTime = 0;
 let currentSaleId = null;
+let currentSaleKey = null;
 let saleScannerActive = false;
 let lastScannedCode = null;
 let lastScannedAt = 0;
@@ -645,7 +647,7 @@ function printReceipt() {
         iframe.style.width = '0';
         iframe.style.height = '0';
         iframe.style.border = '0';
-        iframe.src = `/sales/receipts/${currentSaleId}/print`;
+        iframe.src = `/sales/receipts/${encodeURIComponent(currentSaleKey || currentSaleId)}/print`;
         document.body.appendChild(iframe);
         
         // Wait for iframe to load, then print
@@ -687,7 +689,7 @@ function printEfdReceipt() {
                             return;
                         }
                         // Open EFD receipt in new tab
-                        const efdUrl = '/sales/receipts/' + currentSaleId + '/efd-print';
+                        const efdUrl = '/sales/receipts/' + encodeURIComponent(currentSaleKey || currentSaleId) + '/efd-print';
                         const iframe = document.createElement('iframe');
                         iframe.style.display = 'none';
                         iframe.src = efdUrl;
@@ -709,7 +711,7 @@ function printEfdReceipt() {
                         alert('TRA posting failed: ' + (result.error || 'Unknown error'));
                         return;
                     }
-                    const efdUrl = '/sales/receipts/' + currentSaleId + '/efd-print';
+                    const efdUrl = '/sales/receipts/' + encodeURIComponent(currentSaleKey || currentSaleId) + '/efd-print';
                     const iframe = document.createElement('iframe');
                     iframe.style.display = 'none';
                     iframe.src = efdUrl;
@@ -799,6 +801,7 @@ document.getElementById('saleForm').addEventListener('submit', async function(e)
             const data = await response.json();
             if (data.success) {
                 currentSaleId = data.sale.id;
+                currentSaleKey = data.sale_key || data.sale.id;
                 document.getElementById('modalTotal').textContent = 'TZS ' + parseFloat(data.total).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
                 document.getElementById('modalPaid').textContent = 'TZS ' + parseFloat(data.paid).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
                 document.getElementById('modalChange').textContent = 'TZS ' + parseFloat(data.change).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");

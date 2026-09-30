@@ -6,8 +6,10 @@
 <div class="animate-[fadeIn_0.4s_ease]">
     @if(request('sale'))
         @php
-            $sale = \App\Models\Sale::with('items.product')->find(request('sale'));
+            $sale = \App\Models\Sale::findByAnyKey(request('sale'));
+            if ($sale) { $sale->load('items.product'); }
         @endphp
+        @if($sale)
         <div class="card rounded-2xl p-6 mb-6">
             <div class="flex items-center justify-between mb-6">
                 <h2 class="text-xl font-bold text-primary-900">Create Return for {{ $sale->invoice_number }}</h2>
@@ -105,6 +107,7 @@
                 </div>
             </form>
         </div>
+        @endif
     @endif
 
     <div class="card rounded-2xl p-6">

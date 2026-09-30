@@ -217,6 +217,7 @@ class SaleController extends Controller {
             return response()->json([
                 'success' => true,
                 'sale' => $sale,
+                'sale_key' => $sale->encrypted_key,
                 'total' => $total,
                 'paid' => $request->paid,
                 'change' => $change
@@ -226,10 +227,248 @@ class SaleController extends Controller {
         return redirect()->route('sales.show', $sale)->with('success', 'Sale completed successfully!');
     }
 
-    public function show($id) {
-        $sale = Sale::withTrashed()->findOrFail($id);
+    public function show($key) {
+        $sale = Sale::findByAnyKeyOrFail($key, true);
         $sale->load(['customer', 'user', 'items.product', 'discountApplied']);
         return view('sales.show', compact('sale'));
+    }
+
+    public function edit(Sale $sale) {
+        // Soft-deleted (cancelled) sales cannot be edited — restore first
+        if ($sale->trashed() || $sale->status === 'cancelled') {
+            return redirect()->route('sales.history')->with('error', 'Cancelled sales cannot be edited. Restore it first.');
+        }
+
+        // Block editing once posted to TRA (fiscal receipt already issued)
+        if ($sale->tra_status === 'posted') {
+            return redirect()->route('sales.show', $sale)->with('error', 'This sale was already posted to TRA and cannot be edited.');
+        }
+
+        $sale->load(['items.product', 'customer']);
+        // Pre-build plain arrays in PHP: Blade's @json cannot parse inline closures
+        $cartItems = $sale->items->map(function($i) {
+            return [
+                'product_id' => $i->product_id,
+                'name' => $i->product->name ?? ('Product #' . $i->product_id),
+                'quantity' => (int) $i->quantity,
+                'unit_price' => (float) $i->unit_price,
+            ];
+        })->values()->all();
+        $products = Product::where('is_active', true)->get();
+        $productsData = $products->map(function($p) {
+            return [
+                'id' => $p->id,
+                'name' => $p->name,
+                'selling_price' => $p->selling_price,
+                'quantity' => $p->quantity,
+                'barcode' => $p->barcode,
+                'sku' => $p->sku
+            ];
+        });
+        $customers = Customer::all();
+        $discounts = Discount::where('is_active', true)
+            ->where(function($q) {
+                $q->whereNull('start_date')->orWhere('start_date', '<=', now());
+            })
+            ->where(function($q) {
+                $q->whereNull('end_date')->orWhere('end_date', '>=', now());
+            })
+            ->get();
+        return view('sales.edit', compact('sale', 'products', 'productsData', 'customers', 'discounts', 'cartItems'));
+    }
+
+    public function update(Request $request, Sale $sale) {
+        if ($sale->trashed() || $sale->status === 'cancelled') {
+            return back()->with('error', 'Cancelled sales cannot be edited. Restore it first.');
+        }
+
+        if ($sale->tra_status === 'posted') {
+            return back()->with('error', 'This sale was already posted to TRA and cannot be edited.');
+        }
+
+        $request->validate([
+            'customer_id' => 'nullable|exists:customers,id',
+            'discount_id' => 'nullable|exists:discounts,id',
+            'items' => 'required|array|min:1',
+            'items.*.product_id' => 'required|exists:products,id',
+            'items.*.quantity' => 'required|integer|min:1',
+            'items.*.unit_price' => 'required|numeric|min:0',
+            'payment_method' => 'required|string|in:cash,card,mobile,clickpesa,lipa_namba',
+            'type' => 'nullable|in:cash,credit',
+            'paid' => 'required|numeric|min:0',
+            'notes' => 'nullable|string',
+        ]);
+
+        // Old quantities per product (to allow "returning" stock before checking)
+        $sale->load('items');
+        $oldQtyByProduct = [];
+        foreach ($sale->items as $oldItem) {
+            $oldQtyByProduct[$oldItem->product_id] = ($oldQtyByProduct[$oldItem->product_id] ?? 0) + $oldItem->quantity;
+        }
+
+        // Check stock availability accounting for stock that will be returned
+        $newQtyByProduct = [];
+        foreach ($request->items as $item) {
+            $newQtyByProduct[$item['product_id']] = ($newQtyByProduct[$item['product_id']] ?? 0) + $item['quantity'];
+        }
+        foreach ($newQtyByProduct as $productId => $newQty) {
+            $product = Product::find($productId);
+            if (!$product) {
+                return back()->withErrors(['items' => 'Product not found'])->withInput();
+            }
+            $available = $product->quantity + ($oldQtyByProduct[$productId] ?? 0);
+            if ($newQty > $available) {
+                return back()->withErrors(['items' => "Insufficient stock for {$product->name}. Available (incl. current sale): {$available}"])->withInput();
+            }
+        }
+
+        // Recalculate totals
+        $subtotal = 0;
+        foreach ($request->items as $item) {
+            $subtotal += $item['quantity'] * $item['unit_price'];
+        }
+        $tax = 0;
+
+        $discount = 0;
+        $discountId = $request->discount_id;
+        if ($discountId) {
+            $selectedDiscount = Discount::find($discountId);
+            if ($selectedDiscount && $selectedDiscount->is_active) {
+                if ((!$selectedDiscount->min_amount || $subtotal >= $selectedDiscount->min_amount) &&
+                    (!$selectedDiscount->max_amount || $subtotal <= $selectedDiscount->max_amount)) {
+                    $discount = $selectedDiscount->type == 'percentage'
+                        ? $subtotal * ($selectedDiscount->value / 100)
+                        : $selectedDiscount->value;
+                } else {
+                    $discountId = null;
+                }
+            } else {
+                $discountId = null;
+            }
+        } else {
+            // Keep existing auto-discount behaviour: retain current discount if still valid,
+            // otherwise try best applicable active discount
+            $activeDiscounts = Discount::where('is_active', true)
+                ->where(function($q) {
+                    $q->whereNull('start_date')->orWhere('start_date', '<=', now());
+                })
+                ->where(function($q) {
+                    $q->whereNull('end_date')->orWhere('end_date', '>=', now());
+                })
+                ->get();
+            $maxDiscount = 0;
+            $best = null;
+            foreach ($activeDiscounts as $d) {
+                if ((!$d->min_amount || $subtotal >= $d->min_amount) &&
+                    (!$d->max_amount || $subtotal <= $d->max_amount)) {
+                    $calc = $d->type == 'percentage' ? $subtotal * ($d->value / 100) : $d->value;
+                    if ($calc > $maxDiscount) {
+                        $maxDiscount = $calc;
+                        $best = $d;
+                    }
+                }
+            }
+            if ($best) {
+                $discount = $maxDiscount;
+                $discountId = $best->id;
+            }
+        }
+
+        $total = $subtotal + $tax - $discount;
+        $paid = $request->paid;
+        $change = $paid - $total;
+        $newType = $request->type ?? $sale->type ?? 'cash';
+
+        $oldTotal = (float) $sale->total;
+        $oldPaymentMethod = $sale->payment_method;
+        $oldType = $sale->type;
+        $oldCustomerId = $sale->customer_id;
+        $oldShiftId = $sale->shift_id;
+
+        \DB::transaction(function () use ($request, $sale, $oldQtyByProduct, $newQtyByProduct, $subtotal, $tax, $discount, $discountId, $total, $paid, $change, $newType, $oldTotal, $oldPaymentMethod, $oldType, $oldCustomerId, $oldShiftId) {
+            // 1. Adjust inventory (diff per product)
+            $allProductIds = array_unique(array_merge(array_keys($oldQtyByProduct), array_keys($newQtyByProduct)));
+            foreach ($allProductIds as $productId) {
+                $diff = ($newQtyByProduct[$productId] ?? 0) - ($oldQtyByProduct[$productId] ?? 0);
+                if ($diff === 0) continue;
+                $product = Product::find($productId);
+                if (!$product) continue;
+                if ($diff > 0) {
+                    $product->decrement('quantity', $diff);
+                } else {
+                    $product->increment('quantity', abs($diff));
+                }
+            }
+
+            // 2. Reverse old customer balance (credit sales increase balance owed)
+            if ($oldType == 'credit' && $oldCustomerId) {
+                $oldCustomer = Customer::find($oldCustomerId);
+                if ($oldCustomer) {
+                    $oldCustomer->decrement('balance', $oldTotal);
+                }
+            }
+
+            // 3. Reverse old shift totals
+            if ($oldShiftId) {
+                $shift = Shift::find($oldShiftId);
+                if ($shift) {
+                    $column = $oldPaymentMethod == 'card' ? 'card_sales' : ($oldPaymentMethod == 'mobile' ? 'mobile_sales' : 'cash_sales');
+                    $shift->decrement($column, $oldTotal);
+                }
+            }
+
+            // 4. Replace items
+            $sale->items()->delete();
+            foreach ($request->items as $itemData) {
+                $itemTotal = $itemData['quantity'] * $itemData['unit_price'];
+                $sale->items()->create([
+                    'product_id' => $itemData['product_id'],
+                    'quantity' => $itemData['quantity'],
+                    'unit_price' => $itemData['unit_price'],
+                    'discount' => $itemData['discount'] ?? 0,
+                    'total' => $itemTotal
+                ]);
+            }
+
+            // 5. Update sale header
+            $sale->update([
+                'customer_id' => $request->customer_id,
+                'discount_id' => $discountId,
+                'subtotal' => $subtotal,
+                'tax' => $tax,
+                'discount' => $discount,
+                'total' => $total,
+                'paid' => $paid,
+                'change' => $change,
+                'payment_method' => $request->payment_method,
+                'type' => $newType,
+                'notes' => $request->notes,
+            ]);
+
+            // 6. Apply new customer balance
+            if ($newType == 'credit' && $request->customer_id) {
+                $newCustomer = Customer::find($request->customer_id);
+                if ($newCustomer) {
+                    $newCustomer->increment('balance', $total);
+                }
+            }
+
+            // 7. Apply new shift totals (to original shift to keep cash-up consistent)
+            $targetShiftId = $oldShiftId ?? Shift::where('user_id', \Auth::id())->whereNull('closed_at')->value('id');
+            if ($targetShiftId) {
+                $shift = Shift::find($targetShiftId);
+                if ($shift) {
+                    $column = $request->payment_method == 'card' ? 'card_sales' : ($request->payment_method == 'mobile' ? 'mobile_sales' : 'cash_sales');
+                    $shift->increment($column, $total);
+                    // Keep sale linked to a shift
+                    if (!$sale->shift_id) {
+                        $sale->update(['shift_id' => $targetShiftId]);
+                    }
+                }
+            }
+        });
+
+        return redirect()->route('sales.show', $sale)->with('success', 'Sale updated successfully!');
     }
 
     public function destroy(Request $request, Sale $sale) {
@@ -257,8 +496,8 @@ class SaleController extends Controller {
         return redirect()->route('sales.history')->with('success', 'Sale cancelled successfully!');
     }
 
-    public function restore($id) {
-        $sale = Sale::withTrashed()->findOrFail($id);
+    public function restore($key) {
+        $sale = Sale::findByAnyKeyOrFail($key, true);
 
         foreach ($sale->items as $item) {
             $product = Product::find($item->product_id);

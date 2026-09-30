@@ -10,6 +10,12 @@
             {{ session('success') }}
         </div>
     @endif
+    @if(session('error'))
+        <div class="mb-6 p-4 bg-red-100 border border-red-400 text-red-800 rounded-xl">
+            <i class="fas fa-exclamation-circle mr-2"></i>
+            {{ session('error') }}
+        </div>
+    @endif
     
     <div class="card rounded-2xl p-6 mb-6">
         <div class="flex flex-col md:flex-row items-start md:items-center justify-between mb-6 gap-4">
@@ -26,17 +32,22 @@
                 @endif
             </div>
             <div class="flex flex-wrap gap-2">
+                @if($sale->status == 'completed' && ($sale->tra_status ?? null) !== 'posted')
+                <a href="{{ route('sales.edit', $sale) }}" class="px-3 py-1.5 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 flex items-center whitespace-nowrap text-xs">
+                    <i class="fas fa-edit mr-1.5"></i>Edit Sale
+                </a>
+                @endif
                 <a href="{{ route('sales.receipts.download', $sale) }}" class="px-3 py-1.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 flex items-center whitespace-nowrap text-xs">
                     <i class="fas fa-download mr-1.5"></i>PDF
                 </a>
                 <a href="{{ route('sales.receipts.print', $sale) }}" target="_blank" class="px-3 py-1.5 border border-gray-300 rounded-lg flex items-center whitespace-nowrap text-xs">
                     <i class="fas fa-print mr-1.5"></i>Invoice
                 </a>
-                <button onclick="printEfdReceipt({{ $sale->id }})" class="px-3 py-1.5 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center whitespace-nowrap text-xs">
+                <button onclick="printEfdReceipt('{{ $sale->encrypted_key }}')" class="px-3 py-1.5 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center whitespace-nowrap text-xs">
                     <i class="fas fa-receipt mr-1.5"></i>EFD Receipt
                 </button>
                 @if($sale->tra_status != 'posted')
-                <button onclick="postSaleToTra({{ $sale->id }})" class="px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center whitespace-nowrap text-xs" id="postTraBtn">
+                <button onclick="postSaleToTra('{{ $sale->encrypted_key }}')" class="px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center whitespace-nowrap text-xs" id="postTraBtn">
                     <i class="fas fa-cloud-upload-alt mr-1.5"></i>Post to TRA
                 </button>
                 @endif
@@ -320,7 +331,7 @@ async function postSaleToTraAndPrint(saleId) {
         iframe.style.width = '0';
         iframe.style.height = '0';
         iframe.style.border = '0';
-        iframe.src = '/sales/receipts/' + saleId + '/efd-print';
+        iframe.src = '/sales/receipts/' + encodeURIComponent(saleId) + '/efd-print';
         document.body.appendChild(iframe);
         
         iframe.onload = function() {

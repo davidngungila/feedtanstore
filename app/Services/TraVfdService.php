@@ -144,6 +144,7 @@ class TraVfdService
                 break;
             case 'mobile':
             case 'clickpesa':
+            case 'lipa_namba':
                 $emoney = $grossAmt;
                 break;
             case 'credit':

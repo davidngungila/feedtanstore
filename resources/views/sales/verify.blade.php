@@ -56,7 +56,7 @@
                     </div>
                     <div>
                         <p class="text-gray-500">Payment Method</p>
-                        <p class="font-medium">{{ ucfirst($sale->payment_method) }}</p>
+                        <p class="font-medium">{{ ucwords(str_replace('_', ' ', $sale->payment_method ?? '')) }}</p>
                     </div>
                 </div>
             </div>

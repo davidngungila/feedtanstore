@@ -35,6 +35,11 @@
                 {{ session('success') }}
             </div>
         @endif
+        @if(session('error'))
+            <div class="mb-4 p-3 bg-red-100 border border-red-400 text-red-800 rounded-lg">
+                {{ session('error') }}
+            </div>
+        @endif
 
         <div class="overflow-x-auto">
             <table class="data-table w-full">
@@ -79,10 +84,15 @@
                             </a>
 
                             @if($sale->status == 'completed')
-                            <a href="{{ route('sales.returns') }}?sale={{ $sale->id }}" class="text-yellow-600 hover:text-yellow-800" title="Return">
+                            @if(($sale->tra_status ?? null) !== 'posted')
+                            <a href="{{ route('sales.edit', $sale) }}" class="text-blue-600 hover:text-blue-800" title="Edit">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            @endif
+                            <a href="{{ route('sales.returns') }}?sale={{ $sale->encrypted_key }}" class="text-yellow-600 hover:text-yellow-800" title="Return">
                                 <i class="fas fa-undo"></i>
                             </a>
-                            <button type="button" class="text-red-600 hover:text-red-800" title="Cancel" onclick="openCancelModal({{ $sale->id }})">
+                            <button type="button" class="text-red-600 hover:text-red-800" title="Cancel" onclick="openCancelModal('{{ $sale->encrypted_key }}')">
                                 <i class="fas fa-times-circle"></i>
                             </button>
                             @endif
@@ -141,8 +151,8 @@
         });
     }
 
-    function openCancelModal(saleId) {
-        document.getElementById('cancelForm').action = '/sales/history/' + saleId;
+    function openCancelModal(saleKey) {
+        document.getElementById('cancelForm').action = '/sales/history/' + encodeURIComponent(saleKey);
         document.getElementById('cancelModal').classList.remove('hidden');
     }
 
