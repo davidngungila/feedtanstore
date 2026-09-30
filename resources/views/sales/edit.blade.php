@@ -58,6 +58,7 @@
                 <form id="saleEditForm" action="{{ route('sales.update', $sale) }}" method="POST">
                     @csrf
                     @method('PUT')
+                    <div id="cartHiddenInputs"></div>
 
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Customer</label>
@@ -165,12 +166,19 @@ function updateUnitPrice(index, price) {
 function renderCart() {
     const body = document.getElementById('soldItemsBody');
     const empty = document.getElementById('soldItemsEmpty');
+    const hidden = document.getElementById('cartHiddenInputs');
     if (cart.length === 0) {
         body.innerHTML = '';
+        hidden.innerHTML = '';
         empty.classList.remove('hidden');
         return;
     }
     empty.classList.add('hidden');
+    hidden.innerHTML = cart.map((item, index) => `
+        <input type="hidden" name="items[${index}][product_id]" value="${item.product_id}">
+        <input type="hidden" name="items[${index}][quantity]" value="${item.quantity}">
+        <input type="hidden" name="items[${index}][unit_price]" value="${item.unit_price}">`
+    ).join('');
     body.innerHTML = cart.map((item, index) => {
         const line = item.quantity * item.unit_price;
         return `
@@ -193,9 +201,6 @@ function renderCart() {
                 <button type="button" onclick="removeFromCart(${index})" class="text-red-500 hover:text-red-700" title="Remove line">
                     <i class="fas fa-trash"></i>
                 </button>
-                <input type="hidden" name="items[${index}][product_id]" value="${item.product_id}">
-                <input type="hidden" name="items[${index}][quantity]" value="${item.quantity}">
-                <input type="hidden" name="items[${index}][unit_price]" value="${item.unit_price}">
             </td>
         </tr>`;
     }).join('');
