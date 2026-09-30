@@ -4,7 +4,10 @@ use App\Models\AdminAccessToken;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\Schedule;
 use Illuminate\Support\Str;
+
+Schedule::command('reports:nightly')->dailyAt('23:59')->timezone('Africa/Dar_es_Salaam');
 
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());

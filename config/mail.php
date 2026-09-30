@@ -115,4 +115,16 @@ return [
         'name' => env('MAIL_FROM_NAME', env('APP_NAME', 'Laravel')),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Nightly Report Recipients
+    |--------------------------------------------------------------------------
+    |
+    | Comma-separated admin email addresses that receive the 23:59 daily
+    | sales + inventory PDF report (reports:nightly scheduled command).
+    |
+    */
+
+    'nightly_to' => env('NIGHTLY_REPORT_TO', 'davidngungila@gmail.com,feedtanstore@gmail.com,info@feedtanstore.com,feedtan15@gmail.com,elulandala@gmail.com'),
+
 ];
