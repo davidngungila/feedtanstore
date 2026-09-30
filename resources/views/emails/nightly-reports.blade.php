@@ -156,7 +156,7 @@
                     <table class="alert-table" cellpadding="0" cellspacing="0">
                         <tr><th>Product</th><th>Qty</th><th>Reorder lvl</th></tr>
                         @foreach($lowStock->take(10) as $p)
-                        <tr><td>{{ $p->name }}</td><td>{{ $p->quantity }}</td><td>{{ $p->reorder_level }}</td></tr>
+                        <tr><td>{{ $p->name }}</td><td>{{ $p->quantity }}</td><td>{{ $p->reorder_level ?: 5 }}</td></tr>
                         @endforeach
                     </table>
                     @if($lowStock->count() > 10)<p class="muted">…and {{ $lowStock->count() - 10 }} more (see stock PDF).</p>@endif

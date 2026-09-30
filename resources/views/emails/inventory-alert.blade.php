@@ -68,7 +68,7 @@
                     <table class="alert-table" cellpadding="0" cellspacing="0">
                         <tr><th>Product</th><th>Qty</th><th>Reorder lvl</th></tr>
                         @foreach($lowStock as $p)
-                        <tr><td>{{ $p->name }}</td><td>{{ $p->quantity }}</td><td>{{ $p->reorder_level }}</td></tr>
+                        <tr><td>{{ $p->name }}</td><td>{{ $p->quantity }}</td><td>{{ $p->reorder_level ?: 5 }}</td></tr>
                         @endforeach
                     </table>
                     @endif

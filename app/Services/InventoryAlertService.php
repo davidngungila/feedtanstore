@@ -19,11 +19,17 @@ class InventoryAlertService
 {
     public const UNUSUAL_DISCOUNT_RATE = 0.25;
 
+    /**
+     * Low-stock products: quantity at/below reorder level.
+     * When reorder level is not set (null/0), a default threshold of 5 applies.
+     */
+    public const DEFAULT_REORDER_LEVEL = 5;
+
     public static function lowStock(?int $limit = null)
     {
         $q = Product::with(['category', 'brand'])
-            ->whereColumn('quantity', '<=', 'reorder_level')
             ->where('quantity', '>', 0)
+            ->whereRaw('quantity <= COALESCE(NULLIF(reorder_level, 0), ?)', [self::DEFAULT_REORDER_LEVEL])
             ->orderBy('quantity')
             ->orderBy('name');
         return $limit ? $q->limit($limit)->get() : $q->get();
@@ -99,7 +105,7 @@ class InventoryAlertService
                 ->whereNull('sales.deleted_at')
                 ->whereDate('sales.created_at', $date)
                 ->sum('sale_items.quantity'),
-            'lowStockCount' => (int) Product::whereColumn('quantity', '<=', 'reorder_level')->where('quantity', '>', 0)->count(),
+            'lowStockCount' => (int) Product::where('quantity', '>', 0)->whereRaw('quantity <= COALESCE(NULLIF(reorder_level, 0), ?)', [self::DEFAULT_REORDER_LEVEL])->count(),
             'outOfStockCount' => (int) Product::where('quantity', '<=', 0)->count(),
             'expiredCount' => (int) Product::whereNotNull('expiry_date')->where('expiry_date', '<', today())->count(),
         ];

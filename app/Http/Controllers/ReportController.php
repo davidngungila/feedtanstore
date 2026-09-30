@@ -598,8 +598,8 @@ class ReportController extends Controller
     public function lowStock()
     {
         $products = Product::with(['category', 'brand'])
-            ->whereColumn('quantity', '<=', 'reorder_level')
             ->where('quantity', '>', 0)
+            ->whereRaw('quantity <= COALESCE(NULLIF(reorder_level, 0), 5)')
             ->orderBy('name')
             ->get();
         
