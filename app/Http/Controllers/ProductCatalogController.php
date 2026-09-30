@@ -6,6 +6,7 @@ use App\Models\Product;
 use App\Models\ProductImage;
 use App\Models\Category;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
 
 class ProductCatalogController extends Controller
 {
@@ -20,8 +21,13 @@ class ProductCatalogController extends Controller
     {
         $product = Product::findByEncryptedKeyOrFail($product);
         $product->load(['category', 'brand', 'unit', 'images', 'onlineOrderItems.order']);
-        $colorOptions = Product::whereNotNull('color')->where('color', '!=', '')->distinct()->orderBy('color')->limit(50)->pluck('color');
-        $variantOptions = Product::whereNotNull('variant')->where('variant', '!=', '')->distinct()->orderBy('variant')->limit(50)->pluck('variant');
+        // Tolerate missing columns when the color/variant migration hasn't run yet.
+        $colorOptions = Schema::hasColumn('products', 'color')
+            ? Product::whereNotNull('color')->where('color', '!=', '')->distinct()->orderBy('color')->limit(50)->pluck('color')
+            : collect();
+        $variantOptions = Schema::hasColumn('products', 'variant')
+            ? Product::whereNotNull('variant')->where('variant', '!=', '')->distinct()->orderBy('variant')->limit(50)->pluck('variant')
+            : collect();
         return view('online.catalog-show', compact('product', 'colorOptions', 'variantOptions'));
     }
 
@@ -43,13 +49,19 @@ class ProductCatalogController extends Controller
         ]);
 
         $product->update([
-            'color' => $validated['color'] ?? null,
-            'variant' => $validated['variant'] ?? null,
             'description' => $validated['description'] ?? null,
             'specifications' => $validated['specifications'] ?? null,
+            // Only when the color/variant migration has run; otherwise skip silently.
+            ...(Schema::hasColumn('products', 'color') ? ['color' => $validated['color'] ?? null] : []),
+            ...(Schema::hasColumn('products', 'variant') ? ['variant' => $validated['variant'] ?? null] : []),
         ]);
 
-        return back()->with('success', 'Product details updated successfully!');
+        $notice = 'Product details updated successfully!';
+        if (! Schema::hasColumn('products', 'color')) {
+            $notice .= ' (Note: color/variety columns not migrated yet — run php artisan migrate.)';
+        }
+
+        return back()->with('success', $notice);
     }
 
     public function bulkToggleOnlineStatus(Request $request)
