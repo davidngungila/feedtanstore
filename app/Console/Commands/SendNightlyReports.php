@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Http\Controllers\ReportController;
 use App\Mail\NightlyReportsMail;
+use App\Models\CommunicationProfile;
 use Dompdf\Dompdf;
 use Illuminate\Console\Command;
 use Illuminate\Http\Request;
@@ -38,12 +39,54 @@ class SendNightlyReports extends Command
             return self::FAILURE;
         }
 
-        Mail::to($recipients)->send(new NightlyReportsMail($date, $salesPdf, $stockPdf));
+        // Same sending path as purchase-order / online-order emails:
+        // use the active email CommunicationProfile's SMTP settings.
+        $mailer = $this->resolveMailer();
 
-        \Log::info('Nightly sales+inventory report emailed', ['date' => $date, 'to' => $recipients]);
-        $this->info('Nightly report for ' . $date . ' sent to: ' . implode(', ', $recipients));
+        Mail::mailer($mailer)->to($recipients)->send(new NightlyReportsMail($date, $salesPdf, $stockPdf));
+
+        \Log::info('Nightly sales+inventory report emailed', ['date' => $date, 'via' => $mailer, 'to' => $recipients]);
+        $this->info('Nightly report for ' . $date . ' sent via [' . $mailer . '] to: ' . implode(', ', $recipients));
 
         return self::SUCCESS;
+    }
+
+    /**
+     * Configure the runtime test_smtp mailer from the active email
+     * CommunicationProfile (purchase orders & online orders send this way).
+     * Falls back to the default smtp mailer (.env) when no profile exists.
+     */
+    protected function resolveMailer(): string
+    {
+        try {
+            $emailProfile = CommunicationProfile::where('type', 'email')->where('is_active', true)->first();
+            if (!$emailProfile) {
+                \Log::warning('No active email CommunicationProfile; nightly report uses default mailer.');
+                return 'smtp';
+            }
+
+            config([
+                'mail.mailers.test_smtp' => [
+                    'transport' => 'smtp',
+                    'host' => $emailProfile->smtp_host,
+                    'port' => $emailProfile->smtp_port,
+                    'encryption' => $emailProfile->smtp_encryption,
+                    'username' => $emailProfile->smtp_username,
+                    'password' => $emailProfile->smtp_password,
+                    'timeout' => 30,
+                    'local_domain' => null,
+                ],
+                'mail.from' => [
+                    'address' => $emailProfile->email_from_address,
+                    'name' => $emailProfile->email_from_name,
+                ],
+            ]);
+
+            return 'test_smtp';
+        } catch (\Throwable $e) {
+            \Log::error('Failed to configure nightly report mailer: ' . $e->getMessage());
+            return 'smtp';
+        }
     }
 
     protected function renderPdf(string $view, array $data): string
