@@ -9,7 +9,9 @@ return new class extends Migration
     public function up()
     {
         Schema::table('store_settings', function (Blueprint $table) {
-            $table->boolean('online_market_enabled')->default(true);
+            if (! Schema::hasColumn('store_settings', 'online_market_enabled')) {
+                $table->boolean('online_market_enabled')->default(true);
+            }
         });
     }
 
