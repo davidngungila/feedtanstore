@@ -4,33 +4,28 @@
 
 @section('content')
 @php
-    $settings = \App\Models\StoreSetting::firstOrCreate();
-    $baseUrl = $settings->store_url ?? config('app.url');
-    $resolveImageUrl = function ($path) use ($baseUrl) {
+    // Host-relative storage URLs: images always load from whichever
+    // host/port serves this page (local dev, admin domain, etc.).
+    $resolveImageUrl = function ($path) {
         if (!$path) {
             return null;
         }
 
-        // If it's already a full URL, clean it to extract the path
         if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://')) {
-            // Parse URL to get path
             $parsed = parse_url($path);
-            if (isset($parsed['path'])) {
-                $path = ltrim($parsed['path'], '/');
-                // If path starts with storage/, use it directly
-                if (str_starts_with($path, 'storage/')) {
-                    return rtrim($baseUrl, '/') . '/' . $path;
-                }
-                return rtrim($baseUrl, '/') . '/storage/' . $path;
+            $urlPath = isset($parsed['path']) ? ltrim($parsed['path'], '/') : '';
+            if (str_starts_with($urlPath, 'storage/')) {
+                return '/' . $urlPath;
             }
+            return $path;
         }
 
         $cleanPath = ltrim($path, '/');
-        if (str_starts_with($cleanPath, 'storage/')) {
-            return rtrim($baseUrl, '/') . '/' . $cleanPath;
+        if (!str_starts_with($cleanPath, 'storage/')) {
+            $cleanPath = 'storage/' . $cleanPath;
         }
 
-        return rtrim($baseUrl, '/') . '/storage/' . $cleanPath;
+        return '/' . $cleanPath;
     };
 @endphp
 <div class="animate-[fadeIn_0.4s_ease]">
@@ -54,6 +49,19 @@
             </a>
         </div>
 
+        {{-- Live search (filters as you type) --}}
+        <div class="relative mb-4">
+            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400 pointer-events-none">
+                <i class="fas fa-search"></i>
+            </span>
+            <input type="text" id="catalog-search" placeholder="Search products by name, category or price..."
+                autocomplete="off"
+                class="w-full pl-10 pr-10 py-2.5 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+            <button type="button" id="catalog-search-clear" class="absolute inset-y-0 right-0 hidden items-center pr-3 text-gray-400 hover:text-gray-600" title="Clear search">
+                <i class="fas fa-times-circle"></i>
+            </button>
+        </div>
+
         @if(session('success'))
             <div class="mb-4 p-3 bg-green-100 border border-green-400 text-green-800 rounded-lg">
                 {{ session('success') }}
@@ -72,6 +80,7 @@
                 Select all
             </label>
             <span id="selected-count" class="text-xs text-gray-500">0 selected</span>
+            <span id="visible-count" class="text-xs text-gray-400"></span>
             <div class="flex flex-wrap items-center gap-2 ml-auto">
                 <button type="submit" form="bulk-selected-form" name="action" value="activate" id="btn-activate-selected"
                     class="px-3 py-2 text-xs font-semibold rounded-lg bg-green-600 hover:bg-green-700 text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled>
@@ -109,10 +118,11 @@
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             @foreach($products as $product)
-            <div class="border rounded-lg p-4 hover:shadow-lg transition-shadow relative">
+            <div class="product-card border rounded-lg p-4 hover:shadow-lg transition-shadow relative"
+                data-search="{{ strtolower($product->name . ' ' . ($product->category?->name ?? '') . ' ' . $product->selling_price) }}">
                 <input type="checkbox" name="product_ids[]" value="{{ $product->id }}" form="bulk-selected-form"
                     class="bulk-checkbox absolute top-3 left-3 w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500 bg-white shadow">
-                <a href="{{ route('online.catalog.show', $product) }}" class="block">
+                <a href="{{ route('online.catalog.show', $product->encrypted_key) }}" class="block">
                     <div class="h-40 bg-gray-100 rounded-lg mb-3 flex items-center justify-center overflow-hidden">
                         @php
                             $primaryImage = $product->images->firstWhere('is_primary', true);
@@ -126,8 +136,8 @@
                     </div>
                 </a>
                 <div class="flex justify-between items-start gap-2 mb-2 pl-6">
-                    <a href="{{ route('online.catalog.show', $product) }}" class="font-semibold text-primary-900 hover:text-primary-700">{{ $product->name }}</a>
-                    <form action="{{ route('online.catalog.toggle', $product) }}" method="POST">
+                    <a href="{{ route('online.catalog.show', $product->encrypted_key) }}" class="font-semibold text-primary-900 hover:text-primary-700">{{ $product->name }}</a>
+                    <form action="{{ route('online.catalog.toggle', $product->encrypted_key) }}" method="POST">
                         @csrf
                         <button type="submit" class="px-2 py-1 text-xs rounded-full
                             @if($product->is_available_online) bg-green-100 text-green-800 hover:bg-green-200 @else bg-red-100 text-red-800 hover:bg-red-200 @endif">
@@ -148,6 +158,11 @@
             </div>
             @endforeach
         </div>
+        <div id="catalog-empty" class="hidden text-center py-12 text-gray-500">
+            <i class="fas fa-search text-4xl text-gray-300 mb-3"></i>
+            <p class="font-medium">No products match "<span id="catalog-empty-term"></span>"</p>
+            <p class="text-sm mt-1">Try a different name, category or price.</p>
+        </div>
     </div>
 </div>
 
@@ -155,30 +170,70 @@
 (function () {
     const selectAll = document.getElementById('select-all-products');
     const checkboxes = () => Array.from(document.querySelectorAll('.bulk-checkbox'));
+    const cards = () => Array.from(document.querySelectorAll('.product-card'));
     const countEl = document.getElementById('selected-count');
+    const visibleEl = document.getElementById('visible-count');
     const btnActivate = document.getElementById('btn-activate-selected');
     const btnDeactivate = document.getElementById('btn-deactivate-selected');
+    const searchInput = document.getElementById('catalog-search');
+    const searchClear = document.getElementById('catalog-search-clear');
+    const emptyBox = document.getElementById('catalog-empty');
+    const emptyTerm = document.getElementById('catalog-empty-term');
+    const totalCards = cards().length;
+
+    const isVisible = (card) => card.style.display !== 'none';
+    const visibleBoxes = () => checkboxes().filter(b => {
+        const card = b.closest('.product-card');
+        return !card || isVisible(card);
+    });
 
     function refresh() {
         const boxes = checkboxes();
+        const visible = visibleBoxes();
         const selected = boxes.filter(b => b.checked).length;
         countEl.textContent = selected + ' selected';
         const hasAny = selected > 0;
         btnActivate.disabled = !hasAny;
         btnDeactivate.disabled = !hasAny;
         if (selectAll) {
-            selectAll.checked = boxes.length > 0 && selected === boxes.length;
-            selectAll.indeterminate = selected > 0 && selected < boxes.length;
+            const visibleSelected = visible.filter(b => b.checked).length;
+            selectAll.checked = visible.length > 0 && visibleSelected === visible.length;
+            selectAll.indeterminate = visibleSelected > 0 && visibleSelected < visible.length;
         }
+    }
+
+    function applyFilter() {
+        const term = searchInput.value.trim().toLowerCase();
+        let shown = 0;
+        cards().forEach(card => {
+            const hay = (card.dataset.search || '');
+            const show = term === '' || hay.includes(term);
+            card.style.display = show ? '' : 'none';
+            if (show) shown++;
+        });
+        emptyBox.classList.toggle('hidden', shown > 0);
+        emptyTerm.textContent = searchInput.value.trim();
+        visibleEl.textContent = term === '' ? '' : (shown + ' of ' + totalCards + ' shown');
+        const hasTerm = term !== '';
+        searchClear.classList.toggle('hidden', !hasTerm);
+        searchClear.classList.toggle('flex', hasTerm);
+        refresh();
     }
 
     if (selectAll) {
         selectAll.addEventListener('change', () => {
-            checkboxes().forEach(b => { b.checked = selectAll.checked; });
+            // Select-all only affects the currently visible (filtered) cards.
+            visibleBoxes().forEach(b => { b.checked = selectAll.checked; });
             refresh();
         });
     }
     document.querySelectorAll('.bulk-checkbox').forEach(b => b.addEventListener('change', refresh));
+    searchInput.addEventListener('input', applyFilter);
+    searchClear.addEventListener('click', () => {
+        searchInput.value = '';
+        applyFilter();
+        searchInput.focus();
+    });
     refresh();
 
     window.confirmBulkSelected = function (e) {

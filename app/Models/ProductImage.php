@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ProductImage extends Model
 {
+    use Concerns\HasEncryptedRouteKey;
     protected $fillable = [
         'product_id',
         'image_path',

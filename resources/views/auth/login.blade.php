@@ -108,7 +108,6 @@
 
             <!-- headline block -->
             <div class="relative z-10 max-w-md">
-                <p class="rise-in text-[11px] font-semibold uppercase tracking-[0.22em] text-emerald-300/90" style="animation-delay:.15s">Since 2011 &middot; Trusted supermarket &amp; online shop</p>
                 <h1 class="rise-in font-display mt-4 text-[2.6rem] leading-[1.1] font-medium text-white" style="animation-delay:.25s">
                     Shop everything<br> you need.
                 </h1>
@@ -137,19 +136,6 @@
                         </div>
                         <p class="text-sm text-mist-100/90">Secure, session-based account access</p>
                     </div>
-                </div>
-            </div>
-
-            <!-- footer stat -->
-            <div class="relative z-10 rise-in flex items-center gap-6 border-t border-white/10 pt-6" style="animation-delay:.7s">
-                <div>
-                    <p class="font-display text-2xl font-medium text-white">15,800<span class="text-wheat-300">+</span></p>
-                    <p class="text-[11px] uppercase tracking-wide text-mist-100/60">Orders this month</p>
-                </div>
-                <div class="h-8 w-px bg-white/10"></div>
-                <div>
-                    <p class="font-display text-2xl font-medium text-white">5,000<span class="text-wheat-300">+</span></p>
-                    <p class="text-[11px] uppercase tracking-wide text-mist-100/60">Happy customers</p>
                 </div>
             </div>
         </aside>

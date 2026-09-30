@@ -9,6 +9,8 @@ use Illuminate\Support\Str;
 
 class Product extends Model
 {
+    use Concerns\HasEncryptedRouteKey;
+
     protected $fillable = [
         'name',
         'slug',
@@ -20,6 +22,8 @@ class Product extends Model
         'unit_id',
         'description',
         'specifications',
+        'color',
+        'variant',
         'cost_price',
         'selling_price',
         'quantity',

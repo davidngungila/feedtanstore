@@ -510,6 +510,7 @@ Route::middleware('auth')->group(function () {
         
         Route::get('/catalog', [\App\Http\Controllers\ProductCatalogController::class, 'index'])->name('catalog');
         Route::post('/catalog/bulk-toggle', [\App\Http\Controllers\ProductCatalogController::class, 'bulkToggleOnlineStatus'])->name('catalog.bulk-toggle');
+        Route::put('/catalog/{product}/details', [\App\Http\Controllers\ProductCatalogController::class, 'updateDetails'])->name('catalog.details');
         Route::get('/catalog/{product}', [\App\Http\Controllers\ProductCatalogController::class, 'show'])->name('catalog.show');
         Route::post('/catalog/{product}/toggle', [\App\Http\Controllers\ProductCatalogController::class, 'toggleOnlineStatus'])->name('catalog.toggle');
         Route::post('/catalog/{product}/images', [\App\Http\Controllers\ProductCatalogController::class, 'uploadImage'])->name('catalog.images.upload');
