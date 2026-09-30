@@ -181,26 +181,6 @@
             text-align: center;
         }
 
-        /* ----- tax summary (grid) ----- */
-        .tax-summary {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 2px 12px;
-            font-size: 9.5px;
-            padding: 6px 0;
-            border-top: 1px solid #000;
-            margin-top: 4px;
-        }
-
-        .tax-summary .label {
-            font-weight: 600;
-        }
-
-        .tax-summary .value {
-            font-weight: 700;
-            text-align: right;
-        }
-
         /* ----- QR & footer ----- */
         .qr-area {
             text-align: center;
@@ -287,12 +267,6 @@
         <div class="detail-grid">
             <span class="label">Invoice</span><span class="value">{{ $sale->invoice_number }}</span>
             <span class="label">Date</span><span class="value">{{ $sale->created_at->format('d/m/Y H:i') }}</span>
-            <span class="label">Customer</span><span class="value">{{ $sale->customer->name ?? 'Walk-in' }}</span>
-            @if($sale->customer && $sale->customer->tin_number)
-                <span class="label">Cust TIN</span><span class="value">{{ $sale->customer->tin_number }}</span>
-            @endif
-            <span class="label">Cashier</span><span class="value">{{ $sale->user->name ?? '-' }}</span>
-            <span class="label">Payment</span><span class="value">{{ strtoupper($sale->payment_method ?? 'CASH') }}</span>
         </div>
 
         <!-- ===== ITEMS ===== -->
@@ -332,16 +306,6 @@
                 @endforeach
             </tbody>
         </table>
-
-        <!-- ===== TAX SUMMARY (compact) ===== -->
-        <div class="tax-summary">
-            <span class="label">Receipt Verification</span><span class="value">{{ $sale->tra_verification_code ?? '-' }}</span>
-            <span class="label">TOTAL TAX</span><span class="value">0.00</span>
-            <span class="label">Exclusive of Tax</span><span class="value">{{ number_format($sale->subtotal, 2) }}</span>
-            <span class="label">DISCOUNT</span><span class="value">{{ number_format($sale->discount, 2) }}</span>
-            <span class="label">Inclusive of Tax</span><span class="value">{{ number_format($sale->total, 2) }}</span>
-            <span class="label">Tax Rate EX 0%</span><span class="value">0.00</span>
-        </div>
 
         <!-- ===== QR CODE ===== -->
         @if(!empty($qrCode))
