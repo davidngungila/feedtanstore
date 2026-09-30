@@ -267,6 +267,12 @@
         <div class="detail-grid">
             <span class="label">Invoice</span><span class="value">{{ $sale->invoice_number }}</span>
             <span class="label">Date</span><span class="value">{{ $sale->created_at->format('d/m/Y H:i') }}</span>
+            <span class="label">Customer</span><span class="value">{{ $sale->customer->name ?? 'Walk-in' }}</span>
+            @if($sale->customer && $sale->customer->tin_number)
+                <span class="label">Cust TIN</span><span class="value">{{ $sale->customer->tin_number }}</span>
+            @endif
+            <span class="label">Cashier</span><span class="value">{{ $sale->user->name ?? '-' }}</span>
+            <span class="label">Payment</span><span class="value">{{ strtoupper($sale->payment_method ?? 'CASH') }}</span>
         </div>
 
         <!-- ===== ITEMS ===== -->
