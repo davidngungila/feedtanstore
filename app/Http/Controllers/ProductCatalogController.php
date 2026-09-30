@@ -10,11 +10,33 @@ use Illuminate\Support\Facades\Schema;
 
 class ProductCatalogController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $products = Product::with(['category', 'brand', 'unit', 'images'])->get();
+        $search = trim((string) $request->input('search', ''));
+
+        $baseQuery = Product::query();
+        $totalCount = (clone $baseQuery)->count();
+        $onlineCount = (clone $baseQuery)->where('is_available_online', true)->count();
+
+        $products = Product::with(['category', 'brand', 'unit', 'images'])
+            ->when($search !== '', function ($query) use ($search) {
+                $like = '%' . $search . '%';
+                $query->where(function ($q) use ($like) {
+                    $q->where('name', 'like', $like)
+                        ->orWhere('sku', 'like', $like)
+                        ->orWhere('barcode', 'like', $like)
+                        ->orWhere('selling_price', 'like', $like)
+                        ->orWhereHas('category', fn ($c) => $c->where('name', 'like', $like))
+                        ->orWhereHas('brand', fn ($b) => $b->where('name', 'like', $like));
+                });
+            })
+            ->orderBy('id')
+            ->paginate(20)
+            ->withQueryString();
+
         $categories = Category::all();
-        return view('online.catalog', compact('products', 'categories'));
+        $offlineCount = $totalCount - $onlineCount;
+        return view('online.catalog', compact('products', 'categories', 'search', 'totalCount', 'onlineCount', 'offlineCount'));
     }
 
     public function show(string $product)
@@ -70,21 +92,37 @@ class ProductCatalogController extends Controller
             'action' => ['required', 'in:activate,deactivate'],
             'product_ids' => ['nullable', 'array'],
             'product_ids.*' => ['integer', 'exists:products,id'],
+            'search' => ['nullable', 'string', 'max:255'],
         ]);
 
         $makeAvailable = $validated['action'] === 'activate';
         $ids = $validated['product_ids'] ?? [];
+        $search = trim((string) ($validated['search'] ?? ''));
 
-        if (empty($ids)) {
-            // No selection = apply to ALL products
-            $count = Product::query()->update(['is_available_online' => $makeAvailable, 'updated_at' => now()]);
-        } else {
+        if (! empty($ids)) {
             $count = Product::whereIn('id', $ids)->update(['is_available_online' => $makeAvailable, 'updated_at' => now()]);
+            $scope = 'selected';
+        } else {
+            // No selection = apply to the current search filter (or ALL products when no filter).
+            $query = Product::query();
+            if ($search !== '') {
+                $like = '%' . $search . '%';
+                $query->where(function ($q) use ($like) {
+                    $q->where('name', 'like', $like)
+                        ->orWhere('sku', 'like', $like)
+                        ->orWhere('barcode', 'like', $like)
+                        ->orWhere('selling_price', 'like', $like)
+                        ->orWhereHas('category', fn ($c) => $c->where('name', 'like', $like))
+                        ->orWhereHas('brand', fn ($b) => $b->where('name', 'like', $like));
+                });
+            }
+            $count = $query->update(['is_available_online' => $makeAvailable, 'updated_at' => now()]);
+            $scope = $search !== '' ? "matching \"{$search}\"" : 'all';
         }
 
         $label = $makeAvailable ? 'activated (Online)' : 'deactivated (Offline)';
 
-        return back()->with('success', "{$count} product(s) {$label} successfully!");
+        return back()->with('success', "{$count} {$scope} product(s) {$label} successfully!");
     }
 
     public function uploadImage(Request $request, string $product)
