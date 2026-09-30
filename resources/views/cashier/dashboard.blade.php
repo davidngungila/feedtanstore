@@ -2088,8 +2088,8 @@ function completeSale() {
                                         Swal.fire({title:'Sale Completed',text:'Ask: What product would you like us to have next time?', icon:'question', showCancelButton:true, confirmButtonText:'Record Demand', cancelButtonText:'Skip'}).then(r=>{ if(r.isConfirmed) showDemandModal(); });
                                     }
                                 },800);
-                                // Auto-print EFD receipt (default) after showing success modal.
-                                // Sale is already submitted to TRA by the backend; postToTra here is idempotent fallback.
+                                // Auto-print EFD receipt (default).
+                                // The backend already submitted this sale to TRA exactly once.
                                 setTimeout(() => {
                                     if (currentSaleId) {
                                         printEfdReceiptAuto();
@@ -2169,32 +2169,22 @@ function printEfdIframe(saleId) {
     }
 }
 
-// EFD is the default receipt: every sale is already submitted to TRA by the backend.
-// Manual EFD print ensures TRA submission (idempotent) then prints, without extra confirmation.
+// EFD is the default receipt: the backend already submitted this new sale to TRA exactly once.
+// Printing just renders the stored fiscal receipt - it never posts a second time.
 function printEfdReceipt() {
-    printEfdReceiptAuto();
+    printEfdIframe(currentSaleId);
 }
 
 // Automatic EFD print used right after a sale completes (default receipt).
 function printEfdReceiptAuto() {
-    if (!currentSaleId) return;
-    const saleId = currentSaleId;
-    postToTra(saleId).then((result) => {
-        if (!result.success) {
-            console.warn('TRA auto-post did not succeed, printing EFD anyway (server will retry on efd-print):', result.error);
-            if (window.Swal) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'TRA pending',
-                    text: (result.error || 'Could not confirm TRA posting.') + ' Printing EFD receipt anyway.',
-                    confirmButtonColor: '#16a34a'
-                });
-            }
-        }
-        printEfdIframe(saleId);
-    });
+    if (currentSaleId) {
+        printEfdIframe(currentSaleId);
+    }
 }
 
+// Manual TRA post for previously saved (pending) sales only.
+// New sales are already posted once by the backend, and the endpoint is idempotent,
+// so calling this again can never create a second fiscal receipt for the same sale.
 async function postToTra(saleId) {
     try {
         const response = await fetch('/sales/receipts/post-to-tra', {

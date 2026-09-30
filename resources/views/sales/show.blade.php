@@ -43,6 +43,11 @@
                 <button onclick="printEfdReceipt('{{ $sale->encrypted_key }}')" class="px-3 py-1.5 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center whitespace-nowrap text-xs">
                     <i class="fas fa-receipt mr-1.5"></i>EFD Receipt (Default)
                 </button>
+                @if($sale->tra_status != 'posted')
+                <button onclick="postSaleToTra('{{ $sale->encrypted_key }}')" class="px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center whitespace-nowrap text-xs" id="postTraBtn">
+                    <i class="fas fa-cloud-upload-alt mr-1.5"></i>Post to TRA
+                </button>
+                @endif
                 <a href="{{ route('sales.receipts') }}" class="px-3 py-1.5 border border-gray-300 rounded-lg flex items-center whitespace-nowrap text-xs">
                     <i class="fas fa-arrow-left mr-1.5"></i>Back
                 </a>
@@ -183,17 +188,36 @@
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-// EFD is the default receipt: every sale is submitted to TRA automatically (backend + efd-print fallback).
-// Manual "Post to TRA" button removed; EFD print ensures submission then prints without extra confirmation.
-function postSaleToTra(saleId) {
-    return postSaleToTraAndPrint(saleId, false);
-}
-
+// EFD is the default receipt. Only NEW sales auto-submit to TRA at creation.
+// Printing an EFD never auto-posts old sales; use the manual "Post to TRA" button for those.
 function printEfdReceipt(saleId) {
-    postSaleToTraAndPrint(saleId, true);
+    const iframe = document.createElement('iframe');
+    iframe.style.position = 'fixed';
+    iframe.style.right = '0';
+    iframe.style.bottom = '0';
+    iframe.style.width = '0';
+    iframe.style.height = '0';
+    iframe.style.border = '0';
+    iframe.src = '/sales/receipts/' + encodeURIComponent(saleId) + '/efd-print';
+    document.body.appendChild(iframe);
+
+    iframe.onload = function() {
+        setTimeout(() => {
+            iframe.contentWindow.print();
+            setTimeout(() => {
+                document.body.removeChild(iframe);
+            }, 500);
+        }, 500);
+    };
 }
 
-async function postSaleToTraAndPrint(saleId, shouldPrint = true) {
+// Manual post for previously saved (old pending) sales only.
+async function postSaleToTra(saleId) {
+    const btn = document.getElementById('postTraBtn');
+    if (btn) {
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1.5"></i>Posting...';
+        btn.disabled = true;
+    }
     try {
         const response = await fetch('/sales/receipts/post-to-tra', {
             method: 'POST',
@@ -205,46 +229,26 @@ async function postSaleToTraAndPrint(saleId, shouldPrint = true) {
             body: JSON.stringify({ sale_id: saleId })
         });
         const result = await response.json();
-        if (!result.success) {
-            console.warn('TRA post did not succeed, opening EFD anyway (efd-print will retry):', result.error);
+        if (result.success) {
             if (window.Swal) {
-                Swal.fire({
-                    title: 'TRA pending',
-                    text: (result.error || 'Could not confirm TRA posting.') + ' Opening EFD receipt anyway.',
-                    icon: 'warning',
-                    confirmButtonColor: '#16a34a'
-                });
+                Swal.fire({ title: 'Success!', text: 'Sale posted to TRA successfully!', icon: 'success', confirmButtonColor: '#16a34a' }).then(() => location.reload());
+            } else {
+                alert('Sale posted to TRA successfully!');
+                location.reload();
+            }
+        } else {
+            if (window.Swal) {
+                Swal.fire({ title: 'TRA Error', text: 'TRA posting failed: ' + (result.error || 'Unknown error'), icon: 'error', confirmButtonColor: '#dc2626' });
+            } else {
+                alert('TRA posting failed: ' + (result.error || 'Unknown error'));
+            }
+            if (btn) {
+                btn.innerHTML = '<i class="fas fa-cloud-upload-alt mr-1.5"></i>Post to TRA';
+                btn.disabled = false;
             }
         }
-
-        if (!shouldPrint) {
-            location.reload();
-            return result;
-        }
-
-        // Even if duplicate (already posted) or pending, open the EFD receipt (default)
-        const iframe = document.createElement('iframe');
-        iframe.style.position = 'fixed';
-        iframe.style.right = '0';
-        iframe.style.bottom = '0';
-        iframe.style.width = '0';
-        iframe.style.height = '0';
-        iframe.style.border = '0';
-        iframe.src = '/sales/receipts/' + encodeURIComponent(saleId) + '/efd-print';
-        document.body.appendChild(iframe);
-
-        iframe.onload = function() {
-            setTimeout(() => {
-                iframe.contentWindow.print();
-                setTimeout(() => {
-                    document.body.removeChild(iframe);
-                    location.reload();
-                }, 500);
-            }, 500);
-        };
         return result;
     } catch (e) {
-        // Use SweetAlert for error if available
         if (window.Swal) {
             Swal.fire({
                 title: 'Error',
@@ -255,6 +259,10 @@ async function postSaleToTraAndPrint(saleId, shouldPrint = true) {
             });
         } else {
             alert('Error: ' + e.message);
+        }
+        if (btn) {
+            btn.innerHTML = '<i class="fas fa-cloud-upload-alt mr-1.5"></i>Post to TRA';
+            btn.disabled = false;
         }
     }
 }

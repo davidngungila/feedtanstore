@@ -84,22 +84,12 @@ class ReceiptController extends Controller {
 
     /**
      * Print EFD receipt for a sale (EFD is the default receipt).
-     * Ensures the sale is submitted to TRA first so the EFD receipt is always fiscal.
+     * Only NEW sales are auto-submitted to TRA at creation time;
+     * previously saved sales are never auto-posted here - use Post to TRA manually.
      */
     public function efdPrint($key) {
         $sale = Sale::findByAnyKeyOrFail($key, true);
         $sale->load(['customer', 'user', 'items.product']);
-
-        // Any sale viewed/printed as EFD must be submitted to TRA.
-        if ($sale->tra_status !== 'posted' || empty($sale->tra_receipt_number)) {
-            try {
-                $traService = new TraVfdService();
-                $traService->postReceipt($sale);
-                $sale = $sale->fresh(['customer', 'user', 'items.product']) ?? $sale;
-            } catch (\Throwable $e) {
-                \Log::warning('Auto TRA post on EFD print failed for sale ' . $sale->id . ': ' . $e->getMessage());
-            }
-        }
 
         $settings = StoreSetting::first();
 
@@ -118,7 +108,8 @@ class ReceiptController extends Controller {
     }
 
     /**
-     * Post receipt to TRA and return result
+     * Post receipt to TRA and return result.
+     * Idempotent: a sale is only ever posted to TRA once.
      */
     public function postToTra(Request $request) {
         $saleId = $request->input('sale_id');
@@ -127,21 +118,7 @@ class ReceiptController extends Controller {
 
         $traService = new TraVfdService();
 
-        // If already posted, return cached result
-        if ($sale->tra_status === 'posted' && !empty($sale->tra_receipt_number)) {
-            return response()->json([
-                'success' => true,
-                'duplicate' => true,
-                'message' => 'Receipt was already posted to TRA',
-                'receipt_number' => $sale->tra_receipt_number,
-                'verification_link' => $sale->tra_verification_link ?? '',
-                'qr_code' => $sale->tra_qr_code ?? '',
-            ]);
-        }
-
-        $result = $traService->postReceipt($sale);
-
-        return response()->json($result);
+        return response()->json($traService->postReceipt($sale));
     }
 
     /**

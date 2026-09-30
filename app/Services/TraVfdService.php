@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Sale;
 use App\Models\StoreSetting;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -33,6 +34,23 @@ class TraVfdService
     public function isConfigured(): bool
     {
         return !empty($this->username) && !empty($this->password) && !empty($this->tinNumber) && !empty($this->vfdSerial) && !empty($this->licence);
+    }
+
+    /**
+     * Has this sale already been fiscalised?
+     * Re-reads from the database so stale in-memory models cannot trigger a second post.
+     */
+    public function alreadyPosted(Sale $sale): bool
+    {
+        $fresh = Sale::find($sale->id);
+
+        if (!$fresh) {
+            return $sale->tra_status === 'posted';
+        }
+
+        $sale->setRawAttributes($fresh->getAttributes(), true);
+
+        return $fresh->tra_status === 'posted';
     }
 
     /**
@@ -218,7 +236,9 @@ class TraVfdService
     }
 
     /**
-     * Post receipt to TRA VFD API
+     * Post receipt to TRA VFD API.
+     * Idempotent: a sale is only ever posted to TRA once. Repeat calls return the
+     * cached result instead of sending a second request.
      */
     public function postReceipt(Sale $sale): array
     {
@@ -229,6 +249,60 @@ class TraVfdService
             ];
         }
 
+        // Already fiscalised - never post the same sale to TRA twice.
+        if ($this->alreadyPosted($sale)) {
+            Log::info('TRA VFD post skipped - sale already posted', [
+                'sale_id' => $sale->id,
+                'receipt_number' => $sale->tra_receipt_number,
+            ]);
+
+            return [
+                'success' => true,
+                'duplicate' => true,
+                'message' => 'Receipt was already posted to TRA',
+                'verification_link' => $sale->tra_verification_link ?? '',
+                'qr_code' => $sale->tra_qr_code ?? '',
+                'receipt_number' => $sale->tra_receipt_number ?: $sale->invoice_number,
+            ];
+        }
+
+        // Guard against concurrent posts (e.g. auto-post + manual retry at the same moment).
+        $lock = Cache::lock('tra-vfd:post-sale:' . $sale->id, 60);
+
+        if (!$lock->get()) {
+            Log::warning('TRA VFD post already in progress for sale, skipping', [
+                'sale_id' => $sale->id,
+            ]);
+
+            return [
+                'success' => false,
+                'duplicate' => true,
+                'error' => 'This sale is already being submitted to TRA.',
+            ];
+        }
+
+        try {
+            return $lock->block(5, fn () => $this->sendReceipt($sale));
+        } catch (\Throwable $e) {
+            Log::error('TRA VFD post lock failure', [
+                'sale_id' => $sale->id,
+                'error' => $e->getMessage(),
+            ]);
+
+            return [
+                'success' => false,
+                'error' => 'Failed to submit to TRA: ' . $e->getMessage(),
+            ];
+        } finally {
+            optional($lock)->forceRelease();
+        }
+    }
+
+    /**
+     * Build and send the receipt XML to TRA, then persist the fiscal response.
+     */
+    private function sendReceipt(Sale $sale): array
+    {
         $xml = $this->buildXml($sale);
 
         Log::info('TRA VFD Full XML Request', [
