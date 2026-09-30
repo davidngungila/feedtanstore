@@ -191,6 +191,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/new', [\App\Http\Controllers\SaleController::class, 'create'])->name('new');
         Route::post('/new', [\App\Http\Controllers\SaleController::class, 'store'])->name('store');
         Route::get('/history', [\App\Http\Controllers\SaleController::class, 'index'])->name('history');
+        Route::get('/history/export', [\App\Http\Controllers\SaleController::class, 'export'])->name('export');
         Route::get('/history/{sale}/edit', [\App\Http\Controllers\SaleController::class, 'edit'])->name('edit');
         Route::put('/history/{sale}', [\App\Http\Controllers\SaleController::class, 'update'])->name('update');
         Route::get('/history/{sale}', [\App\Http\Controllers\SaleController::class, 'show'])->name('show');

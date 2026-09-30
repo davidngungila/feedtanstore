@@ -36,6 +36,68 @@ class SaleController extends Controller {
         return view('sales.history', compact('sales', 'search'));
     }
 
+    /**
+     * Export all sales of a full day as CSV (Excel-compatible).
+     * Respects the optional search filter from the history page.
+     */
+    public function export(Request $request) {
+        $request->validate([
+            'date' => 'nullable|date',
+            'search' => 'nullable|string|max:100',
+        ]);
+
+        $date = $request->input('date', now()->toDateString());
+        $search = trim((string) $request->input('search'));
+
+        $sales = Sale::with(['customer', 'user', 'items.product'])
+            ->whereDate('created_at', $date)
+            ->when($search !== '', function ($query) use ($search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('invoice_number', 'like', '%' . $search . '%')
+                        ->orWhere('type', 'like', '%' . $search . '%')
+                        ->orWhere('status', 'like', '%' . $search . '%')
+                        ->orWhereHas('customer', function ($customerQuery) use ($search) {
+                            $customerQuery->where('name', 'like', '%' . $search . '%')
+                                ->orWhere('phone', 'like', '%' . $search . '%')
+                                ->orWhere('email', 'like', '%' . $search . '%');
+                        });
+                });
+            })
+            ->orderBy('created_at', 'asc')
+            ->get();
+
+        $filename = 'day-sales-' . $date . '.csv';
+
+        return response()->streamDownload(function () use ($sales) {
+            $out = fopen('php://output', 'w');
+            fputcsv($out, ['Invoice #', 'Date/Time', 'Customer', 'Cashier', 'Items', 'Payment Method', 'Type', 'Status', 'Subtotal', 'Discount', 'Total', 'Paid', 'Change']);
+            foreach ($sales as $sale) {
+                $items = $sale->items->map(function ($i) {
+                    return $i->quantity . 'x ' . ($i->product->name ?? ('Product #' . $i->product_id));
+                })->implode('; ');
+                fputcsv($out, [
+                    $sale->invoice_number,
+                    optional($sale->created_at)->format('Y-m-d H:i'),
+                    $sale->customer->name ?? 'Walk-in',
+                    $sale->user->name ?? '-',
+                    $items,
+                    ucwords(str_replace('_', ' ', $sale->payment_method ?? '')),
+                    ucfirst($sale->type ?? ''),
+                    ucfirst($sale->status ?? ''),
+                    number_format((float) $sale->subtotal, 2, '.', ''),
+                    number_format((float) $sale->discount, 2, '.', ''),
+                    number_format((float) $sale->total, 2, '.', ''),
+                    number_format((float) $sale->paid, 2, '.', ''),
+                    number_format((float) $sale->change, 2, '.', ''),
+                ]);
+            }
+            // Summary row
+            fputcsv($out, []);
+            fputcsv($out, ['TOTAL SALES', $sales->count(), '', '', '', '', '', '', '', '', number_format((float) $sales->sum('total'), 2, '.', ''), number_format((float) $sales->sum('paid'), 2, '.', ''), '']);
+            fclose($out);
+        }, $filename, ['Content-Type' => 'text/csv']);
+    }
+
     public function create()
     {
         $products = Product::where('is_active', true)->get();

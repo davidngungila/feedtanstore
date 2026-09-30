@@ -24,6 +24,20 @@
                         </button>
                     </div>
                 </form>
+                <form action="{{ route('sales.export') }}" method="GET" id="salesExportForm" class="flex items-center gap-2">
+                    <input type="hidden" name="search" id="salesExportSearch" value="{{ $search ?? '' }}">
+                    <input
+                        type="date"
+                        name="date"
+                        value="{{ request('export_date', date('Y-m-d')) }}"
+                        max="{{ date('Y-m-d') }}"
+                        title="Day to export"
+                        class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
+                    >
+                    <button type="submit" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm whitespace-nowrap" title="Export full day sales to CSV">
+                        <i class="fas fa-file-export mr-2"></i>Export Day
+                    </button>
+                </form>
                 <a href="{{ route('sales.new') }}" class="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg">
                     <i class="fas fa-plus mr-2"></i>New Sale
                 </a>
@@ -143,6 +157,10 @@
                 const searchData = row.getAttribute('data-search') || '';
                 row.style.display = searchData.includes(searchTerm) ? '' : 'none';
             });
+
+            // Keep the day-export in sync with the current search filter
+            const exportSearch = document.getElementById('salesExportSearch');
+            if (exportSearch) exportSearch.value = this.value;
 
             clearTimeout(salesHistorySearchTimer);
             salesHistorySearchTimer = setTimeout(() => {
