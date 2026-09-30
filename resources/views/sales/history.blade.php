@@ -92,11 +92,9 @@
                             </a>
 
                             @if($sale->status == 'completed')
-                            @if(($sale->tra_status ?? null) !== 'posted')
                             <a href="{{ route('sales.edit', $sale) }}" class="text-blue-600 hover:text-blue-800" title="Edit">
                                 <i class="fas fa-edit"></i>
                             </a>
-                            @endif
                             <a href="{{ route('sales.returns') }}?sale={{ $sale->encrypted_key }}" class="text-yellow-600 hover:text-yellow-800" title="Return">
                                 <i class="fas fa-undo"></i>
                             </a>

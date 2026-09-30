@@ -310,11 +310,6 @@ class SaleController extends Controller {
             return redirect()->route('sales.history')->with('error', 'Cancelled sales cannot be edited. Restore it first.');
         }
 
-        // Block editing once posted to TRA (fiscal receipt already issued)
-        if ($sale->tra_status === 'posted') {
-            return redirect()->route('sales.show', $sale)->with('error', 'This sale was already posted to TRA and cannot be edited.');
-        }
-
         $sale->load(['items.product', 'customer']);
         // Pre-build plain arrays in PHP: Blade's @json cannot parse inline closures
         $cartItems = $sale->items->map(function($i) {
@@ -353,9 +348,9 @@ class SaleController extends Controller {
             return back()->with('error', 'Cancelled sales cannot be edited. Restore it first.');
         }
 
-        if ($sale->tra_status === 'posted') {
-            return back()->with('error', 'This sale was already posted to TRA and cannot be edited.');
-        }
+        // Sales already fiscalised at TRA stay editable in our system.
+        // The TRA receipt is never re-posted (one fiscal receipt per sale), so the
+        // local figures can legitimately differ from the fiscalised receipt.
 
         $request->validate([
             'customer_id' => 'nullable|exists:customers,id',

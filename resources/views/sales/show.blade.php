@@ -16,6 +16,14 @@
             {{ session('error') }}
         </div>
     @endif
+    @if($sale->tra_status == 'posted')
+        <div class="mb-6 p-4 bg-amber-50 border border-amber-300 text-amber-800 rounded-xl">
+            <i class="fas fa-circle-info mr-2"></i>
+            This sale was fiscalised at TRA (receipt <span class="font-semibold">{{ $sale->tra_receipt_number ?: $sale->invoice_number }}</span>).
+            You can still edit it in our system, but the TRA receipt is not re-posted &mdash; only one fiscal receipt is issued per sale,
+            so these figures may differ from the fiscalised receipt.
+        </div>
+    @endif
     
     <div class="card rounded-2xl p-6 mb-6">
         <div class="flex flex-col md:flex-row items-start md:items-center justify-between mb-6 gap-4">
@@ -32,7 +40,7 @@
                 @endif
             </div>
             <div class="flex flex-wrap gap-2">
-                @if($sale->status == 'completed' && ($sale->tra_status ?? null) !== 'posted')
+                @if($sale->status == 'completed')
                 <a href="{{ route('sales.edit', $sale) }}" class="px-3 py-1.5 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 flex items-center whitespace-nowrap text-xs">
                     <i class="fas fa-edit mr-1.5"></i>Edit Sale
                 </a>

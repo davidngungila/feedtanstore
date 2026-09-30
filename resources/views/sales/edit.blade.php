@@ -11,6 +11,12 @@
         </a>
     </div>
 
+    @if($sale->tra_status == 'posted')
+        <div class="mb-4 p-3 bg-amber-50 border border-amber-300 text-amber-800 rounded-lg">
+            <p class="text-sm"><i class="fas fa-circle-info mr-2"></i>This sale was already fiscalised at TRA (receipt <span class="font-semibold">{{ $sale->tra_receipt_number ?: $sale->invoice_number }}</span>). You can edit it in our system, but the TRA receipt is <strong>not</strong> re-posted &mdash; only one fiscal receipt is issued per sale.</p>
+        </div>
+    @endif
+
     @if($errors->any())
         <div class="mb-4 p-3 bg-red-100 border border-red-400 text-red-800 rounded-lg">
             <ul class="list-disc list-inside text-sm">
