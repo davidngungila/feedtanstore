@@ -110,33 +110,19 @@
                     <thead>
                         <tr class="border-b">
                             <th class="text-left py-2">Product</th>
-                            <th class="text-left py-2">Tax Code</th>
                             <th class="text-right py-2">Qty</th>
                             <th class="text-right py-2">Price</th>
-                            <th class="text-right py-2">VAT</th>
                             <th class="text-right py-2">Total</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @php $taxPercent = 18; @endphp
                         @foreach($sale->items as $item)
-                        @php
-                            $taxCode = (int) ($item->product->tax_code ?? 1);
-                            $itemAmt = round((float) $item->total, 2);
-                            $itemVat = $taxCode == 1 ? round($itemAmt * $taxPercent / (100 + $taxPercent), 2) : 0;
-                        @endphp
                         <tr class="border-b border-gray-100">
                             <td class="py-3">
                                 {{ $item->product->name ?? 'Product Not Found' }}
                             </td>
-                            <td class="py-3">
-                                <span class="text-xs px-1.5 py-0.5 rounded {{ $taxCode == 1 ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600' }}">
-                                    {{ $taxCode == 1 ? '18%' : ($taxCode == 3 ? '0% ZR' : ($taxCode == 4 ? 'SR' : 'Exempt')) }}
-                                </span>
-                            </td>
                             <td class="py-3 text-right">{{ $item->quantity }}</td>
                             <td class="py-3 text-right">TZS {{ number_format($item->unit_price, 2) }}</td>
-                            <td class="py-3 text-right text-gray-500">{{ $itemVat > 0 ? number_format($itemVat, 2) : '-' }}</td>
                             <td class="py-3 text-right font-medium">TZS {{ number_format($item->total, 2) }}</td>
                         </tr>
                         @endforeach
