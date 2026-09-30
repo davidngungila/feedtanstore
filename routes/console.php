@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Schedule;
 use Illuminate\Support\Str;
 
 Schedule::command('reports:nightly')->dailyAt('23:59')->timezone('Africa/Dar_es_Salaam');
+Schedule::command('alerts:check')->everyFiveMinutes()->timezone('Africa/Dar_es_Salaam');
 
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
