@@ -77,6 +77,14 @@
                 <p class="text-sm text-gray-500 mb-1">Status</p>
                 <span class="badge {{ $sale->status == 'completed' ? 'badge-green' : 'badge-red' }}">{{ ucfirst($sale->status) }}</span>
             </div>
+            <div>
+                <p class="text-sm text-gray-500 mb-1">Payment Method</p>
+                <p class="font-medium">{{ ucwords(str_replace('_', ' ', $sale->payment_method ?? '')) }}</p>
+            </div>
+            <div>
+                <p class="text-sm text-gray-500 mb-1">Paid</p>
+                <p class="font-medium">TZS {{ number_format($sale->paid, 2) }}</p>
+            </div>
             @if($sale->tra_receipt_number)
             <div>
                 <p class="text-sm text-gray-500 mb-1">TRA Receipt #</p>
