@@ -269,11 +269,8 @@
                 </div>
             </div>
             <div class="flex flex-col sm:flex-row gap-3">
-                <button onclick="printReceipt()" class="flex-1 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold text-lg">
-                    <i class="fas fa-print mr-2"></i>Invoice
-                </button>
                 <button onclick="printEfdReceipt()" class="flex-1 py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl font-semibold text-lg">
-                    <i class="fas fa-receipt mr-2"></i>EFD
+                    <i class="fas fa-receipt mr-2"></i>EFD Receipt
                 </button>
                 <button onclick="newSale()" class="flex-1 py-3 bg-primary-600 hover:bg-primary-700 text-white rounded-xl font-semibold text-lg">
                     <i class="fas fa-plus mr-2"></i>New Sale
@@ -2091,12 +2088,11 @@ function completeSale() {
                                         Swal.fire({title:'Sale Completed',text:'Ask: What product would you like us to have next time?', icon:'question', showCancelButton:true, confirmButtonText:'Record Demand', cancelButtonText:'Skip'}).then(r=>{ if(r.isConfirmed) showDemandModal(); });
                                     }
                                 },800);
-                                // Auto-print receipt after showing success modal
+                                // Auto-print EFD receipt (default) after showing success modal.
+                                // Sale is already submitted to TRA by the backend; postToTra here is idempotent fallback.
                                 setTimeout(() => {
                                     if (currentSaleId) {
-                                        // Post to TRA and auto-print invoice
-                                        postToTra(currentSaleId);
-                                        printReceipt();
+                                        printEfdReceiptAuto();
                                     }
                                 }, 1000);
                             }, 500);
@@ -2132,12 +2128,17 @@ function completeSale() {
     }, 200);
 }
 
+// Invoice receipt removed: EFD is now the default receipt for all sales.
 function printReceipt() {
-    if (currentSaleId) {
+    printEfdReceiptAuto();
+}
+
+function printEfdIframe(saleId) {
+    if (saleId) {
         // Save current fullscreen state
         const wasFullscreen = !!document.fullscreenElement;
-        
-        // Create an iframe to load and print the receipt
+
+        // Create an iframe to load and print the EFD receipt (default)
         const iframe = document.createElement('iframe');
         iframe.style.position = 'fixed';
         iframe.style.right = '0';
@@ -2145,7 +2146,7 @@ function printReceipt() {
         iframe.style.width = '0';
         iframe.style.height = '0';
         iframe.style.border = '0';
-        iframe.src = '/sales/receipts/' + currentSaleId + '/print';
+        iframe.src = '/sales/receipts/' + saleId + '/efd-print';
         document.body.appendChild(iframe);
         
         // Wait for iframe to load, then print
@@ -2168,98 +2169,30 @@ function printReceipt() {
     }
 }
 
+// EFD is the default receipt: every sale is already submitted to TRA by the backend.
+// Manual EFD print ensures TRA submission (idempotent) then prints, without extra confirmation.
 function printEfdReceipt() {
-    if (currentSaleId) {
-        // Show SweetAlert confirmation before posting to TRA
-        if (window.Swal) {
-            Swal.fire({
-                title: 'Post to TRA?',
-                text: 'Are you sure you want to post this sale to TRA and print the EFD receipt?',
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonColor: '#16a34a',
-                cancelButtonColor: '#dc2626',
-                confirmButtonText: 'Yes, post it!',
-                cancelButtonText: 'Cancel'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    const wasFullscreen = !!document.fullscreenElement;
-                    
-                    postToTra(currentSaleId).then((result) => {
-                        if (!result.success) {
-                            Swal.fire({
-                                icon: 'error',
-                                title: 'TRA posting failed',
-                                text: result.error || 'Unknown error',
-                                confirmButtonColor: '#16a34a'
-                            });
-                            return;
-                        }
-                        
-                        const iframe = document.createElement('iframe');
-                        iframe.style.position = 'fixed';
-                        iframe.style.right = '0';
-                        iframe.style.bottom = '0';
-                        iframe.style.width = '0';
-                        iframe.style.height = '0';
-                        iframe.style.border = '0';
-                        iframe.src = '/sales/receipts/' + currentSaleId + '/efd-print';
-                        document.body.appendChild(iframe);
-                        
-                        iframe.onload = function() {
-                            setTimeout(() => {
-                                iframe.contentWindow.print();
-                                setTimeout(() => {
-                                    document.body.removeChild(iframe);
-                                    if (wasFullscreen && !document.fullscreenElement) {
-                                        document.documentElement.requestFullscreen().catch(err => {
-                                            console.log('Fullscreen request failed:', err);
-                                        });
-                                    }
-                                }, 500);
-                            }, 500);
-                        };
-                    });
-                }
-            });
-        } else {
-            // Fallback to regular confirm if SweetAlert not available
-            if (confirm('Are you sure you want to post this sale to TRA and print the EFD receipt?')) {
-                const wasFullscreen = !!document.fullscreenElement;
-                
-                postToTra(currentSaleId).then((result) => {
-                    if (!result.success) {
-                        alert('TRA posting failed: ' + (result.error || 'Unknown error') + '\n\nPlease check TRA VFD settings and try again.');
-                        return;
-                    }
-                    
-                    const iframe = document.createElement('iframe');
-                    iframe.style.position = 'fixed';
-                    iframe.style.right = '0';
-                    iframe.style.bottom = '0';
-                    iframe.style.width = '0';
-                    iframe.style.height = '0';
-                    iframe.style.border = '0';
-                    iframe.src = '/sales/receipts/' + currentSaleId + '/efd-print';
-                    document.body.appendChild(iframe);
-                    
-                    iframe.onload = function() {
-                        setTimeout(() => {
-                            iframe.contentWindow.print();
-                            setTimeout(() => {
-                                document.body.removeChild(iframe);
-                                if (wasFullscreen && !document.fullscreenElement) {
-                                    document.documentElement.requestFullscreen().catch(err => {
-                                        console.log('Fullscreen request failed:', err);
-                                    });
-                                }
-                            }, 500);
-                        }, 500);
-                    };
+    printEfdReceiptAuto();
+}
+
+// Automatic EFD print used right after a sale completes (default receipt).
+function printEfdReceiptAuto() {
+    if (!currentSaleId) return;
+    const saleId = currentSaleId;
+    postToTra(saleId).then((result) => {
+        if (!result.success) {
+            console.warn('TRA auto-post did not succeed, printing EFD anyway (server will retry on efd-print):', result.error);
+            if (window.Swal) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'TRA pending',
+                    text: (result.error || 'Could not confirm TRA posting.') + ' Printing EFD receipt anyway.',
+                    confirmButtonColor: '#16a34a'
                 });
             }
         }
-    }
+        printEfdIframe(saleId);
+    });
 }
 
 async function postToTra(saleId) {
@@ -2302,8 +2235,8 @@ function showTransactionsModal() {
                 <div class="flex flex-col sm:flex-row sm:justify-between gap-2 text-xs">
                     <span class="text-gray-500">${prettyMethod(t.payment_method)}</span>
                     <div class="flex gap-3">
-                        <button type="button" onclick="printSpecificReceipt('${t.id}')" class="text-blue-600 hover:text-blue-800">
-                            <i class="fas fa-print mr-1"></i>Print
+                        <button type="button" onclick="printSpecificReceipt('${t.id}')" class="text-green-600 hover:text-green-800">
+                            <i class="fas fa-receipt mr-1"></i>EFD
                         </button>
                         <button type="button" onclick="hideTransactionsModal(); showReturnModal('${t.invoice_number}'); lookupReturnSale();" class="text-orange-600 hover:text-orange-800 font-semibold">
                             <i class="fas fa-undo mr-1"></i>Return
@@ -2322,6 +2255,7 @@ function hideTransactionsModal() {
     document.getElementById('transactionsModal').classList.add('hidden');
 }
 
+// EFD is the default receipt (invoice receipt removed).
 function printSpecificReceipt(saleId) {
     const iframe = document.createElement('iframe');
     iframe.style.position = 'fixed';
@@ -2330,7 +2264,7 @@ function printSpecificReceipt(saleId) {
     iframe.style.width = '0';
     iframe.style.height = '0';
     iframe.style.border = '0';
-    iframe.src = '/sales/receipts/' + saleId + '/print';
+    iframe.src = '/sales/receipts/' + saleId + '/efd-print';
     document.body.appendChild(iframe);
     
     iframe.onload = function() {

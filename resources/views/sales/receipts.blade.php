@@ -59,17 +59,9 @@
                             <a href="{{ route('sales.receipts.show', $sale) }}" class="text-primary-600 hover:text-primary-800" title="View">
                                 <i class="fas fa-eye"></i>
                             </a>
-                            <a href="{{ route('sales.receipts.print', $sale) }}" target="_blank" class="text-blue-600 hover:text-blue-800" title="Print Invoice">
-                                <i class="fas fa-print"></i>
-                            </a>
-                            <a href="{{ route('sales.receipts.efd-print', $sale) }}" target="_blank" class="text-green-600 hover:text-green-800" title="Print EFD Receipt">
+                            <a href="{{ route('sales.receipts.efd-print', $sale) }}" target="_blank" class="text-green-600 hover:text-green-800" title="Print EFD Receipt (Default)">
                                 <i class="fas fa-receipt"></i>
                             </a>
-                            @if($sale->tra_status != 'posted')
-                            <button onclick="postSaleToTra({{ $sale->id }}, this)" class="text-orange-600 hover:text-orange-800" title="Post to TRA">
-                                <i class="fas fa-cloud-upload-alt"></i>
-                            </button>
-                            @endif
                         </td>
                     </tr>
                     @empty

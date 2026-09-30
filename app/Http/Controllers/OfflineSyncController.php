@@ -171,6 +171,14 @@ class OfflineSyncController extends Controller
                 $offline->update(['sync_status'=>'synced','synced_at'=>now(),'synced_sale_id'=>$sale->id]);
                 return $sale;
             });
+            // EFD is the default receipt: every synced sale must be submitted to TRA automatically.
+            try {
+                $result->load(['customer', 'user', 'items.product']);
+                (new \App\Services\TraVfdService())->postReceipt($result->fresh(['customer', 'user', 'items.product']) ?? $result);
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning('Auto TRA post failed for synced sale ' . $result->id . ': ' . $e->getMessage());
+            }
+            $result = $result->fresh() ?? $result;
             return ['local_transaction_id'=>$offline->local_transaction_id,'status'=>'synced','sale_id'=>$result->id,'invoice'=>$result->invoice_number];
         } catch (\Throwable $e) {
             $offline->update(['sync_status'=>'failed','last_error'=>$e->getMessage()]);

@@ -83,11 +83,23 @@ class ReceiptController extends Controller {
     }
 
     /**
-     * Print EFD receipt for a sale
+     * Print EFD receipt for a sale (EFD is the default receipt).
+     * Ensures the sale is submitted to TRA first so the EFD receipt is always fiscal.
      */
     public function efdPrint($key) {
         $sale = Sale::findByAnyKeyOrFail($key, true);
         $sale->load(['customer', 'user', 'items.product']);
+
+        // Any sale viewed/printed as EFD must be submitted to TRA.
+        if ($sale->tra_status !== 'posted' || empty($sale->tra_receipt_number)) {
+            try {
+                $traService = new TraVfdService();
+                $traService->postReceipt($sale);
+                $sale = $sale->fresh(['customer', 'user', 'items.product']) ?? $sale;
+            } catch (\Throwable $e) {
+                \Log::warning('Auto TRA post on EFD print failed for sale ' . $sale->id . ': ' . $e->getMessage());
+            }
+        }
 
         $settings = StoreSetting::first();
 

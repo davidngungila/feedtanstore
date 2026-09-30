@@ -87,14 +87,8 @@
                             <a href="{{ route('sales.show', $sale) }}" class="text-primary-600 hover:text-primary-800" title="View">
                                 <i class="fas fa-eye"></i>
                             </a>
-                            <a href="{{ route('sales.receipts.download', $sale) }}" class="text-primary-600 hover:text-primary-800" title="Download PDF">
-                                <i class="fas fa-download"></i>
-                            </a>
-                            <a href="{{ route('sales.receipts.print', $sale) }}" class="text-primary-600 hover:text-primary-800" title="Print" target="_blank">
-                                <i class="fas fa-print"></i>
-                            </a>
-                            <a href="{{ route('sales.receipts.efd-print', $sale) }}" class="text-blue-600 hover:text-blue-800" title="Print EFD" target="_blank">
-                                <i class="fas fa-file-invoice"></i>
+                            <a href="{{ route('sales.receipts.efd-print', $sale) }}" class="text-green-600 hover:text-green-800" title="Print EFD Receipt (Default)" target="_blank">
+                                <i class="fas fa-receipt"></i>
                             </a>
 
                             @if($sale->status == 'completed')

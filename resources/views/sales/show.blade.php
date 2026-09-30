@@ -37,20 +37,12 @@
                     <i class="fas fa-edit mr-1.5"></i>Edit Sale
                 </a>
                 @endif
-                <a href="{{ route('sales.receipts.download', $sale) }}" class="px-3 py-1.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 flex items-center whitespace-nowrap text-xs">
+                <a href="{{ route('sales.receipts.download', $sale) }}" class="px-3 py-1.5 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 flex items-center whitespace-nowrap text-xs" title="Legacy PDF (non-fiscal)">
                     <i class="fas fa-download mr-1.5"></i>PDF
                 </a>
-                <a href="{{ route('sales.receipts.print', $sale) }}" target="_blank" class="px-3 py-1.5 border border-gray-300 rounded-lg flex items-center whitespace-nowrap text-xs">
-                    <i class="fas fa-print mr-1.5"></i>Invoice
-                </a>
                 <button onclick="printEfdReceipt('{{ $sale->encrypted_key }}')" class="px-3 py-1.5 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center whitespace-nowrap text-xs">
-                    <i class="fas fa-receipt mr-1.5"></i>EFD Receipt
+                    <i class="fas fa-receipt mr-1.5"></i>EFD Receipt (Default)
                 </button>
-                @if($sale->tra_status != 'posted')
-                <button onclick="postSaleToTra('{{ $sale->encrypted_key }}')" class="px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center whitespace-nowrap text-xs" id="postTraBtn">
-                    <i class="fas fa-cloud-upload-alt mr-1.5"></i>Post to TRA
-                </button>
-                @endif
                 <a href="{{ route('sales.receipts') }}" class="px-3 py-1.5 border border-gray-300 rounded-lg flex items-center whitespace-nowrap text-xs">
                     <i class="fas fa-arrow-left mr-1.5"></i>Back
                 </a>
@@ -191,130 +183,17 @@
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
+// EFD is the default receipt: every sale is submitted to TRA automatically (backend + efd-print fallback).
+// Manual "Post to TRA" button removed; EFD print ensures submission then prints without extra confirmation.
 function postSaleToTra(saleId) {
-    // Show SweetAlert confirmation before posting to TRA
-    if (window.Swal) {
-        Swal.fire({
-            title: 'Post to TRA?',
-            text: 'Are you sure you want to post this sale to TRA?',
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonColor: '#16a34a',
-            cancelButtonColor: '#dc2626',
-            confirmButtonText: 'Yes, post it!',
-            cancelButtonText: 'Cancel'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                postSaleToTraInternal(saleId);
-            }
-        });
-    } else {
-        // Fallback to regular confirm if SweetAlert not available
-        if (confirm('Are you sure you want to post this sale to TRA?')) {
-            postSaleToTraInternal(saleId);
-        }
-    }
-}
-
-function postSaleToTraInternal(saleId) {
-    const btn = document.getElementById('postTraBtn');
-    if (btn) {
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Posting...';
-        btn.disabled = true;
-    }
-    
-    fetch('/sales/receipts/post-to-tra', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': '{{ csrf_token() }}',
-            'Accept': 'application/json',
-        },
-        body: JSON.stringify({ sale_id: saleId })
-    })
-    .then(r => r.json())
-    .then(result => {
-        if (result.success) {
-            // Use SweetAlert for success if available
-            if (window.Swal) {
-                Swal.fire({
-                    title: 'Success!',
-                    text: 'Sale posted to TRA successfully!',
-                    icon: 'success',
-                    confirmButtonColor: '#16a34a',
-                    confirmButtonText: 'OK'
-                }).then(() => {
-                    location.reload();
-                });
-            } else {
-                alert('Sale posted to TRA successfully!');
-                location.reload();
-            }
-        } else {
-            // Use SweetAlert for error if available
-            if (window.Swal) {
-                Swal.fire({
-                    title: 'TRA Error',
-                    text: 'TRA posting failed: ' + (result.error || 'Unknown error'),
-                    icon: 'error',
-                    confirmButtonColor: '#dc2626',
-                    confirmButtonText: 'OK'
-                });
-            } else {
-                alert('TRA posting failed: ' + (result.error || 'Unknown error'));
-            }
-            if (btn) {
-                btn.innerHTML = '<i class="fas fa-cloud-upload-alt mr-2"></i>Post to TRA';
-                btn.disabled = false;
-            }
-        }
-    })
-    .catch(e => {
-        // Use SweetAlert for error if available
-        if (window.Swal) {
-            Swal.fire({
-                title: 'Error',
-                text: e.message,
-                icon: 'error',
-                confirmButtonColor: '#dc2626',
-                confirmButtonText: 'OK'
-            });
-        } else {
-            alert('Error: ' + e.message);
-        }
-        if (btn) {
-            btn.innerHTML = '<i class="fas fa-cloud-upload-alt mr-2"></i>Post to TRA';
-            btn.disabled = false;
-        }
-    });
+    return postSaleToTraAndPrint(saleId, false);
 }
 
 function printEfdReceipt(saleId) {
-    // Show SweetAlert confirmation before posting to TRA
-    if (window.Swal) {
-        Swal.fire({
-            title: 'Post to TRA?',
-            text: 'Are you sure you want to post this sale to TRA and print the EFD receipt?',
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonColor: '#16a34a',
-            cancelButtonColor: '#dc2626',
-            confirmButtonText: 'Yes, post it!',
-            cancelButtonText: 'Cancel'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                postSaleToTraAndPrint(saleId);
-            }
-        });
-    } else {
-        // Fallback to regular confirm if SweetAlert not available
-        if (confirm('Are you sure you want to post this sale to TRA and print the EFD receipt?')) {
-            postSaleToTraAndPrint(saleId);
-        }
-    }
+    postSaleToTraAndPrint(saleId, true);
 }
 
-async function postSaleToTraAndPrint(saleId) {
+async function postSaleToTraAndPrint(saleId, shouldPrint = true) {
     try {
         const response = await fetch('/sales/receipts/post-to-tra', {
             method: 'POST',
@@ -327,11 +206,23 @@ async function postSaleToTraAndPrint(saleId) {
         });
         const result = await response.json();
         if (!result.success) {
-            alert('TRA posting failed: ' + (result.error || 'Unknown error') + '\n\nPlease check TRA VFD settings.');
-            return;
+            console.warn('TRA post did not succeed, opening EFD anyway (efd-print will retry):', result.error);
+            if (window.Swal) {
+                Swal.fire({
+                    title: 'TRA pending',
+                    text: (result.error || 'Could not confirm TRA posting.') + ' Opening EFD receipt anyway.',
+                    icon: 'warning',
+                    confirmButtonColor: '#16a34a'
+                });
+            }
         }
-        
-        // Even if duplicate (already posted), print the EFD receipt
+
+        if (!shouldPrint) {
+            location.reload();
+            return result;
+        }
+
+        // Even if duplicate (already posted) or pending, open the EFD receipt (default)
         const iframe = document.createElement('iframe');
         iframe.style.position = 'fixed';
         iframe.style.right = '0';
@@ -341,15 +232,17 @@ async function postSaleToTraAndPrint(saleId) {
         iframe.style.border = '0';
         iframe.src = '/sales/receipts/' + encodeURIComponent(saleId) + '/efd-print';
         document.body.appendChild(iframe);
-        
+
         iframe.onload = function() {
             setTimeout(() => {
                 iframe.contentWindow.print();
                 setTimeout(() => {
                     document.body.removeChild(iframe);
+                    location.reload();
                 }, 500);
             }, 500);
         };
+        return result;
     } catch (e) {
         // Use SweetAlert for error if available
         if (window.Swal) {

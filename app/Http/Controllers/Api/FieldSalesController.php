@@ -301,6 +301,13 @@ class FieldSalesController extends Controller
                         'total'=>$it->total,
                     ]);
                 }
+                // EFD is the default receipt: every field sale must be submitted to TRA automatically.
+                try {
+                    $sale->load(['customer', 'items.product']);
+                    (new \App\Services\TraVfdService())->postReceipt($sale->fresh(['customer', 'items.product']) ?? $sale);
+                } catch (\Throwable $e) {
+                    \Illuminate\Support\Facades\Log::warning('Auto TRA post failed for field sale ' . $sale->id . ': ' . $e->getMessage());
+                }
             }
             return response()->json($order->load('items'),201);
         });

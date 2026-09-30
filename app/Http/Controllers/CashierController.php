@@ -346,7 +346,17 @@ class CashierController extends Controller
 
             \Log::info('Sale completed successfully', ['sale_id' => $sale->id]);
 
-            return response()->json(['sale' => $sale, 'change' => $change, 'sale_id' => $sale->id, 'service_duration'=>$serviceTime->duration_seconds ?? null]);
+            // EFD is the default receipt: every sale must be submitted to TRA automatically.
+            $traResult = ['success' => false, 'error' => 'Not attempted'];
+            try {
+                $sale->load(['customer', 'user', 'items.product']);
+                $traResult = (new \App\Services\TraVfdService())->postReceipt($sale->fresh(['customer', 'user', 'items.product']) ?? $sale);
+            } catch (\Throwable $e) {
+                \Log::warning('Auto TRA post failed for sale ' . $sale->id . ': ' . $e->getMessage());
+                $traResult = ['success' => false, 'error' => $e->getMessage()];
+            }
+
+            return response()->json(['sale' => $sale->fresh(), 'change' => $change, 'sale_id' => $sale->id, 'service_duration'=>$serviceTime->duration_seconds ?? null, 'tra' => $traResult]);
         } catch (\Exception $e) {
             \Log::error('Error completing sale', [
                 'message' => $e->getMessage(),

@@ -275,6 +275,15 @@ class SaleController extends Controller {
             $customer->increment('balance', $total);
         }
 
+        // EFD is the default receipt: every sale must be submitted to TRA automatically.
+        try {
+            $sale->load(['customer', 'user', 'items.product']);
+            (new \App\Services\TraVfdService())->postReceipt($sale->fresh(['customer', 'user', 'items.product']) ?? $sale);
+        } catch (\Throwable $e) {
+            \Log::warning('Auto TRA post failed for sale ' . $sale->id . ': ' . $e->getMessage());
+        }
+        $sale = $sale->fresh(['customer', 'user', 'items.product']) ?? $sale;
+
         if ($request->expectsJson()) {
             return response()->json([
                 'success' => true,
