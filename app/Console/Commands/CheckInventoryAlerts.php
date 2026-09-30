@@ -12,25 +12,26 @@ use Illuminate\Support\Facades\Mail;
 
 class CheckInventoryAlerts extends Command
 {
-    protected $signature = 'alerts:check {--to= : Comma-separated test recipient(s), overrides mail.nightly_to}';
+    protected $signature = 'alerts:check {--to= : Comma-separated test recipient(s), overrides mail.nightly_to} {--fresh : Ignore already-sent marks (for testing)}';
     protected $description = 'Send immediate email when stock/expiry/cash thresholds are breached (runs every few minutes)';
 
     public function handle(): int
     {
         $today = today()->toDateString();
+        $fresh = (bool) $this->option('fresh');
         $new = ['lowStock' => collect(), 'outOfStock' => collect(), 'expired' => collect(), 'expiring7' => collect(), 'unusualDiscounts' => collect(), 'cashDiscrepancies' => collect()];
 
         // Products breaching reorder level / out of stock (alert once per product per day)
         foreach (InventoryAlertService::lowStock() as $p) {
             $key = "inv_alert:low:{$p->id}:{$today}";
-            if (!Cache::has($key)) {
+            if ($fresh || !Cache::has($key)) {
                 $new['lowStock']->push($p);
                 Cache::put($key, true, now()->endOfDay());
             }
         }
         foreach (InventoryAlertService::outOfStock() as $p) {
             $key = "inv_alert:out:{$p->id}:{$today}";
-            if (!Cache::has($key)) {
+            if ($fresh || !Cache::has($key)) {
                 $new['outOfStock']->push($p);
                 Cache::put($key, true, now()->endOfDay());
             }
@@ -39,14 +40,14 @@ class CheckInventoryAlerts extends Command
         // Expiry breaches (alert once per product per day)
         foreach (InventoryAlertService::expired() as $p) {
             $key = "inv_alert:expired:{$p->id}:{$today}";
-            if (!Cache::has($key)) {
+            if ($fresh || !Cache::has($key)) {
                 $new['expired']->push($p);
                 Cache::put($key, true, now()->endOfDay());
             }
         }
         foreach (InventoryAlertService::expiringWithin(7) as $p) {
             $key = "inv_alert:exp7:{$p->id}:{$today}";
-            if (!Cache::has($key)) {
+            if ($fresh || !Cache::has($key)) {
                 $new['expiring7']->push($p);
                 Cache::put($key, true, now()->endOfDay());
             }
@@ -60,7 +61,7 @@ class CheckInventoryAlerts extends Command
             ->filter(fn ($s) => (float) $s->subtotal > 0 && ((float) $s->discount / (float) $s->subtotal) >= InventoryAlertService::UNUSUAL_DISCOUNT_RATE);
         foreach ($recentUnusual as $s) {
             $key = "inv_alert:discount:{$s->id}";
-            if (!Cache::has($key)) {
+            if ($fresh || !Cache::has($key)) {
                 $new['unusualDiscounts']->push($s);
                 Cache::put($key, true, now()->addDays(7));
             }
@@ -74,7 +75,7 @@ class CheckInventoryAlerts extends Command
             ->get();
         foreach ($recentDiscrepancies as $d) {
             $key = "inv_alert:drawer:{$d->id}";
-            if (!Cache::has($key)) {
+            if ($fresh || !Cache::has($key)) {
                 $new['cashDiscrepancies']->push($d);
                 Cache::put($key, true, now()->addDays(7));
             }
