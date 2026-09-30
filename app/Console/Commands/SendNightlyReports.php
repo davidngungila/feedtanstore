@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Mail;
 
 class SendNightlyReports extends Command
 {
-    protected $signature = 'reports:nightly {--date= : Report date (Y-m-d), defaults to today}';
+    protected $signature = 'reports:nightly {--date= : Report date (Y-m-d), defaults to today} {--to= : Comma-separated test recipient(s), overrides mail.nightly_to}';
     protected $description = 'Email the daily sales + full inventory PDFs to admins (scheduled 23:59 daily)';
 
     public function handle(): int
@@ -28,7 +28,7 @@ class SendNightlyReports extends Command
         $salesPdf = $this->renderPdf('reports.sales.daily-pdf', $salesData);
         $stockPdf = $this->renderPdf('reports.inventory.current-stock-pdf', $stockData);
 
-        $recipients = collect(explode(',', (string) config('mail.nightly_to')))
+        $recipients = collect(explode(',', (string) ($this->option('to') ?: config('mail.nightly_to'))))
             ->map(fn ($e) => trim($e))
             ->filter(fn ($e) => filter_var($e, FILTER_VALIDATE_EMAIL))
             ->values()
