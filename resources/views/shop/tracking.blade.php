@@ -55,7 +55,7 @@
 <meta name="description" content="{{ $trackingDescription }}">
 <meta name="robots" content="noindex,nofollow,noarchive">
 <meta name="author" content="Feedtan Store">
-<meta name="theme-color" content="#1B4332">
+<meta name="theme-color" content="#123328">
 <link rel="canonical" href="{{ $trackingCanonicalUrl }}">
 <link rel="icon" type="image/png" href="{{ $logoUrl }}">
 <link rel="apple-touch-icon" href="{{ $logoUrl }}">
@@ -75,85 +75,66 @@
 <meta name="twitter:image" content="{{ $logoUrl }}">
 <meta name="twitter:image:alt" content="Feedtan Store logo">
 <meta name="csrf-token" content="{{ csrf_token() }}">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,600;0,9..144,700;0,9..144,900;1,9..144,500&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 @include('shop.partials.styles')
 <style>
 /* ---------- Track form ---------- */
-.track-search{display:flex;gap:10px;}
-.track-search .field{flex:1;margin-bottom:0;}
+.track-card{background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow-card);}
+.track-search{display:flex;gap:10px;align-items:flex-end;}
+.track-search .field{flex:1;margin-bottom:0;min-width:0;}
 .track-search .field input{height:50px;}
-.track-search .btn{flex-shrink:0;height:50px;}
-@media(max-width:560px){
-  .track-search{flex-direction:column;}
-  .track-search .btn{width:100%;}
+.track-search .btn{height:50px;flex-shrink:0;}
+
+/* ---------- Order card ---------- */
+.order-card{background:var(--paper);border:1px solid var(--line);border-radius:var(--radius-xl);padding:22px;box-shadow:var(--shadow-card);}
+.order-hero{
+  display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;
+  background:var(--green-900);color:#fff;border-radius:var(--radius);padding:20px 22px;
 }
-
-/* ---------- Order header ---------- */
-.order-hero{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:18px;}
-.order-hero h2{font-size:22px;margin-bottom:4px;}
-.order-hero .placed-on{color:var(--ink-soft);font-size:13.5px;margin:0;}
-.order-hero .order-actions{display:flex;gap:10px;flex-wrap:wrap;}
-.pill{padding:6px 13px;font-size:12.5px;}
-.pill-gray{background:#EFEFE9;color:#6B6B60;}
-.pill-blue{background:#E3EAFB;color:#2D4E9E;}
-
-/* ---------- Stat cards ---------- */
-.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:20px 0 0;}
-@media(max-width:980px){.stats{grid-template-columns:repeat(2,minmax(0,1fr));}}
-@media(max-width:420px){.stats{grid-template-columns:1fr 1fr;gap:10px;}}
-.stat{
-  background:var(--parchment);border-radius:var(--radius-m);padding:16px;border:1px solid rgba(219,212,194,.6);
+.order-hero h2{color:#fff;font-size:22px;}
+.order-hero .placed-on{color:#c7d6cd;font-size:13px;margin-top:6px;font-family:var(--font-mono);}
+.order-actions{display:flex;gap:8px;flex-wrap:wrap;}
+.order-actions .btn-ghost{background:rgba(255,255,255,.12);color:#fff;}
+.order-actions .btn-ghost:hover{background:rgba(255,255,255,.2);}
+.stat b.small{font-size:13px;font-weight:600;}
+.progress-wrap{margin-top:22px;}
+.progress-head{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px;
+  font-size:12.5px;font-weight:700;color:var(--ink-soft);
 }
-.stat .label{font-size:11.5px;font-weight:700;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;display:flex;align-items:center;gap:6px;}
-.stat .label svg{color:var(--green-700);}
-.stat .value{font-size:17px;font-weight:800;word-break:break-word;}
-.stat .value.small{font-size:14.5px;}
-
-/* ---------- Progress ---------- */
-.progress-wrap{margin:22px 0 4px;}
-.progress-head{display:flex;justify-content:space-between;align-items:center;font-size:13px;font-weight:700;color:var(--ink-soft);margin-bottom:8px;}
-.progress-head b{color:var(--green-700);}
-.progress-bar{height:10px;border-radius:999px;background:var(--line);overflow:hidden;}
-.progress-bar>span{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,var(--green-700),var(--green-600));transition:width .6s var(--ease);}
+.progress-head b{font-family:var(--font-mono);color:var(--green-800);}
 
 /* ---------- Timeline ---------- */
-.tl{position:relative;margin:24px 0 4px;padding-left:0;}
-.tl::before{content:'';position:absolute;left:15px;top:10px;bottom:10px;width:2px;background:var(--line);border-radius:2px;}
-.tl-item{position:relative;padding:0 0 26px 46px;}
-.tl-item:last-child{padding-bottom:4px;}
-.tl-dot{
-  position:absolute;left:0;top:0;width:32px;height:32px;border-radius:50%;background:#fff;border:2px solid var(--line);
-  display:flex;align-items:center;justify-content:center;color:var(--ink-soft);z-index:1;
-}
-.tl-item.done .tl-dot{background:var(--green-700);border-color:var(--green-900);color:#fff;}
-.tl-item.current .tl-dot{background:var(--orange);border-color:var(--orange-dark);color:#fff;box-shadow:0 0 0 6px rgba(232,137,58,.18);animation:tlPulse 1.8s var(--ease) infinite;}
-@keyframes tlPulse{
-  0%,100%{box-shadow:0 0 0 5px rgba(232,137,58,.22);}
-  50%{box-shadow:0 0 0 10px rgba(232,137,58,.06);}
-}
-.tl-item.todo{opacity:.5;}
-.tl-body .tl-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap;}
-.tl-body .tl-head b{font-size:14.5px;}
-.tl-time{font-family:var(--font-mono);font-size:12px;color:var(--ink-soft);}
-.tl-desc{font-size:13px;color:var(--ink-soft);margin:3px 0 0;line-height:1.5;}
-.tl-item.current .tl-head b{color:var(--orange-dark);}
+.tl{padding-left:2px;}
+.tl-body{padding-right:4px;}
+.tl-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap;}
+.tl-head b{font-size:14px;color:var(--green-900);}
+.tl-time{font-family:var(--font-mono);font-size:11.5px;color:var(--ink-faint);}
+.tl-desc{font-size:13px;color:var(--ink-soft);margin-top:3px;line-height:1.55;}
 
-/* ---------- Map ---------- */
-.map-container{width:100%;height:380px;border-radius:var(--radius-m);overflow:hidden;border:1px solid var(--line);position:relative;z-index:10;}
-.map-container .leaflet-control-container .leaflet-control{border-radius:10px;overflow:hidden;}
-.map-container .leaflet-control-layers,
-.map-container .leaflet-bar{box-shadow:0 8px 22px rgba(15,42,31,0.12);}
-.map-container .leaflet-control-container{z-index:20;}
-.map-container .leaflet-pane{z-index:15;}
+/* ---------- Items / location ---------- */
+.order-items li b{color:var(--ink);font-size:14px;}
+.order-items .qty{color:var(--ink-faint);font-size:12.5px;}
+.order-items li > b{font-family:var(--font-mono);color:var(--green-800);white-space:nowrap;}
+.loc-card{background:var(--green-050);border:1px solid var(--line);border-radius:var(--radius-m);padding:16px;}
+.loc-card p{margin:0;font-size:14.5px;}
 
-/* ---------- Items ---------- */
-.order-items{list-style:none;padding:0;margin:0;}
-.order-items li{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px dashed var(--line);font-size:13.5px;}
-.order-items li:last-child{border-bottom:none;}
-.order-items li b{color:var(--ink);}
-.order-items .qty{color:var(--ink-soft);font-size:12.5px;}
+/* ---------- Responsive ---------- */
+@media (max-width:900px){
+  .stats{grid-template-columns:repeat(2,1fr);}
+  .order-hero{padding:18px;}
+  .order-hero h2{font-size:19px;}
+}
+@media (max-width:640px){
+  .track-search{flex-direction:column;align-items:stretch;}
+  .track-search .btn{width:100%;}
+  .order-card{padding:16px;}
+  .track-card{padding:16px;}
+}
+@media (max-width:420px){
+  .stats{grid-template-columns:1fr;}
+  .order-actions{width:100%;}
+  .order-actions .btn{flex:1;}
+}
 </style>
 </head>
 <body>
@@ -161,29 +142,27 @@
 @include('shop.partials.header', ['activeNav' => 'track'])
 
 <main id="mainContent">
-  <section class="section">
+  <section class="section" style="padding-top:30px;">
     <div class="wrap">
       <a href="{{ route('shop.index') }}" class="back-link">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m15 18-6-6 6-6"/></svg> {{ __('Back to store') }}
+        <i class="fa-solid fa-arrow-left"></i> {{ __('Back to store') }}
       </a>
 
-      <div class="section-head" style="margin-top:18px;">
-        <div>
-          <span class="eyebrow">{{ __('Track') }}</span>
-          <h1>{{ __('Track your order') }}</h1>
-        </div>
+      <div class="sec-head" style="margin-bottom:22px;">
+        <span class="eyebrow">{{ __('Track') }}</span>
+        <h1 style="font-size:clamp(26px,3.4vw,36px);">{{ __('Track your order') }}</h1>
+        <p>{{ __('Enter your order number to see every step, from our shelf to your door.') }}</p>
       </div>
 
-      <div class="card reveal in">
+      <div class="track-card">
         <form id="trackForm">
           <div class="track-search">
             <div class="field">
               <label for="orderNumber">{{ __('Order Number') }}</label>
-              <input type="text" id="orderNumber" placeholder="{{ __('Enter your order number') }}" value="{{ request('order', '') }}">
+              <input type="text" id="orderNumber" placeholder="{{ __('Enter your order number') }}" value="{{ request('order', '') }}" autocomplete="off">
             </div>
             <button type="submit" class="btn btn-primary">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-              {{ __('Track Order') }}
+              <i class="fa-solid fa-magnifying-glass"></i> {{ __('Track Order') }}
             </button>
           </div>
         </form>
@@ -194,7 +173,7 @@
         window.shortCustomerReference = @json($order->short_customer_reference);
       </script>
 
-      <div class="card reveal in" id="orderDetails">
+      <div class="order-card reveal in" id="orderDetails" style="margin-top:22px;">
         <div class="order-hero">
           <div>
             <h2>{{ __('Order') }} {{ $order->short_customer_reference }}</h2>
@@ -202,13 +181,11 @@
           </div>
           <div class="order-actions">
             <a href="{{ route('shop.tracking.pdf', ['orderNumber' => $order->tracking_token ?? $order->order_number]) }}" class="btn btn-ghost btn-sm">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
-              {{ __('Download PDF') }}
+              <i class="fa-solid fa-download"></i> {{ __('Download PDF') }}
             </a>
             @if(($order->payment_method ?? 'cash') === 'online' && ($order->payment_status ?? 'pending') !== 'paid')
               <button type="button" class="btn btn-primary btn-sm" id="payNowBtn" data-order="{{ $order->order_number }}" data-phone="{{ $order->customer_phone }}">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 6 9 17l-5-5"/></svg>
-                {{ __('Pay Now') }}
+                <i class="fa-solid fa-circle-check"></i> {{ __('Pay Now') }}
               </button>
             @endif
           </div>
@@ -216,34 +193,20 @@
 
         <div class="stats">
           <div class="stat">
-            <div class="label">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-              {{ __('Status') }}
-            </div>
-            <div class="value">
-              <span class="pill pill-{{ $statusColors[$order->status] ?? 'gray' }}">{{ $statusLabels[$order->status] ?? ucfirst($order->status) }}</span>
-            </div>
+            <span><i class="fa-regular fa-clock"></i> {{ __('Status') }}</span>
+            <b><span class="pill pill-{{ $statusColors[$order->status] ?? 'gray' }}">{{ $statusLabels[$order->status] ?? ucfirst($order->status) }}</span></b>
           </div>
           <div class="stat">
-            <div class="label">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6 8-6s8 2 8 6"/></svg>
-              {{ __('Customer') }}
-            </div>
-            <div class="value small">{{ $order->customer_name }}</div>
+            <span><i class="fa-regular fa-user"></i> {{ __('Customer') }}</span>
+            <b class="small">{{ $order->customer_name }}</b>
           </div>
           <div class="stat">
-            <div class="label">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
-              {{ __('Total') }}
-            </div>
-            <div class="value">TZS {{ number_format($order->total, 0) }}</div>
+            <span><i class="fa-solid fa-wallet"></i> {{ __('Total') }}</span>
+            <b>TZS {{ number_format($order->total, 0) }}</b>
           </div>
           <div class="stat">
-            <div class="label">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="1" y="4" width="22" height="16" rx="2"/><path d="M1 10h22"/></svg>
-              {{ __('Payment') }}
-            </div>
-            <div class="value small">{{ ucfirst($order->payment_method ?? 'Cash') }} · {{ ucfirst($order->payment_status ?? 'Pending') }}</div>
+            <span><i class="fa-solid fa-credit-card"></i> {{ __('Payment') }}</span>
+            <b class="small">{{ ucfirst($order->payment_method ?? 'Cash') }} · {{ ucfirst($order->payment_status ?? 'Pending') }}</b>
           </div>
         </div>
 
@@ -252,20 +215,20 @@
             <span>{{ __('Order progress') }}</span>
             <b>{{ $orderProgress }}%</b>
           </div>
-          <div class="progress-bar"><span style="width:{{ $orderProgress }}%;"></span></div>
+          <div class="progress-track"><div class="progress-fill" style="width:{{ $orderProgress }}%;"></div></div>
         </div>
 
         @if($order->status !== 'cancelled')
-        <div style="margin-top:24px;">
+        <div style="margin-top:28px;">
           <h3 class="h3-title">{{ __('Order Timeline') }}</h3>
           <div class="tl">
             @php $isDone = in_array($order->status, ['confirmed','preparing','ready','out_for_delivery','delivered']); @endphp
             <div class="tl-item {{ $order->status === 'pending' ? 'current' : 'done' }}">
               <span class="tl-dot">
                 @if($order->status !== 'pending')
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg>
+                  <i class="fa-solid fa-check"></i>
                 @else
-                  <span style="font-size:11px;font-weight:800;">1</span>
+                  <b style="font-size:10px;">1</b>
                 @endif
               </span>
               <div class="tl-body">
@@ -278,9 +241,9 @@
             <div class="tl-item {{ $order->status === 'confirmed' ? 'current' : ($isDone ? 'done' : 'todo') }}">
               <span class="tl-dot">
                 @if($isDone)
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg>
+                  <i class="fa-solid fa-check"></i>
                 @elseif($order->status === 'confirmed')
-                  <span style="font-size:11px;font-weight:800;">2</span>
+                  <b style="font-size:10px;">2</b>
                 @endif
               </span>
               <div class="tl-body">
@@ -294,14 +257,14 @@
             <div class="tl-item {{ $order->status === 'preparing' ? 'current' : 'done' }}">
               <span class="tl-dot">
                 @if($order->status === 'preparing')
-                  <span style="font-size:11px;font-weight:800;">3</span>
+                  <b style="font-size:10px;">3</b>
                 @else
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg>
+                  <i class="fa-solid fa-check"></i>
                 @endif
               </span>
               <div class="tl-body">
                 <div class="tl-head"><b>{{ __('Preparing Order') }}</b><span class="tl-time">{{ $order->created_at->addMinutes(30)->format('M d, h:i A') }}</span></div>
-                <p class="tl-desc">{{ __('Your order is being prepared.') }}</p>
+                <p class="tl-desc">{{ __('Our team is picking and packing your items.') }}</p>
               </div>
             </div>
             @endif
@@ -310,14 +273,14 @@
             <div class="tl-item {{ $order->status === 'ready' ? 'current' : 'done' }}">
               <span class="tl-dot">
                 @if($order->status === 'ready')
-                  <span style="font-size:11px;font-weight:800;">4</span>
+                  <b style="font-size:10px;">4</b>
                 @else
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg>
+                  <i class="fa-solid fa-check"></i>
                 @endif
               </span>
               <div class="tl-body">
                 <div class="tl-head"><b>{{ __('Ready for Delivery') }}</b><span class="tl-time">{{ $order->created_at->addMinutes(60)->format('M d, h:i A') }}</span></div>
-                <p class="tl-desc">{{ __('Your order is ready to be delivered.') }}</p>
+                <p class="tl-desc">{{ __('Your order is packed and ready to go.') }}</p>
               </div>
             </div>
             @endif
@@ -326,9 +289,9 @@
             <div class="tl-item {{ $order->status === 'out_for_delivery' ? 'current' : 'done' }}">
               <span class="tl-dot">
                 @if($order->status === 'out_for_delivery')
-                  <span style="font-size:11px;font-weight:800;">5</span>
+                  <b style="font-size:10px;">5</b>
                 @else
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg>
+                  <i class="fa-solid fa-check"></i>
                 @endif
               </span>
               <div class="tl-body">
@@ -340,9 +303,7 @@
 
             @if($order->status === 'delivered')
             <div class="tl-item done current">
-              <span class="tl-dot">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg>
-              </span>
+              <span class="tl-dot"><i class="fa-solid fa-check"></i></span>
               <div class="tl-body">
                 <div class="tl-head"><b>{{ __('Delivered') }}</b><span class="tl-time">{{ $order->updated_at->format('M d, h:i A') }}</span></div>
                 <p class="tl-desc">{{ __('Your order has been delivered. Thank you!') }}</p>
@@ -352,19 +313,17 @@
           </div>
         </div>
         @else
-        <div style="margin-top:24px;">
+        <div style="margin-top:28px;">
           <h3 class="h3-title">{{ __('Order Timeline') }}</h3>
-          <div class="card" style="margin-bottom:0;background:var(--red-dim);border-color:transparent;">
-            <div style="display:flex;gap:12px;align-items:flex-start;color:var(--red);font-weight:700;">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="flex-shrink:0;margin-top:1px;"><circle cx="12" cy="12" r="10"/><path d="M15 9l-6 6M9 9l6 6"/></svg>
-              <span>{{ __('This order was cancelled. Please contact us if you have any questions.') }}</span>
-            </div>
+          <div class="alert-card">
+            <i class="fa-solid fa-circle-xmark" style="flex-shrink:0;margin-top:1px;"></i>
+            <span>{{ __('This order was cancelled. Please contact us if you have any questions.') }}</span>
           </div>
         </div>
         @endif
 
         @if($order->items && $order->items->count() > 0)
-        <div style="margin-top:24px;">
+        <div style="margin-top:28px;">
           <h3 class="h3-title">{{ __('Order Items') }}</h3>
           <ul class="order-items">
             @foreach($order->items as $item)
@@ -378,19 +337,21 @@
         @endif
 
         @if($order->delivery_address || ($order->delivery_latitude && $order->delivery_longitude))
-        <div style="margin-top:24px;">
-          <h3 class="h3-title">{{ __('Delivery Location & Route') }}</h3>
-          <div class="card" style="margin-bottom:0;background:var(--parchment);">
+        <div style="margin-top:28px;">
+          <h3 class="h3-title">{{ __('Delivery Location') }}</h3>
+          <div class="loc-card">
             @if($order->delivery_address)
-              <p style="margin:0;font-size:14.5px;">{{ $order->delivery_address }}</p>
+              <p>{{ $order->delivery_address }}</p>
             @else
-              <p style="margin:0;font-size:14.5px;color:var(--ink-soft);">{{ __('Location captured from customer device.') }}</p>
+              <p style="color:var(--ink-soft);">{{ __('Location captured from customer device.') }}</p>
             @endif
             @if($order->delivery_latitude && $order->delivery_longitude)
-              <div class="map-container" style="margin-top:16px;">
+              <div class="map-container" style="margin-top:14px;">
                 <div id="tracking-map" style="width:100%;height:100%;"></div>
               </div>
-              <p style="margin:12px 0 0;font-size:13px;color:var(--ink-soft);" class="mono">{{ __('Location') }}: {{ number_format($order->delivery_latitude, 6) }}, {{ number_format($order->delivery_longitude, 6) }}</p>
+              <p class="mono" style="margin-top:10px;font-size:12px;color:var(--ink-faint);">
+                {{ __('Location') }}: {{ number_format($order->delivery_latitude, 6) }}, {{ number_format($order->delivery_longitude, 6) }}
+              </p>
             @endif
           </div>
         </div>
@@ -404,8 +365,6 @@
 @include('shop.partials.footer')
 @include('shop.partials.cart-drawer', ['showBottomBar' => true])
 @include('shop.partials.cart-js')
-
-<style>.h3-title{font-size:18px;margin-bottom:14px;}</style>
 
 @if($order && $order->delivery_latitude && $order->delivery_longitude)
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
@@ -447,7 +406,7 @@ function buildPaymentHtml(orderNumber, status, trackingUrl, pdfUrl, remainingSec
     '{{ __('Payment status') }}: <b>' + s + '</b><br><span style="color:#6b7280;">' + note + '</span>' +
     timer +
     '<div style="margin-top:10px;">' +
-    '<a href="' + trackingUrl + '">{{ __('Track your order') }}</a> · <a href="' + pdfUrl + '">{{ __('Download order PDF') }}</a>' +
+    '<a href="' + trackingUrl + '">{{ __('Track your order') }}</a> Â· <a href="' + pdfUrl + '">{{ __('Download order PDF') }}</a>' +
     '</div>';
 }
 

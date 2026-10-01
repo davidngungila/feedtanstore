@@ -8,7 +8,9 @@
       <i class="fa-solid fa-xmark"></i>
     </button>
   </div>
+
   <div class="cart-list" id="cartList"></div>
+
   <div class="drawer-foot" id="cartFoot" style="display:none;">
     <div class="free-delivery-bar" id="freeDeliveryBar">
       <div class="fdb-track"><div class="fdb-fill" id="fdbFill"></div></div>
@@ -17,14 +19,16 @@
     <div class="sum-row"><span>{{ __('Subtotal') }}</span><span id="cartSubtotal">TZS 0</span></div>
     <div class="sum-row"><span>{{ __('Delivery estimate') }}</span><span id="cartDeliveryEst">{{ __('Calculate at checkout') }}</span></div>
     <div class="sum-row total"><span>{{ __('Total') }}</span><span id="cartTotal">TZS 0</span></div>
-    <a href="{{ route('shop.checkout') }}" class="btn btn-primary btn-block btn-lg" style="margin-top:14px;"><i class="fa-solid fa-arrow-right"></i> {{ __('Proceed to Checkout') }}</a>
+    <a href="{{ route('shop.checkout') }}" class="btn btn-primary btn-block btn-lg" style="margin-top:14px;">
+      {{ __('Proceed to Checkout') }} <i class="fa-solid fa-arrow-right"></i>
+    </a>
     <button class="btn btn-ghost btn-block" style="margin-top:10px;" onclick="closeCart()">{{ __('Continue Shopping') }}</button>
   </div>
 </aside>
 
 @if($showBottomBar ?? true)
 <div class="mobile-cart-bar" id="mobileCartBar" aria-hidden="true">
-  <button class="mcb-left" onclick="openCart()" style="background:none;border:none;padding:0;text-align:left;min-height:0;">
+  <button class="mcb-left" onclick="openCart()" style="background:none;border:none;cursor:pointer;">
     <span class="mcb-ic">
       <i class="fa-solid fa-cart-shopping"></i>
       <span class="badge" id="mcbBadge">0</span>
@@ -76,6 +80,6 @@
     <div class="page-loader-ring">
       <img src="{{ asset('logo-image-feedtan-store.png') }}" alt="Feedtan Store" class="page-loader-logo">
     </div>
-    <div style="font-weight:700;color:var(--green-700);font-size:18px;">{{ __('Loading...') }}</div>
+    <div style="font-weight:700;color:var(--green-700);font-size:16px;">{{ __('Loading...') }}</div>
   </div>
 </div>

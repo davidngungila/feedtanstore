@@ -43,6 +43,7 @@
   $oldPrice = $product->old_price ?? null;
   $inStock = $product->quantity > 0;
   $lowStock = $inStock && $product->quantity <= 5;
+  $savePercent = $oldPrice ? round((($oldPrice - $product->selling_price) / $oldPrice) * 100) : 0;
 
   $breadcrumbList = [
       '@context' => 'https://schema.org',
@@ -115,7 +116,7 @@
 <meta name="keywords" content="{{ $seo['keywords'] }}">
 <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
 <meta name="author" content="Feedtan Store">
-<meta name="theme-color" content="#1B4332">
+<meta name="theme-color" content="#123328">
 <link rel="canonical" href="{{ $productCanonicalUrl }}">
 <link rel="icon" type="image/png" href="{{ $logoUrl }}">
 <link rel="apple-touch-icon" href="{{ $logoUrl }}">
@@ -135,140 +136,49 @@
 <meta name="twitter:description" content="{{ $seo['description'] }}">
 <meta name="twitter:image" content="{{ $seo['image'] }}">
 <meta name="twitter:image:alt" content="{{ $product->name }}">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,600;0,9..144,700;0,9..144,900;1,9..144,500&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <script type="application/ld+json">{!! json_encode($productSchema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>
 @include('shop.partials.styles')
 <style>
 /* ---------- Breadcrumb ---------- */
-.pd-crumbs{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:13px;color:var(--ink-soft);margin:26px 0 20px;}
-.pd-crumbs a{font-weight:600;color:var(--green-700);}
-.pd-crumbs a:hover{text-decoration:underline;}
-.pd-crumbs .sep{color:var(--line);}
+.crumbs{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12.5px;color:var(--ink-faint);margin-bottom:22px;font-family:var(--font-mono);}
+.crumbs a{color:var(--ink-soft);}
+.crumbs a:hover{color:var(--orange-600);}
+.crumbs .sep{opacity:.6;}
 
-/* ---------- Gallery ---------- */
-.pd-grid{display:grid;grid-template-columns:1fr 1fr;gap:44px;align-items:start;}
-@media(max-width:900px){.pd-grid{grid-template-columns:1fr;gap:28px;}}
-.pd-gallery{position:sticky;top:96px;}
-@media(max-width:900px){.pd-gallery{position:static;}}
-.pd-media{
-  position:relative;border-radius:var(--radius-l);overflow:hidden;background:var(--parchment-dim);
-  border:1px solid rgba(219,212,194,.5);cursor:zoom-in;
-}
-.pd-media img{width:100%;aspect-ratio:1/1;object-fit:cover;}
-.pd-media .p-badge{top:14px;left:14px;z-index:2;}
-.pd-fav{
-  position:absolute;top:14px;right:14px;z-index:2;width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.95);
-  display:flex;align-items:center;justify-content:center;border:none;color:var(--ink-soft);
-  box-shadow:0 2px 8px rgba(15,42,31,.15);transition:transform .18s,color .18s;
-}
-.pd-fav:hover{color:var(--red);transform:scale(1.12);}
-.pd-fav.active{color:var(--red);}
-.pd-fav.active svg{animation:heartPop .35s var(--ease);}
-.pd-thumbs{display:flex;gap:10px;margin-top:12px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none;}
-.pd-thumbs::-webkit-scrollbar{display:none;}
-.pd-thumb{
-  width:74px;height:74px;flex-shrink:0;border-radius:var(--radius-m);border:2px solid var(--line);
-  background:var(--parchment-dim);cursor:pointer;overflow:hidden;padding:0;transition:border-color .15s;
-}
-.pd-thumb img{width:100%;height:100%;object-fit:cover;}
-.pd-thumb:hover,.pd-thumb.active{border-color:var(--green-700);}
+/* ---------- Sticky buy bar ---------- */
+.pd-sticky .psb-left{min-width:0;}
+.pd-sticky .psb-left b{display:block;font-family:var(--font-mono);font-weight:700;font-size:15px;color:var(--green-800);}
+.pd-sticky .psb-left span{display:block;font-size:11.5px;color:var(--ink-faint);white-space:nowrap;}
 
-/* ---------- Info panel ---------- */
-.pd-info .pd-cat{font-size:12px;font-weight:700;color:var(--green-700);text-transform:uppercase;letter-spacing:.05em;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
-.pd-info .pd-cat .dot{width:4px;height:4px;border-radius:50%;background:var(--line);}
-.pd-title{font-size:clamp(26px,3.4vw,38px);line-height:1.1;margin:10px 0 12px;font-weight:700;}
-.pd-rating{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--ink-soft);margin-bottom:16px;}
-.pd-rating svg{color:var(--orange);}
-.pd-price-row{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:18px;}
-.pd-price{font-family:var(--font-display);font-size:clamp(28px,3.2vw,36px);font-weight:700;}
-.pd-price-old{font-size:18px;color:#A39E8C;text-decoration:line-through;font-weight:500;}
-.pd-save{background:#FCEADB;color:var(--orange-dark);font-weight:800;font-size:12px;padding:4px 10px;border-radius:999px;}
-.pd-desc{font-size:15.5px;color:var(--ink-soft);line-height:1.7;margin-bottom:22px;}
-.pd-meta-list{list-style:none;padding:0;margin:0 0 22px;display:flex;flex-direction:column;}
-.pd-meta-list li{display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:1px solid var(--parchment-dim);font-size:14px;}
-.pd-meta-list li span:first-child{color:var(--ink-soft);}
-.pd-meta-list li span:last-child{font-weight:700;}
-.stock-pill{display:inline-flex;align-items:center;gap:6px;}
-.stock-pill .led{width:8px;height:8px;border-radius:50%;}
-.stock-pill.in .led{background:var(--success);box-shadow:0 0 0 4px rgba(46,139,87,.15);}
-.stock-pill.low .led{background:var(--orange);box-shadow:0 0 0 4px rgba(232,137,58,.15);}
-.stock-pill.out .led{background:var(--red);box-shadow:0 0 0 4px rgba(214,69,69,.15);}
-
-/* Trust bullets */
-.pd-trust{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:24px;}
-.trust-bullet{
-  display:flex;gap:10px;align-items:flex-start;background:var(--green-100);border-radius:var(--radius-m);padding:12px 14px;
+/* ---------- Responsive ---------- */
+@media (max-width:1024px){
+  .pd-grid{gap:24px;}
+  .pd-main{height:340px;}
 }
-.trust-bullet svg{flex-shrink:0;color:var(--green-700);margin-top:1px;}
-.trust-bullet b{display:block;font-size:13px;}
-.trust-bullet span{font-size:12px;color:var(--ink-soft);}
-@media(max-width:480px){.pd-trust{grid-template-columns:1fr;}}
-
-/* Buy box */
-.pd-buy{
-  background:#fff;border:1px solid var(--line);border-radius:var(--radius-l);padding:20px;
-  box-shadow:var(--shadow-card);
+@media (max-width:768px){
+  .crumbs{margin-bottom:16px;font-size:11.5px;}
+  .trust-bullets{grid-template-columns:1fr 1fr;}
 }
-.pd-buy-row{display:flex;gap:12px;align-items:stretch;}
-.pd-buy .qty-stepper{flex:0 0 140px;}
-.qty-stepper{display:flex;align-items:center;border:1.5px solid var(--line);border-radius:999px;overflow:hidden;flex:1;background:#fff;}
-.qty-stepper button{width:44px;height:50px;background:transparent;border:none;font-size:18px;font-weight:700;color:var(--green-700);}
-.qty-stepper button:hover{background:var(--green-100);}
-.qty-stepper span{flex:1;text-align:center;font-weight:800;font-size:16px;}
-.pd-buy .btn-main{flex:1;}
-.pd-buy-actions{display:flex;gap:10px;margin-top:12px;}
-.pd-buy-actions .btn{flex:1;}
-@media(max-width:400px){
-  .pd-buy-row{flex-direction:column;}
-  .pd-buy .qty-stepper{flex:none;}
+@media (max-width:560px){
+  .pd-card{padding:18px;}
+  .pd-main{height:250px;}
+  .pd-sticky{gap:8px;padding:8px 12px calc(8px + env(safe-area-inset-bottom));}
+  .pd-sticky .psb-left span{display:none;}
+  .pd-sticky .btn{flex:1;}
 }
-
-/* ---------- Lightbox ---------- */
-.lightbox{
-  position:fixed;inset:0;z-index:500;background:rgba(6,14,9,.94);display:flex;align-items:center;justify-content:center;
-  opacity:0;visibility:hidden;transition:opacity .22s ease;
+@media (max-width:400px){
+  .pd-sticky .qty-stepper{display:none;}
 }
-.lightbox.open{opacity:1;visibility:visible;}
-.lightbox img{max-width:92vw;max-height:82vh;border-radius:var(--radius-m);box-shadow:var(--shadow-pop);}
-.lb-close{position:absolute;top:18px;right:18px;width:42px;height:42px;border-radius:50%;border:none;background:rgba(255,255,255,.12);color:#fff;display:flex;align-items:center;justify-content:center;font-size:18px;}
-.lb-arrow{position:absolute;top:50%;transform:translateY(-50%);width:46px;height:46px;border-radius:50%;border:none;background:rgba(255,255,255,.12);color:#fff;display:flex;align-items:center;justify-content:center;transition:background .15s;}
-.lb-arrow:hover{background:rgba(255,255,255,.28);}
-.lb-arrow.prev{left:16px;}
-.lb-arrow.next{right:16px;}
-.lb-counter{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);color:rgba(255,255,255,.85);font-size:13px;font-weight:700;}
-
-/* ---------- Sticky mobile buy bar ---------- */
-.pd-sticky{
-  position:fixed;left:0;right:0;bottom:0;z-index:120;background:rgba(255,255,255,.98);backdrop-filter:blur(12px);
-  border-top:1px solid var(--line);padding:10px 14px;display:none;align-items:center;gap:10px;
-  box-shadow:0 -8px 24px rgba(15,42,31,.12);padding-bottom:calc(10px + env(safe-area-inset-bottom));
-}
-.pd-sticky .psb-left{flex:1;min-width:0;}
-.pd-sticky .psb-left b{font-family:var(--font-display);font-size:17px;display:block;line-height:1.15;}
-.pd-sticky .psb-left span{font-size:11.5px;color:var(--ink-soft);}
-.pd-sticky .qty-stepper{flex:none;width:118px;}
-.pd-sticky .qty-stepper button{width:36px;height:44px;}
-.pd-sticky .btn{padding:0 18px;height:46px;}
-@media(max-width:900px){
-  .pd-sticky{display:flex;}
-  .with-pd-sticky{padding-bottom:80px;}
-}
-
-/* ---------- Related ---------- */
-.rel-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:20px;}
-  @media(max-width:1080px){.rel-grid{grid-template-columns:repeat(3,minmax(0,1fr));}}
-  @media(max-width:760px){.rel-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;}}
 </style>
 </head>
 <body class="with-pd-sticky">
 
 @include('shop.partials.header', ['activeNav' => 'shop'])
 
-<main id="mainContent">
+<main id="mainContent" class="section" style="padding-top:28px;">
   <div class="wrap">
-    <nav class="pd-crumbs" aria-label="Breadcrumb">
+
+    <nav class="crumbs" aria-label="Breadcrumb">
       <a href="{{ route('shop.index') }}">{{ __('Home') }}</a>
       <span class="sep">/</span>
       @if($product->category)
@@ -279,131 +189,145 @@
     </nav>
 
     <div class="pd-grid">
+      <!-- ===== GALLERY ===== -->
       <div class="pd-gallery">
-        <div class="pd-media p-media" onclick="openLightbox(lbIndex)">
+        <div class="pd-main" onclick="openLightbox(lbIndex)" role="button" tabindex="0" aria-label="{{ __('View larger image') }}">
           <img id="mainImage" src="{{ $imageToShow }}" alt="{{ $product->name }}">
-          @if($oldPrice)
-            <span class="p-badge pill pill-orange">-{{ round((($oldPrice - $product->selling_price)/$oldPrice)*100) }}%</span>
+          @if($savePercent > 0)
+            <span class="p-badge pill pill-orange" style="top:14px;left:14px;">-{{ $savePercent }}%</span>
           @endif
-          <button class="pd-fav" aria-label="{{ __('Save to wishlist') }}" onclick="event.stopPropagation(); toggleFav(this)">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.8 1-1a5.5 5.5 0 0 0 0-7.8z"/></svg>
+          <button class="p-fav" style="top:14px;right:14px;width:38px;height:38px;" aria-label="{{ __('Save to wishlist') }}" onclick="event.stopPropagation(); toggleFav(this)">
+            <i class="fa-regular fa-heart"></i>
           </button>
         </div>
+
         @if(count($allImages) > 1)
-        <div class="pd-thumbs" id="pdThumbs">
-          @foreach($allImages as $i => $imgSrc)
-            <button class="pd-thumb {{ $i === 0 ? 'active' : '' }}" onclick="changeImage('{{ $imgSrc }}', this, {{ $i }})">
-              <img src="{{ $imgSrc }}" alt="{{ $product->name }}">
-            </button>
-          @endforeach
-        </div>
+          <div class="pd-thumbs" id="pdThumbs">
+            @foreach($allImages as $i => $imgSrc)
+              <button class="pd-thumb {{ $loop->first ? 'active' : '' }}" onclick="changeImage('{{ $imgSrc }}', this, {{ $i }})" aria-label="{{ __('Image') }} {{ $loop->iteration }}">
+                <img src="{{ $imgSrc }}" alt="{{ $product->name }} {{ $loop->iteration }}" loading="lazy">
+              </button>
+            @endforeach
+          </div>
         @endif
       </div>
 
-      <div class="pd-info pd-card" data-id="{{ $product->id }}">
-        <span class="pd-cat">
-          {{ $product->category->name ?? 'Uncategorized' }}
-          @if($product->brand)<span class="dot"></span>{{ $product->brand->name }}@endif
-        </span>
-        <h1 class="pd-title p-name">{{ $product->name }}</h1>
-        <div class="pd-rating">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.1 6.3 6.9 1-5 4.9 1.2 6.8L12 17.8l-6.2 3.2 1.2-6.8-5-4.9 6.9-1z"/></svg>
-          4.5 ({{ rand(10, 500) }})
-        </div>
-        <div class="pd-price-row">
-          <span class="pd-price p-price" data-price="{{ $product->selling_price }}">TZS {{ number_format($product->selling_price, 0) }}</span>
-          @if($oldPrice)
-            <span class="pd-price-old">TZS {{ number_format($oldPrice, 0) }}</span>
-            <span class="pd-save">{{ __('You save') }} TZS {{ number_format($oldPrice - $product->selling_price, 0) }}</span>
-          @endif
-        </div>
-        @if($product->description)
-          <p class="pd-desc">{{ $product->description }}</p>
-        @endif
+      <!-- ===== BUY BOX ===== -->
+      <div class="pd-card">
+        <div class="pd-info">
+          <span class="pd-cat">
+            {{ $product->category->name ?? __('Uncategorized') }}
+            @if($product->brand)<span class="dot"></span>{{ $product->brand->name }}@endif
+          </span>
 
-        <ul class="pd-meta-list">
-          <li>
-            <span>{{ __('Availability') }}</span>
-            <span class="stock-pill {{ $inStock ? ($lowStock ? 'low' : 'in') : 'out' }}">
+          <h1 class="pd-title p-name">{{ $product->name }}</h1>
+
+          <div class="pd-price-row">
+            <span class="p-price" data-price="{{ $product->selling_price }}">TZS {{ number_format($product->selling_price, 0) }}</span>
+            @if($oldPrice)
+              <span class="p-price-old">TZS {{ number_format($oldPrice, 0) }}</span>
+              <span class="pd-save">{{ __('Save') }} {{ $savePercent }}%</span>
+            @endif
+          </div>
+
+          @if($inStock)
+            <span class="stock-pill {{ $lowStock ? 'low' : 'in' }}" style="align-self:flex-start;">
               <span class="led"></span>
-              {{ $inStock ? ($lowStock ? __('Low stock') : __('In stock')) : __('Out of stock') }}
+              {{ $lowStock ? __('Low stock — only a few left') : __('In stock — ready to send') }}
             </span>
-          </li>
-          <li><span>{{ __('Delivery fee') }}</span><span>TZS 3,000 {{ __('or free pickup') }}</span></li>
-          @if($product->sku)<li><span>SKU</span><span class="mono">{{ $product->sku }}</span></li>@endif
-        </ul>
+          @else
+            <span class="stock-pill out" style="align-self:flex-start;">
+              <span class="led"></span> {{ __('Currently out of stock') }}
+            </span>
+          @endif
 
-        <div class="pd-trust">
-          <div class="trust-bullet">
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="1.5"/><circle cx="18.5" cy="18.5" r="1.5"/></svg>
-            <div><b>{{ __('Fast delivery') }}</b><span>{{ __('Across Moshi, Kilimanjaro') }}</span></div>
-          </div>
-          <div class="trust-bullet">
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 9.5 12 3l9 6.5"/><path d="M5 10v9h14v-9"/><path d="M9 19v-6h6v6"/></svg>
-            <div><b>{{ __('Store pickup') }}</b><span>{{ __('Kiboriloni, Moshi') }}</span></div>
-          </div>
-          <div class="trust-bullet">
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.8 1-1a5.5 5.5 0 0 0 0-7.8z"/></svg>
-            <div><b>{{ __('Quality checked') }}</b><span>{{ __('Before dispatch') }}</span></div>
-          </div>
-          <div class="trust-bullet">
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
-            <div><b>{{ __('Call to order') }}</b><span>+255 717 358 865</span></div>
-          </div>
-        </div>
+          @if($product->description)
+            <p class="pd-desc">{{ $product->description }}</p>
+          @endif
 
-        <div class="pd-buy">
-          <div class="pd-buy-row">
-            <div class="qty-stepper" aria-label="{{ __('Quantity') }}">
-              <button onclick="changeProductQty(-1)" aria-label="{{ __('Decrease quantity') }}">−</button>
-              <span id="productQty">1</span>
-              <button onclick="changeProductQty(1)" aria-label="{{ __('Increase quantity') }}">+</button>
+          <ul class="pd-meta-list">
+            <li>
+              <i class="fa-solid fa-truck-fast" style="color:var(--orange-600);"></i>
+              <span>{{ __('Delivery fee confirmed at checkout') }} · <b>{{ __('Free over TZS 50,000') }}</b></span>
+            </li>
+            <li>
+              <i class="fa-solid fa-store" style="color:var(--orange-600);"></i>
+              <span>{{ __('Store pickup available') }} — {{ $settings->store_address ?? __('Kiboriloni, Moshi') }}</span>
+            </li>
+            <li>
+              <i class="fa-solid fa-barcode" style="color:var(--orange-600);"></i>
+              <span>{{ __('SKU') }}: <b class="mono">{{ $product->sku ?: $product->id }}</b></span>
+            </li>
+            <li>
+              <i class="fa-solid fa-shield-halved" style="color:var(--orange-600);"></i>
+              <span>{{ __('Quality checked before it leaves the store') }}</span>
+            </li>
+          </ul>
+
+          <div class="pd-buy">
+            <div style="display:flex;gap:12px;align-items:stretch;flex-wrap:wrap;">
+              <div class="qty-stepper">
+                <button onclick="changeProductQty(-1)" aria-label="{{ __('Decrease quantity') }}">&minus;</button>
+                <span id="productQty">1</span>
+                <button onclick="changeProductQty(1)" aria-label="{{ __('Increase quantity') }}">+</button>
+              </div>
+              <button class="btn btn-primary btn-lg" style="flex:1;min-width:180px;" data-add-btn
+                      onclick="addToCart('{{ $product->id }}', '{{ addslashes($product->name) }}', {{ $product->selling_price }})"
+                      {{ $inStock ? '' : 'disabled' }}>
+                <i class="fa-solid fa-cart-plus"></i> {{ __('Add to cart') }}
+              </button>
             </div>
-            <button class="btn btn-primary btn-main" data-add-btn onclick="addToCart('{{ $product->id }}', '{{ addslashes($product->name) }}', {{ $product->selling_price }})" {{ $inStock ? '' : 'disabled' }}>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
-              {{ __('Add to cart') }}
-            </button>
+            <a href="{{ route('shop.checkout') }}" class="btn btn-ghost btn-block" onclick="openCart();return false;">
+              <i class="fa-solid fa-cart-shopping"></i> {{ __('View cart') }}
+            </a>
+            <a href="{{ route('shop.index') }}#shop" class="see-all" style="align-self:center;">← {{ __('Continue shopping') }}</a>
           </div>
-          <div class="pd-buy-actions">
-            <a href="{{ route('shop.checkout') }}" class="btn btn-dark" onclick="event.preventDefault(); openCart()">{{ __('View cart') }}</a>
-            <a href="{{ route('shop.index') }}" class="btn btn-ghost">{{ __('Continue shopping') }}</a>
+
+          <div class="trust-bullets">
+            <div class="trust-bullet"><i class="fa-solid fa-circle-check"></i> {{ __('Secure payment') }}</div>
+            <div class="trust-bullet"><i class="fa-solid fa-circle-check"></i> {{ __('Fast handling') }}</div>
+            <div class="trust-bullet"><i class="fa-solid fa-circle-check"></i> {{ __('Real-time tracking') }}</div>
+            <div class="trust-bullet"><i class="fa-solid fa-circle-check"></i> {{ __('Support 24/7') }}</div>
           </div>
         </div>
       </div>
     </div>
 
+    <!-- ===== RELATED ===== -->
     @if($relatedProducts->count() > 0)
-    <section class="section" style="padding:56px 0 0;">
-      <div class="section-head reveal">
-        <div>
-          <span class="eyebrow">{{ __('More from') }} {{ $product->category->name ?? '' }}</span>
-          <h2>{{ __('You may also like') }}</h2>
-        </div>
+    <section style="padding:56px 0 0;">
+      <div class="sec-head">
+        <span class="eyebrow">{{ __('More to explore') }}</span>
+        <h2>{{ __('You may also like') }}</h2>
       </div>
       <div class="rel-grid">
         @foreach($relatedProducts as $rp)
           @php
             $rpPrimary = $rp->images->firstWhere('is_primary', true);
-            $rpImg = $resolveImageUrl($rpPrimary?->image_path) ?? $resolveImageUrl($rp->image) ?? $imageToShow;
+            $rpImage = $resolveImageUrl($rpPrimary?->image_path) ?? $resolveImageUrl($rp->image) ?? $imageToShow;
+            $rpOld = $rp->old_price ?? null;
+            $rpBadge = $rpOld ? '-'.round((($rpOld - $rp->selling_price)/$rpOld)*100).'%' : null;
           @endphp
           <div class="p-card reveal" data-id="{{ $rp->id }}">
-            <div class="p-media" onclick="window.location.href='{{ route('shop.product', $rp) }}'">
-              <img src="{{ $rpImg }}" alt="{{ $rp->name }}" loading="lazy">
+            <div class="p-media" onclick="window.location.href='{{ route('shop.product', $rp) }}'" role="button" tabindex="0" aria-label="{{ $rp->name }}">
+              <img src="{{ $rpImage }}" alt="{{ $rp->name }}" loading="lazy">
+              @if($rpBadge)<span class="p-badge pill pill-orange">{{ $rpBadge }}</span>@endif
               <button class="p-fav" aria-label="{{ __('Save to wishlist') }}" onclick="event.stopPropagation(); toggleFav(this)">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.8 1-1a5.5 5.5 0 0 0 0-7.8z"/></svg>
+                <i class="fa-regular fa-heart"></i>
               </button>
               <button class="quick-add" data-add-btn aria-label="{{ __('Add to cart') }}" onclick="event.stopPropagation(); addToCart('{{ $rp->id }}', '{{ addslashes($rp->name) }}', {{ $rp->selling_price }})">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+                <i class="fa-solid fa-cart-plus"></i>
               </button>
             </div>
             <div class="p-body">
-              <span class="p-cat">{{ $rp->category->name ?? 'Uncategorized' }}</span>
-              <span class="p-name" onclick="window.location.href='{{ route('shop.product', $rp) }}'">{{ $rp->name }}</span>
+              <span class="p-cat">{{ $rp->category->name ?? __('Uncategorized') }}</span>
+              <a class="p-name" href="{{ route('shop.product', $rp) }}">{{ $rp->name }}</a>
               <div class="p-price-row">
                 <span class="p-price" data-price="{{ $rp->selling_price }}">TZS {{ number_format($rp->selling_price, 0) }}</span>
+                @if($rpOld)<span class="p-price-old">TZS {{ number_format($rpOld, 0) }}</span>@endif
               </div>
               <div class="p-actions">
-                <button class="btn btn-dark btn-sm" onclick="addToCart('{{ $rp->id }}', '{{ addslashes($rp->name) }}', {{ $rp->selling_price }})">{{ __('Add to cart') }}</button>
+                <button class="btn btn-primary btn-sm" onclick="addToCart('{{ $rp->id }}', '{{ addslashes($rp->name) }}', {{ $rp->selling_price }})">{{ __('Add') }}</button>
                 <a href="{{ route('shop.product', $rp) }}" class="btn btn-outline btn-sm">{{ __('Details') }}</a>
               </div>
             </div>
@@ -412,6 +336,7 @@
       </div>
     </section>
     @endif
+
   </div>
 </main>
 
@@ -440,13 +365,12 @@
     <span>{{ $inStock ? ($lowStock ? __('Low stock') : __('In stock')) : __('Out of stock') }}</span>
   </div>
   <div class="qty-stepper">
-    <button onclick="changeProductQty(-1)" aria-label="{{ __('Decrease quantity') }}">−</button>
+    <button onclick="changeProductQty(-1)" aria-label="{{ __('Decrease quantity') }}">&minus;</button>
     <span id="productQtySticky">1</span>
     <button onclick="changeProductQty(1)" aria-label="{{ __('Increase quantity') }}">+</button>
   </div>
-  <button class="btn btn-primary" data-add-btn onclick="addToCart('{{ $product->id }}', '{{ addslashes($product->name) }}', {{ $product->selling_price }})" {{ $inStock ? '' : 'disabled' }}>
-    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
-    {{ __('Add') }}
+  <button class="btn btn-primary" style="flex:1;max-width:220px;" data-add-btn onclick="addToCart('{{ $product->id }}', '{{ addslashes($product->name) }}', {{ $product->selling_price }})" {{ $inStock ? '' : 'disabled' }}>
+    <i class="fa-solid fa-cart-plus"></i> {{ __('Add') }}
   </button>
 </div>
 

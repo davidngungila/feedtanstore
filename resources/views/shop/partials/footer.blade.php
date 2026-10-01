@@ -1,64 +1,66 @@
 <footer>
   <div class="wrap">
     <div class="footer-grid">
-      <div>
-        <div class="footer-logo"><span class="logo-mark" style="background:var(--gold);color:var(--green-900);"><i class="fa-solid fa-leaf"></i></span> Feedtan Store</div>
-        <p style="font-size:13.5px;line-height:1.7;max-width:280px;">{{ __('Quality products, unbeatable prices, delivery to your door — or ready when you step in.') }}</p>
+      <div class="footer-brand">
+        <div class="footer-logo">
+          <span class="logo-mark" style="background:var(--orange-600);color:#fff;"><i class="fa-solid fa-leaf"></i></span>
+          Feedtan Store
+        </div>
+        <p>{{ __('Quality products, unbeatable prices, delivery to your door — or ready when you step in.') }}</p>
+        <div class="footer-pay">
+          <span>M-Pesa</span><span>Airtel Money</span><span>Mixx</span><span>HaloPesa</span><span>Visa</span><span>Mastercard</span>
+        </div>
         <div class="footer-social">
-          <a href="#" class="icon-btn" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
-          <a href="#" class="icon-btn" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
-          <a href="#" class="icon-btn" aria-label="WhatsApp"><i class="fa-brands fa-whatsapp"></i></a>
+          <a href="#" class="icon-btn" style="width:36px;height:36px;" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
+          <a href="#" class="icon-btn" style="width:36px;height:36px;" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
+          <a href="#" class="icon-btn" style="width:36px;height:36px;" aria-label="WhatsApp"><i class="fa-brands fa-whatsapp"></i></a>
         </div>
       </div>
+
       <div>
         <h4>{{ __('Buy') }}</h4>
         <ul>
-          @foreach($categories as $cat)
-            @if ($loop->index < 5)
-              <li><a href="{{ route('shop.index', ['category' => $cat->slug]) }}">{{ $cat->name }}</a></li>
-            @endif
+          <li><a href="{{ route('shop.index') }}#shop">{{ __('All products') }}</a></li>
+          @foreach($categories->take(5) as $cat)
+            <li><a href="{{ route('shop.index', ['category' => $cat->slug]) }}">{{ $cat->name }}</a></li>
           @endforeach
         </ul>
       </div>
+
       <div>
         <h4>{{ __('Support') }}</h4>
         <ul>
           <li><a href="{{ route('shop.tracking') }}">{{ __('Track my order link') }}</a></li>
-          <li><a href="#" onclick="showToast('{{ __('Contact us phone') }}','phone')">{{ __('Contact us') }}</a></li>
-          <li><a href="#" onclick="showToast('{{ __('Return policy') }}','info')">{{ __('Return policy') }}</a></li>
-          <li><a href="#" onclick="showToast('{{ __('Delivery info') }}','info')">{{ __('Delivery info') }}</a></li>
+          <li><a href="#" onclick="showToast('{{ __('Contact us phone') }}','phone');return false;">{{ __('Contact us') }}</a></li>
+          <li><a href="#" onclick="showToast('{{ __('Return policy') }}','info');return false;">{{ __('Return policy') }}</a></li>
+          <li><a href="#" onclick="showToast('{{ __('Delivery info') }}','info');return false;">{{ __('Delivery info') }}</a></li>
         </ul>
       </div>
-      <div>
-        <h4>{{ __('Staff') }}</h4>
-        <ul>
-          @auth
-            <li><a href="{{ route('dashboard') }}"><i class="fa-solid fa-gauge-high" style="margin-right:6px;"></i>{{ __('Dashboard') }}</a></li>
-            <li>
-              <form method="POST" action="{{ route('logout') }}" style="display:inline;">
-                @csrf
-                <button type="submit" style="background:none;border:none;padding:0;font:inherit;color:inherit;cursor:pointer;"><i class="fa-solid fa-right-from-bracket" style="margin-right:6px;"></i>{{ __('Logout') }}</button>
-              </form>
-            </li>
-          @else
-            <li><a href="{{ route('login') }}"><i class="fa-solid fa-right-to-bracket" style="margin-right:6px;"></i>{{ __('Login') }}</a></li>
-            <li><a href="{{ route('entry') }}"><i class="fa-solid fa-key" style="margin-right:6px;"></i>{{ __('Staff Entry') }}</a></li>
-          @endauth
-        </ul>
-      </div>
+
       <div>
         <h4>{{ __('Visit our store') }}</h4>
-        <ul>
-          <li><i class="fa-solid fa-location-dot" style="margin-right:6px;"></i>{{ __('Location') }}</li>
-          <li><i class="fa-regular fa-clock" style="margin-right:6px;"></i>{{ __('Opening hours') }}</li>
-          <li><i class="fa-solid fa-phone" style="margin-right:6px;"></i>+255 717 358 865</li>
-          <li><i class="fa-regular fa-envelope" style="margin-right:6px;"></i>info@feedtanstore.com</li>
-        </ul>
+        <div class="footer-contact-item">
+          <i class="fa-solid fa-location-dot" style="color:var(--orange-400);"></i>
+          {{ $settings->store_address ?? __('Location') }}
+        </div>
+        <div class="footer-contact-item">
+          <i class="fa-regular fa-clock" style="color:var(--orange-400);"></i>
+          {{ __('Opening hours') }}
+        </div>
+        <div class="footer-contact-item">
+          <i class="fa-solid fa-phone" style="color:var(--orange-400);"></i>
+          +255 717 358 865
+        </div>
+        <div class="footer-contact-item">
+          <i class="fa-regular fa-envelope" style="color:var(--orange-400);"></i>
+          {{ $settings->store_email ?? 'info@feedtanstore.com' }}
+        </div>
       </div>
     </div>
+
     <div class="footer-bottom">
-      <span>© {{ date('Y') }} Feedtan Store. Haki zote zimehifadhiwa.</span>
-      <span>Imeundwa kwa usikivu kwa wanunuzi wa kila siku.</span>
+      <span>© {{ date('Y') }} Feedtan Store. {{ __('All rights reserved.') }}</span>
+      <span>{{ __('Made with care for everyday shoppers in Tanzania.') }}</span>
     </div>
   </div>
 </footer>

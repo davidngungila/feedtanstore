@@ -13,13 +13,15 @@
 
 <header class="site-header" id="siteHeader">
   <div class="header-inner wrap">
-    <button class="icon-btn hamburger" id="menuToggle" aria-label="{{ __('Menu') }}" aria-expanded="false" onclick="toggleMenu()">
+    <button class="icon-btn hamburger" id="menuToggle" aria-label="{{ __('Menu') }}" aria-expanded="false" aria-controls="mobileMenu" onclick="toggleMenu()">
       <i class="fa-solid fa-bars"></i>
     </button>
+
     <a href="{{ route('shop.index') }}" class="logo" aria-label="{{ __('Home') }}">
       <span class="logo-mark"><i class="fa-solid fa-leaf"></i></span>
       <span>Feedtan<span class="logo-sub">{{ __('Online Store') }}</span></span>
     </a>
+
     <form class="search-bar" id="searchForm" role="search" action="{{ route('shop.index') }}">
       <label for="searchInput" class="visually-hidden">{{ __('Search products') }}</label>
       <input type="search" id="searchInput" name="search" placeholder="{{ __('Search products placeholder') }}" autocomplete="off" value="{{ request('search', '') }}">
@@ -27,55 +29,65 @@
         <i class="fa-solid fa-magnifying-glass"></i>
       </button>
     </form>
+
     <div class="header-actions">
       <button class="icon-btn hide-on-desktop" id="mobileSearchToggle" aria-label="{{ __('Search') }}" onclick="toggleMobileSearch()">
         <i class="fa-solid fa-magnifying-glass"></i>
       </button>
-      <button class="icon-btn hide-on-mobile theme-toggle" id="themeToggle" aria-label="{{ __('Toggle theme') }}" onclick="toggleTheme()">
+
+      <button class="icon-btn theme-toggle" id="themeToggle" aria-label="{{ __('Toggle theme') }}" onclick="toggleTheme()">
         <i class="fa-solid fa-moon" id="themeIcon"></i>
       </button>
+
       <button class="icon-btn hide-on-mobile" aria-label="{{ __('Saved items live in your wishlist') }}" onclick="showToast('{{ __('Saved items live in your wishlist') }}','heart')">
         <i class="fa-regular fa-heart"></i>
       </button>
+
       <a href="{{ route('shop.tracking') }}" class="icon-btn hide-on-mobile" aria-label="{{ __('Track my order') }}" title="{{ __('Track my order') }}">
         <i class="fa-solid fa-truck-fast"></i>
       </a>
+
       <button class="icon-btn" aria-label="{{ __('Open cart') }}" onclick="openCart()">
         <i class="fa-solid fa-cart-shopping"></i>
         <span class="badge" id="cartBadge" style="display:none;">0</span>
       </button>
+
+      <a href="{{ route('shop.index') }}#shop" class="btn btn-primary btn-sm hide-on-mobile">
+        <i class="fa-solid fa-bag-shopping"></i> {{ __('Order now') }}
+      </a>
+
       @auth
-        <a href="{{ route('dashboard') }}" class="btn btn-dark btn-sm hide-on-mobile" style="margin-left:4px;" title="{{ __('Dashboard') }}">
-          <i class="fa-solid fa-gauge-high"></i> {{ __('Dashboard') }}
-        </a>
+        <a href="{{ route('dashboard') }}" class="btn btn-dark btn-sm hide-on-mobile">{{ __('Dashboard') }}</a>
         <a href="{{ route('dashboard') }}" class="icon-btn hide-on-desktop" aria-label="{{ __('Dashboard') }}" title="{{ __('Dashboard') }}">
           <i class="fa-solid fa-gauge-high"></i>
         </a>
       @else
-        <a href="{{ route('login') }}" class="btn btn-dark btn-sm hide-on-mobile" style="margin-left:4px;" title="{{ __('Login') }}">
-          <i class="fa-solid fa-right-to-bracket"></i> {{ __('Login') }}
-        </a>
+        <a href="{{ route('login') }}" class="btn btn-dark btn-sm hide-on-mobile">{{ __('Login') }}</a>
         <a href="{{ route('login') }}" class="icon-btn hide-on-desktop" aria-label="{{ __('Login') }}" title="{{ __('Login') }}">
           <i class="fa-solid fa-right-to-bracket"></i>
         </a>
       @endauth
+
       <div class="lang-switch">
         <a href="{{ route('lang.switch', 'en') }}" class="{{ App::getLocale() === 'en' ? 'active' : '' }}" aria-label="English">EN</a>
         <a href="{{ route('lang.switch', 'sw') }}" class="{{ App::getLocale() === 'sw' ? 'active' : '' }}" aria-label="Kiswahili">SW</a>
       </div>
     </div>
   </div>
+
   <div class="mobile-search" id="mobileSearchBox" style="display:none;">
-    <form class="search-bar" action="{{ route('shop.index') }}">
+    <form class="search-bar" action="{{ route('shop.index') }}" role="search">
+      <label for="searchInputMobile" class="visually-hidden">{{ __('Search products') }}</label>
       <input type="search" id="searchInputMobile" name="search" placeholder="{{ __('Search products placeholder') }}" autocomplete="off" value="{{ request('search', '') }}">
       <button type="submit" aria-label="{{ __('Search') }}"><i class="fa-solid fa-magnifying-glass"></i></button>
     </form>
   </div>
-  <nav class="nav-strip" aria-label="Primary">
+
+  <nav class="nav-strip" aria-label="{{ __('Primary') }}">
     <div class="wrap">
       <a href="{{ route('shop.index') }}" class="{{ ($activeNav ?? 'home') === 'home' ? 'active' : '' }}"><i class="fa-solid fa-house"></i> {{ __('Home') }}</a>
       <a href="{{ route('shop.index') }}#shop" class="{{ ($activeNav ?? 'home') === 'shop' ? 'active' : '' }}"><i class="fa-solid fa-store"></i> {{ __('Buy All') }}</a>
-      @foreach($categories as $cat)
+      @foreach($categories->take(6) as $cat)
         <a href="{{ route('shop.index', ['category' => $cat->slug]) }}">{{ $cat->name }}</a>
       @endforeach
       <a href="{{ route('shop.tracking') }}" class="{{ ($activeNav ?? 'home') === 'track' ? 'active' : '' }}"><i class="fa-solid fa-location-dot"></i> {{ __('Track my order') }}</a>
@@ -85,7 +97,7 @@
 
 <aside class="mobile-menu" id="mobileMenu" aria-label="{{ __('Menu') }}">
   <div class="mm-head">
-    <a href="{{ route('shop.index') }}" class="logo" style="font-size:19px;">
+    <a href="{{ route('shop.index') }}" class="logo" style="font-size:18px;">
       <span class="logo-mark"><i class="fa-solid fa-leaf"></i></span>
       <span>Feedtan<span class="logo-sub">{{ __('Online Store') }}</span></span>
     </a>
@@ -102,16 +114,16 @@
       <span class="mm-ic"><i class="fa-solid fa-store"></i></span>
       {{ __('Buy All') }}
     </a>
-    @foreach($categories as $cat)
+    <a href="{{ route('shop.tracking') }}" class="{{ ($activeNav ?? 'home') === 'track' ? 'active' : '' }}">
+      <span class="mm-ic"><i class="fa-solid fa-location-dot"></i></span>
+      {{ __('Track my order') }}
+    </a>
+    @foreach($categories->take(8) as $cat)
       <a href="{{ route('shop.index', ['category' => $cat->slug]) }}">
         <span class="mm-ic"><i class="fa-solid fa-tags"></i></span>
         {{ $cat->name }}
       </a>
     @endforeach
-    <a href="{{ route('shop.tracking') }}" class="{{ ($activeNav ?? 'home') === 'track' ? 'active' : '' }}">
-      <span class="mm-ic"><i class="fa-solid fa-location-dot"></i></span>
-      {{ __('Track my order') }}
-    </a>
     @auth
       <a href="{{ route('dashboard') }}">
         <span class="mm-ic"><i class="fa-solid fa-gauge-high"></i></span>
@@ -129,13 +141,13 @@
     @endauth
   </nav>
   <div class="mm-footer">
-    <div class="lang-switch">
+    <div class="lang-switch" style="align-self:flex-start;">
       <a href="{{ route('lang.switch', 'en') }}" class="{{ App::getLocale() === 'en' ? 'active' : '' }}">EN</a>
       <a href="{{ route('lang.switch', 'sw') }}" class="{{ App::getLocale() === 'sw' ? 'active' : '' }}">SW</a>
     </div>
     <div class="mm-contact">
       <b style="color:var(--ink);">Feedtan Store</b><br>
-      {{ __('Location') }}<br>
+      {{ $settings->store_address ?? __('Location') }}<br>
       {{ __('Opening hours') }}<br>
       +255 717 358 865
     </div>

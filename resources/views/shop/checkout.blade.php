@@ -21,7 +21,7 @@
 <meta name="description" content="{{ $description }}">
 <meta name="robots" content="noindex,nofollow,noarchive">
 <meta name="author" content="Feedtan Store">
-<meta name="theme-color" content="#1B4332">
+<meta name="theme-color" content="#123328">
 <link rel="canonical" href="{{ $canonicalUrl }}">
 <link rel="icon" type="image/png" href="{{ $logoUrl }}">
 <link rel="apple-touch-icon" href="{{ $logoUrl }}">
@@ -39,86 +39,95 @@
 <meta name="twitter:description" content="{{ $description }}">
 <meta name="twitter:image" content="{{ $logoUrl }}">
 <meta name="csrf-token" content="{{ csrf_token() }}">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,600;0,9..144,700;0,9..144,900;1,9..144,500&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 @include('shop.partials.styles')
 <style>
-/* ---------- Layout ---------- */
-.checkout-bottom-grid{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(320px,0.85fr);gap:24px;align-items:start;}
-@media(max-width:900px){.checkout-bottom-grid{grid-template-columns:1fr;}}
-.option-grid-two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;}
-@media(max-width:480px){.option-grid-two{grid-template-columns:1fr;}}
+/* ---------- Section cards ---------- */
+.checkout-card{
+  background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);
+  padding:22px;margin-bottom:20px;box-shadow:var(--shadow-card);
+}
+.card-title{
+  font-family:var(--font-display);font-size:19px;margin:0 0 18px;
+  display:flex;align-items:center;gap:11px;color:var(--green-900);
+}
+.card-title .n{
+  width:28px;height:28px;border-radius:50%;background:var(--green-100);color:var(--green-700);
+  display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;
+  font-family:var(--font-mono);font-size:13px;font-weight:700;
+}
+.option-card .opt-text{display:flex;flex-direction:column;gap:2px;min-width:0;}
+.option-card .opt-text b{font-size:14px;color:var(--green-900);}
+.option-card .opt-text span{font-size:12px;font-weight:500;color:var(--ink-soft);line-height:1.45;}
 
-/* ---------- Step indicator ---------- */
-.steps{display:flex;align-items:center;gap:0;margin:26px 0 30px;}
-.step{flex:1;display:flex;align-items:center;gap:10px;position:relative;}
+/* ---------- Steps ---------- */
+.steps{display:flex;align-items:center;gap:0;margin:0 0 26px;}
+.step{flex:1;display:flex;align-items:center;gap:10px;}
 .step:not(:last-child)::after{content:'';flex:1;height:2px;background:var(--line);margin:0 12px;border-radius:2px;}
-.step.done:not(:last-child)::after{background:var(--green-700);}
-.step .st-ic{
-  width:38px;height:38px;border-radius:50%;background:#fff;border:2px solid var(--line);color:var(--ink-soft);
-  display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;flex-shrink:0;transition:all .2s;
+.st-ic{
+  width:36px;height:36px;border-radius:50%;background:#fff;border:2px solid var(--line);
+  color:var(--ink-soft);display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-mono);font-size:13px;font-weight:700;flex-shrink:0;
 }
-.step.active .st-ic{background:var(--green-700);border-color:var(--green-700);color:#fff;box-shadow:0 0 0 5px rgba(27,67,50,.12);}
-.step.done .st-ic{background:var(--green-100);border-color:var(--green-700);color:var(--green-700);}
-.step .st-label{font-size:12.5px;font-weight:700;color:var(--ink-soft);white-space:nowrap;}
-.step.active .st-label{color:var(--ink);}
-.step.done .st-label{color:var(--green-700);}
-@media(max-width:640px){
-  .step .st-label{display:none;}
-  .step:not(:last-child)::after{margin:0 8px;}
-}
+.step.active .st-ic{background:var(--orange-600);border-color:var(--orange-600);color:#fff;box-shadow:0 0 0 5px var(--orange-100);}
+.st-label{font-size:12.5px;font-weight:700;color:var(--ink-soft);white-space:nowrap;}
+.step.active .st-label{color:var(--green-900);}
 
-/* ---------- Cards / location ---------- */
-.card h2.card-title{font-size:19px;margin-bottom:16px;display:flex;align-items:center;gap:10px;}
-.card h2.card-title .n{
-  width:26px;height:26px;border-radius:50%;background:var(--green-100);color:var(--green-700);
-  display:inline-flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;font-family:var(--font-body);
-}
-.location-box{border:1.5px dashed var(--line);border-radius:var(--radius-m);padding:16px;margin:6px 0 0;background:var(--parchment);}
+/* ---------- Location ---------- */
+.location-box{background:var(--green-050);border:1px solid var(--line);border-radius:var(--radius-m);padding:16px;}
 .location-box-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;}
-.location-status{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:var(--green-700);}
-.location-status.pending{color:var(--ink-soft);}
+.location-status{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:var(--ink-soft);margin-bottom:0;}
+.location-status.ok{color:var(--success);}
 .location-status.error{color:var(--red);}
-.location-coords{font-family:var(--font-mono);font-size:12px;color:var(--ink-soft);margin-top:6px;word-break:break-all;}
-.search-result-item{padding:10px 12px;cursor:pointer;border-bottom:1px solid var(--line);transition:background .15s;}
-.search-result-item:hover{background:var(--green-100);}
+.location-coords{font-family:var(--font-mono);font-size:11.5px;color:var(--ink-faint);margin-top:8px;word-break:break-all;}
+.search-result-item{padding:11px 12px;cursor:pointer;border-bottom:1px solid var(--line);transition:background .15s;background:none;border-left:none;border-right:none;width:100%;text-align:left;}
 .search-result-item:last-child{border-bottom:none;}
-.search-result-name{font-size:13px;font-weight:600;color:var(--ink);}
-.search-result-address{font-size:11px;color:var(--ink-soft);margin-top:2px;line-height:1.4;}
+.search-result-item:hover{background:var(--green-050);}
+.search-result-name{font-size:13px;font-weight:700;color:var(--green-900);display:block;}
+.search-result-address{font-size:11.5px;color:var(--ink-soft);display:block;margin-top:2px;line-height:1.4;}
 
 /* ---------- Summary ---------- */
-.summary-card{background:var(--parchment);border-radius:var(--radius-m);padding:18px;}
-.summary-card h4{font-size:14px;margin-bottom:12px;}
-.mini-item{display:flex;justify-content:space-between;gap:12px;font-size:13px;padding:7px 0;color:var(--ink-soft);border-bottom:1px dashed var(--line);}
-.mini-item:last-child{border-bottom:none;}
-.mini-item b{color:var(--ink);font-weight:600;}
-.pay-note{
-  display:flex;gap:10px;align-items:flex-start;background:var(--green-100);border-radius:var(--radius-m);
-  padding:14px 16px;margin-bottom:16px;font-size:13px;color:var(--green-900);line-height:1.55;
-}
-.pay-note svg{flex-shrink:0;color:var(--green-700);margin-top:1px;}
+.summary-card{background:var(--paper);}
+.summary-card h4{font-size:15px;margin-bottom:12px;}
 
 /* ---------- Sticky mobile pay bar ---------- */
 .pay-sticky{
   position:fixed;left:0;right:0;bottom:0;z-index:120;display:none;align-items:center;gap:12px;
-  background:rgba(255,255,255,.98);backdrop-filter:blur(12px);border-top:1px solid var(--line);
-  padding:10px 14px calc(10px + env(safe-area-inset-bottom));box-shadow:0 -8px 24px rgba(15,42,31,.12);
+  background:var(--paper);border-top:1px solid var(--line);
+  padding:10px 16px calc(10px + env(safe-area-inset-bottom));
+  box-shadow:0 -10px 30px -18px rgba(18,51,40,.5);
 }
 .pay-sticky .ps-left{flex:1;min-width:0;}
-.pay-sticky .ps-left b{font-family:var(--font-display);font-size:17px;display:block;line-height:1.15;}
-.pay-sticky .ps-left span{font-size:11.5px;color:var(--ink-soft);}
-.pay-sticky .btn{height:48px;padding:0 20px;flex-shrink:0;}
-@media(max-width:900px){
-  .pay-sticky{display:flex;}
-  .with-pay-sticky{padding-bottom:84px;}
-}
+.pay-sticky .ps-left b{font-family:var(--font-mono);font-size:17px;font-weight:800;display:block;line-height:1.2;color:var(--green-900);}
+.pay-sticky .ps-left span{font-size:11.5px;color:var(--ink-faint);}
+.pay-sticky .btn{flex-shrink:0;}
 
-.empty-state{padding:52px 24px;text-align:center;}
-.empty-state .ic{width:72px;height:72px;border-radius:50%;background:var(--green-100);color:var(--green-700);display:flex;align-items:center;justify-content:center;margin:0 auto 18px;}
+/* ---------- Empty state ---------- */
+.empty-state{text-align:center;padding:56px 24px;}
+.empty-state .ic{
+  width:72px;height:72px;border-radius:50%;background:var(--green-100);color:var(--green-700);
+  display:flex;align-items:center;justify-content:center;margin:0 auto 18px;
+}
 .empty-state h2{font-size:22px;margin-bottom:8px;}
 .empty-state p{color:var(--ink-soft);font-size:14px;margin:0 0 22px;}
 .empty-state .actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
+
+/* ---------- Responsive ---------- */
+.checkout-bottom-grid{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(300px,.9fr);gap:20px;align-items:start;}
+@media (max-width:900px){
+  .checkout-bottom-grid{grid-template-columns:1fr;}
+  .pay-sticky{display:flex;}
+  body.with-pay-sticky{padding-bottom:88px;}
+  .summary-card{position:static;}
+}
+@media (max-width:640px){
+  .checkout-card{padding:18px 16px;}
+  .st-label{display:none;}
+  .step:not(:last-child)::after{margin:0 8px;}
+}
+@media (max-width:420px){
+  .pay-sticky .btn{padding:12px 16px;font-size:13.5px;}
+  .empty-state{padding:40px 14px;}
+}
 </style>
 </head>
 <body class="with-pay-sticky">
@@ -126,20 +135,19 @@
 @include('shop.partials.header', ['activeNav' => 'shop'])
 
 <main id="mainContent">
-  <section class="section">
+  <section class="section" style="padding-top:30px;">
     <div class="wrap">
       <a href="{{ route('shop.index') }}" class="back-link">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m15 18-6-6 6-6"/></svg> {{ __('Back to store') }}
+        <i class="fa-solid fa-arrow-left"></i> {{ __('Back to store') }}
       </a>
 
-      <div class="section-head" style="margin-top:18px;">
-        <div>
-          <span class="eyebrow">{{ __('Checkout') }}</span>
-          <h1>{{ __('Complete your order') }}</h1>
-        </div>
+      <div class="sec-head" style="margin-bottom:22px;">
+        <span class="eyebrow">{{ __('Checkout') }}</span>
+        <h1 style="font-size:clamp(26px,3.4vw,36px);">{{ __('Complete your order') }}</h1>
+        <p>{{ __('Tell us where to deliver and we will confirm the fee before you pay.') }}</p>
       </div>
 
-      <ol class="steps" aria-label="Checkout steps">
+      <ol class="steps" aria-label="{{ __('Checkout steps') }}">
         <li class="step active" data-step="1">
           <span class="st-ic">1</span>
           <span class="st-label">{{ __('Delivery') }}</span>
@@ -154,10 +162,8 @@
         </li>
       </ol>
 
-      <div id="emptyCartState" class="card empty-state" style="display:none;">
-        <div class="ic">
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
-        </div>
+      <div id="emptyCartState" class="checkout-card empty-state" style="display:none;">
+        <div class="ic"><i class="fa-solid fa-cart-shopping" style="font-size:28px;"></i></div>
         <h2>{{ __('Your cart is empty') }}</h2>
         <p>{{ __('Add at least one product to continue.') }}</p>
         <div class="actions">
@@ -167,92 +173,84 @@
       </div>
 
       <form id="checkoutForm">
-        <!-- Delivery Options -->
-        <div class="card" id="stepDelivery">
+        <!-- ===== DELIVERY OPTION ===== -->
+        <div class="checkout-card" id="stepDelivery">
           <h2 class="card-title"><span class="n">1</span> {{ __('Delivery Option') }}</h2>
-          <div class="option-grid-two">
+          <div class="option-grid">
             <label class="option-card selected" id="opt-delivery">
               <input type="radio" name="need_delivery" value="yes" checked onchange="toggleDeliveryOptions()">
-              <div class="icon">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="1.5"/><circle cx="18.5" cy="18.5" r="1.5"/></svg>
-              </div>
-              <div>
+              <span class="icon"><i class="fa-solid fa-truck-fast"></i></span>
+              <span class="opt-text">
                 <b>{{ __('Home Delivery') }}</b>
-                <span>{{ __('Your order will be delivered to your door') }}</span>
-              </div>
+                <span>{{ __('We bring the order to your door') }}</span>
+              </span>
             </label>
             <label class="option-card" id="opt-pickup">
               <input type="radio" name="need_delivery" value="no" onchange="toggleDeliveryOptions()">
-              <div class="icon">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9.5 12 3l9 6.5"/><path d="M5 10v9h14v-9"/><path d="M9 19v-6h6v6"/></svg>
-              </div>
-              <div>
-                <b>{{ __('Pickup') }}</b>
-                <span>{{ __('Pick up your order from our store') }}</span>
-              </div>
+              <span class="icon"><i class="fa-solid fa-store"></i></span>
+              <span class="opt-text">
+                <b>{{ __('Store Pickup') }}</b>
+                <span>{{ __('Collect it from our store') }}</span>
+              </span>
             </label>
           </div>
         </div>
 
-        <!-- Customer Info -->
-        <div class="card" id="stepCustomer">
+        <!-- ===== CUSTOMER INFO ===== -->
+        <div class="checkout-card" id="stepCustomer">
           <h2 class="card-title"><span class="n">2</span> {{ __('Customer Information') }}</h2>
           <div class="form-grid">
             <div class="field">
               <label for="customerName">{{ __('Full Name') }} *</label>
-              <input type="text" id="customerName" required autocomplete="name">
+              <input type="text" id="customerName" required autocomplete="name" placeholder="{{ __('e.g. Asha Mwakalinga') }}">
               <div class="field-error" id="err-customerName"></div>
             </div>
             <div class="field">
               <label for="customerPhone">{{ __('Phone Number') }} *</label>
-              <input type="tel" id="customerPhone" required autocomplete="tel">
+              <input type="tel" id="customerPhone" required autocomplete="tel" placeholder="{{ __('e.g. 0717 358 865') }}">
               <div class="field-error" id="err-customerPhone"></div>
             </div>
             <div class="field" style="grid-column:1/-1;">
               <label for="customerEmail">{{ __('Email') }} ({{ __('optional') }})</label>
-              <input type="email" id="customerEmail" autocomplete="email">
+              <input type="email" id="customerEmail" autocomplete="email" placeholder="name@example.com">
               <div class="field-error" id="err-customerEmail"></div>
             </div>
           </div>
         </div>
 
-        <!-- Delivery Address & Location -->
-        <div class="card" id="deliveryAddressSection">
+        <!-- ===== DELIVERY LOCATION ===== -->
+        <div class="checkout-card" id="deliveryAddressSection">
           <h2 class="card-title"><span class="n">3</span> {{ __('Delivery Location') }}</h2>
 
-          <div class="option-grid-two" style="margin-bottom:14px;">
+          <div class="option-grid" style="margin-bottom:16px;">
             <label class="option-card selected" id="opt-current-location">
               <input type="radio" name="location_type" value="current" checked onchange="toggleLocationType()">
-              <div class="icon">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg>
-              </div>
-              <div>
+              <span class="icon"><i class="fa-solid fa-location-crosshairs"></i></span>
+              <span class="opt-text">
                 <b>{{ __('Current Location') }}</b>
-                <span>{{ __('Use your current GPS location') }}</span>
-              </div>
+                <span>{{ __('Use your GPS location') }}</span>
+              </span>
             </label>
             <label class="option-card" id="opt-other-location">
               <input type="radio" name="location_type" value="other" onchange="toggleLocationType()">
-              <div class="icon">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-              </div>
-              <div>
+              <span class="icon"><i class="fa-solid fa-map-location-dot"></i></span>
+              <span class="opt-text">
                 <b>{{ __('Other Location') }}</b>
-                <span>{{ __('Choose a location on the map or enter an address') }}</span>
-              </div>
+                <span>{{ __('Pick a spot on the map or type an address') }}</span>
+              </span>
             </label>
           </div>
 
-          <!-- Current Location Section -->
+          <!-- Current location -->
           <div class="location-box" id="currentLocationBox">
             <div class="field">
               <label for="deliveryAddress">{{ __('Delivery Address') }} *</label>
-              <input type="text" id="deliveryAddress" placeholder="{{ __('Searching your location automatically...') }}">
+              <input type="text" id="deliveryAddress" placeholder="{{ __('Detecting your location automatically...') }}">
               <div class="field-error" id="err-deliveryAddress" style="margin-top:8px;"></div>
             </div>
             <div class="location-box-head">
-              <div class="location-status pending" id="locStatus">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+              <div class="location-status" id="locStatus">
+                <i class="fa-solid fa-spinner fa-spin"></i>
                 <span>{{ __('Detecting your location...') }}</span>
               </div>
               <button type="button" class="btn btn-outline btn-sm" onclick="detectLocation()">{{ __('Refresh') }}</button>
@@ -261,28 +259,28 @@
             <div class="mini-map" id="mapPreview"></div>
           </div>
 
-          <!-- Other Location Section -->
+          <!-- Other location -->
           <div class="location-box" id="otherLocationBox" style="display:none;">
             <div class="field">
               <label for="addressSearch">{{ __('Search Location') }}</label>
               <div style="display:flex;gap:8px;">
-                <input type="text" id="addressSearch" placeholder="{{ __('Search for a location (e.g., Kariakoo Market)') }}" style="flex:1;" onkeypress="if(event.key === 'Enter') searchAddress()">
+                <input type="text" id="addressSearch" placeholder="{{ __('Search for a location (e.g. Kiboriloni)') }}" style="flex:1;" onkeypress="if(event.key === 'Enter') searchAddress()">
                 <button type="button" class="btn btn-primary btn-sm" onclick="searchAddress()">{{ __('Search') }}</button>
               </div>
               <div class="field-error" id="err-addressSearch"></div>
             </div>
 
-            <div id="searchResults" style="display:none;margin-bottom:12px;max-height:200px;overflow-y:auto;border:1px solid var(--line);border-radius:8px;"></div>
+            <div id="searchResults" style="display:none;margin-bottom:12px;max-height:200px;overflow-y:auto;border:1px solid var(--line);border-radius:10px;background:var(--white);"></div>
 
             <div class="field">
               <label for="manualAddress">{{ __('Delivery Address') }} *</label>
-              <input type="text" id="manualAddress" placeholder="{{ __('Enter delivery address (e.g., Kiboriloni, Moshi)') }}">
+              <input type="text" id="manualAddress" placeholder="{{ __('e.g. Kiboriloni, Moshi') }}">
               <div class="field-error" id="err-manualAddress"></div>
             </div>
 
             <div class="location-box-head">
-              <div class="location-status pending" id="mapLocStatus">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="12" cy="12" r="10"/><path d="M12 8h.01M11 12h2v4h-2z"/></svg>
+              <div class="location-status" id="mapLocStatus">
+                <i class="fa-solid fa-hand-pointer"></i>
                 <span>{{ __('Tap on the map to select a delivery location') }}</span>
               </div>
             </div>
@@ -293,11 +291,11 @@
         </div>
 
         <div class="checkout-bottom-grid">
-          <!-- Order Summary -->
-          <div class="card" id="stepSummary">
+          <!-- ===== ORDER SUMMARY ===== -->
+          <div class="checkout-card summary-card" id="stepSummary">
             <h2 class="card-title"><span class="n">4</span> {{ __('Order Summary') }}</h2>
             <div id="checkoutItems"></div>
-            <div style="border-top:1px solid var(--line);padding-top:16px;">
+            <div style="border-top:1px solid var(--line);padding-top:14px;margin-top:6px;">
               <div class="sum-row"><span>{{ __('Subtotal') }}</span><span id="subtotal">TZS 0</span></div>
               <div class="sum-row"><span>{{ __('Delivery Distance') }}</span><span id="deliveryDistanceDisplay">{{ __('Choose location to calculate') }}</span></div>
               <div class="sum-row"><span>{{ __('Delivery Fee') }}</span><span id="deliveryFeeDisplay">{{ __('Choose location to calculate') }}</span></div>
@@ -305,17 +303,20 @@
             </div>
           </div>
 
-          <!-- Payment Section -->
-          <div>
+          <!-- ===== PAYMENT ===== -->
+          <div class="checkout-card">
+            <h2 class="card-title"><span class="n">5</span> {{ __('Payment') }}</h2>
             <div class="pay-note">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><path d="M1 10h22"/><path d="M6 15h4"/></svg>
-              <span>{{ __('Pay securely using mobile money. After placing the order, you will be asked to enter a valid phone number such as 2557XXXXXXXX, 07XXXXXXXX, or 7XXXXXXXX.') }}</span>
+              <i class="fa-solid fa-lock" style="flex-shrink:0;color:var(--green-700);margin-top:2px;"></i>
+              <span>{{ __('Pay securely using mobile money. After placing the order you will be asked for a valid phone number such as 2557XXXXXXXX, 07XXXXXXXX or 7XXXXXXXX.') }}</span>
             </div>
             <input type="hidden" name="payment_method" value="online">
-            <button type="submit" id="placeOrderBtn" class="btn btn-primary" style="display:flex;justify-content:center;width:100%;">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>
-              {{ __('Pay Now') }}
+            <button type="submit" id="placeOrderBtn" class="btn btn-primary btn-lg btn-block">
+              <i class="fa-solid fa-circle-check"></i> {{ __('Pay Now') }}
             </button>
+            <p class="field-hint" style="text-align:center;margin-top:12px;">
+              {{ __('You will receive an order number to track your delivery.') }}
+            </p>
           </div>
         </div>
       </form>
@@ -334,8 +335,7 @@
     <span id="psSub">{{ __('Checkout') }}</span>
   </div>
   <button class="btn btn-primary" form="checkoutForm" type="submit">
-    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6 9 17l-5-5"/></svg>
-    {{ __('Pay Now') }}
+    <i class="fa-solid fa-circle-check"></i> {{ __('Pay Now') }}
   </button>
 </div>
 
@@ -413,7 +413,7 @@ function renderCheckoutItems() {
       <div class="mini-item">
         <div>
           <b>${item.name}</b>
-          <div style="font-size:12px;color:var(--ink-soft);">${item.quantity} × TZS ${Number(item.price).toLocaleString()}</div>
+          <div style="font-size:12px;color:var(--ink-soft);">${item.quantity} Ã— TZS ${Number(item.price).toLocaleString()}</div>
         </div>
         <div><b>TZS ${total.toLocaleString()}</b></div>
       </div>

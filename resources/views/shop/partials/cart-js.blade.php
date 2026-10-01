@@ -122,7 +122,7 @@ function renderCartList() {
         '<span class="cr-meta">{{ __('per item') }} · '+formatTZS(item.price)+' {{ __('each') }}</span>' +
         '<div class="cart-row-bottom">' +
           '<div class="qty-stepper">' +
-            '<button onclick="changeQty(\''+item.id+'\', -1, \''+esc(item.name)+'\', '+item.price+')" aria-label="{{ __('Decrease quantity') }}">−</button>' +
+            '<button onclick="changeQty(\''+item.id+'\', -1, \''+esc(item.name)+'\', '+item.price+')" aria-label="{{ __('Decrease quantity') }}">&minus;</button>' +
             '<span>'+item.quantity+'</span>' +
             '<button onclick="changeQty(\''+item.id+'\', 1, \''+esc(item.name)+'\', '+item.price+')" aria-label="{{ __('Increase quantity') }}">+</button>' +
           '</div>' +
@@ -271,6 +271,13 @@ function toggleTheme() {
   };
   onScroll();
   window.addEventListener('scroll', onScroll, { passive: true });
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key !== 'Escape') return;
+    const lb = document.getElementById('lightbox');
+    if (lb && lb.classList.contains('open')) return;
+    closeAllOverlays();
+  });
 
   const revealEls = document.querySelectorAll('.reveal');
   if ('IntersectionObserver' in window && revealEls.length) {
