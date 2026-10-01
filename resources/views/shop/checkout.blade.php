@@ -394,7 +394,7 @@ html.pay-modal-open,html.pay-modal-open body{overflow:hidden;}
     <h2 class="pay-modal-title" id="payModalTitle">{{ __('Order placed!') }}</h2>
     <div class="pay-modal-rows" id="payModalBody"></div>
 
-    <div class="pay-modal-count" id="payModalCount" hidden>02:00</div>
+    <div class="pay-modal-count" id="payModalCount" hidden>01:00</div>
     <div class="pay-modal-bar" id="payModalBar" hidden><span></span></div>
     <p class="pay-modal-hint" id="payModalHint" hidden></p>
 
@@ -938,7 +938,7 @@ function validateAddressIfNeeded() {
   }
 }
 
-const PAY_WAIT_SECONDS = 120;
+const PAY_WAIT_SECONDS = 60;
 let payWaitTimer = null;
 let payPollTimer = null;
 let payRedirectTimer = null;

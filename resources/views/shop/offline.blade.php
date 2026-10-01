@@ -56,7 +56,6 @@ body{display:flex;flex-direction:column;min-height:100vh;}
         <a href="{{ route('login') }}" class="btn btn-dark btn-sm">
           <i class="fa-solid fa-right-to-bracket"></i> {{ __('Login') }}
         </a>
-        <a href="{{ route('entry') }}" class="btn btn-outline btn-sm">{{ __('Staff Entry') }}</a>
       @endauth
     </div>
   </div>
@@ -84,7 +83,6 @@ body{display:flex;flex-direction:column;min-height:100vh;}
       @endif
 
       <div class="offline-actions">
-        <a href="{{ route('entry') }}" class="btn btn-ghost">{{ __('Staff Entry') }}</a>
         <a href="{{ route('login') }}" class="btn btn-primary">{{ __('Login') }}</a>
       </div>
     </div>

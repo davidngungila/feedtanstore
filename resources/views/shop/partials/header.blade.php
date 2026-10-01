@@ -116,11 +116,6 @@
         <span class="mm-ic"><i class="fa-solid fa-gauge-high"></i></span>
         {{ __('Dashboard') }}
       </a>
-    @else
-      <a href="{{ route('entry') }}" style="opacity:.85;">
-        <span class="mm-ic"><i class="fa-solid fa-key"></i></span>
-        {{ __('Staff Entry') }}
-      </a>
     @endauth
   </nav>
   <div class="mm-footer">
