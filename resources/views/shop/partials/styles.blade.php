@@ -195,7 +195,8 @@ html.dark h1,html.dark h2,html.dark h3,html.dark h4{color:var(--ink);}
   transition:box-shadow .2s var(--ease);
 }
 .site-header.scrolled{box-shadow:0 6px 24px -14px rgba(18,51,40,.4);}
-.header-inner{display:flex;align-items:center;gap:16px;min-height:var(--header-h);}
+.header-inner{display:flex;align-items:center;gap:16px;min-height:var(--header-h);position:relative;}
+#searchForm{position:absolute;left:50%;transform:translateX(-50%);width:min(340px,34vw);}
 .logo{display:inline-flex;align-items:center;gap:10px;font-family:var(--font-display);font-weight:700;font-size:20px;color:var(--green-900);flex-shrink:0;}
 .logo-img{height:34px;width:auto;object-fit:contain;}
 .logo-mark{
