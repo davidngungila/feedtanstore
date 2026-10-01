@@ -882,7 +882,7 @@ if (payNowBtn) {
   payNowBtn.addEventListener('click', async () => {
     if (trackPayBusy || !trackPayModal.root) return;
     trackPayBusy = true;
-    const baseUrl = @json($settings->store_url ?? config('app.url'));
+    const baseUrl = window.location.origin;
     const trackingIdentifier = @json($order->tracking_token ?? $order->order_number);
     trackPayState.orderRef = trackingIdentifier;
     trackPayState.amount = payNowBtn.getAttribute('data-total') || '';

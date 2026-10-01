@@ -1061,7 +1061,11 @@ function showOrderPlaced(data) {
   payState.trackingUrl = data.tracking_url || '';
   payState.orderRef = data.order_number || '';
   try {
-    payState.orderRef = new URL(data.tracking_url, window.location.origin).pathname.split('/').filter(Boolean).pop() || payState.orderRef;
+    const trackingLocation = new URL(data.tracking_url, window.location.origin);
+    // Stay on the site where this order was created. The API may return the
+    // public store domain while staff or customers are checking out elsewhere.
+    payState.trackingUrl = trackingLocation.pathname + trackingLocation.search + trackingLocation.hash;
+    payState.orderRef = trackingLocation.pathname.split('/').filter(Boolean).pop() || payState.orderRef;
   } catch (e) {}
   openPayModal();
   if (!data.payment_initiated) return;
