@@ -176,40 +176,66 @@
 </div>
 
 <script>
+async function readJsonResponse(response) {
+    const text = await response.text();
+    try {
+        return { data: JSON.parse(text) };
+    } catch (e) {
+        return { parseError: 'HTTP ' + response.status + ' returned a non-JSON response: ' + text.slice(0, 300) };
+    }
+}
+
+function showTraTestMessage(kind, title, message) {
+    const resultContent = document.getElementById('testResultContent');
+    const styles = {
+        info: ['bg-blue-50 border-blue-200', 'text-blue-800', 'text-blue-700', 'fa-spinner fa-spin'],
+        warning: ['bg-yellow-50 border-yellow-200', 'text-yellow-800', 'text-yellow-700', 'fa-exclamation-triangle'],
+        error: ['bg-red-50 border-red-200', 'text-red-800', 'text-red-700', 'fa-times-circle']
+    }[kind] || ['bg-blue-50 border-blue-200', 'text-blue-800', 'text-blue-700', 'fa-info-circle'];
+    resultContent.className = 'p-4 rounded-xl ' + styles[0] + ' border';
+    resultContent.innerHTML = '<div class="flex items-start gap-3"><i class="fas ' + styles[3] + ' mt-1"></i><div><p class="font-semibold ' + styles[1] + '">' + title + '</p><p class="text-sm mt-1 ' + styles[2] + '">' + message + '</p></div></div>';
+}
+
 async function testTraConnection() {
     const resultDiv = document.getElementById('testResult');
     const resultContent = document.getElementById('testResultContent');
     const xmlPreview = document.getElementById('xmlPreview');
     const xmlContent = document.getElementById('xmlContent');
-    
+
     resultDiv.classList.remove('hidden');
     xmlPreview.classList.add('hidden');
-    resultContent.className = 'p-4 rounded-xl bg-blue-50 border border-blue-200';
-    resultContent.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Saving settings and testing connection to TRA...';
+    showTraTestMessage('info', 'Saving settings and testing connection to TRA...', 'Please wait.');
     
     try {
         // First save the settings
         const form = document.querySelector('form');
         const formData = new FormData(form);
         
-        await fetch('{{ route("system.update") }}', {
+        const saveResponse = await fetch('{{ route("system.update") }}', {
             method: 'POST',
             body: formData,
             headers: {
                 'X-CSRF-TOKEN': '{{ csrf_token() }}',
             }
         });
+        if (!saveResponse.ok) {
+            showTraTestMessage('error', 'Settings save failed', 'HTTP ' + saveResponse.status + ' while saving TRA settings. Fix the settings form and try again.');
+            return;
+        }
         
         await new Promise(r => setTimeout(r, 500));
         
         // Get XML preview
-        const xmlResponse = await fetch('/sales/receipts/1/tra-xml', {
+        const xmlResponse = await fetch('{{ route("receipts.tra-xml", 1) }}', {
             headers: { 'Accept': 'text/xml' }
         });
         if (xmlResponse.ok) {
             const xmlText = await xmlResponse.text();
             xmlContent.textContent = xmlText;
             xmlPreview.classList.remove('hidden');
+        } else {
+            showTraTestMessage('error', 'XML preview failed', 'HTTP ' + xmlResponse.status + ' while generating the TRA XML preview.');
+            return;
         }
         
         // Confirm before posting to TRA
@@ -228,7 +254,7 @@ async function testTraConnection() {
         }
         
         // Post to TRA
-        const testResponse = await fetch('/sales/receipts/post-to-tra', {
+        const testResponse = await fetch('{{ route("receipts.post-to-tra") }}', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -238,8 +264,12 @@ async function testTraConnection() {
             body: JSON.stringify({ sale_id: 1 })
         });
         
-        const result = await testResponse.json();
-        
+        const { data: result, parseError } = await readJsonResponse(testResponse);
+        if (parseError) {
+            showTraTestMessage('error', 'Connection Error', parseError);
+            return;
+        }
+
         if (result.success) {
             const receiptNum = result.receipt_number || 'N/A';
             const verifyLink = result.verification_link || '';
@@ -258,12 +288,10 @@ async function testTraConnection() {
             resultContent.className = 'p-4 rounded-xl bg-green-50 border border-green-200';
             resultContent.innerHTML = html;
         } else {
-            resultContent.className = 'p-4 rounded-xl bg-yellow-50 border border-yellow-200';
-            resultContent.innerHTML = '<div class="flex items-start gap-3"><i class="fas fa-exclamation-triangle text-yellow-600 mt-1"></i><div><p class="font-semibold text-yellow-800">TRA Error</p><p class="text-sm text-yellow-700 mt-1">' + (result.error || 'Unknown response') + '</p></div></div>';
+            showTraTestMessage('warning', 'TRA Error', result.error || 'Unknown response');
         }
     } catch (e) {
-        resultContent.className = 'p-4 rounded-xl bg-red-50 border border-red-200';
-        resultContent.innerHTML = '<div class="flex items-start gap-3"><i class="fas fa-times-circle text-red-600 mt-1"></i><div><p class="font-semibold text-red-800">Connection Error</p><p class="text-sm text-red-700 mt-1">' + e.message + '</p></div></div>';
+        showTraTestMessage('error', 'Connection Error', e.message);
     }
 }
 </script>
