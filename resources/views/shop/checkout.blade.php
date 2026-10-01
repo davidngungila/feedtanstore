@@ -543,7 +543,7 @@ async function fetchDeliveryFee() {
         if (data.success) {
           currentDeliveryFee = data.delivery_fee;
           document.getElementById('deliveryDistanceDisplay').textContent = data.formatted_distance;
-          document.getElementById('deliveryFeeDisplay').textContent = data.is_free ? '{{ __('FREE') }}' : data.formatted_delivery_fee;
+          document.getElementById('deliveryFeeDisplay').textContent = data.formatted_delivery_fee;
           updateTotal();
         }
       } catch (e) {
@@ -558,7 +558,7 @@ async function fetchDeliveryFee() {
   } else {
     currentDeliveryFee = 0;
     document.getElementById('deliveryDistanceDisplay').textContent = '{{ __('Store Pickup') }}';
-    document.getElementById('deliveryFeeDisplay').textContent = '{{ __('FREE') }}';
+    document.getElementById('deliveryFeeDisplay').textContent = 'TZS 0';
     updateTotal();
   }
 }
@@ -568,7 +568,7 @@ function updateTotal() {
   const total = subtotal + currentDeliveryFee;
   document.getElementById('subtotal').textContent = 'TZS ' + subtotal.toLocaleString();
   if (needDelivery === 'no') {
-    document.getElementById('deliveryFeeDisplay').textContent = '{{ __('FREE') }}';
+    document.getElementById('deliveryFeeDisplay').textContent = 'TZS 0';
   }
   document.getElementById('checkoutTotal').textContent = 'TZS ' + total.toLocaleString();
   const psTotal = document.getElementById('psTotal');

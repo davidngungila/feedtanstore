@@ -364,13 +364,6 @@ html.dark h1,html.dark h2,html.dark h3,html.dark h4{color:var(--ink);}
 }
 .drawer-foot{padding:18px 20px calc(18px + env(safe-area-inset-bottom));border-top:1px solid var(--line);background:var(--paper);flex-shrink:0;}
 
-/* free delivery progress */
-.free-delivery-bar{margin-bottom:14px;}
-.fdb-track{height:8px;border-radius:999px;background:var(--green-050);overflow:hidden;}
-.fdb-fill{height:100%;width:0;border-radius:999px;background:var(--orange-600);transition:width .3s var(--ease);}
-.fdb-text{font-size:12.5px;color:var(--ink-soft);margin-top:8px;}
-.fdb-text.done{color:var(--success);}
-
 .sum-row{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:14px;margin-bottom:8px;color:var(--ink-soft);}
 .sum-row.total{font-weight:800;font-size:17px;color:var(--green-900);font-family:var(--font-mono);margin-top:6px;}
 

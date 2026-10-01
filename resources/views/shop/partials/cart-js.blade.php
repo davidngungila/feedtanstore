@@ -1,7 +1,6 @@
 <script>
 let cart = [];
 const DELIVERY_FEE = 3000;
-const FREE_DELIVERY_THRESHOLD = 50000;
 
 function normalizeCart(raw) {
   if (Array.isArray(raw)) {
@@ -146,24 +145,7 @@ function renderCartList() {
   const subtotal = cartSubtotal();
   document.getElementById('cartSubtotal').textContent = formatTZS(subtotal);
   document.getElementById('cartTotal').textContent = formatTZS(subtotal);
-  document.getElementById('cartDeliveryEst').textContent = subtotal >= FREE_DELIVERY_THRESHOLD ? '{{ __('Free (order qualifies)') }}' : formatTZS(DELIVERY_FEE) + ' {{ __('if delivered') }}';
-  updateFreeDelivery(subtotal);
-}
-
-function updateFreeDelivery(subtotal) {
-  const fill = document.getElementById('fdbFill');
-  const text = document.getElementById('fdbText');
-  if (!fill || !text) return;
-  if (subtotal >= FREE_DELIVERY_THRESHOLD) {
-    fill.style.width = '100%';
-    text.className = 'fdb-text done';
-    text.innerHTML = '<i class="fa-solid fa-gift" style="margin-right:5px;"></i><b>{{ __('You have unlocked FREE delivery!') }}</b>';
-  } else {
-    const pct = Math.min(100, (subtotal / FREE_DELIVERY_THRESHOLD) * 100);
-    fill.style.width = pct + '%';
-    text.className = 'fdb-text';
-    text.innerHTML = '{{ __('Add') }} <b>'+formatTZS(FREE_DELIVERY_THRESHOLD - subtotal)+'</b> {{ __('more to get FREE delivery.') }}';
-  }
+  document.getElementById('cartDeliveryEst').textContent = formatTZS(DELIVERY_FEE) + ' {{ __('if delivered') }}';
 }
 
 function updateBottomBar() {
@@ -176,9 +158,7 @@ function updateBottomBar() {
   const sub = document.getElementById('mcbSub');
   if (badge) badge.textContent = count;
   if (total) total.textContent = formatTZS(subtotal);
-  if (sub) sub.textContent = subtotal >= FREE_DELIVERY_THRESHOLD
-    ? '{{ __('Free (order qualifies)') }}'
-    : count + ' {{ __('items') }} · ' + formatTZS(DELIVERY_FEE) + ' {{ __('if delivered') }}';
+  if (sub) sub.textContent = count + ' {{ __('items') }} · ' + formatTZS(DELIVERY_FEE) + ' {{ __('if delivered') }}';
   bar.classList.toggle('visible', count > 0);
   bar.setAttribute('aria-hidden', count > 0 ? 'false' : 'true');
 }

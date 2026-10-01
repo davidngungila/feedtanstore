@@ -509,7 +509,7 @@
         </div>
         <div class="hero-chip" style="bottom:0;left:0;">
           <i class="fa-solid fa-truck-fast" style="color:var(--green-600);"></i>
-          <div>{{ __('Free delivery') }}<span>{{ __('over TZS 50,000') }}</span></div>
+          <div>{{ __('Home Delivery') }}<span>{{ __('Calculate at checkout') }}</span></div>
         </div>
       </div>
     </div>

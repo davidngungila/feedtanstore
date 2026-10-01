@@ -12,10 +12,6 @@
   <div class="cart-list" id="cartList"></div>
 
   <div class="drawer-foot" id="cartFoot" style="display:none;">
-    <div class="free-delivery-bar" id="freeDeliveryBar">
-      <div class="fdb-track"><div class="fdb-fill" id="fdbFill"></div></div>
-      <div class="fdb-text" id="fdbText"></div>
-    </div>
     <div class="sum-row"><span>{{ __('Subtotal') }}</span><span id="cartSubtotal">TZS 0</span></div>
     <div class="sum-row"><span>{{ __('Delivery estimate') }}</span><span id="cartDeliveryEst">{{ __('Calculate at checkout') }}</span></div>
     <div class="sum-row total"><span>{{ __('Total') }}</span><span id="cartTotal">TZS 0</span></div>

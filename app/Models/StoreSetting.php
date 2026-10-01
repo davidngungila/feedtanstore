@@ -142,25 +142,16 @@ class StoreSetting extends Model
         // Set default values for delivery fee settings if not configured
         $baseFee = (float) ($this->delivery_base_fee ?? 2000);
         $perKmRate = (float) ($this->delivery_per_km_rate ?? 400);
-        $freeThreshold = (float) ($this->delivery_free_threshold ?? 50000);
-        
+
         $storeLat = (float) ($this->store_latitude ?? -3.3430); // Default to Moshi, Tanzania
         $storeLon = (float) ($this->store_longitude ?? 37.3507);
-        
+
         $distance = $this->calculateDistance(
             $storeLat,
             $storeLon,
             $customerLat,
             $customerLon
         );
-
-        // If order meets free delivery threshold, return 0
-        if ($orderSubtotal >= $freeThreshold) {
-            return [
-                'fee' => 0,
-                'distance' => $distance
-            ];
-        }
 
         $zones = $this->delivery_zone_config ?? [];
         if ($this->delivery_use_zone_pricing && $zones) {

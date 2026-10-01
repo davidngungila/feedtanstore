@@ -728,8 +728,7 @@ class OnlineOrderController extends Controller
             'delivery_fee' => $result['fee'],
             'distance' => $result['distance'],
             'formatted_delivery_fee' => 'TZS ' . number_format($result['fee'], 0),
-            'formatted_distance' => number_format($result['distance'], 2) . ' km',
-            'is_free' => $result['fee'] === 0
+            'formatted_distance' => number_format($result['distance'], 2) . ' km'
         ]);
     }
 

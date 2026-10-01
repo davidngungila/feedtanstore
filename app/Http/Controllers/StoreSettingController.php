@@ -56,7 +56,6 @@ class StoreSettingController extends Controller
             // Delivery fee fields
             'delivery_base_fee' => 'nullable|numeric|min:0',
             'delivery_per_km_rate' => 'nullable|numeric|min:0',
-            'delivery_free_threshold' => 'nullable|numeric|min:0',
             'delivery_use_zone_pricing' => 'boolean',
             'delivery_zone_config' => 'nullable|json',
             // Cash drawer fields

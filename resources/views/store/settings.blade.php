@@ -195,7 +195,7 @@
                     Delivery Fee Settings
                 </h3>
                 <div class="p-4 bg-gray-50 rounded-xl border border-gray-200 space-y-4">
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 mb-2">Base Delivery Fee</label>
                             <input type="number" step="0.01" name="delivery_base_fee" value="{{ $settings->delivery_base_fee }}" class="form-input w-full" placeholder="e.g. 2000">
@@ -203,10 +203,6 @@
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 mb-2">Per-Kilometer Rate</label>
                             <input type="number" step="0.01" name="delivery_per_km_rate" value="{{ $settings->delivery_per_km_rate }}" class="form-input w-full" placeholder="e.g. 400">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">Free Delivery Threshold</label>
-                            <input type="number" step="0.01" name="delivery_free_threshold" value="{{ $settings->delivery_free_threshold }}" class="form-input w-full" placeholder="e.g. 50000">
                         </div>
                     </div>
                     
