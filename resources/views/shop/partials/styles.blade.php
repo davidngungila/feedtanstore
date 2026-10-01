@@ -242,6 +242,7 @@ html.dark h1,html.dark h2,html.dark h3,html.dark h4{color:var(--ink);}
   border:2px solid var(--cream);
 }
 .hamburger{display:none;}
+.hide-on-desktop{display:none!important;}
 .lang-switch{
   display:inline-flex;align-items:center;gap:2px;padding:3px;
   background:var(--green-050);border-radius:999px;border:1px solid var(--line);
@@ -874,12 +875,13 @@ footer ul a:hover{color:#fff;}
 }
 @media (max-width:900px){
   :root{--header-h:64px;}
-  .hide-on-desktop{display:none!important;}
+  .hide-on-desktop{display:inline-flex!important;}
   .hide-on-mobile{display:none!important;}
   .hamburger{display:inline-flex;}
   .nav-strip{display:none;}
   .search-bar{display:none;}
   .mobile-search{display:block;}
+  .mobile-search .search-bar{display:flex;}
   .trust-grid{grid-template-columns:repeat(2,1fr);}
   .product-grid,.rel-grid{grid-template-columns:repeat(2,1fr);}
   .form-grid{grid-template-columns:1fr;}

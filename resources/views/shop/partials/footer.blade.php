@@ -8,7 +8,7 @@
         </div>
         <p>{{ __('Quality products, unbeatable prices, delivery to your door — or ready when you step in.') }}</p>
         <div class="footer-pay">
-          <span>M-Pesa</span><span>Airtel Money</span><span>Mixx</span><span>HaloPesa</span><span>Visa</span><span>Mastercard</span>
+          <span>M-Pesa</span><span>Airtel Money</span><span>Mixx</span><span>HaloPesa</span>
         </div>
         <div class="footer-social">
           <a href="#" class="icon-btn" style="width:36px;height:36px;" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
@@ -57,7 +57,7 @@
 
     <div class="footer-bottom">
       <span>© {{ date('Y') }} Feedtan Store. {{ __('All rights reserved.') }}</span>
-      <span>{{ __('Made with care for everyday shoppers in Tanzania.') }}</span>
+      <span>Made by Feedtan ICT team</span>
     </div>
   </div>
 </footer>
