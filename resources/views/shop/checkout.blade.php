@@ -961,7 +961,8 @@ const PAY_MODAL_COPY = {
 };
 
 const payModal = { root: null, box: null, icon: null, title: null, body: null, count: null, bar: null, hint: null, confirm: null, cancel: null };
-const payState = { phase: 'waiting', remaining: PAY_WAIT_SECONDS, status: '', orderRef: '', trackingUrl: '' };
+const payState = { phase: 'waiting', remaining: PAY_WAIT_SECONDS, status: '', orderRef: '', trackingUrl: '', phone: '' };
+let payRetrying = false;
 
 function formatCountdown(totalSeconds) {
   const s = Math.max(0, Math.floor(totalSeconds));
@@ -1024,6 +1025,9 @@ function renderPayModal() {
 
   payModal.confirm.hidden = payState.phase === 'waiting';
   payModal.confirm.href = payState.trackingUrl || '#';
+  payModal.confirm.textContent = (payState.phase === 'timeout' || payState.phase === 'failed')
+    ? '{{ __('Retry payment') }}'
+    : '{{ __('Track Order') }}';
   payModal.cancel.hidden = payState.phase !== 'waiting';
 }
 
@@ -1060,6 +1064,7 @@ function showOrderPlaced(data) {
   payState.status = '';
   payState.trackingUrl = data.tracking_url || '';
   payState.orderRef = data.order_number || '';
+  payState.phone = (document.getElementById('customerPhone')?.value || '').trim();
   try {
     const trackingLocation = new URL(data.tracking_url, window.location.origin);
     // Stay on the site where this order was created. The API may return the
@@ -1120,6 +1125,39 @@ function startPayWait() {
   }, 3000);
 }
 
+async function retryPayNow() {
+  if (payRetrying || !payState.orderRef) return;
+  payRetrying = true;
+  payState.phase = 'waiting';
+  payState.remaining = PAY_WAIT_SECONDS;
+  payState.status = 'PROCESSING';
+  renderPayModal();
+  try {
+    const res = await fetch('/api/shop/orders/' + encodeURIComponent(payState.orderRef) + '/initiate-payment', {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': getCsrfToken()
+      },
+      credentials: 'same-origin',
+      body: JSON.stringify({ phone_number: payState.phone || '' })
+    });
+    const payload = await res.json().catch(() => ({}));
+    if (!res.ok || payload.success === false) {
+      throw new Error(payload.message || '{{ __('Failed to start the payment. Please try again.') }}');
+    }
+    startPayWait();
+  } catch (e) {
+    payState.phase = 'failed';
+    payState.status = '';
+    stopPayWaitTimers();
+    renderPayModal();
+  } finally {
+    payRetrying = false;
+  }
+}
+
 
 document.addEventListener('DOMContentLoaded', function() {
   initCart();
@@ -1132,6 +1170,10 @@ document.addEventListener('DOMContentLoaded', function() {
   });
   payModal.confirm.addEventListener('click', function(e) {
     e.preventDefault();
+    if (payState.phase === 'timeout' || payState.phase === 'failed') {
+      retryPayNow();
+      return;
+    }
     goToTracking();
   });
   document.addEventListener('keydown', function(e) {
