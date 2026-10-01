@@ -156,31 +156,6 @@
             margin-top: 4px;
         }
 
-        /* ----- EFD mini table (compact) ----- */
-        .efd-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 9px;
-            margin: 6px 0;
-        }
-
-        .efd-table th,
-        .efd-table td {
-            border: 1px solid #000;
-            padding: 3px 4px;
-            text-align: left;
-        }
-
-        .efd-table th {
-            background: #000;
-            color: #fff;
-            font-weight: 700;
-        }
-
-        .efd-table .center {
-            text-align: center;
-        }
-
         /* ----- QR & footer ----- */
         .qr-area {
             text-align: center;
@@ -295,23 +270,6 @@
             <div class="line" style="border-top:1px dashed #222;padding-top:4px;margin-top:2px;"><span>Paid</span><span>{{ number_format($sale->paid, 2) }}</span></div>
             <div class="line"><span>Change</span><span>{{ number_format($sale->change, 2) }}</span></div>
         </div>
-
-        <!-- ===== EFD TABLE (items + tax) ===== -->
-        <table class="efd-table">
-            <thead>
-                <tr><th>Item Desc</th><th class="center">Qty</th><th class="center">Price</th><th class="center">Type</th></tr>
-            </thead>
-            <tbody>
-                @foreach($sale->items as $item)
-                <tr>
-                    <td>{{ $item->product->name ?? 'Product' }}</td>
-                    <td class="center">{{ $item->quantity }}</td>
-                    <td class="center">{{ number_format($item->unit_price, 2) }}</td>
-                    <td class="center">EX</td>
-                </tr>
-                @endforeach
-            </tbody>
-        </table>
 
         <!-- ===== QR CODE ===== -->
         @if(!empty($qrCode))
