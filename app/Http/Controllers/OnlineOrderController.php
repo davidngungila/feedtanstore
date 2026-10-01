@@ -825,10 +825,10 @@ class OnlineOrderController extends Controller
             'notes' => 'Order placed from public shop'
         ]);
 
-        $this->notifications->sendOrderNotification($order, 'new');
-
-        // Dispatch notification job to queue
-        \App\Jobs\SendOnlineOrderNotifications::dispatch($order);
+        // Delivery messages are deliberately NOT sent here. The SMS carrying the
+        // delivery code, the order confirmation email and the staff "new order"
+        // push are all released by syncOrderPaymentState() once the gateway has
+        // confirmed the customer paid the order in full.
 
         $paymentInitiated = false;
         $paymentMessage = null;
@@ -1078,10 +1078,49 @@ class OnlineOrderController extends Controller
         if ($paymentStatusChanged) {
             if ($resolvedPaymentStatus === 'paid') {
                 $this->notifications->sendPaymentNotification($order, 'success');
+
+                // Only release the delivery messages once the gateway confirms the
+                // order was paid in full.
+                if ($this->isPaymentSettledInFull($order, $paymentData)) {
+                    $this->notifications->sendOrderNotification($order, 'new');
+                    \App\Jobs\SendOnlineOrderNotifications::dispatch($order);
+                } else {
+                    Log::warning('Order ' . $order->order_number . ' reported paid but the settled amount does not cover the order total. Delivery messages withheld.', [
+                        'order_id' => $order->id,
+                        'order_total' => $order->total,
+                        'payment_data' => $paymentData,
+                    ]);
+                }
             } elseif ($resolvedPaymentStatus === 'failed') {
                 $this->notifications->sendPaymentNotification($order, 'failed');
             }
         }
+    }
+
+    /**
+     * Confirm the gateway settled the full order total before any delivery
+     * message is released. When the gateway does not report an amount we trust
+     * its settled status on its own.
+     */
+    private function isPaymentSettledInFull(OnlineOrder $order, array $paymentData): bool
+    {
+        $candidates = [
+            $paymentData['paid_amount'] ?? null,
+            $paymentData['amount'] ?? null,
+            $paymentData['data']['paid_amount'] ?? null,
+            $paymentData['data']['amount'] ?? null,
+        ];
+
+        foreach ($candidates as $candidate) {
+            if ($candidate === null || $candidate === '' || ! is_numeric($candidate)) {
+                continue;
+            }
+
+            // 1 unit of slack absorbs gateways that round settled amounts.
+            return (float) $candidate + 1 >= (float) $order->total;
+        }
+
+        return true;
     }
 
     private function decryptTrackingToken(string $token): ?int

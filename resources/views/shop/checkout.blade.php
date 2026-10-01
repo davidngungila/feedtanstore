@@ -941,6 +941,8 @@ function validateAddressIfNeeded() {
 const PAY_WAIT_SECONDS = 120;
 let payWaitTimer = null;
 let payPollTimer = null;
+let payRedirectTimer = null;
+const PAY_REDIRECT_DELAY = 2500;
 
 const PAY_MODAL_TONES = {
   placed:  { icon: 'fa-solid fa-circle-check',    tone: 'placed' },
@@ -953,7 +955,7 @@ const PAY_MODAL_TONES = {
 const PAY_MODAL_COPY = {
   placed:  { title: '{{ __('Order placed!') }}',                                    hint: '{{ __('Your order has been received.') }}' },
   waiting: { title: '{{ __('Waiting for payment') }}',                              hint: '{{ __('Check your phone and approve the mobile money prompt to finish paying.') }}' },
-  success: { title: '{{ __('Payment complete!') }}',                               hint: '{{ __('Payment completed successfully. We are preparing your order now.') }}' },
+  success: { title: '{{ __('Payment complete!') }}',                               hint: '{{ __('Payment completed successfully. Taking you to your order tracking page...') }}' },
   failed:  { title: '{{ __('Payment not completed') }}',                           hint: '{{ __('The payment was not completed. You can pay again from the tracking page.') }}' },
   timeout: { title: '{{ __('Still waiting for payment') }}',                       hint: '{{ __('We could not confirm the payment yet. If you already paid it may take a little longer to show.') }}' },
 };
@@ -977,6 +979,7 @@ function extractPaymentStatus(payload) {
 function stopPayWaitTimers() {
   if (payWaitTimer) { clearInterval(payWaitTimer); payWaitTimer = null; }
   if (payPollTimer) { clearInterval(payPollTimer); payPollTimer = null; }
+  if (payRedirectTimer) { clearTimeout(payRedirectTimer); payRedirectTimer = null; }
 }
 
 function cachePayModal() {
@@ -1043,6 +1046,14 @@ function goToTracking() {
   window.location.href = payState.trackingUrl;
 }
 
+function scheduleTrackingRedirect() {
+  if (payRedirectTimer) return;
+  payRedirectTimer = setTimeout(() => {
+    payRedirectTimer = null;
+    goToTracking();
+  }, PAY_REDIRECT_DELAY);
+}
+
 function showOrderPlaced(data) {
   payState.phase = data.payment_initiated ? 'waiting' : 'placed';
   payState.remaining = PAY_WAIT_SECONDS;
@@ -1093,6 +1104,7 @@ function startPayWait() {
         payState.phase = 'success';
         stopPayWaitTimers();
         renderPayModal();
+        scheduleTrackingRedirect();
       } else if (['FAILED', 'DECLINED', 'CANCELLED'].includes(normalized)) {
         payState.phase = 'failed';
         stopPayWaitTimers();
