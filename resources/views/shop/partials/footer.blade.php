@@ -3,8 +3,7 @@
     <div class="footer-grid">
       <div class="footer-brand">
         <div class="footer-logo">
-          <img class="logo-img" src="{{ asset('logo-image-feedtan-store.png') }}" alt="Feedtan Store">
-          Feedtan Store
+          <img class="logo-full" src="{{ asset('feedtanstorelogo.png') }}" alt="Feedtan Store">
         </div>
         <p>{{ __('Quality products, unbeatable prices, delivery to your door — or ready when you step in.') }}</p>
         <div class="footer-pay">

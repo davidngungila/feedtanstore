@@ -199,6 +199,8 @@ html.dark h1,html.dark h2,html.dark h3,html.dark h4{color:var(--ink);}
 #searchForm{position:absolute;left:50%;transform:translateX(-50%);width:min(340px,34vw);}
 .logo{display:inline-flex;align-items:center;gap:10px;font-family:var(--font-display);font-weight:700;font-size:20px;color:var(--green-900);flex-shrink:0;}
 .logo-img{height:34px;width:auto;object-fit:contain;}
+.logo-full{height:38px;width:auto;object-fit:contain;}
+.footer-logo .logo-full{height:44px;background:#fff;border-radius:12px;padding:6px 12px;}
 .logo-mark{
   width:34px;height:34px;border-radius:10px;flex-shrink:0;
   background:var(--green-700);color:#fff;

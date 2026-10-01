@@ -18,8 +18,7 @@
     </button>
 
     <a href="{{ route('shop.index') }}" class="logo" aria-label="{{ __('Home') }}">
-      <img class="logo-img" src="{{ asset('logo-image-feedtan-store.png') }}" alt="Feedtan Store">
-      <span>Feedtan<span class="logo-sub">{{ __('Online Store') }}</span></span>
+      <img class="logo-full" src="{{ asset('feedtanstorelogo.png') }}" alt="Feedtan Store">
     </a>
 
     <form class="search-bar" id="searchForm" role="search" action="{{ route('shop.index') }}">
@@ -85,8 +84,7 @@
 <aside class="mobile-menu" id="mobileMenu" aria-label="{{ __('Menu') }}">
   <div class="mm-head">
     <a href="{{ route('shop.index') }}" class="logo" style="font-size:18px;">
-      <img class="logo-img" src="{{ asset('logo-image-feedtan-store.png') }}" alt="Feedtan Store">
-      <span>Feedtan<span class="logo-sub">{{ __('Online Store') }}</span></span>
+      <img class="logo-full" src="{{ asset('feedtanstorelogo.png') }}" alt="Feedtan Store">
     </a>
     <button class="close-x" onclick="closeMenu()" aria-label="{{ __('Close') }}">
       <i class="fa-solid fa-xmark"></i>
