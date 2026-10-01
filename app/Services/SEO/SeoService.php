@@ -38,19 +38,33 @@ class SeoService
         }
 
         $categoryName = $product->category?->name ?? 'Products';
-        
+        $brandName = $product->brand?->name;
+        $priceLabel = 'TZS ' . number_format((float) $product->selling_price, 0);
+        $shortDescription = trim(preg_replace('/\s+/', ' ', strip_tags((string) ($product->description ?? ''))));
+
+        if ($shortDescription !== '') {
+            $description = "Buy {$product->name} for {$priceLabel} at Feedtan Store Moshi. " . \Illuminate\Support\Str::limit($shortDescription, 90);
+        } else {
+            $description = "Buy {$product->name} for {$priceLabel} online at Feedtan Store. {$categoryName} with fast home delivery in Moshi, Kilimanjaro, Tanzania.";
+        }
+
+        $keywords = [
+            $product->name,
+            $categoryName,
+            'Moshi store',
+            'Kilimanjaro grocery delivery',
+            'online shopping Moshi',
+            'Feedtan Store'
+        ];
+        if ($brandName) {
+            $keywords[] = $brandName;
+        }
+
         return self::meta(
             "Buy {$product->name} in Moshi | Feedtan Store",
-            "Order {$product->name} online at Feedtan Store. Fast delivery in Moshi, Kilimanjaro, Tanzania.",
+            $description,
             $imageUrl,
-            [
-                $product->name,
-                $categoryName,
-                'Moshi store',
-                'Kilimanjaro grocery delivery',
-                'online shopping Moshi',
-                'Feedtan Store'
-            ]
+            $keywords
         );
     }
 

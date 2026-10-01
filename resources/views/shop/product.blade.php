@@ -129,6 +129,7 @@
 <meta property="og:image:alt" content="{{ $product->name }}">
 <meta property="product:price:amount" content="{{ number_format((float) $product->selling_price, 0, '.', '') }}">
 <meta property="product:price:currency" content="TZS">
+<meta property="product:availability" content="{{ $inStock ? 'in stock' : 'out of stock' }}">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="{{ $seo['title'] }}">
 <meta name="twitter:description" content="{{ $seo['description'] }}">

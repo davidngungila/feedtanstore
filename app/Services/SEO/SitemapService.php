@@ -55,14 +55,26 @@ class SitemapService
             ];
         }
 
-        // Products
-        foreach (Product::visibleInPublicShop()->get() as $product) {
-            $urls[] = [
+        // Products (with images for image search discovery)
+        foreach (Product::visibleInPublicShop()->with('images')->get() as $product) {
+            if (!$product->slug) {
+                continue;
+            }
+            $entry = [
                 'loc' => $baseUrl . '/shop/product/' . $product->slug,
                 'lastmod' => $product->updated_at->toW3cString(),
                 'changefreq' => 'weekly',
                 'priority' => '0.8'
             ];
+            $sitemapImage = $product->images->firstWhere('is_primary', true)?->image_path ?? $product->image;
+            if ($sitemapImage) {
+                $cleanImage = ltrim($sitemapImage, '/');
+                if (!str_starts_with($cleanImage, 'http://') && !str_starts_with($cleanImage, 'https://')) {
+                    $cleanImage = $baseUrl . (str_starts_with($cleanImage, 'storage/') ? '/' . $cleanImage : '/storage/' . $cleanImage);
+                }
+                $entry['images'] = [$cleanImage];
+            }
+            $urls[] = $entry;
         }
 
         return $urls;

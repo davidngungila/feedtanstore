@@ -17,18 +17,13 @@
         })
       : null;
   $searchTerm = trim((string) request('search', ''));
-  $shopName = 'Feedtan Store';
-  $seoTitle = $selectedCategory ? $selectedCategory->name . ' - ' . $shopName : ($searchTerm ? 'Search Results for "' . $searchTerm . '" - ' . $shopName : $shopName);
-  $seoDescription = $selectedCategory ? 'Shop ' . $selectedCategory->name . ' at ' . $shopName : ($searchTerm ? 'Find products matching "' . $searchTerm . '" at ' . $shopName : 'Welcome to ' . $shopName . ' - Your trusted store in Moshi, Kilimanjaro');
-  $seo = [
-      'title' => $seoTitle,
-      'description' => $seoDescription,
-      'keywords' => 'feedtan store, shop, products, online store, moshi, kilimanjaro, tanzania',
-      'image' => $logoUrl
-  ];
+  $seo = seo_shop_index($selectedCategory, $searchTerm);
 
-  $canonicalUrl = request()->fullUrl();
-  $pageType = $selectedCategory || $searchTerm !== '' ? 'website' : 'store';
+  // Encrypted page tokens change on every render, so keep them out of the
+  // canonical URL to avoid duplicate-content signals.
+  $canonicalQuery = request()->except('page');
+  $canonicalUrl = request()->url() . ($canonicalQuery ? '?' . http_build_query($canonicalQuery) : '');
+  $pageType = 'website';
   $structuredData = [
       '@context' => 'https://schema.org',
       '@graph' => [
@@ -81,6 +76,35 @@
       ? rtrim($baseUrl, '/') . '/' . $cleanPath
       : rtrim($baseUrl, '/') . '/storage/' . $cleanPath;
   };
+
+  $shopListItems = [];
+  foreach ($products as $position => $listedProduct) {
+    $listedPrimary = $listedProduct->images->firstWhere('is_primary', true);
+    $listedImage = $resolveImageUrl($listedPrimary?->image_path) ?? $resolveImageUrl($listedProduct->image) ?? $logoUrl;
+    $shopListItems[] = [
+        '@type' => 'ListItem',
+        'position' => $position + 1,
+        'item' => [
+            '@type' => 'Product',
+            'name' => $listedProduct->name,
+            'url' => route('shop.product', $listedProduct->slug ?: $listedProduct->encrypted_key),
+            'image' => [$listedImage],
+            'offers' => [
+                '@type' => 'Offer',
+                'priceCurrency' => 'TZS',
+                'price' => number_format((float) $listedProduct->selling_price, 0, '.', ''),
+                'availability' => 'https://schema.org/InStock',
+            ],
+        ],
+    ];
+  }
+  $structuredData['@graph'][] = [
+      '@type' => 'ItemList',
+      'name' => $seo['title'],
+      'url' => $canonicalUrl,
+      'numberOfItems' => count($shopListItems),
+      'itemListElement' => $shopListItems,
+  ];
 @endphp
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">

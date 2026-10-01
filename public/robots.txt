@@ -1,2 +1,4 @@
 User-agent: *
 Disallow:
+
+Sitemap: https://www.feedtanstore.com/sitemap.xml
