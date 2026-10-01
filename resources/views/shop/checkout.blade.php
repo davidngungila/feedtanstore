@@ -92,6 +92,7 @@
 /* ---------- Sticky mobile pay bar ---------- */
 .pay-sticky{
   position:fixed;left:0;right:0;bottom:0;z-index:120;display:none;align-items:center;gap:12px;
+  flex-direction:row;justify-content:space-between;
   background:var(--paper);border-top:1px solid var(--line);
   padding:10px 16px calc(10px + env(safe-area-inset-bottom));
   box-shadow:0 -10px 30px -18px rgba(18,51,40,.5);
@@ -116,7 +117,7 @@
 @media (max-width:900px){
   .checkout-bottom-grid{grid-template-columns:1fr;}
   .pay-sticky{display:flex;}
-  body.with-pay-sticky{padding-bottom:88px;}
+  body.with-pay-sticky{padding-bottom:var(--pay-bar-h,88px);}
   .summary-card{position:static;}
 }
 @media (max-width:640px){
@@ -338,6 +339,24 @@
     <i class="fa-solid fa-circle-check"></i> {{ __('Pay Now') }}
   </button>
 </div>
+
+<script>
+(function syncPayBarSpace() {
+  var bar = document.getElementById('payStickyBar');
+  if (!bar) return;
+  function apply() {
+    var h = bar.offsetHeight;
+    if (h > 0) {
+      document.documentElement.style.setProperty('--pay-bar-h', h + 'px');
+    }
+  }
+  apply();
+  window.addEventListener('resize', apply);
+  window.addEventListener('orientationchange', apply);
+  if (window.ResizeObserver) new ResizeObserver(apply).observe(bar);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(apply);
+})();
+</script>
 
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>

@@ -921,7 +921,6 @@ footer ul a:hover{color:#fff;}
   .pd-main{height:260px;}
   .pd-card{padding:20px;}
   .trust-bullets{grid-template-columns:1fr;}
-  .pay-sticky{flex-direction:column;align-items:stretch;text-align:center;}
   .footer-bottom{flex-direction:column;text-align:center;}
 }
 @media (max-width:480px){
