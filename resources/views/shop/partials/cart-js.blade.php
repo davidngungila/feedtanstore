@@ -248,23 +248,7 @@ function hidePageLoader() {
   if (loader) loader.classList.add('hidden');
 }
 
-function applyTheme(theme) {
-  document.documentElement.classList.toggle('dark', theme === 'dark');
-  localStorage.setItem('ftTheme', theme);
-  const icon = document.getElementById('themeIcon');
-  if (icon) {
-    icon.className = theme === 'dark' ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
-  }
-}
-
-function toggleTheme() {
-  const next = document.documentElement.classList.contains('dark') ? 'light' : 'dark';
-  applyTheme(next);
-}
-
 (function initShopChrome() {
-  const savedTheme = localStorage.getItem('ftTheme') || (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-  applyTheme(savedTheme);
   const header = document.getElementById('siteHeader');
   const onScroll = () => {
     if (header) header.classList.toggle('scrolled', window.scrollY > 4);

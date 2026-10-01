@@ -35,14 +35,6 @@
         <i class="fa-solid fa-magnifying-glass"></i>
       </button>
 
-      <button class="icon-btn theme-toggle" id="themeToggle" aria-label="{{ __('Toggle theme') }}" onclick="toggleTheme()">
-        <i class="fa-solid fa-moon" id="themeIcon"></i>
-      </button>
-
-      <button class="icon-btn hide-on-mobile" aria-label="{{ __('Saved items live in your wishlist') }}" onclick="showToast('{{ __('Saved items live in your wishlist') }}','heart')">
-        <i class="fa-regular fa-heart"></i>
-      </button>
-
       <a href="{{ route('shop.tracking') }}" class="icon-btn hide-on-mobile" aria-label="{{ __('Track my order') }}" title="{{ __('Track my order') }}">
         <i class="fa-solid fa-truck-fast"></i>
       </a>
@@ -60,11 +52,6 @@
         <a href="{{ route('dashboard') }}" class="btn btn-dark btn-sm hide-on-mobile">{{ __('Dashboard') }}</a>
         <a href="{{ route('dashboard') }}" class="icon-btn hide-on-desktop" aria-label="{{ __('Dashboard') }}" title="{{ __('Dashboard') }}">
           <i class="fa-solid fa-gauge-high"></i>
-        </a>
-      @else
-        <a href="{{ route('login') }}" class="btn btn-dark btn-sm hide-on-mobile">{{ __('Login') }}</a>
-        <a href="{{ route('login') }}" class="icon-btn hide-on-desktop" aria-label="{{ __('Login') }}" title="{{ __('Login') }}">
-          <i class="fa-solid fa-right-to-bracket"></i>
         </a>
       @endauth
 
@@ -130,10 +117,6 @@
         {{ __('Dashboard') }}
       </a>
     @else
-      <a href="{{ route('login') }}">
-        <span class="mm-ic"><i class="fa-solid fa-right-to-bracket"></i></span>
-        {{ __('Login') }}
-      </a>
       <a href="{{ route('entry') }}" style="opacity:.85;">
         <span class="mm-ic"><i class="fa-solid fa-key"></i></span>
         {{ __('Staff Entry') }}

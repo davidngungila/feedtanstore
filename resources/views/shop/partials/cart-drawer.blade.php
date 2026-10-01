@@ -59,10 +59,6 @@
       <i class="fa-solid fa-location-dot"></i>
       <span>{{ __('Track') }}</span>
     </a>
-    <button class="bn-item" onclick="toggleTheme()">
-      <i class="fa-solid fa-circle-half-stroke"></i>
-      <span>{{ __('Theme') }}</span>
-    </button>
     <button class="bn-item" onclick="openCart()">
       <i class="fa-solid fa-cart-shopping"></i>
       <span>{{ __('Cart') }}</span>
