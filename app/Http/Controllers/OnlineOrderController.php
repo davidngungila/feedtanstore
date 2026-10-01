@@ -1187,6 +1187,10 @@ class OnlineOrderController extends Controller
             $order = $this->findOrderByIdentifier(request('order'));
         }
 
+        $paymentUpdate = $order?->statusHistory?->first(function ($history) {
+            return filled($history->payment_status);
+        });
+
         if ($order && $settings->openrouteservice_api_key && $order->delivery_latitude && $order->delivery_longitude) {
             try {
                 $storeLat = $settings->store_latitude ?? -3.3869;
@@ -1210,7 +1214,7 @@ class OnlineOrderController extends Controller
             }
         }
 
-        return view('shop.tracking', compact('order', 'route', 'settings', 'categories'));
+        return view('shop.tracking', compact('order', 'route', 'settings', 'categories', 'paymentUpdate'));
     }
 
     public function downloadTrackingPDF($trackingIdentifier)

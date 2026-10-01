@@ -501,6 +501,7 @@ html.dark h1,html.dark h2,html.dark h3,html.dark h4{color:var(--ink);}
 
 /* ---------- MAPS ---------- */
 .map-container,.mini-map{
+  position:relative;isolation:isolate;
   width:100%;height:220px;border-radius:var(--radius-m);
   border:1px solid var(--line);background:var(--green-050);z-index:1;
 }

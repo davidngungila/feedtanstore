@@ -115,12 +115,74 @@
 .order-items li b{color:var(--ink);font-size:14px;}
 .order-items .qty{color:var(--ink-faint);font-size:12.5px;}
 .order-items li > b{font-family:var(--font-mono);color:var(--green-800);white-space:nowrap;}
+.track-detail-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:22px;}
+.detail-card{background:var(--paper);border:1px solid var(--line);border-radius:var(--radius-m);padding:16px;}
+.detail-card h3{font-size:15px;margin-bottom:12px;}
+.detail-list{margin:0;display:flex;flex-direction:column;gap:10px;}
+.detail-list > div{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;}
+.detail-list dt{font-size:12.5px;color:var(--ink-faint);flex-shrink:0;}
+.detail-list dd{margin:0;font-size:13.5px;font-weight:600;color:var(--ink);text-align:right;overflow-wrap:anywhere;}
+.detail-list dd.mono{font-family:var(--font-mono);font-weight:700;color:var(--green-800);}
+.detail-grand{border-top:1px solid var(--line);padding-top:10px;}
+.detail-grand dd{font-size:15px;}
 .loc-card{background:var(--green-050);border:1px solid var(--line);border-radius:var(--radius-m);padding:16px;}
 .loc-card p{margin:0;font-size:14.5px;}
+
+/* ---------- Payment popup ---------- */
+.pay-modal{position:fixed;inset:0;z-index:220;display:flex;align-items:center;justify-content:center;padding:20px;}
+.pay-modal[hidden]{display:none;}
+.pay-modal-backdrop{position:absolute;inset:0;background:rgba(12,32,25,.62);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);}
+.pay-modal-box{
+  position:relative;width:100%;max-width:400px;max-height:calc(100vh - 40px);overflow-y:auto;
+  background:var(--paper);border:1px solid var(--line);border-radius:var(--radius-l);
+  box-shadow:var(--shadow-pop);padding:26px 22px 22px;text-align:center;
+}
+.pay-modal-x{
+  position:absolute;top:10px;right:10px;width:34px;height:34px;border-radius:50%;
+  border:none;background:transparent;color:var(--ink-faint);font-size:15px;
+  display:flex;align-items:center;justify-content:center;
+}
+.pay-modal-x:hover{background:var(--green-050);color:var(--ink);}
+.pay-modal-icon{
+  width:60px;height:60px;border-radius:50%;margin:0 auto 14px;
+  display:flex;align-items:center;justify-content:center;font-size:26px;
+  background:var(--green-100);color:var(--green-700);
+}
+.pay-modal-box.tone-failed .pay-modal-icon{background:var(--red-dim);color:var(--red);}
+.pay-modal-box.tone-timeout .pay-modal-icon{background:var(--orange-100);color:var(--orange-700);}
+.pay-modal-title{font-size:20px;margin-bottom:14px;line-height:1.25;}
+.pay-modal-rows{display:flex;flex-direction:column;gap:8px;margin-bottom:4px;}
+.pay-modal-row{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  background:var(--green-050);border-radius:var(--radius-m);padding:9px 12px;
+  font-size:13px;color:var(--ink-soft);text-align:left;
+}
+.pay-modal-row b{font-family:var(--font-mono);font-size:13px;color:var(--green-900);word-break:break-all;text-align:right;}
+.pay-modal-count{
+  font-family:var(--font-mono);font-size:38px;font-weight:800;letter-spacing:1px;
+  color:var(--green-900);margin-top:16px;line-height:1;
+}
+.pay-modal-bar{height:6px;border-radius:99px;background:var(--line);overflow:hidden;margin-top:12px;}
+.pay-modal-bar span{display:block;height:100%;width:100%;background:var(--green-600);transition:width 1s linear;}
+.pay-modal-hint{font-size:13.5px;color:var(--ink-soft);margin-top:14px;line-height:1.55;}
+.pay-modal-field{margin-top:16px;text-align:left;}
+.pay-modal-field label{display:block;font-size:12.5px;font-weight:700;color:var(--ink-soft);margin-bottom:6px;}
+.pay-modal-field input{
+  width:100%;height:48px;border:1px solid var(--line);border-radius:var(--radius-m);
+  background:#fff;padding:0 14px;font-family:var(--font-mono);font-size:15px;
+}
+.pay-modal-field input:focus{outline:3px solid var(--orange-500);outline-offset:1px;border-color:var(--orange-500);}
+.pay-modal-field-error{font-size:12.5px;color:var(--red);margin-top:6px;}
+.pay-modal-field-error[hidden]{display:none;}
+.pay-modal-actions{display:flex;gap:10px;margin-top:20px;}
+.pay-modal-actions .btn{flex:1;justify-content:center;}
+.pay-modal-actions .btn[hidden]{display:none;}
+html.pay-modal-open,html.pay-modal-open body{overflow:hidden;}
 
 /* ---------- Responsive ---------- */
 @media (max-width:900px){
   .stats{grid-template-columns:repeat(2,1fr);}
+  .track-detail-grid{grid-template-columns:1fr;}
   .order-hero{padding:18px;}
   .order-hero h2{font-size:19px;}
 }
@@ -184,7 +246,7 @@
               <i class="fa-solid fa-download"></i> {{ __('Download PDF') }}
             </a>
             @if(($order->payment_method ?? 'cash') === 'online' && ($order->payment_status ?? 'pending') !== 'paid')
-              <button type="button" class="btn btn-primary btn-sm" id="payNowBtn" data-order="{{ $order->order_number }}" data-phone="{{ $order->customer_phone }}">
+              <button type="button" class="btn btn-primary btn-sm" id="payNowBtn" data-order="{{ $order->order_number }}" data-phone="{{ $order->customer_phone }}" data-total="TZS {{ number_format($order->total ?? 0, 0) }}">
                 <i class="fa-solid fa-circle-check"></i> {{ __('Pay Now') }}
               </button>
             @endif
@@ -216,6 +278,42 @@
             <b>{{ $orderProgress }}%</b>
           </div>
           <div class="progress-track"><div class="progress-fill" style="width:{{ $orderProgress }}%;"></div></div>
+        </div>
+
+        <div class="track-detail-grid">
+          <section class="detail-card" aria-labelledby="trackingCustomerTitle">
+            <h3 id="trackingCustomerTitle">{{ __('Customer details') }}</h3>
+            <dl class="detail-list">
+              <div><dt>{{ __('Name') }}</dt><dd>{{ $order->customer_name ?: '—' }}</dd></div>
+              <div><dt>{{ __('Phone') }}</dt><dd class="mono">{{ $order->customer_phone ?: '—' }}</dd></div>
+              <div><dt>{{ __('Email') }}</dt><dd>{{ $order->customer_email ?: '—' }}</dd></div>
+              <div><dt>{{ __('Delivery address') }}</dt><dd>{{ $order->delivery_address ?: '—' }}</dd></div>
+            </dl>
+          </section>
+
+          <section class="detail-card" aria-labelledby="trackingTotalTitle">
+            <h3 id="trackingTotalTitle">{{ __('Order total') }}</h3>
+            <dl class="detail-list">
+              <div><dt>{{ __('Subtotal') }}</dt><dd class="mono">TZS {{ number_format($order->subtotal ?? 0, 0) }}</dd></div>
+              <div><dt>{{ __('Discount') }}</dt><dd class="mono">TZS {{ number_format($order->discount ?? 0, 0) }}</dd></div>
+              <div><dt>{{ __('Delivery fee') }}</dt><dd class="mono">TZS {{ number_format($order->delivery_fee ?? 0, 0) }}</dd></div>
+              <div class="detail-grand"><dt>{{ __('Total') }}</dt><dd class="mono">TZS {{ number_format($order->total ?? 0, 0) }}</dd></div>
+            </dl>
+          </section>
+
+          <section class="detail-card" aria-labelledby="trackingPaymentTitle">
+            <h3 id="trackingPaymentTitle">{{ __('Payment data') }}</h3>
+            <dl class="detail-list">
+              <div><dt>{{ __('Method') }}</dt><dd>{{ ucfirst($order->payment_method ?? 'Cash') }}</dd></div>
+              <div><dt>{{ __('Status') }}</dt><dd>{{ ucfirst($order->payment_status ?? 'Pending') }}</dd></div>
+              <div><dt>{{ __('Gateway status') }}</dt><dd class="mono">{{ $order->clickpesa_status ?: '—' }}</dd></div>
+              <div><dt>{{ __('Transaction ID') }}</dt><dd class="mono">{{ $order->payment_transaction_id ?: '—' }}</dd></div>
+              <div><dt>{{ __('Order reference') }}</dt><dd class="mono">{{ $order->payment_order_reference ?: '—' }}</dd></div>
+              @if(isset($paymentUpdate) && $paymentUpdate)
+                <div><dt>{{ __('Last update') }}</dt><dd>{{ $paymentUpdate->created_at?->format('M d, Y • h:i A') }}</dd></div>
+              @endif
+            </dl>
+          </section>
         </div>
 
         @if($order->status !== 'cancelled')
@@ -362,6 +460,37 @@
   </section>
 </main>
 
+@if(isset($order))
+<!-- Payment popup -->
+<div class="pay-modal" id="payModal" hidden>
+  <div class="pay-modal-backdrop" data-pay-modal-close></div>
+  <div class="pay-modal-box" role="dialog" aria-modal="true" aria-labelledby="payModalTitle">
+    <button type="button" class="pay-modal-x" data-pay-modal-close aria-label="{{ __('Close') }}">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+
+    <div class="pay-modal-icon" id="payModalIcon"><i class="fa-solid fa-circle-check"></i></div>
+    <h2 class="pay-modal-title" id="payModalTitle">{{ __('Processing mobile money payment') }}</h2>
+    <div class="pay-modal-rows" id="payModalBody"></div>
+
+    <div class="pay-modal-count" id="payModalCount" hidden>01:00</div>
+    <div class="pay-modal-bar" id="payModalBar" hidden><span></span></div>
+    <p class="pay-modal-hint" id="payModalHint" hidden></p>
+
+    <div class="pay-modal-field" id="payModalPhoneField" hidden>
+      <label for="payModalPhone">{{ __('Phone number') }}</label>
+      <input type="tel" id="payModalPhone" inputmode="tel" autocomplete="tel" placeholder="255712345678">
+      <p class="pay-modal-field-error" id="payModalPhoneError" hidden></p>
+    </div>
+
+    <div class="pay-modal-actions">
+      <button type="button" class="btn btn-outline" id="payModalCancel" data-pay-modal-close>{{ __('Close') }}</button>
+      <button type="button" class="btn btn-primary" id="payModalConfirm">{{ __('Continue') }}</button>
+    </div>
+  </div>
+</div>
+@endif
+
 @include('shop.partials.footer')
 @include('shop.partials.cart-drawer', ['showBottomBar' => true])
 @include('shop.partials.cart-js')
@@ -369,7 +498,6 @@
 @if($order && $order->delivery_latitude && $order->delivery_longitude)
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
 @endif
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 @if($order && $order->delivery_latitude && $order->delivery_longitude)
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 @endif
@@ -392,22 +520,194 @@ function formatPaymentStatus(status) {
   return String(status).toUpperCase();
 }
 
-function buildPaymentHtml(orderNumber, status, trackingUrl, pdfUrl, remainingSeconds) {
-  const s = formatPaymentStatus(status);
-  const note = (s === 'PENDING' || s === 'PROCESSING')
-    ? '{{ __('Check your phone to confirm the USSD push.') }}'
-    : (s === 'SUCCESS' || s === 'SETTLED')
-      ? '{{ __('Payment completed successfully.') }}'
-      : (s === 'FAILED' || s === 'DECLINED' || s === 'CANCELLED')
-        ? '{{ __('Payment did not complete. You can try again later.') }}'
-        : '{{ __('Processing payment...') }}';
-  const timer = typeof remainingSeconds === 'number' ? ('<div style="margin-top:8px;color:#6b7280;">{{ __('Time remaining:') }} ' + remainingSeconds + 's</div>') : '';
-  return '{{ __('Order number') }}: <b>' + (window.shortCustomerReference || orderNumber) + '</b><br>' +
-    '{{ __('Payment status') }}: <b>' + s + '</b><br><span style="color:#6b7280;">' + note + '</span>' +
-    timer +
-    '<div style="margin-top:10px;">' +
-    '<a href="' + trackingUrl + '">{{ __('Track your order') }}</a> Â· <a href="' + pdfUrl + '">{{ __('Download order PDF') }}</a>' +
-    '</div>';
+const TRACK_PAY_WAIT_SECONDS = 60;
+let trackPayWaitTimer = null;
+let trackPayPollTimer = null;
+let trackPayPhoneResolver = null;
+let trackPayBusy = false;
+
+const TRACK_PAY_MODAL_TONES = {
+  phone: { icon: 'fa-solid fa-mobile-screen-button', tone: 'phone' },
+  starting: { icon: 'fa-solid fa-spinner fa-spin', tone: 'starting' },
+  waiting: { icon: 'fa-solid fa-spinner fa-spin', tone: 'waiting' },
+  success: { icon: 'fa-solid fa-circle-check', tone: 'success' },
+  failed: { icon: 'fa-solid fa-circle-xmark', tone: 'failed' },
+  timeout: { icon: 'fa-solid fa-clock', tone: 'timeout' },
+  'start-failed': { icon: 'fa-solid fa-circle-xmark', tone: 'failed' }
+};
+
+const TRACK_PAY_MODAL_COPY = {
+  phone: { title: '{{ __('Choose payment number') }}', hint: '{{ __('Enter the number that should receive the mobile money prompt.') }}' },
+  starting: { title: '{{ __('Starting payment') }}', hint: '{{ __('Sending the mobile money prompt to your phone...') }}' },
+  waiting: { title: '{{ __('Processing mobile money payment') }}', hint: '{{ __('Check your phone and approve the mobile money prompt to finish paying.') }}' },
+  success: { title: '{{ __('Payment successful') }}', hint: '{{ __('Payment completed successfully.') }}' },
+  failed: { title: '{{ __('Payment failed') }}', hint: '{{ __('Payment did not complete. You can try again.') }}' },
+  timeout: { title: '{{ __('Payment window ended') }}', hint: '{{ __('Payment status check stopped after 1 minute.') }}' },
+  'start-failed': { title: '{{ __('Payment not started') }}', hint: '' }
+};
+
+const trackPayModal = { root: null, box: null, icon: null, title: null, body: null, count: null, bar: null, hint: null, phoneField: null, phone: null, phoneError: null, confirm: null, cancel: null };
+const trackPayState = { phase: 'phone', remaining: TRACK_PAY_WAIT_SECONDS, status: '', orderRef: '', amount: '', trackingUrl: '', pdfUrl: '', phone: '', error: '', retry: 'phone' };
+
+function formatTrackCountdown(totalSeconds) {
+  const s = Math.max(0, Math.floor(totalSeconds));
+  return String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0');
+}
+
+function cacheTrackPayModal() {
+  trackPayModal.root = document.getElementById('payModal');
+  if (!trackPayModal.root) return;
+  trackPayModal.box = trackPayModal.root.querySelector('.pay-modal-box');
+  trackPayModal.icon = document.getElementById('payModalIcon');
+  trackPayModal.title = document.getElementById('payModalTitle');
+  trackPayModal.body = document.getElementById('payModalBody');
+  trackPayModal.count = document.getElementById('payModalCount');
+  trackPayModal.bar = document.getElementById('payModalBar');
+  trackPayModal.hint = document.getElementById('payModalHint');
+  trackPayModal.phoneField = document.getElementById('payModalPhoneField');
+  trackPayModal.phone = document.getElementById('payModalPhone');
+  trackPayModal.phoneError = document.getElementById('payModalPhoneError');
+  trackPayModal.confirm = document.getElementById('payModalConfirm');
+  trackPayModal.cancel = document.getElementById('payModalCancel');
+}
+
+function stopTrackPayWaitTimers() {
+  if (trackPayWaitTimer) { clearInterval(trackPayWaitTimer); trackPayWaitTimer = null; }
+  if (trackPayPollTimer) { clearInterval(trackPayPollTimer); trackPayPollTimer = null; }
+}
+
+function trackPayModalRow(label, value) {
+  return '<div class="pay-modal-row"><span>' + label + '</span><b>' + value + '</b></div>';
+}
+
+function renderTrackPayModal() {
+  if (!trackPayModal.root) return;
+  const tone = TRACK_PAY_MODAL_TONES[trackPayState.phase] || TRACK_PAY_MODAL_TONES.waiting;
+  const copy = TRACK_PAY_MODAL_COPY[trackPayState.phase] || TRACK_PAY_MODAL_COPY.waiting;
+  const showTimer = trackPayState.phase === 'waiting';
+
+  trackPayModal.box.className = 'pay-modal-box tone-' + tone.tone;
+  trackPayModal.icon.innerHTML = '<i class="' + tone.icon + '"></i>';
+  trackPayModal.title.textContent = copy.title;
+  trackPayModal.hint.textContent = trackPayState.phase === 'start-failed' && trackPayState.error ? trackPayState.error : copy.hint;
+  trackPayModal.hint.hidden = false;
+
+  const rows = [trackPayModalRow('{{ __('Order number') }}', window.shortCustomerReference || trackPayState.orderRef)];
+  if (trackPayState.amount) {
+    rows.push(trackPayModalRow('{{ __('Amount') }}', trackPayState.amount));
+  }
+  if (trackPayState.phone) {
+    rows.push(trackPayModalRow('{{ __('Payment number') }}', trackPayState.phone));
+  }
+  if (trackPayState.status && trackPayState.phase !== 'phone') {
+    rows.push(trackPayModalRow('{{ __('Payment status') }}', trackPayState.status));
+  }
+  trackPayModal.body.innerHTML = rows.join('');
+
+  if (trackPayState.phase === 'success') {
+    const separator = document.createTextNode(' ');
+    const trackLink = document.createElement('a');
+    trackLink.href = trackPayState.trackingUrl || '#';
+    trackLink.textContent = '{{ __('Track your order') }}';
+    const pdfLink = document.createElement('a');
+    pdfLink.href = trackPayState.pdfUrl || '#';
+    pdfLink.textContent = '{{ __('Download order PDF') }}';
+    trackPayModal.hint.appendChild(document.createElement('br'));
+    trackPayModal.hint.appendChild(trackLink);
+    trackPayModal.hint.appendChild(separator);
+    trackPayModal.hint.appendChild(document.createTextNode('·'));
+    trackPayModal.hint.appendChild(document.createTextNode(' '));
+    trackPayModal.hint.appendChild(pdfLink);
+  }
+
+  trackPayModal.phoneField.hidden = trackPayState.phase !== 'phone';
+  if (trackPayState.phase !== 'phone' && trackPayModal.phoneError) {
+    trackPayModal.phoneError.hidden = true;
+  }
+
+  trackPayModal.count.hidden = !showTimer;
+  trackPayModal.bar.hidden = !showTimer;
+  if (showTimer) {
+    trackPayModal.count.textContent = formatTrackCountdown(trackPayState.remaining);
+    const pct = Math.max(0, Math.min(100, (trackPayState.remaining / TRACK_PAY_WAIT_SECONDS) * 100));
+    trackPayModal.bar.firstElementChild.style.width = pct + '%';
+  }
+
+  const confirmLabels = {
+    phone: '{{ __('Continue') }}',
+    success: '{{ __('Refresh status') }}',
+    failed: '{{ __('Try again') }}',
+    timeout: '{{ __('Try again') }}',
+    'start-failed': '{{ __('Try again') }}'
+  };
+  trackPayModal.confirm.hidden = trackPayState.phase === 'starting' || trackPayState.phase === 'waiting';
+  trackPayModal.confirm.textContent = confirmLabels[trackPayState.phase] || confirmLabels.phone;
+  trackPayModal.cancel.hidden = trackPayState.phase === 'starting';
+}
+
+function openTrackPayModal() {
+  if (!trackPayModal.root) return;
+  trackPayModal.root.hidden = false;
+  document.documentElement.classList.add('pay-modal-open');
+  renderTrackPayModal();
+}
+
+function closeTrackPayModal() {
+  stopTrackPayWaitTimers();
+  trackPayBusy = false;
+  if (trackPayPhoneResolver) {
+    trackPayPhoneResolver(null);
+    trackPayPhoneResolver = null;
+  }
+  if (!trackPayModal.root) return;
+  trackPayModal.root.hidden = true;
+  document.documentElement.classList.remove('pay-modal-open');
+}
+
+function handleTrackPayModalClose() {
+  if (trackPayState.phase === 'starting') return;
+  closeTrackPayModal();
+}
+
+function isValidTrackPayPhone(value) {
+  const digits = String(value || '').replace(/\D+/g, '');
+  return (digits.length === 12 && digits.startsWith('255')) ||
+    (digits.length === 10 && digits.startsWith('0')) ||
+    (digits.length === 9 && digits.startsWith('7'));
+}
+
+async function handleTrackPayConfirm() {
+  if (trackPayState.phase === 'phone') {
+    const value = trackPayModal.phone.value.trim();
+    if (!value) {
+      trackPayModal.phoneError.textContent = '{{ __('Enter the number to receive the USSD prompt.') }}';
+      trackPayModal.phoneError.hidden = false;
+      return;
+    }
+    if (!isValidTrackPayPhone(value)) {
+      trackPayModal.phoneError.textContent = '{{ __('Use a valid mobile money number like 255712345678.') }}';
+      trackPayModal.phoneError.hidden = false;
+      return;
+    }
+    trackPayModal.phoneError.hidden = true;
+    const resolver = trackPayPhoneResolver;
+    trackPayPhoneResolver = null;
+    if (resolver) resolver(value);
+    return;
+  }
+
+  if (trackPayState.phase === 'success') {
+    window.location.reload();
+    return;
+  }
+
+  if (trackPayState.retry === 'phone') {
+    trackPayState.phase = 'phone';
+    renderTrackPayModal();
+    return;
+  }
+
+  runTrackPayment();
 }
 
 async function initiatePayment(trackingIdentifier, phoneNumber = '') {
@@ -433,133 +733,119 @@ async function initiatePayment(trackingIdentifier, phoneNumber = '') {
   return payload;
 }
 
-async function promptPaymentPhoneNumber(defaultPhone = '') {
-  if (window.Swal) {
-    const result = await Swal.fire({
-      title: '{{ __('Choose payment number') }}',
-      input: 'text',
-      inputValue: defaultPhone || '',
-      inputLabel: '{{ __('Phone number') }}',
-      inputPlaceholder: '255712345678',
-      confirmButtonText: '{{ __('Continue') }}',
-      showCancelButton: true,
-      inputValidator: (value) => {
-        if (!value || !value.trim()) {
-          return '{{ __('Enter the number to receive the USSD prompt.') }}';
-        }
-        const digits = value.replace(/\D+/g, '');
-        if (!(digits.length === 12 && digits.startsWith('255')) && !(digits.length === 10 && digits.startsWith('0')) && !(digits.length === 9 && digits.startsWith('7'))) {
-          return '{{ __('Use a valid mobile money number like 255712345678.') }}';
-        }
-        return null;
-      }
-    });
-
-    if (!result.isConfirmed) {
-      return null;
-    }
-
-    return result.value.trim();
-  }
-
-  const fallback = window.prompt('{{ __('Enter the number to receive the USSD prompt') }}', defaultPhone || '');
-  return fallback ? fallback.trim() : null;
-}
-
-function openPaymentProgressModal(trackingIdentifier, trackingUrl, pdfUrl) {
+function promptPaymentPhoneNumber(defaultPhone = '') {
   return new Promise((resolve) => {
-    if (!window.Swal) {
-      resolve({ result: 'no_swal' });
+    if (!trackPayModal.root) {
+      const fallback = window.prompt('{{ __('Enter the number to receive the USSD prompt') }}', defaultPhone || '');
+      resolve(fallback ? fallback.trim() : null);
       return;
     }
 
-    let intervalId = null;
-    let timeoutId = null;
-    let finalStatus = null;
-
-    const stop = () => {
-      if (intervalId) {
-        clearInterval(intervalId);
-        intervalId = null;
-      }
-      if (timeoutId) {
-        clearTimeout(timeoutId);
-        timeoutId = null;
-      }
-    };
-
-    const finish = (status) => {
-      finalStatus = formatPaymentStatus(status);
-      stop();
-      const success = finalStatus === 'SUCCESS' || finalStatus === 'SETTLED';
-      const failed = ['FAILED', 'DECLINED', 'CANCELLED'].includes(finalStatus);
-
-      Swal.hideLoading();
-      Swal.update({
-        icon: success ? 'success' : (failed ? 'error' : 'info'),
-        title: success ? '{{ __('Payment successful') }}' : (failed ? '{{ __('Payment failed') }}' : '{{ __('Payment status') }}'),
-        html: buildPaymentHtml(trackingIdentifier, finalStatus, trackingUrl, pdfUrl),
-        showConfirmButton: true,
-        confirmButtonText: success ? '{{ __('Continue') }}' : '{{ __('Close') }}',
-        showCancelButton: false
-      });
-    };
-
-    Swal.fire({
-      title: '{{ __('Processing mobile money payment') }}',
-      html: buildPaymentHtml(trackingIdentifier, 'PENDING', trackingUrl, pdfUrl, 60),
-      allowOutsideClick: false,
-      showCancelButton: true,
-      cancelButtonText: '{{ __('Close') }}',
-      showConfirmButton: false,
-      didOpen: () => {
-        Swal.showLoading();
-        const startMs = Date.now();
-        timeoutId = setTimeout(() => {
-          stop();
-          Swal.hideLoading();
-          Swal.update({
-            icon: 'info',
-            title: '{{ __('Payment window ended') }}',
-            html: buildPaymentHtml(trackingIdentifier, 'PENDING', trackingUrl, pdfUrl, 0) + '<div style="margin-top:8px;color:#6b7280;">{{ __('Payment status check stopped after 1 minute.') }}</div>',
-            showConfirmButton: true,
-            confirmButtonText: 'OK',
-            showCancelButton: false
-          });
-        }, 60000);
-
-        intervalId = setInterval(async () => {
-          try {
-            const res = await fetch('/api/shop/orders/' + encodeURIComponent(trackingIdentifier) + '/payment-status', {
-              method: 'GET',
-              headers: { 'Accept': 'application/json' },
-              credentials: 'same-origin'
-            });
-            const payload = await res.json().catch(() => ({}));
-            const status = extractPaymentStatus(payload);
-            const elapsed = Math.floor((Date.now() - startMs) / 1000);
-            const remaining = Math.max(0, 60 - elapsed);
-
-            if (!status) {
-              Swal.update({ html: buildPaymentHtml(trackingIdentifier, 'PROCESSING', trackingUrl, pdfUrl, remaining) });
-              return;
-            }
-
-            const normalized = formatPaymentStatus(status);
-            Swal.update({ html: buildPaymentHtml(trackingIdentifier, normalized, trackingUrl, pdfUrl, remaining) });
-
-            if (normalized === 'SUCCESS' || normalized === 'SETTLED' || ['FAILED', 'DECLINED', 'CANCELLED'].includes(normalized)) {
-              finish(normalized);
-            }
-          } catch (e) {}
-        }, 3000);
-      },
-      willClose: () => stop()
-    }).then((modalResult) => {
-      stop();
-      resolve({ result: modalResult, status: finalStatus });
-    });
+    if (trackPayPhoneResolver) {
+      trackPayPhoneResolver(null);
+    }
+    trackPayPhoneResolver = resolve;
+    trackPayState.phase = 'phone';
+    trackPayState.status = '';
+    trackPayState.error = '';
+    trackPayState.retry = 'phone';
+    if (defaultPhone && !trackPayModal.phone.value) {
+      trackPayModal.phone.value = defaultPhone;
+    }
+    trackPayModal.phoneError.hidden = true;
+    openTrackPayModal();
+    setTimeout(() => trackPayModal.phone.focus(), 50);
   });
+}
+
+async function pollTrackPayStatus() {
+  if (trackPayState.phase !== 'waiting' || !trackPayState.orderRef) return;
+  try {
+    const res = await fetch('/api/shop/orders/' + encodeURIComponent(trackPayState.orderRef) + '/payment-status', {
+      method: 'GET',
+      headers: { 'Accept': 'application/json' },
+      credentials: 'same-origin'
+    });
+    const payload = await res.json().catch(() => ({}));
+    const raw = extractPaymentStatus(payload);
+    if (!raw) {
+      trackPayState.status = 'PROCESSING';
+      renderTrackPayModal();
+      return;
+    }
+
+    const normalized = formatPaymentStatus(raw);
+    trackPayState.status = normalized;
+    if (normalized === 'SUCCESS' || normalized === 'SETTLED') {
+      trackPayState.phase = 'success';
+      trackPayState.retry = 'payment';
+      stopTrackPayWaitTimers();
+      renderTrackPayModal();
+    } else if (['FAILED', 'DECLINED', 'CANCELLED'].includes(normalized)) {
+      trackPayState.phase = 'failed';
+      trackPayState.retry = 'payment';
+      stopTrackPayWaitTimers();
+      renderTrackPayModal();
+    } else {
+      renderTrackPayModal();
+    }
+  } catch (e) {}
+}
+
+function showTrackPayTimeout() {
+  stopTrackPayWaitTimers();
+  trackPayState.phase = 'timeout';
+  trackPayState.remaining = 0;
+  if (!trackPayState.status) {
+    trackPayState.status = 'PENDING';
+  }
+  trackPayState.error = '';
+  trackPayState.retry = 'payment';
+  renderTrackPayModal();
+}
+
+function startTrackPayWait() {
+  stopTrackPayWaitTimers();
+  const startedAt = Date.now();
+  trackPayState.phase = 'waiting';
+  trackPayState.remaining = TRACK_PAY_WAIT_SECONDS;
+  renderTrackPayModal();
+
+  trackPayWaitTimer = setInterval(() => {
+    trackPayState.remaining = Math.max(0, TRACK_PAY_WAIT_SECONDS - Math.floor((Date.now() - startedAt) / 1000));
+    if (trackPayState.remaining === 0) {
+      showTrackPayTimeout();
+      return;
+    }
+    renderTrackPayModal();
+  }, 1000);
+
+  trackPayPollTimer = setInterval(pollTrackPayStatus, 3000);
+  pollTrackPayStatus();
+}
+
+async function runTrackPayment() {
+  if (!trackPayModal.root || !trackPayState.orderRef || !trackPayState.phone) return;
+  stopTrackPayWaitTimers();
+  trackPayState.phase = 'starting';
+  trackPayState.status = 'PROCESSING';
+  trackPayState.error = '';
+  trackPayState.retry = 'phone';
+  openTrackPayModal();
+
+  try {
+    const payment = await initiatePayment(trackPayState.orderRef, trackPayState.phone);
+    if (payment && payment.success === false) {
+      throw new Error(payment.message || '{{ __('Failed to initiate payment.') }}');
+    }
+    trackPayState.retry = 'payment';
+    startTrackPayWait();
+  } catch (e) {
+    trackPayState.phase = 'start-failed';
+    trackPayState.status = '';
+    trackPayState.error = (e && e.message) || '{{ __('Failed to initiate payment.') }}';
+    renderTrackPayModal();
+  }
 }
 
 document.getElementById('trackForm').addEventListener('submit', function(e) {
@@ -571,29 +857,45 @@ document.getElementById('trackForm').addEventListener('submit', function(e) {
 });
 
 @if($order)
+function bindTrackPayModal() {
+  cacheTrackPayModal();
+  if (!trackPayModal.root) return;
+  trackPayModal.root.querySelectorAll('[data-pay-modal-close]').forEach((el) => {
+    el.addEventListener('click', handleTrackPayModalClose);
+  });
+  trackPayModal.confirm.addEventListener('click', handleTrackPayConfirm);
+  trackPayModal.phone.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && trackPayState.phase === 'phone') {
+      e.preventDefault();
+      handleTrackPayConfirm();
+    }
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !trackPayModal.root.hidden) handleTrackPayModalClose();
+  });
+}
+
+bindTrackPayModal();
+
 const payNowBtn = document.getElementById('payNowBtn');
 if (payNowBtn) {
   payNowBtn.addEventListener('click', async () => {
-    const orderNumber = payNowBtn.getAttribute('data-order');
-    const defaultPhone = payNowBtn.getAttribute('data-phone') || '';
+    if (trackPayBusy || !trackPayModal.root) return;
+    trackPayBusy = true;
     const baseUrl = @json($settings->store_url ?? config('app.url'));
     const trackingIdentifier = @json($order->tracking_token ?? $order->order_number);
-    const trackingUrl = `${baseUrl}/shop/tracking/${encodeURIComponent(trackingIdentifier)}`;
-    const pdfUrl = `${baseUrl}/shop/tracking/${encodeURIComponent(trackingIdentifier)}/pdf`;
-    try {
-      const phoneNumber = await promptPaymentPhoneNumber(defaultPhone);
-      if (!phoneNumber) {
-        return;
-      }
-      if (window.Swal) {
-        Swal.fire({ title: '{{ __('Starting payment') }}', text: '{{ __('Sending USSD push to your phone...') }}', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
-      }
-      await initiatePayment(trackingIdentifier, phoneNumber);
-      if (window.Swal) Swal.close();
-      await openPaymentProgressModal(trackingIdentifier, trackingUrl, pdfUrl);
-    } catch (e) {
-      if (window.Swal) Swal.fire({ icon: 'error', title: '{{ __('Payment not started') }}', text: e.message || '{{ __('Failed to initiate payment.') }}' });
+    trackPayState.orderRef = trackingIdentifier;
+    trackPayState.amount = payNowBtn.getAttribute('data-total') || '';
+    trackPayState.trackingUrl = `${baseUrl}/shop/tracking/${encodeURIComponent(trackingIdentifier)}`;
+    trackPayState.pdfUrl = `${baseUrl}/shop/tracking/${encodeURIComponent(trackingIdentifier)}/pdf`;
+
+    const phoneNumber = await promptPaymentPhoneNumber(payNowBtn.getAttribute('data-phone') || '');
+    if (!phoneNumber) {
+      trackPayBusy = false;
+      return;
     }
+    trackPayState.phone = phoneNumber;
+    await runTrackPayment();
   });
 
   const params = new URLSearchParams(window.location.search);
