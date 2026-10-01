@@ -54,6 +54,9 @@
 
         {{-- Search across ALL products (server-side, works with pagination) --}}
         <form method="GET" action="{{ route('online.catalog') }}" id="catalog-search-form" class="relative mb-4">
+            <input type="hidden" name="category" value="{{ $categoryFilter ?? '' }}">
+            <input type="hidden" name="availability" value="{{ $availability ?? 'all' }}">
+            <input type="hidden" name="image" value="{{ $imageFilter ?? 'all' }}">
             <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400 pointer-events-none">
                 <i class="fas fa-search"></i>
             </span>
@@ -66,6 +69,82 @@
                 </a>
             @endif
         </form>
+
+        @php
+            $catalogUrl = function ($overrides = []) {
+                $params = array_merge(request()->only(['search', 'category', 'availability', 'image']), $overrides);
+                foreach (['category', 'availability', 'image'] as $key) {
+                    if (!isset($params[$key]) || $params[$key] === '' || $params[$key] === 'all') {
+                        unset($params[$key]);
+                    }
+                }
+                if (isset($params['search']) && trim((string) $params['search']) === '') {
+                    unset($params['search']);
+                }
+                return route('online.catalog', $params);
+            };
+            $tabBaseClass = 'inline-flex items-center gap-2 whitespace-nowrap rounded-full border px-3 py-1.5 text-sm font-medium transition-colors';
+            $tabActiveClass = 'border-primary-600 bg-primary-600 text-white shadow-sm';
+            $tabInactiveClass = 'border-gray-200 bg-white text-gray-700 hover:border-primary-300 hover:text-primary-700';
+        @endphp
+
+        <nav aria-label="Filter by category" class="flex items-center gap-2 overflow-x-auto pb-2 mb-2">
+            <span class="text-xs font-semibold uppercase tracking-wide text-gray-500">Category:</span>
+            <a href="{{ $catalogUrl(['category' => null]) }}" @if(!$selectedCategory) aria-current="page" @endif
+                class="{{ $tabBaseClass }} {{ !$selectedCategory ? $tabActiveClass : $tabInactiveClass }}">
+                <i class="fas fa-grip text-xs"></i> All <span class="text-xs opacity-80">({{ $products->count() }})</span>
+            </a>
+            @foreach($categories as $category)
+                @php
+                    $categoryImage = $resolveImageUrl($categoryImagePaths[$category->id] ?? null);
+                    $isSelectedCategory = $selectedCategory && $selectedCategory->id === $category->id;
+                @endphp
+                <a href="{{ $catalogUrl(['category' => $category->slug ?: $category->id]) }}" @if($isSelectedCategory) aria-current="page" @endif
+                    class="{{ $tabBaseClass }} {{ $isSelectedCategory ? $tabActiveClass : $tabInactiveClass }}">
+                    @if($categoryImage)
+                        <img src="{{ $categoryImage }}" alt="" class="h-6 w-6 rounded-full object-cover bg-gray-100">
+                    @else
+                        <i class="fas fa-tag text-xs"></i>
+                    @endif
+                    {{ $category->name }} <span class="text-xs opacity-80">({{ $categoryCounts[$category->id] ?? 0 }})</span>
+                </a>
+            @endforeach
+        </nav>
+
+        <nav aria-label="Filter by availability" class="flex items-center gap-2 overflow-x-auto pb-2 mb-2">
+            <span class="text-xs font-semibold uppercase tracking-wide text-gray-500">Availability:</span>
+            <a href="{{ $catalogUrl(['availability' => null]) }}" @if(($availability ?? 'all') === 'all') aria-current="page" @endif
+                class="{{ $tabBaseClass }} {{ ($availability ?? 'all') === 'all' ? $tabActiveClass : $tabInactiveClass }}">
+                <i class="fas fa-layer-group text-xs"></i> All <span class="text-xs opacity-80">({{ $availabilityCounts['all'] ?? $products->count() }})</span>
+            </a>
+            <a href="{{ $catalogUrl(['availability' => 'online']) }}" @if(($availability ?? 'all') === 'online') aria-current="page" @endif
+                class="{{ $tabBaseClass }} {{ ($availability ?? 'all') === 'online' ? $tabActiveClass : $tabInactiveClass }}">
+                <i class="fas fa-eye text-xs"></i> Online <span class="text-xs opacity-80">({{ $availabilityCounts['online'] ?? 0 }})</span>
+            </a>
+            <a href="{{ $catalogUrl(['availability' => 'offline']) }}" @if(($availability ?? 'all') === 'offline') aria-current="page" @endif
+                class="{{ $tabBaseClass }} {{ ($availability ?? 'all') === 'offline' ? $tabActiveClass : $tabInactiveClass }}">
+                <i class="fas fa-eye-slash text-xs"></i> Offline <span class="text-xs opacity-80">({{ $availabilityCounts['offline'] ?? 0 }})</span>
+            </a>
+        </nav>
+
+        <nav aria-label="Filter by product image" class="flex items-center gap-2 overflow-x-auto pb-2 mb-4">
+            <span class="text-xs font-semibold uppercase tracking-wide text-gray-500">Pictures:</span>
+            <a href="{{ $catalogUrl(['image' => null]) }}" @if(($imageFilter ?? 'all') === 'all') aria-current="page" @endif
+                class="{{ $tabBaseClass }} {{ ($imageFilter ?? 'all') === 'all' ? $tabActiveClass : $tabInactiveClass }}">
+                <i class="fas fa-images text-xs"></i> All <span class="text-xs opacity-80">({{ $imageCounts['all'] ?? $products->count() }})</span>
+            </a>
+            <a href="{{ $catalogUrl(['image' => 'with']) }}" @if(($imageFilter ?? 'all') === 'with') aria-current="page" @endif
+                class="{{ $tabBaseClass }} {{ ($imageFilter ?? 'all') === 'with' ? $tabActiveClass : $tabInactiveClass }}">
+                <i class="fas fa-image text-xs"></i> With image <span class="text-xs opacity-80">({{ $imageCounts['with'] ?? 0 }})</span>
+            </a>
+            <a href="{{ $catalogUrl(['image' => 'without']) }}" @if(($imageFilter ?? 'all') === 'without') aria-current="page" @endif
+                class="{{ $tabBaseClass }} {{ ($imageFilter ?? 'all') === 'without' ? $tabActiveClass : $tabInactiveClass }}">
+                <i class="fas fa-image-slash text-xs"></i> Without image <span class="text-xs opacity-80">({{ $imageCounts['without'] ?? 0 }})</span>
+            </a>
+            @if($selectedCategory || ($availability ?? 'all') !== 'all' || ($imageFilter ?? 'all') !== 'all' || !empty($search))
+                <a href="{{ route('online.catalog') }}" class="text-xs font-semibold text-primary-600 hover:text-primary-800 whitespace-nowrap ml-1">Reset filters</a>
+            @endif
+        </nav>
 
         @if(session('success'))
             <div class="mb-4 p-3 bg-green-100 border border-green-400 text-green-800 rounded-lg">
@@ -85,7 +164,7 @@
                 Select all
             </label>
             <span id="selected-count" class="text-xs text-gray-500">0 selected</span>
-            <span class="text-xs text-gray-400">Showing all {{ $products->count() }} {{ $products->count() === 1 ? 'product' : 'products' }}</span>
+            <span class="text-xs text-gray-400">Showing {{ $products->count() }} {{ $products->count() === 1 ? 'product' : 'products' }}</span>
             <div class="flex flex-wrap items-center gap-2 ml-auto">
                 <button type="submit" form="bulk-selected-form" name="action" value="activate" id="btn-activate-selected"
                     class="px-3 py-2 text-xs font-semibold rounded-lg bg-green-600 hover:bg-green-700 text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled>
@@ -97,19 +176,25 @@
                 </button>
                 <span class="hidden sm:inline text-gray-300">|</span>
                 <form action="{{ route('online.catalog.bulk-toggle') }}" method="POST" class="inline"
-                    onsubmit="return confirm('Activate ALL {{ $products->count() }} {{ !empty($search) ? 'matching \'' . $search . '\'' : '' }} products for online shop?');">
+                    onsubmit="return confirm('Activate ALL {{ $products->count() }} products matching the current filters for online shop?');">
                     @csrf
                     <input type="hidden" name="action" value="activate">
                     <input type="hidden" name="search" value="{{ $search ?? '' }}">
+                    <input type="hidden" name="category" value="{{ $categoryFilter ?? '' }}">
+                    <input type="hidden" name="availability" value="{{ $availability ?? 'all' }}">
+                    <input type="hidden" name="image" value="{{ $imageFilter ?? 'all' }}">
                     <button type="submit" class="px-3 py-2 text-xs font-semibold rounded-lg bg-emerald-100 hover:bg-emerald-200 text-emerald-800 transition-colors">
                         <i class="fas fa-bolt mr-1"></i>Activate all ({{ $products->count() }})
                     </button>
                 </form>
                 <form action="{{ route('online.catalog.bulk-toggle') }}" method="POST" class="inline"
-                    onsubmit="return confirm('Deactivate ALL {{ $products->count() }} {{ !empty($search) ? 'matching \'' . $search . '\'' : '' }} products from online shop?');">
+                    onsubmit="return confirm('Deactivate ALL {{ $products->count() }} products matching the current filters from online shop?');">
                     @csrf
                     <input type="hidden" name="action" value="deactivate">
                     <input type="hidden" name="search" value="{{ $search ?? '' }}">
+                    <input type="hidden" name="category" value="{{ $categoryFilter ?? '' }}">
+                    <input type="hidden" name="availability" value="{{ $availability ?? 'all' }}">
+                    <input type="hidden" name="image" value="{{ $imageFilter ?? 'all' }}">
                     <button type="submit" class="px-3 py-2 text-xs font-semibold rounded-lg bg-red-100 hover:bg-red-200 text-red-800 transition-colors">
                         <i class="fas fa-ban mr-1"></i>Deactivate all ({{ $products->count() }})
                     </button>
@@ -121,6 +206,10 @@
         <form id="bulk-selected-form" action="{{ route('online.catalog.bulk-toggle') }}" method="POST"
             onsubmit="return confirmBulkSelected(event);" class="hidden">
             @csrf
+            <input type="hidden" name="search" value="{{ $search ?? '' }}">
+            <input type="hidden" name="category" value="{{ $categoryFilter ?? '' }}">
+            <input type="hidden" name="availability" value="{{ $availability ?? 'all' }}">
+            <input type="hidden" name="image" value="{{ $imageFilter ?? 'all' }}">
         </form>
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">

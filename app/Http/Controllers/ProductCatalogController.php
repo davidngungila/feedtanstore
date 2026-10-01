@@ -13,29 +13,134 @@ class ProductCatalogController extends Controller
     public function index(Request $request)
     {
         $search = trim((string) $request->input('search', ''));
+        $categoryFilter = trim((string) $request->input('category', ''));
+        $availability = $request->input('availability', 'all');
+        $availability = in_array($availability, ['all', 'online', 'offline'], true) ? $availability : 'all';
+        $imageFilter = $request->input('image', 'all');
+        $imageFilter = in_array($imageFilter, ['all', 'with', 'without'], true) ? $imageFilter : 'all';
 
         $baseQuery = Product::query();
         $totalCount = (clone $baseQuery)->count();
         $onlineCount = (clone $baseQuery)->where('is_available_online', true)->count();
 
-        $products = Product::with(['category', 'brand', 'unit', 'images'])
-            ->when($search !== '', function ($query) use ($search) {
-                $like = '%' . $search . '%';
-                $query->where(function ($q) use ($like) {
-                    $q->where('name', 'like', $like)
-                        ->orWhere('sku', 'like', $like)
-                        ->orWhere('barcode', 'like', $like)
-                        ->orWhere('selling_price', 'like', $like)
-                        ->orWhereHas('category', fn ($c) => $c->where('name', 'like', $like))
-                        ->orWhereHas('brand', fn ($b) => $b->where('name', 'like', $like));
-                });
-            })
+        $selectedCategory = $this->resolveCatalogCategory($categoryFilter);
+        $applyFilters = fn ($query, array $except = []) => $this->applyCatalogFilters($query, $search, $selectedCategory, $availability, $imageFilter, $except);
+        $filteredQuery = fn (array $except = []) => $applyFilters(Product::query(), $except);
+
+        $availabilityCounts = [
+            'all' => (clone $filteredQuery(['availability']))->count(),
+            'online' => (clone $filteredQuery(['availability']))->where('is_available_online', true)->count(),
+            'offline' => (clone $filteredQuery(['availability']))->where('is_available_online', false)->count(),
+        ];
+        $imageCounts = [
+            'all' => (clone $filteredQuery(['image']))->count(),
+            'with' => (clone $filteredQuery(['image']))->where(function ($q) {
+                $q->whereNotNull('image')->where('image', '!=', '')->orWhereHas('images');
+            })->count(),
+            'without' => (clone $filteredQuery(['image']))->where(function ($q) {
+                $q->whereNull('image')->orWhere('image', '');
+            })->whereDoesntHave('images')->count(),
+        ];
+
+        $products = $applyFilters(Product::with(['category', 'brand', 'unit', 'images']))
             ->orderBy('id')
             ->get();
 
-        $categories = Category::all();
+        $categories = Category::orderBy('name')->get();
+        $categoryCounts = $applyFilters(Product::query(), ['category'])
+            ->selectRaw('category_id, count(*) as aggregate')
+            ->whereNotNull('category_id')
+            ->groupBy('category_id')
+            ->pluck('aggregate', 'category_id');
+
+        $categoryImagePaths = [];
+        $representativeImages = ProductImage::query()
+            ->join('products', 'products.id', '=', 'product_images.product_id')
+            ->where('product_images.is_primary', true)
+            ->whereNotNull('products.category_id')
+            ->orderBy('products.id')
+            ->orderBy('product_images.order')
+            ->orderBy('product_images.id')
+            ->get(['products.category_id as category_id', 'product_images.image_path as image_path']);
+        foreach ($representativeImages as $representativeImage) {
+            $categoryImagePaths[$representativeImage->category_id] ??= $representativeImage->image_path;
+        }
+
+        $fallbackImages = Product::query()
+            ->whereNotNull('category_id')
+            ->whereNotNull('image')
+            ->where('image', '!=', '')
+            ->orderBy('id')
+            ->pluck('image', 'category_id');
+        foreach ($fallbackImages as $categoryId => $imagePath) {
+            $categoryImagePaths[$categoryId] ??= $imagePath;
+        }
+
         $offlineCount = $totalCount - $onlineCount;
-        return view('online.catalog', compact('products', 'categories', 'search', 'totalCount', 'onlineCount', 'offlineCount'));
+        return view('online.catalog', compact(
+            'products',
+            'categories',
+            'categoryCounts',
+            'categoryImagePaths',
+            'selectedCategory',
+            'categoryFilter',
+            'availability',
+            'availabilityCounts',
+            'imageFilter',
+            'imageCounts',
+            'search',
+            'totalCount',
+            'onlineCount',
+            'offlineCount'
+        ));
+    }
+
+    private function resolveCatalogCategory(string $categoryFilter): ?Category
+    {
+        if ($categoryFilter === '') {
+            return null;
+        }
+
+        return Category::query()
+            ->when(is_numeric($categoryFilter), fn ($query) => $query->where('id', $categoryFilter), fn ($query) => $query->where('slug', $categoryFilter))
+            ->first();
+    }
+
+    private function applyCatalogFilters($query, string $search, ?Category $selectedCategory, string $availability, string $imageFilter, array $except = [])
+    {
+        if ($search !== '' && ! in_array('search', $except, true)) {
+            $like = '%' . $search . '%';
+            $query->where(function ($q) use ($like) {
+                $q->where('name', 'like', $like)
+                    ->orWhere('sku', 'like', $like)
+                    ->orWhere('barcode', 'like', $like)
+                    ->orWhere('selling_price', 'like', $like)
+                    ->orWhereHas('category', fn ($c) => $c->where('name', 'like', $like))
+                    ->orWhereHas('brand', fn ($b) => $b->where('name', 'like', $like));
+            });
+        }
+
+        if ($selectedCategory && ! in_array('category', $except, true)) {
+            $query->where('category_id', $selectedCategory->id);
+        }
+
+        if ($availability !== 'all' && ! in_array('availability', $except, true)) {
+            $query->where('is_available_online', $availability === 'online');
+        }
+
+        if ($imageFilter !== 'all' && ! in_array('image', $except, true)) {
+            if ($imageFilter === 'with') {
+                $query->where(function ($q) {
+                    $q->whereNotNull('image')->where('image', '!=', '')->orWhereHas('images');
+                });
+            } else {
+                $query->where(function ($q) {
+                    $q->whereNull('image')->orWhere('image', '');
+                })->whereDoesntHave('images');
+            }
+        }
+
+        return $query;
     }
 
     public function show(string $product)
@@ -92,36 +197,40 @@ class ProductCatalogController extends Controller
             'product_ids' => ['nullable', 'array'],
             'product_ids.*' => ['integer', 'exists:products,id'],
             'search' => ['nullable', 'string', 'max:255'],
+            'category' => ['nullable', 'string', 'max:255'],
+            'availability' => ['nullable', 'in:all,online,offline'],
+            'image' => ['nullable', 'in:all,with,without'],
         ]);
 
         $makeAvailable = $validated['action'] === 'activate';
         $ids = $validated['product_ids'] ?? [];
         $search = trim((string) ($validated['search'] ?? ''));
+        $categoryFilter = trim((string) ($validated['category'] ?? ''));
+        $availability = $validated['availability'] ?? 'all';
+        $imageFilter = $validated['image'] ?? 'all';
+        $selectedCategory = $this->resolveCatalogCategory($categoryFilter);
 
         if (! empty($ids)) {
             $count = Product::whereIn('id', $ids)->update(['is_available_online' => $makeAvailable, 'updated_at' => now()]);
             $scope = 'selected';
         } else {
-            // No selection = apply to the current search filter (or ALL products when no filter).
-            $query = Product::query();
-            if ($search !== '') {
-                $like = '%' . $search . '%';
-                $query->where(function ($q) use ($like) {
-                    $q->where('name', 'like', $like)
-                        ->orWhere('sku', 'like', $like)
-                        ->orWhere('barcode', 'like', $like)
-                        ->orWhere('selling_price', 'like', $like)
-                        ->orWhereHas('category', fn ($c) => $c->where('name', 'like', $like))
-                        ->orWhereHas('brand', fn ($b) => $b->where('name', 'like', $like));
-                });
-            }
+            // No selection = apply to the current filters (or ALL products when no filter).
+            $query = $this->applyCatalogFilters(Product::query(), $search, $selectedCategory, $availability, $imageFilter);
             $count = $query->update(['is_available_online' => $makeAvailable, 'updated_at' => now()]);
-            $scope = $search !== '' ? "matching \"{$search}\"" : 'all';
+            $scope = ($search !== '' || $categoryFilter !== '' || $availability !== 'all' || $imageFilter !== 'all')
+                ? 'matching current filters'
+                : 'all';
         }
 
         $label = $makeAvailable ? 'activated (Online)' : 'deactivated (Offline)';
+        $redirectParams = array_filter([
+            'search' => $search !== '' ? $search : null,
+            'category' => $categoryFilter !== '' ? $categoryFilter : null,
+            'availability' => $availability !== 'all' ? $availability : null,
+            'image' => $imageFilter !== 'all' ? $imageFilter : null,
+        ]);
 
-        return back()->with('success', "{$count} {$scope} product(s) {$label} successfully!");
+        return redirect()->route('online.catalog', $redirectParams)->with('success', "{$count} {$scope} product(s) {$label} successfully!");
     }
 
     public function uploadImage(Request $request, string $product)
