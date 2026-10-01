@@ -162,8 +162,9 @@ class StoreSetting extends Model
             ];
         }
 
-        if ($this->delivery_use_zone_pricing && $this->delivery_zone_config) {
-            foreach ($this->delivery_zone_config as $zone) {
+        $zones = $this->delivery_zone_config ?? [];
+        if ($this->delivery_use_zone_pricing && $zones) {
+            foreach ($zones as $zone) {
                 if ($distance >= $zone['min_km'] && $distance <= $zone['max_km']) {
                     return [
                         'fee' => (float) $zone['fee'],
@@ -172,7 +173,7 @@ class StoreSetting extends Model
                 }
             }
             // If no zone matches, use last zone's fee
-            $lastZone = end($this->delivery_zone_config);
+            $lastZone = end($zones);
             $fee = $lastZone ? (float) $lastZone['fee'] : $baseFee;
             return [
                 'fee' => $fee,

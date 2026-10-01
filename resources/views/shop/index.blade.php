@@ -847,10 +847,6 @@
           <div class="faq-a"><p>{{ __('Use the tracking section above with your order number to follow each step of your delivery in real time.') }}</p></div>
         </div>
         <div class="faq-item">
-          <button class="faq-q">{{ __('Is there a delivery fee?') }} <span class="plus">+</span></button>
-          <div class="faq-a"><p>{{ __('A delivery fee may apply, and it is always shown before you confirm the order. Orders above TZS 50,000 qualify for free delivery, and store pickup has no fee.') }}</p></div>
-        </div>
-        <div class="faq-item">
           <button class="faq-q">{{ __('Can I return something I am not happy with?') }} <span class="plus">+</span></button>
           <div class="faq-a"><p>{{ __('Yes. Contact us within 24 hours of receiving your order and we will help you with an exchange or return.') }}</p></div>
         </div>
