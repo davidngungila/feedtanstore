@@ -1,6 +1,6 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;0,9..144,900;1,9..144,500;1,9..144,600&family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Raleway:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
 <style>
@@ -48,9 +48,9 @@
   --blue:#2563eb;
   --blue-dim:#e8efff;
 
-  --font-display:'Fraunces',Georgia,serif;
-  --font-body:'Manrope',system-ui,-apple-system,sans-serif;
-  --font-mono:'IBM Plex Mono',ui-monospace,monospace;
+  --font-display:'Raleway',system-ui,-apple-system,sans-serif;
+  --font-body:'Raleway',system-ui,-apple-system,sans-serif;
+  --font-mono:'Raleway',system-ui,-apple-system,sans-serif;
 
   --radius-s:10px;
   --radius:18px;
