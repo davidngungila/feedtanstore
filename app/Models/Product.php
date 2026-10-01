@@ -147,6 +147,29 @@ class Product extends Model
         return $this->hasMany(ProductImage::class)->orderBy('order');
     }
 
+    public function scopeVisibleInPublicShop($query)
+    {
+        return $query->where('is_active', true)
+            ->where('is_available_online', true)
+            ->where('quantity', '>', 0)
+            ->where(function ($imageQuery) {
+                $imageQuery->whereNotNull('image')->where('image', '!=', '')->orWhereHas('images');
+            });
+    }
+
+    public function hasPublicImage(): bool
+    {
+        if (filled($this->image)) {
+            return true;
+        }
+
+        if ($this->relationLoaded('images')) {
+            return $this->images->isNotEmpty();
+        }
+
+        return $this->images()->exists();
+    }
+
     public function onlineOrderItems(): HasMany
     {
         return $this->hasMany(OnlineOrderItem::class);

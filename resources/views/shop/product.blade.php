@@ -98,11 +98,9 @@
   ];
 
   $relatedProducts = $product->category
-      ? \App\Models\Product::where('category_id', $product->category_id)
+      ? \App\Models\Product::visibleInPublicShop()
+          ->where('category_id', $product->category_id)
           ->where('id', '!=', $product->id)
-          ->where('is_active', true)
-          ->where('is_available_online', true)
-          ->where('quantity', '>', 0)
           ->with(['category', 'images'])
           ->orderBy('name')
           ->take(4)
@@ -246,10 +244,6 @@
           @endif
 
           <ul class="pd-meta-list">
-            <li>
-              <i class="fa-solid fa-truck-fast" style="color:var(--orange-600);"></i>
-              <span>{{ __('Delivery fee confirmed at checkout') }} · <b>{{ __('Free over TZS 50,000') }}</b></span>
-            </li>
             <li>
               <i class="fa-solid fa-store" style="color:var(--orange-600);"></i>
               <span>{{ __('Store pickup available') }} — {{ $settings->store_address ?? __('Kiboriloni, Moshi') }}</span>

@@ -193,9 +193,7 @@ class OnlineOrderController extends Controller
             return $this->offlinePage($settings);
         }
 
-        $query = Product::where('is_active', true)
-            ->where('is_available_online', true)
-            ->where('quantity', '>', 0)
+        $query = Product::visibleInPublicShop()
             ->with(['category', 'brand', 'images']);
 
         $selectedCategory = null;
@@ -221,17 +219,13 @@ class OnlineOrderController extends Controller
 
         $categories = \App\Models\Category::where('is_active', true)->get();
 
-        $deals = \App\Models\Product::where('is_active', true)
-            ->where('is_available_online', true)
-            ->where('quantity', '>', 0)
+        $deals = \App\Models\Product::visibleInPublicShop()
             ->with(['category', 'images'])
             ->orderBy('selling_price')
             ->take(8)
             ->get();
 
-        $featured = \App\Models\Product::where('is_active', true)
-            ->where('is_available_online', true)
-            ->where('quantity', '>', 0)
+        $featured = \App\Models\Product::visibleInPublicShop()
             ->with(['category', 'images'])
             ->inRandomOrder()
             ->take(8)
@@ -249,7 +243,7 @@ class OnlineOrderController extends Controller
 
         $product = Product::findByEncryptedKey($productKey)
             ?? Product::where('slug', $productKey)->first();
-        if (! $product || ! $product->is_active || ! $product->is_available_online || $product->quantity <= 0) {
+        if (! $product || ! $product->is_active || ! $product->is_available_online || $product->quantity <= 0 || ! $product->hasPublicImage()) {
             abort(404);
         }
 
@@ -760,7 +754,7 @@ class OnlineOrderController extends Controller
         $cartItemsForMetadata = [];
         foreach ($request->items as $item) {
             $product = Product::findByEncryptedKey((string) ($item['product_key'] ?? ''));
-            if (! $product || ! $product->is_active || ! $product->is_available_online || $product->quantity < $item['quantity']) {
+            if (! $product || ! $product->is_active || ! $product->is_available_online || ! $product->hasPublicImage() || $product->quantity < $item['quantity']) {
                 return response()->json(['success' => false, 'message' => 'One or more products in your cart are no longer available. Please refresh the shop and try again.'], 400);
             }
             $subtotal += $product->selling_price * $item['quantity'];
