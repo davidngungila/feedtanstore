@@ -31,9 +31,6 @@
         <h4>{{ __('Support') }}</h4>
         <ul>
           <li><a href="{{ route('shop.tracking') }}">{{ __('Track my order link') }}</a></li>
-          <li><a href="#" onclick="showToast('{{ __('Contact us phone') }}','phone');return false;">{{ __('Contact us') }}</a></li>
-          <li><a href="#" onclick="showToast('{{ __('Return policy') }}','info');return false;">{{ __('Return policy') }}</a></li>
-          <li><a href="#" onclick="showToast('{{ __('Delivery info') }}','info');return false;">{{ __('Delivery info') }}</a></li>
         </ul>
       </div>
 

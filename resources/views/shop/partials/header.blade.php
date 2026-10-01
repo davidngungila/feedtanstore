@@ -1,8 +1,8 @@
 <div class="topbar">
   <div class="wrap">
     <div class="topbar-msg">
-      <i class="fa-solid fa-truck-fast"></i>
-      <span>{{ __('Free delivery for orders over TZS 50,000') }}</span>
+      <i class="fa-regular fa-clock"></i>
+      <span>{{ __('Open 24 hours') }}</span>
     </div>
     <div class="topbar-msg" id="topbarPhone">
       <i class="fa-solid fa-phone"></i>
