@@ -623,8 +623,8 @@
               $badge = $oldPrice ? '-'.round((($oldPrice - $product->selling_price)/$oldPrice)*100).'%' : null;
               $stockLevel = $product->quantity <= 5 ? 'low' : 'in';
             @endphp
-            <div class="p-card reveal" data-id="{{ $product->id }}">
-              <div class="p-media" onclick="window.location.href='{{ route('shop.product', $product) }}'" role="button" tabindex="0" aria-label="{{ $product->name }}">
+            <div class="p-card reveal" data-key="{{ $product->encrypted_key }}">
+              <div class="p-media" onclick="window.location.href='{{ route('shop.product', $product->encrypted_key) }}'" role="button" tabindex="0" aria-label="{{ $product->name }}">
                 <img src="{{ $imageToShow }}" alt="{{ $product->name }}" loading="lazy">
                 @if($badge)
                   <span class="p-badge pill pill-orange">{{ $badge }}</span>
@@ -632,13 +632,13 @@
                 <button class="p-fav" aria-label="{{ __('Save to wishlist') }}" onclick="event.stopPropagation(); toggleFav(this)">
                   <i class="fa-regular fa-heart"></i>
                 </button>
-                <button class="quick-add" data-add-btn aria-label="{{ __('Add to cart') }}" onclick="event.stopPropagation(); addToCart('{{ $product->id }}', '{{ addslashes($product->name) }}', {{ $product->selling_price }})">
+                <button class="quick-add" data-add-btn aria-label="{{ __('Add to cart') }}" onclick="event.stopPropagation(); addToCart('{{ $product->encrypted_key }}', '{{ addslashes($product->name) }}', {{ $product->selling_price }})">
                   <i class="fa-solid fa-cart-plus"></i>
                 </button>
               </div>
               <div class="p-body">
                 <span class="p-cat">{{ $product->category->name ?? __('Uncategorized') }}</span>
-                <a class="p-name" href="{{ route('shop.product', $product) }}">{{ $product->name }}</a>
+                <a class="p-name" href="{{ route('shop.product', $product->encrypted_key) }}">{{ $product->name }}</a>
                 <div class="p-price-row">
                   <span class="p-price" data-price="{{ $product->selling_price }}">TZS {{ number_format($product->selling_price, 0) }}</span>
                   @if($oldPrice)
@@ -650,10 +650,10 @@
                   {{ $stockLevel === 'low' ? __('Only a few left') : __('In stock') }}
                 </span>
                 <div class="p-actions">
-                  <button class="btn btn-primary btn-sm" onclick="addToCart('{{ $product->id }}', '{{ addslashes($product->name) }}', {{ $product->selling_price }})">
+                  <button class="btn btn-primary btn-sm" onclick="addToCart('{{ $product->encrypted_key }}', '{{ addslashes($product->name) }}', {{ $product->selling_price }})">
                     <i class="fa-solid fa-cart-plus"></i> {{ __('Add') }}
                   </button>
-                  <a href="{{ route('shop.product', $product) }}" class="btn btn-outline btn-sm">{{ __('Details') }}</a>
+                  <a href="{{ route('shop.product', $product->encrypted_key) }}" class="btn btn-outline btn-sm">{{ __('Details') }}</a>
                 </div>
               </div>
             </div>

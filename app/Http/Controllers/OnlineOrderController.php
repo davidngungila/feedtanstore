@@ -240,11 +240,17 @@ class OnlineOrderController extends Controller
         return view('shop.index', compact('products', 'slides', 'categories', 'selectedCategory', 'settings', 'deals', 'featured'));
     }
 
-    public function showProduct(Product $product)
+    public function showProduct(string $productKey)
     {
         $settings = \App\Models\StoreSetting::firstOrCreate();
         if (!$settings->online_market_enabled) {
             return $this->offlinePage($settings);
+        }
+
+        $product = Product::findByEncryptedKey($productKey)
+            ?? Product::where('slug', $productKey)->first();
+        if (! $product || ! $product->is_active || ! $product->is_available_online || $product->quantity <= 0) {
+            abort(404);
         }
 
         $product->load(['category', 'brand', 'images']);
@@ -736,26 +742,26 @@ class OnlineOrderController extends Controller
     public function placeOrder(Request $request, FeedtanEcommercePaymentService $paymentService)
     {
         $request->validate([
+            'fulfillment_method' => 'required|in:delivery,pickup',
             'customer_name' => 'required|string|max:255',
             'customer_phone' => 'required|string|max:255',
             'customer_email' => 'nullable|email',
             'delivery_address' => 'required|string',
-            'delivery_latitude' => 'nullable|numeric',
-            'delivery_longitude' => 'nullable|numeric',
-            'delivery_fee' => 'nullable|numeric|min:0',
+            'delivery_latitude' => 'required_if:fulfillment_method,delivery|nullable|numeric',
+            'delivery_longitude' => 'required_if:fulfillment_method,delivery|nullable|numeric',
             'payment_method' => 'nullable|in:cash,online,bank',
-            'items' => 'required|array|min:1',
-            'items.*.product_id' => 'required|exists:products,id',
-            'items.*.quantity' => 'required|integer|min:1'
+            'items' => 'required|array|min:1|max:100',
+            'items.*.product_key' => 'required|string|max:2048',
+            'items.*.quantity' => 'required|integer|min:1|max:1000'
         ]);
 
         $subtotal = 0;
         $orderItems = [];
         $cartItemsForMetadata = [];
         foreach ($request->items as $item) {
-            $product = Product::find($item['product_id']);
-            if (!$product || $product->quantity < $item['quantity']) {
-                return response()->json(['success' => false, 'message' => "Insufficient stock for {$product->name}"], 400);
+            $product = Product::findByEncryptedKey((string) ($item['product_key'] ?? ''));
+            if (! $product || ! $product->is_active || ! $product->is_available_online || $product->quantity < $item['quantity']) {
+                return response()->json(['success' => false, 'message' => 'One or more products in your cart are no longer available. Please refresh the shop and try again.'], 400);
             }
             $subtotal += $product->selling_price * $item['quantity'];
             $orderItems[] = [
@@ -770,17 +776,23 @@ class OnlineOrderController extends Controller
             ];
         }
 
-        $deliveryFee = $request->delivery_fee ?? null;
-        if ($deliveryFee === null && $request->delivery_latitude && $request->delivery_longitude) {
+        $isPickup = $request->fulfillment_method === 'pickup';
+        $deliveryLatitude = $isPickup ? null : $request->delivery_latitude;
+        $deliveryLongitude = $isPickup ? null : $request->delivery_longitude;
+
+        // Never trust a client-supplied delivery fee. Pickup is always free;
+        // delivery is always recalculated from authoritative coordinates.
+        if ($isPickup) {
+            $deliveryFee = 0;
+        } else {
             $settings = \App\Models\StoreSetting::firstOrCreate();
             $result = $settings->calculateDeliveryFee(
-                (float) $request->delivery_latitude,
-                (float) $request->delivery_longitude,
+                (float) $deliveryLatitude,
+                (float) $deliveryLongitude,
                 $subtotal
             );
             $deliveryFee = $result['fee'];
         }
-        $deliveryFee = $deliveryFee ?? 0;
         $total = $subtotal + $deliveryFee;
 
         // First create the order without tracking token to get an ID
@@ -791,15 +803,15 @@ class OnlineOrderController extends Controller
             'customer_phone' => $request->customer_phone,
             'customer_email' => $request->customer_email,
             'delivery_address' => $request->delivery_address,
-            'delivery_latitude' => $request->delivery_latitude,
-            'delivery_longitude' => $request->delivery_longitude,
+            'delivery_latitude' => $deliveryLatitude,
+            'delivery_longitude' => $deliveryLongitude,
             'status' => 'pending',
             'payment_status' => 'pending',
             'payment_method' => $request->payment_method,
             'subtotal' => $subtotal,
             'delivery_fee' => $deliveryFee,
             'total' => $total,
-            'notes' => 'Order placed from public shop'
+            'notes' => $isPickup ? 'Order placed from public shop (Store pickup)' : 'Order placed from public shop'
         ]);
 
         // Now generate encrypted tracking token using the order ID

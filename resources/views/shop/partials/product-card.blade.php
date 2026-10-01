@@ -5,11 +5,11 @@
   $badge = $oldPrice ? '-'.round((($oldPrice - $product->selling_price)/$oldPrice)*100).'%' : null;
   $rating = 4.0 + ($product->id % 11) / 10;
   $reviews = ($product->id * 7) % 480 + 20;
-  $detailUrl = route('shop.product', $product);
+  $detailUrl = route('shop.product', $product->encrypted_key);
   $productName = addslashes($product->name);
 @endphp
-<div class="p-card reveal {{ $class ?? '' }}" data-id="{{ $product->id }}" data-price="{{ $product->selling_price }}" data-rating="{{ $rating }}" data-sale="{{ $oldPrice ? '1' : '0' }}">
-  <div class="p-media" onclick="openQuickView('{{ $product->id }}')" role="button" tabindex="0" aria-label="{{ $product->name }}">
+<div class="p-card reveal {{ $class ?? '' }}" data-key="{{ $product->encrypted_key }}" data-price="{{ $product->selling_price }}" data-rating="{{ $rating }}" data-sale="{{ $oldPrice ? '1' : '0' }}">
+  <div class="p-media" role="button" tabindex="0" aria-label="{{ $product->name }}">
     <img src="{{ $imageToShow }}" alt="{{ $product->name }}" loading="lazy">
     @if($badge)
       <span class="p-badge pill pill-orange">{{ $badge }}</span>
@@ -17,7 +17,7 @@
     <button class="p-fav" aria-label="{{ __('Save to wishlist') }}" onclick="event.stopPropagation(); toggleFav(this)">
       <i class="fa-regular fa-heart"></i>
     </button>
-    <button class="quick-add" data-add-btn aria-label="{{ __('Add to cart') }}" onclick="event.stopPropagation(); addToCart('{{ $product->id }}', '{{ $productName }}', {{ $product->selling_price }})">
+    <button class="quick-add" data-add-btn aria-label="{{ __('Add to cart') }}" onclick="event.stopPropagation(); addToCart('{{ $product->encrypted_key }}', '{{ $productName }}', {{ $product->selling_price }})">
       <i class="fa-solid fa-cart-plus"></i>
     </button>
   </div>
@@ -35,8 +35,8 @@
       @endif
     </div>
     <span class="p-unit">{{ __('per item') }}</span>
-    <div class="p-actions" id="actions-{{ $product->id }}">
-      <button class="btn btn-dark btn-sm" onclick="addToCart('{{ $product->id }}', '{{ $productName }}', {{ $product->selling_price }})">
+    <div class="p-actions">
+      <button class="btn btn-dark btn-sm" onclick="addToCart('{{ $product->encrypted_key }}', '{{ $productName }}', {{ $product->selling_price }})">
         <i class="fa-solid fa-cart-shopping"></i>
         {{ __('Add to cart') }}
       </button>

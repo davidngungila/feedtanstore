@@ -56,7 +56,7 @@ class SitemapService
         }
 
         // Products
-        foreach (Product::where('is_active', true)->where('is_available_online', true)->get() as $product) {
+        foreach (Product::where('is_active', true)->where('is_available_online', true)->where('quantity', '>', 0)->get() as $product) {
             $urls[] = [
                 'loc' => $baseUrl . '/shop/product/' . $product->slug,
                 'lastmod' => $product->updated_at->toW3cString(),

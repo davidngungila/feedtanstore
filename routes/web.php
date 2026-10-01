@@ -42,7 +42,7 @@ Route::get('/sitemap.xml', function (\Illuminate\Http\Request $request) {
     return response()->view('sitemap', compact('urls'))->header('Content-Type', 'text/xml');
 })->name('shop.sitemap');
 Route::get('/shop', [\App\Http\Controllers\OnlineOrderController::class, 'shop'])->name('shop.index');
-Route::get('/shop/product/{product}', [\App\Http\Controllers\OnlineOrderController::class, 'showProduct'])->name('shop.product');
+Route::get('/shop/product/{productKey}', [\App\Http\Controllers\OnlineOrderController::class, 'showProduct'])->name('shop.product');
 Route::get('/shop/checkout', [\App\Http\Controllers\OnlineOrderController::class, 'checkout'])->name('shop.checkout');
 Route::get('/shop/tracking', [\App\Http\Controllers\OnlineOrderController::class, 'showTracking'])->name('shop.tracking');
 Route::get('/shop/tracking/{orderNumber}', [\App\Http\Controllers\OnlineOrderController::class, 'showTracking'])->name('shop.tracking.show');

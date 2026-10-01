@@ -1162,7 +1162,17 @@ document.addEventListener('DOMContentLoaded', function() {
     placeOrderBtn.innerHTML = '<svg class="animate-spin" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10" stroke-opacity="0.25"/><path d="M12 2a10 10 0 0 1 10 10"/></svg> {{ __('Placing Order...') }}';
 
     try {
+      const orderableItems = cart.filter(item => item.key && !/^\d+$/.test(String(item.key)));
+      if (orderableItems.length === 0) {
+        throw new Error('{{ __('Your saved cart is no longer valid. Please return to the shop and add the items again.') }}');
+      }
+      if (orderableItems.length !== cart.length) {
+        cart = orderableItems;
+        saveCart();
+        updateCartUI();
+      }
       const requestBody = {
+        fulfillment_method: needDelivery === 'yes' ? 'delivery' : 'pickup',
         customer_name: document.getElementById('customerName').value.trim(),
         customer_phone: document.getElementById('customerPhone').value.trim(),
         customer_email: document.getElementById('customerEmail').value.trim(),
@@ -1172,7 +1182,7 @@ document.addEventListener('DOMContentLoaded', function() {
         delivery_fee: currentDeliveryFee,
         payment_method: 'online',
         items: cart.map(item => ({
-          product_id: item.id,
+          product_key: item.key,
           quantity: item.quantity
         }))
       };

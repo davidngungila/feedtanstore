@@ -5,22 +5,33 @@ const FREE_DELIVERY_THRESHOLD = 50000;
 
 function normalizeCart(raw) {
   if (Array.isArray(raw)) {
-    return raw.filter(i => i && Number(i.quantity) > 0);
+    return raw.map(i => {
+      if (!i) return null;
+      const key = i.key ?? i.id;
+      if (!key) return null;
+      return {
+        key: String(key),
+        name: i.name || 'Item',
+        price: Number(i.price) || 0,
+        quantity: Number(i.quantity) || 0,
+        img: i.img || null
+      };
+    }).filter(i => i && i.quantity > 0);
   }
   if (raw && typeof raw === 'object') {
-    return Object.entries(raw).map(([id, quantity]) => {
-      return { id: String(id), name: 'Item', price: 0, quantity: Number(quantity) || 0 };
+    return Object.entries(raw).map(([key, quantity]) => {
+      return { key: String(key), name: 'Item', price: 0, quantity: Number(quantity) || 0, img: null };
     }).filter(i => i.quantity > 0);
   }
   return [];
 }
 
-function findProductCard(id) {
-  return document.querySelector('.p-card[data-id="'+id+'"], .pd-card[data-id="'+id+'"]');
+function findProductCard(key) {
+  return document.querySelector('.p-card[data-key="'+key+'"], .pd-card[data-key="'+key+'"]');
 }
 
-function productMetaFromDOM(id) {
-  const card = findProductCard(id);
+function productMetaFromDOM(key) {
+  const card = findProductCard(key);
   if (!card) return null;
   const name = card.querySelector('.p-name')?.textContent?.trim() || 'Item';
   const priceEl = card.querySelector('.p-price');
@@ -39,27 +50,27 @@ function initCart() {
   updateCartUI();
 }
 
-function addToCart(id, name, price) {
-  const meta = productMetaFromDOM(id);
+function addToCart(key, name, price) {
+  const meta = productMetaFromDOM(key);
   if (name === 'Item' && meta) name = meta.name;
   if (!price && meta) price = meta.price;
-  const existing = cart.find(i => String(i.id) === String(id));
+  const existing = cart.find(i => String(i.key) === String(key));
   if (existing) {
     existing.quantity += 1;
     existing.name = name;
     existing.price = Number(price) || existing.price || 0;
   } else {
-    cart.push({ id: String(id), name, price: Number(price) || 0, quantity: 1 });
+    cart.push({ key: String(key), name, price: Number(price) || 0, quantity: 1 });
   }
   saveCart();
   updateCartUI();
-  animateCartButton(id);
+  animateCartButton(key);
   showToast(name + ' ' + '{{ __('added to cart') }}', 'cart');
   openCart();
 }
 
-function changeQty(id, delta, name = null, price = null) {
-  const idx = cart.findIndex(i => String(i.id) === String(id));
+function changeQty(key, delta, name = null, price = null) {
+  const idx = cart.findIndex(i => String(i.key) === String(key));
   if (idx === -1) return;
   cart[idx].quantity += delta;
   if (name !== null) cart[idx].name = name;
@@ -69,8 +80,8 @@ function changeQty(id, delta, name = null, price = null) {
   updateCartUI();
 }
 
-function removeFromCart(id) {
-  cart = cart.filter(i => String(i.id) !== String(id));
+function removeFromCart(key) {
+  cart = cart.filter(i => String(i.key) !== String(key));
   saveCart();
   updateCartUI();
 }
@@ -112,7 +123,7 @@ function renderCartList() {
   }
   if (foot) foot.style.display = 'block';
   list.innerHTML = cart.map(item => {
-    const meta = productMetaFromDOM(item.id);
+    const meta = productMetaFromDOM(item.key);
     const img = item.img || meta?.img || 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=500&q=80';
     const esc = (s) => String(s).replace(/'/g, "\\'").replace(/"/g, '&quot;');
     return '<div class="cart-row">' +
@@ -122,13 +133,13 @@ function renderCartList() {
         '<span class="cr-meta">{{ __('per item') }} · '+formatTZS(item.price)+' {{ __('each') }}</span>' +
         '<div class="cart-row-bottom">' +
           '<div class="qty-stepper">' +
-            '<button onclick="changeQty(\''+item.id+'\', -1, \''+esc(item.name)+'\', '+item.price+')" aria-label="{{ __('Decrease quantity') }}">&minus;</button>' +
+            '<button onclick="changeQty(\''+item.key+'\', -1, \''+esc(item.name)+'\', '+item.price+')" aria-label="{{ __('Decrease quantity') }}">&minus;</button>' +
             '<span>'+item.quantity+'</span>' +
-            '<button onclick="changeQty(\''+item.id+'\', 1, \''+esc(item.name)+'\', '+item.price+')" aria-label="{{ __('Increase quantity') }}">+</button>' +
+            '<button onclick="changeQty(\''+item.key+'\', 1, \''+esc(item.name)+'\', '+item.price+')" aria-label="{{ __('Increase quantity') }}">+</button>' +
           '</div>' +
           '<span class="cr-price">'+formatTZS(item.price*item.quantity)+'</span>' +
         '</div>' +
-        '<button class="cr-remove" onclick="removeFromCart(\''+item.id+'\')">{{ __('Remove') }}</button>' +
+        '<button class="cr-remove" onclick="removeFromCart(\''+item.key+'\')">{{ __('Remove') }}</button>' +
       '</div>' +
     '</div>';
   }).join('');
@@ -172,8 +183,8 @@ function updateBottomBar() {
   bar.setAttribute('aria-hidden', count > 0 ? 'false' : 'true');
 }
 
-function animateCartButton(id) {
-  const card = findProductCard(id);
+function animateCartButton(key) {
+  const card = findProductCard(key);
   const btn = card?.querySelector('.quick-add, [data-add-btn]');
   if (!btn) return;
   const orig = btn.innerHTML;

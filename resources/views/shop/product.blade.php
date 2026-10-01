@@ -11,7 +11,7 @@
 </script>
 @php
   $logoUrl = asset('logo-image-feedtan-store.png');
-  $productCanonicalUrl = route('shop.product', $product);
+  $productCanonicalUrl = route('shop.product', $product->slug ?: $product->encrypted_key);
   $seo = seo_product($product);
   $primaryImage = $product->images->firstWhere('is_primary', true);
   $baseUrl = $settings->store_url ?? config('app.url');
@@ -77,7 +77,7 @@
               'name' => $product->name,
               'description' => $seo['description'],
               'image' => array_values(array_unique(array_merge($allImages, [$seo['image']]))),
-              'sku' => $product->sku ?: (string) $product->id,
+              'sku' => $product->sku ?: $product->slug,
               'category' => $product->category->name ?? 'Uncategorized',
               'brand' => [
                   '@type' => 'Brand',
@@ -256,7 +256,7 @@
             </li>
             <li>
               <i class="fa-solid fa-barcode" style="color:var(--orange-600);"></i>
-              <span>{{ __('SKU') }}: <b class="mono">{{ $product->sku ?: $product->id }}</b></span>
+              <span>{{ __('SKU') }}: <b class="mono">{{ $product->sku ?: $product->slug }}</b></span>
             </li>
             <li>
               <i class="fa-solid fa-shield-halved" style="color:var(--orange-600);"></i>
@@ -272,7 +272,7 @@
                 <button onclick="changeProductQty(1)" aria-label="{{ __('Increase quantity') }}">+</button>
               </div>
               <button class="btn btn-primary btn-lg" style="flex:1;min-width:180px;" data-add-btn
-                      onclick="addToCart('{{ $product->id }}', '{{ addslashes($product->name) }}', {{ $product->selling_price }})"
+                      onclick="addToCart('{{ $product->encrypted_key }}', '{{ addslashes($product->name) }}', {{ $product->selling_price }})"
                       {{ $inStock ? '' : 'disabled' }}>
                 <i class="fa-solid fa-cart-plus"></i> {{ __('Add to cart') }}
               </button>
@@ -308,27 +308,27 @@
             $rpOld = $rp->old_price ?? null;
             $rpBadge = $rpOld ? '-'.round((($rpOld - $rp->selling_price)/$rpOld)*100).'%' : null;
           @endphp
-          <div class="p-card reveal" data-id="{{ $rp->id }}">
-            <div class="p-media" onclick="window.location.href='{{ route('shop.product', $rp) }}'" role="button" tabindex="0" aria-label="{{ $rp->name }}">
+          <div class="p-card reveal" data-key="{{ $rp->encrypted_key }}">
+            <div class="p-media" onclick="window.location.href='{{ route('shop.product', $rp->encrypted_key) }}'" role="button" tabindex="0" aria-label="{{ $rp->name }}">
               <img src="{{ $rpImage }}" alt="{{ $rp->name }}" loading="lazy">
               @if($rpBadge)<span class="p-badge pill pill-orange">{{ $rpBadge }}</span>@endif
               <button class="p-fav" aria-label="{{ __('Save to wishlist') }}" onclick="event.stopPropagation(); toggleFav(this)">
                 <i class="fa-regular fa-heart"></i>
               </button>
-              <button class="quick-add" data-add-btn aria-label="{{ __('Add to cart') }}" onclick="event.stopPropagation(); addToCart('{{ $rp->id }}', '{{ addslashes($rp->name) }}', {{ $rp->selling_price }})">
+              <button class="quick-add" data-add-btn aria-label="{{ __('Add to cart') }}" onclick="event.stopPropagation(); addToCart('{{ $rp->encrypted_key }}', '{{ addslashes($rp->name) }}', {{ $rp->selling_price }})">
                 <i class="fa-solid fa-cart-plus"></i>
               </button>
             </div>
             <div class="p-body">
               <span class="p-cat">{{ $rp->category->name ?? __('Uncategorized') }}</span>
-              <a class="p-name" href="{{ route('shop.product', $rp) }}">{{ $rp->name }}</a>
+              <a class="p-name" href="{{ route('shop.product', $rp->encrypted_key) }}">{{ $rp->name }}</a>
               <div class="p-price-row">
                 <span class="p-price" data-price="{{ $rp->selling_price }}">TZS {{ number_format($rp->selling_price, 0) }}</span>
                 @if($rpOld)<span class="p-price-old">TZS {{ number_format($rpOld, 0) }}</span>@endif
               </div>
               <div class="p-actions">
-                <button class="btn btn-primary btn-sm" onclick="addToCart('{{ $rp->id }}', '{{ addslashes($rp->name) }}', {{ $rp->selling_price }})">{{ __('Add') }}</button>
-                <a href="{{ route('shop.product', $rp) }}" class="btn btn-outline btn-sm">{{ __('Details') }}</a>
+                <button class="btn btn-primary btn-sm" onclick="addToCart('{{ $rp->encrypted_key }}', '{{ addslashes($rp->name) }}', {{ $rp->selling_price }})">{{ __('Add') }}</button>
+                <a href="{{ route('shop.product', $rp->encrypted_key) }}" class="btn btn-outline btn-sm">{{ __('Details') }}</a>
               </div>
             </div>
           </div>
@@ -369,7 +369,7 @@
     <span id="productQtySticky">1</span>
     <button onclick="changeProductQty(1)" aria-label="{{ __('Increase quantity') }}">+</button>
   </div>
-  <button class="btn btn-primary" style="flex:1;max-width:220px;" data-add-btn onclick="addToCart('{{ $product->id }}', '{{ addslashes($product->name) }}', {{ $product->selling_price }})" {{ $inStock ? '' : 'disabled' }}>
+  <button class="btn btn-primary" style="flex:1;max-width:220px;" data-add-btn onclick="addToCart('{{ $product->encrypted_key }}', '{{ addslashes($product->name) }}', {{ $product->selling_price }})" {{ $inStock ? '' : 'disabled' }}>
     <i class="fa-solid fa-cart-plus"></i> {{ __('Add') }}
   </button>
 </div>
@@ -390,24 +390,24 @@ function changeProductQty(delta) {
   if (b) b.textContent = productQty;
 }
 
-function addToCart(id, name, price) {
-  const meta = productMetaFromDOM(id);
+function addToCart(key, name, price) {
+  const meta = productMetaFromDOM(key);
   if (name === 'Item' && meta) name = meta.name;
   if (!price && meta) price = meta.price;
   const qtyToAdd = productQty || 1;
-  const existing = cart.find(i => String(i.id) === String(id));
+  const existing = cart.find(i => String(i.key) === String(key));
   if (existing) {
     existing.quantity += qtyToAdd;
     existing.name = name;
     existing.price = Number(price) || existing.price || 0;
   } else {
-    cart.push({ id: String(id), name, price: Number(price) || 0, quantity: qtyToAdd });
+    cart.push({ key: String(key), name, price: Number(price) || 0, quantity: qtyToAdd });
   }
-  const entry = cart.find(i => String(i.id) === String(id));
+  const entry = cart.find(i => String(i.key) === String(key));
   if (entry && productMaxQty > 0) entry.quantity = Math.min(entry.quantity, productMaxQty);
   saveCart();
   updateCartUI();
-  animateCartButton(id);
+  animateCartButton(key);
   showToast(qtyToAdd + 'x ' + name + ' {{ __('added to cart') }}', 'cart');
 }
 
