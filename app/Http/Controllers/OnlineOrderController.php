@@ -30,6 +30,30 @@ class OnlineOrderController extends Controller
     ) {
     }
 
+    /**
+     * Resolve the public shop page from an encrypted page token so raw
+     * pagination offsets are never exposed in shop URLs.
+     */
+    private function decryptShopPage(mixed $value): int
+    {
+        if (! is_string($value) || $value === '') {
+            return 1;
+        }
+
+        try {
+            $decrypted = Crypt::decryptString($value);
+        } catch (\Throwable $exception) {
+            return 1;
+        }
+
+        return ctype_digit($decrypted) && (int) $decrypted >= 1 ? (int) $decrypted : 1;
+    }
+
+    public static function encryptShopPage(int $page): string
+    {
+        return Crypt::encryptString((string) max(1, $page));
+    }
+
 
     public function initiatePaymentForOrder(Request $request, $trackingIdentifier, FeedtanEcommercePaymentService $paymentService)
     {
@@ -211,7 +235,7 @@ class OnlineOrderController extends Controller
             $query->where('name', 'like', "%$searchTerm%");
         }
 
-        $products = $query->latest()->paginate(20);
+        $products = $query->latest()->paginate(20, ['*'], 'page', $this->decryptShopPage(request('page')));
 
         $slides = \App\Models\CarouselSlide::where('is_active', true)
             ->orderBy('order')
