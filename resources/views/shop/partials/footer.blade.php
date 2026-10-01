@@ -3,7 +3,7 @@
     <div class="footer-grid">
       <div class="footer-brand">
         <div class="footer-logo">
-          <span class="logo-mark" style="background:var(--orange-600);color:#fff;"><i class="fa-solid fa-leaf"></i></span>
+          <img class="logo-img" src="{{ asset('logo-image-feedtan-store.png') }}" alt="Feedtan Store">
           Feedtan Store
         </div>
         <p>{{ __('Quality products, unbeatable prices, delivery to your door — or ready when you step in.') }}</p>
