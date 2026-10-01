@@ -102,6 +102,48 @@
 .pay-sticky .ps-left span{font-size:11.5px;color:var(--ink-faint);}
 .pay-sticky .btn{flex-shrink:0;}
 
+/* ---------- Order placed / waiting for payment popup ---------- */
+.pay-modal{position:fixed;inset:0;z-index:220;display:flex;align-items:center;justify-content:center;padding:20px;}
+.pay-modal[hidden]{display:none;}
+.pay-modal-backdrop{position:absolute;inset:0;background:rgba(12,32,25,.62);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);}
+.pay-modal-box{
+  position:relative;width:100%;max-width:400px;max-height:calc(100vh - 40px);overflow-y:auto;
+  background:var(--paper);border:1px solid var(--line);border-radius:var(--radius-l);
+  box-shadow:var(--shadow-pop);padding:26px 22px 22px;text-align:center;
+}
+.pay-modal-x{
+  position:absolute;top:10px;right:10px;width:34px;height:34px;border-radius:50%;
+  border:none;background:transparent;color:var(--ink-faint);font-size:15px;
+  display:flex;align-items:center;justify-content:center;
+}
+.pay-modal-x:hover{background:var(--green-050);color:var(--ink);}
+.pay-modal-icon{
+  width:60px;height:60px;border-radius:50%;margin:0 auto 14px;
+  display:flex;align-items:center;justify-content:center;font-size:26px;
+  background:var(--green-100);color:var(--green-700);
+}
+.pay-modal-box.tone-failed .pay-modal-icon{background:var(--red-dim);color:var(--red);}
+.pay-modal-box.tone-timeout .pay-modal-icon{background:var(--orange-100);color:var(--orange-700);}
+.pay-modal-title{font-size:20px;margin-bottom:14px;line-height:1.25;}
+.pay-modal-rows{display:flex;flex-direction:column;gap:8px;margin-bottom:4px;}
+.pay-modal-row{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  background:var(--green-050);border-radius:var(--radius-m);padding:9px 12px;
+  font-size:13px;color:var(--ink-soft);text-align:left;
+}
+.pay-modal-row b{font-family:var(--font-mono);font-size:13px;color:var(--green-900);word-break:break-all;text-align:right;}
+.pay-modal-count{
+  font-family:var(--font-mono);font-size:38px;font-weight:800;letter-spacing:1px;
+  color:var(--green-900);margin-top:16px;line-height:1;
+}
+.pay-modal-bar{height:6px;border-radius:99px;background:var(--line);overflow:hidden;margin-top:12px;}
+.pay-modal-bar span{display:block;height:100%;width:100%;background:var(--green-600);transition:width 1s linear;}
+.pay-modal-hint{font-size:13.5px;color:var(--ink-soft);margin-top:14px;line-height:1.55;}
+.pay-modal-actions{display:flex;gap:10px;margin-top:20px;}
+.pay-modal-actions .btn{flex:1;justify-content:center;}
+.pay-modal-actions .btn[hidden]{display:none;}
+html.pay-modal-open,html.pay-modal-open body{overflow:hidden;}
+
 /* ---------- Empty state ---------- */
 .empty-state{text-align:center;padding:56px 24px;}
 .empty-state .ic{
@@ -339,6 +381,30 @@
     <i class="fa-solid fa-circle-check"></i> {{ __('Pay Now') }}
   </button>
 </div>
+
+<!-- Order placed / waiting for payment popup -->
+<div class="pay-modal" id="payModal" hidden>
+  <div class="pay-modal-backdrop" data-pay-modal-close></div>
+  <div class="pay-modal-box" role="dialog" aria-modal="true" aria-labelledby="payModalTitle">
+    <button type="button" class="pay-modal-x" data-pay-modal-close aria-label="{{ __('Close') }}">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+
+    <div class="pay-modal-icon" id="payModalIcon"><i class="fa-solid fa-circle-check"></i></div>
+    <h2 class="pay-modal-title" id="payModalTitle">{{ __('Order placed!') }}</h2>
+    <div class="pay-modal-rows" id="payModalBody"></div>
+
+    <div class="pay-modal-count" id="payModalCount" hidden>02:00</div>
+    <div class="pay-modal-bar" id="payModalBar" hidden><span></span></div>
+    <p class="pay-modal-hint" id="payModalHint" hidden></p>
+
+    <div class="pay-modal-actions">
+      <button type="button" class="btn btn-outline" id="payModalCancel" data-pay-modal-close>{{ __('Close') }}</button>
+      <a class="btn btn-primary" id="payModalConfirm" href="#">{{ __('Track Order') }}</a>
+    </div>
+  </div>
+</div>
+
 
 <script>
 (function syncPayBarSpace() {
@@ -872,10 +938,189 @@ function validateAddressIfNeeded() {
   }
 }
 
+const PAY_WAIT_SECONDS = 120;
+let payWaitTimer = null;
+let payPollTimer = null;
+
+const PAY_MODAL_TONES = {
+  placed:  { icon: 'fa-solid fa-circle-check',    tone: 'placed' },
+  waiting: { icon: 'fa-solid fa-spinner fa-spin', tone: 'waiting' },
+  success: { icon: 'fa-solid fa-circle-check',    tone: 'success' },
+  failed:  { icon: 'fa-solid fa-circle-xmark',    tone: 'failed' },
+  timeout: { icon: 'fa-solid fa-clock',           tone: 'timeout' },
+};
+
+const PAY_MODAL_COPY = {
+  placed:  { title: '{{ __('Order placed!') }}',                                    hint: '{{ __('Your order has been received.') }}' },
+  waiting: { title: '{{ __('Waiting for payment') }}',                              hint: '{{ __('Check your phone and approve the mobile money prompt to finish paying.') }}' },
+  success: { title: '{{ __('Payment complete!') }}',                               hint: '{{ __('Payment completed successfully. We are preparing your order now.') }}' },
+  failed:  { title: '{{ __('Payment not completed') }}',                           hint: '{{ __('The payment was not completed. You can pay again from the tracking page.') }}' },
+  timeout: { title: '{{ __('Still waiting for payment') }}',                       hint: '{{ __('We could not confirm the payment yet. If you already paid it may take a little longer to show.') }}' },
+};
+
+const payModal = { root: null, box: null, icon: null, title: null, body: null, count: null, bar: null, hint: null, confirm: null, cancel: null };
+const payState = { phase: 'waiting', remaining: PAY_WAIT_SECONDS, status: '', orderRef: '', trackingUrl: '' };
+
+function formatCountdown(totalSeconds) {
+  const s = Math.max(0, Math.floor(totalSeconds));
+  return String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0');
+}
+
+function extractPaymentStatus(payload) {
+  if (!payload) return null;
+  if (payload.data && payload.data.status) return payload.data.status;
+  if (payload.status) return payload.status;
+  if (payload.data && payload.data.clickpesa_status) return payload.data.clickpesa_status;
+  return null;
+}
+
+function stopPayWaitTimers() {
+  if (payWaitTimer) { clearInterval(payWaitTimer); payWaitTimer = null; }
+  if (payPollTimer) { clearInterval(payPollTimer); payPollTimer = null; }
+}
+
+function cachePayModal() {
+  payModal.root = document.getElementById('payModal');
+  if (!payModal.root) return;
+  payModal.box = payModal.root.querySelector('.pay-modal-box');
+  payModal.icon = document.getElementById('payModalIcon');
+  payModal.title = document.getElementById('payModalTitle');
+  payModal.body = document.getElementById('payModalBody');
+  payModal.count = document.getElementById('payModalCount');
+  payModal.bar = document.getElementById('payModalBar');
+  payModal.hint = document.getElementById('payModalHint');
+  payModal.confirm = document.getElementById('payModalConfirm');
+  payModal.cancel = document.getElementById('payModalCancel');
+}
+
+function renderPayModal() {
+  if (!payModal.root) return;
+  const tone = PAY_MODAL_TONES[payState.phase] || PAY_MODAL_TONES.waiting;
+  const copy = PAY_MODAL_COPY[payState.phase] || PAY_MODAL_COPY.waiting;
+  const showTimer = payState.phase === 'waiting';
+
+  payModal.box.className = 'pay-modal-box tone-' + tone.tone;
+  payModal.icon.innerHTML = '<i class="' + tone.icon + '"></i>';
+  payModal.title.textContent = copy.title;
+  payModal.hint.textContent = copy.hint;
+  payModal.hint.hidden = false;
+
+  const rows = ['<div class="pay-modal-row"><span>' + '{{ __('Order number') }}' + '</span><b>' + payState.orderRef + '</b></div>'];
+  if (payState.status) {
+    rows.push('<div class="pay-modal-row"><span>' + '{{ __('Gateway status') }}' + '</span><b>' + payState.status + '</b></div>');
+  }
+  payModal.body.innerHTML = rows.join('');
+
+  payModal.count.hidden = !showTimer;
+  payModal.bar.hidden = !showTimer;
+  if (showTimer) {
+    payModal.count.textContent = formatCountdown(payState.remaining);
+    const pct = Math.max(0, Math.min(100, (payState.remaining / PAY_WAIT_SECONDS) * 100));
+    payModal.bar.firstElementChild.style.width = pct + '%';
+  }
+
+  payModal.confirm.hidden = payState.phase === 'waiting';
+  payModal.confirm.href = payState.trackingUrl || '#';
+  payModal.cancel.hidden = payState.phase !== 'waiting';
+}
+
+function openPayModal() {
+  if (!payModal.root) return;
+  payModal.root.hidden = false;
+  document.documentElement.classList.add('pay-modal-open');
+  renderPayModal();
+}
+
+function closePayModal() {
+  stopPayWaitTimers();
+  if (!payModal.root) return;
+  payModal.root.hidden = true;
+  document.documentElement.classList.remove('pay-modal-open');
+}
+
+function goToTracking() {
+  stopPayWaitTimers();
+  window.location.href = payState.trackingUrl;
+}
+
+function showOrderPlaced(data) {
+  payState.phase = data.payment_initiated ? 'waiting' : 'placed';
+  payState.remaining = PAY_WAIT_SECONDS;
+  payState.status = '';
+  payState.trackingUrl = data.tracking_url || '';
+  payState.orderRef = data.order_number || '';
+  try {
+    payState.orderRef = new URL(data.tracking_url, window.location.origin).pathname.split('/').filter(Boolean).pop() || payState.orderRef;
+  } catch (e) {}
+  openPayModal();
+  if (!data.payment_initiated) return;
+  startPayWait();
+}
+
+function startPayWait() {
+  stopPayWaitTimers();
+  const startedAt = Date.now();
+  const identifier = payState.orderRef;
+
+  payWaitTimer = setInterval(() => {
+    payState.remaining = Math.max(0, PAY_WAIT_SECONDS - Math.floor((Date.now() - startedAt) / 1000));
+    if (payState.remaining === 0) {
+      payState.phase = 'timeout';
+      stopPayWaitTimers();
+      renderPayModal();
+      return;
+    }
+    renderPayModal();
+  }, 1000);
+
+  payPollTimer = setInterval(async () => {
+    if (!identifier) return;
+    try {
+      const res = await fetch('/api/shop/orders/' + encodeURIComponent(identifier) + '/payment-status', {
+        method: 'GET',
+        headers: { 'Accept': 'application/json' },
+        credentials: 'same-origin'
+      });
+      if (!res.ok) return;
+      const payload = await res.json().catch(() => ({}));
+      const raw = extractPaymentStatus(payload);
+      if (!raw) return;
+
+      const normalized = String(raw).toUpperCase();
+      payState.status = normalized;
+
+      if (normalized === 'SUCCESS' || normalized === 'SETTLED') {
+        payState.phase = 'success';
+        stopPayWaitTimers();
+        renderPayModal();
+      } else if (['FAILED', 'DECLINED', 'CANCELLED'].includes(normalized)) {
+        payState.phase = 'failed';
+        stopPayWaitTimers();
+        renderPayModal();
+      } else {
+        renderPayModal();
+      }
+    } catch (e) {}
+  }, 3000);
+}
+
+
 document.addEventListener('DOMContentLoaded', function() {
   initCart();
   setTimeout(hidePageLoader, 350);
   detectLocation();
+
+  cachePayModal();
+  document.querySelectorAll('[data-pay-modal-close]').forEach(function(el) {
+    el.addEventListener('click', closePayModal);
+  });
+  payModal.confirm.addEventListener('click', function(e) {
+    e.preventDefault();
+    goToTracking();
+  });
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && payModal.root && !payModal.root.hidden) closePayModal();
+  });
 
   document.getElementById('checkoutForm').addEventListener('submit', async function(e) {
     e.preventDefault();
@@ -933,14 +1178,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
       if (data.success) {
         localStorage.removeItem('shopCart');
-        Swal.fire({
-          icon: 'success',
-          title: '{{ __('Order placed!') }}',
-          html: data.payment_message || '{{ __('Your order has been placed successfully!') }}',
-          confirmButtonText: '{{ __('Track Order') }}'
-        }).then(() => {
-          window.location.href = data.tracking_url;
-        });
+        showOrderPlaced(data);
       } else {
         throw new Error(data.message || '{{ __('Failed to place order') }}');
       }
