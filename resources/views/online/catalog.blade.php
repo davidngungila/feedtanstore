@@ -31,7 +31,7 @@
 <div class="animate-[fadeIn_0.4s_ease]">
     <div class="card rounded-2xl p-6">
         @php
-            $totalCount = $totalCount ?? $products->total();
+            $totalCount = $totalCount ?? $products->count();
             $onlineCount = $onlineCount ?? 0;
             $offlineCount = $offlineCount ?? max(0, $totalCount - $onlineCount);
         @endphp
@@ -43,7 +43,7 @@
                     <span class="mx-1">•</span> Online: <span class="font-semibold text-green-700">{{ $onlineCount }}</span>
                     <span class="mx-1">•</span> Offline: <span class="font-semibold text-red-700">{{ $offlineCount }}</span>
                     @if(!empty($search))
-                        <span class="mx-1">•</span> Filter: <span class="font-semibold text-primary-700">"{{ $search }}" ({{ $products->total() }} found)</span>
+                        <span class="mx-1">•</span> Filter: <span class="font-semibold text-primary-700">"{{ $search }}" ({{ $products->count() }} found)</span>
                     @endif
                 </p>
             </div>
@@ -85,7 +85,7 @@
                 Select all
             </label>
             <span id="selected-count" class="text-xs text-gray-500">0 selected</span>
-            <span class="text-xs text-gray-400">Showing {{ $products->firstItem() ?? 0 }}–{{ $products->lastItem() ?? 0 }} of {{ $products->total() }}</span>
+            <span class="text-xs text-gray-400">Showing all {{ $products->count() }} {{ $products->count() === 1 ? 'product' : 'products' }}</span>
             <div class="flex flex-wrap items-center gap-2 ml-auto">
                 <button type="submit" form="bulk-selected-form" name="action" value="activate" id="btn-activate-selected"
                     class="px-3 py-2 text-xs font-semibold rounded-lg bg-green-600 hover:bg-green-700 text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled>
@@ -97,21 +97,21 @@
                 </button>
                 <span class="hidden sm:inline text-gray-300">|</span>
                 <form action="{{ route('online.catalog.bulk-toggle') }}" method="POST" class="inline"
-                    onsubmit="return confirm('Activate ALL {{ $products->total() }} {{ !empty($search) ? 'matching \'' . $search . '\'' : '' }} products for online shop?');">
+                    onsubmit="return confirm('Activate ALL {{ $products->count() }} {{ !empty($search) ? 'matching \'' . $search . '\'' : '' }} products for online shop?');">
                     @csrf
                     <input type="hidden" name="action" value="activate">
                     <input type="hidden" name="search" value="{{ $search ?? '' }}">
                     <button type="submit" class="px-3 py-2 text-xs font-semibold rounded-lg bg-emerald-100 hover:bg-emerald-200 text-emerald-800 transition-colors">
-                        <i class="fas fa-bolt mr-1"></i>Activate all ({{ $products->total() }})
+                        <i class="fas fa-bolt mr-1"></i>Activate all ({{ $products->count() }})
                     </button>
                 </form>
                 <form action="{{ route('online.catalog.bulk-toggle') }}" method="POST" class="inline"
-                    onsubmit="return confirm('Deactivate ALL {{ $products->total() }} {{ !empty($search) ? 'matching \'' . $search . '\'' : '' }} products from online shop?');">
+                    onsubmit="return confirm('Deactivate ALL {{ $products->count() }} {{ !empty($search) ? 'matching \'' . $search . '\'' : '' }} products from online shop?');">
                     @csrf
                     <input type="hidden" name="action" value="deactivate">
                     <input type="hidden" name="search" value="{{ $search ?? '' }}">
                     <button type="submit" class="px-3 py-2 text-xs font-semibold rounded-lg bg-red-100 hover:bg-red-200 text-red-800 transition-colors">
-                        <i class="fas fa-ban mr-1"></i>Deactivate all ({{ $products->total() }})
+                        <i class="fas fa-ban mr-1"></i>Deactivate all ({{ $products->count() }})
                     </button>
                 </form>
             </div>
@@ -171,12 +171,6 @@
                 <p class="text-sm mt-1">Try a different name, SKU, category or price.</p>
             </div>
         @endif
-
-        @if($products->hasPages())
-            <div class="mt-6">
-                {{ $products->links() }}
-            </div>
-        @endif
     </div>
 </div>
 
@@ -205,7 +199,7 @@
 
     if (selectAll) {
         selectAll.addEventListener('change', () => {
-            // Select-all covers this page (use Activate all for the full filter).
+            // No pagination: select-all covers every product matching the current filter.
             checkboxes().forEach(b => { b.checked = selectAll.checked; });
             refresh();
         });

@@ -31,8 +31,7 @@ class ProductCatalogController extends Controller
                 });
             })
             ->orderBy('id')
-            ->paginate(20)
-            ->withQueryString();
+            ->get();
 
         $categories = Category::all();
         $offlineCount = $totalCount - $onlineCount;
