@@ -362,7 +362,7 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 <script>
-let userLocation = { lat: null, lng: null };
+let userLocation = { lat: null, lng: null, accuracy: null };
 let userLocationName = '';
 let checkoutMap = null;
 let checkoutMarker = null;
@@ -530,43 +530,92 @@ function toggleDeliveryOptions() {
   fetchDeliveryFee();
 }
 
-function detectLocation() {
+const GEO_OPTIONS = { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 };
+let locRetryCount = 0;
+let locRetryTimer = null;
+
+function setLocStatus(state, message) {
   const statusEl = document.getElementById('locStatus');
+  if (!statusEl) return;
+  const icons = {
+    pending: 'fa-solid fa-spinner fa-spin',
+    ok: 'fa-solid fa-circle-check',
+    error: 'fa-solid fa-triangle-exclamation',
+  };
+  statusEl.classList.remove('pending', 'ok', 'error');
+  if (state) statusEl.classList.add(state);
+  const iconEl = statusEl.querySelector('i');
+  if (iconEl) iconEl.className = icons[state] || icons.pending;
+  const textEl = statusEl.querySelector('span');
+  if (textEl) textEl.textContent = message;
+}
+
+function detectLocation() {
   const coordsEl = document.getElementById('locCoords');
-  const iconEl = statusEl.querySelector('svg');
+  if (coordsEl) coordsEl.textContent = '';
 
-  statusEl.classList.remove('pending', 'error');
-  statusEl.querySelector('span').textContent = '{{ __('Detecting your location...') }}';
-  iconEl.setAttribute('viewBox', '0 0 24 24');
-  iconEl.innerHTML = '<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>';
+  if (!navigator.geolocation) {
+    setLocStatus('error', '{{ __('Geolocation not supported') }}');
+    setFieldError('deliveryAddress', '{{ __('Your browser cannot share your location. Please choose another location.') }}');
+    return Promise.resolve(false);
+  }
 
-  if (navigator.geolocation) {
+  setLocStatus('pending', '{{ __('Getting your live location...') }}');
+
+  return new Promise((resolve) => {
     navigator.geolocation.getCurrentPosition(
       async (position) => {
+        locRetryCount = 0;
+        if (locRetryTimer) { clearTimeout(locRetryTimer); locRetryTimer = null; }
         userLocation.lat = position.coords.latitude;
         userLocation.lng = position.coords.longitude;
-        coordsEl.textContent = `${userLocation.lat.toFixed(6)}, ${userLocation.lng.toFixed(6)}`;
-        statusEl.querySelector('span').textContent = '{{ __('Location detected! Resolving address...') }}';
+        userLocation.accuracy = position.coords.accuracy;
+
+        const coordsText = document.getElementById('locCoords');
+        if (coordsText) {
+          const acc = userLocation.accuracy ? ` (±${Math.round(userLocation.accuracy)}m)` : '';
+          coordsText.textContent = `${userLocation.lat.toFixed(6)}, ${userLocation.lng.toFixed(6)}${acc}`;
+        }
+
+        setLocStatus('pending', '{{ __('Location captured! Resolving address...') }}');
         initializeCheckoutMap();
         updateCheckoutMap(userLocation.lat, userLocation.lng);
-        userLocationName = await reverseGeocode(userLocation.lat, userLocation.lng);
-        document.getElementById('deliveryAddress').value = userLocationName;
-        statusEl.querySelector('span').textContent = '{{ __('Location detected!') }}';
-        fetchDeliveryFee();
+
+        try {
+          userLocationName = await reverseGeocode(userLocation.lat, userLocation.lng);
+        } catch (e) {
+          userLocationName = '';
+        }
+
+        const addressEl = document.getElementById('deliveryAddress');
+        if (addressEl) {
+          addressEl.value = userLocationName || `${userLocation.lat.toFixed(6)}, ${userLocation.lng.toFixed(6)}`;
+        }
+        setLocStatus('ok', '{{ __('Live location captured') }}');
         setFieldError('deliveryAddress', '');
+        fetchDeliveryFee();
+        resolve(true);
       },
       (error) => {
         console.error('Geolocation error:', error);
-        statusEl.classList.add('error');
-        statusEl.querySelector('span').textContent = '{{ __('Failed to detect location') }}';
-        iconEl.innerHTML = '<circle cx="12" cy="12" r="10"/><path d="M15 9l-6 6M9 9l6 6"/>';
-        setFieldError('deliveryAddress', '{{ __('Please allow location access or choose another location') }}');
-      }
+        const messages = {
+          1: '{{ __('Location permission denied') }}',
+          2: '{{ __('Location unavailable') }}',
+          3: '{{ __('Location request timed out') }}',
+        };
+        setLocStatus('error', messages[error.code] || '{{ __('Failed to detect location') }}');
+        setFieldError('deliveryAddress', '{{ __('Could not capture your live location. Tap Refresh to try again, or choose another location.') }}');
+
+        const retriable = error.code === 2 || error.code === 3;
+        if (retriable && locRetryCount < 2) {
+          locRetryCount++;
+          locRetryTimer = setTimeout(() => detectLocation(), 1500 * locRetryCount);
+        }
+        resolve(false);
+      },
+      GEO_OPTIONS
     );
-  } else {
-    statusEl.classList.add('error');
-    statusEl.querySelector('span').textContent = '{{ __('Geolocation not supported') }}';
-  }
+  });
 }
 
 function initializeCheckoutMap() {
@@ -831,11 +880,27 @@ document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('checkoutForm').addEventListener('submit', async function(e) {
     e.preventDefault();
 
+    const placeOrderBtn = document.getElementById('placeOrderBtn');
+    const restingHtml = placeOrderBtn.innerHTML;
+
+    const locationType = document.querySelector('input[name="location_type"]:checked').value;
+    if (needDelivery === 'yes' && locationType === 'current' && !userLocation.lat) {
+      placeOrderBtn.disabled = true;
+      placeOrderBtn.innerHTML = '<svg class="animate-spin" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10" stroke-opacity="0.25"/><path d="M12 2a10 10 0 0 1 10 10"/></svg> {{ __('Locating you...') }}';
+      const captured = await detectLocation();
+      placeOrderBtn.disabled = false;
+      placeOrderBtn.innerHTML = restingHtml;
+      if (!captured) {
+        setFieldError('deliveryAddress', '{{ __('We could not capture your live location. Please enable location access and try again, or choose another location.') }}');
+        document.getElementById('deliveryAddressSection').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+      }
+    }
+
     if (!validateCustomer() || !validateAddressIfNeeded()) {
       return;
     }
 
-    const placeOrderBtn = document.getElementById('placeOrderBtn');
     placeOrderBtn.disabled = true;
     placeOrderBtn.innerHTML = '<svg class="animate-spin" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10" stroke-opacity="0.25"/><path d="M12 2a10 10 0 0 1 10 10"/></svg> {{ __('Placing Order...') }}';
 
