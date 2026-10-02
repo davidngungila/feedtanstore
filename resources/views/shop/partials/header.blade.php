@@ -47,13 +47,6 @@
         <i class="fa-solid fa-bag-shopping"></i> {{ __('Order now') }}
       </a>
 
-      @auth
-        <a href="{{ route('dashboard') }}" class="btn btn-dark btn-sm hide-on-mobile">{{ __('Dashboard') }}</a>
-        <a href="{{ route('dashboard') }}" class="icon-btn hide-on-desktop" aria-label="{{ __('Dashboard') }}" title="{{ __('Dashboard') }}">
-          <i class="fa-solid fa-gauge-high"></i>
-        </a>
-      @endauth
-
       <div class="lang-switch">
         <a href="{{ route('lang.switch', 'en') }}" class="{{ App::getLocale() === 'en' ? 'active' : '' }}" aria-label="English">EN</a>
         <a href="{{ route('lang.switch', 'sw') }}" class="{{ App::getLocale() === 'sw' ? 'active' : '' }}" aria-label="Kiswahili">SW</a>
@@ -109,12 +102,6 @@
         {{ $cat->name }}
       </a>
     @endforeach
-    @auth
-      <a href="{{ route('dashboard') }}">
-        <span class="mm-ic"><i class="fa-solid fa-gauge-high"></i></span>
-        {{ __('Dashboard') }}
-      </a>
-    @endauth
   </nav>
   <div class="mm-footer">
     <div class="lang-switch" style="align-self:flex-start;">
