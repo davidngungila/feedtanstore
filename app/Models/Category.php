@@ -38,12 +38,27 @@ class Category extends Model
 
     public function getRouteKeyName()
     {
-        return $this->slug ? 'slug' : 'id';
+        return 'slug';
     }
 
     public function getRouteKey()
     {
         return $this->slug ?: $this->getKey();
+    }
+
+    public function resolveRouteBindingQuery($query, $value, $field = null)
+    {
+        if ($field) {
+            return $query->where($field, $value);
+        }
+
+        if (is_numeric($value)) {
+            return $query->where(
+                fn ($q) => $q->where('id', $value)->orWhere('slug', $value)
+            );
+        }
+
+        return $query->where('slug', $value);
     }
 
     protected static function generateUniqueSlug($category)
