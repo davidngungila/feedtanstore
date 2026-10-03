@@ -768,8 +768,6 @@
         <div class="pay-chip"><span class="dot" style="background:#e8720c;"></span>Airtel Money</div>
         <div class="pay-chip"><span class="dot" style="background:#1c3fa0;"></span>Mixx by Yas</div>
         <div class="pay-chip"><span class="dot" style="background:#2e7d5b;"></span>HaloPesa</div>
-        <div class="pay-chip"><span class="dot" style="background:#1a1f71;"></span>Visa</div>
-        <div class="pay-chip"><span class="dot" style="background:#eb001b;"></span>Mastercard</div>
         <div class="pay-chip"><span class="dot" style="background:var(--ink-faint);"></span>{{ __('Cash on delivery') }}</div>
       </div>
     </div>
