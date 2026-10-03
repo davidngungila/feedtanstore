@@ -446,17 +446,25 @@
 
 @include('shop.partials.header', ['activeNav' => 'home'])
 
-@if($deals->count() > 0)
+@php
+  $marqueeItems = array_merge([
+    __('New Arrivals') . ' ' . __('Every Day'),
+    __('24 Hours Delivery') . ' ' . __('Within Moshi'),
+    __('Bundle Offers') . ' ' . __('Save More'),
+    __('Fresh Products') . ' ' . __('Quality Guaranteed'),
+    __('Fast Checkout') . ' ' . __('Pay on Delivery'),
+    __('Free Delivery') . ' ' . __('On Orders Over TZS 50,000'),
+  ], $deals->take(4)->map(fn($d) => $d->name . ' — TZS ' . number_format($d->selling_price, 0))->all());
+@endphp
 <div class="deals-band" aria-hidden="true">
   <div class="deals-track">
     @for($r = 0; $r < 2; $r++)
-      @foreach($deals->take(6) as $deal)
-        <span>{{ $deal->name }} — TZS {{ number_format($deal->selling_price, 0) }}</span>
+      @foreach($marqueeItems as $item)
+        <span>{{ $item }}</span>
       @endforeach
     @endfor
   </div>
 </div>
-@endif
 
 <main id="mainContent">
 
@@ -962,7 +970,20 @@ function joinWhatsApp() {
 document.addEventListener('DOMContentLoaded', function() {
   initCart();
   setTimeout(hidePageLoader, 300);
+  scrollToProductsIfFiltered();
 });
+
+function scrollToProductsIfFiltered() {
+  var hasFilter = {{ request('category') || request('search') ? 'true' : 'false' }};
+  if (!hasFilter || window.location.hash) return;
+  var target = document.getElementById('shop');
+  if (!target) return;
+  var header = document.getElementById('siteHeader');
+  var offset = header ? header.offsetHeight + 16 : 16;
+  var top = target.getBoundingClientRect().top + window.pageYOffset - offset;
+  window.scrollTo({ top: top, behavior: 'smooth' });
+}
+
 window.addEventListener('load', hidePageLoader);
 </script>
 </body>
