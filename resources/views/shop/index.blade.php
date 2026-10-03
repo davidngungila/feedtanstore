@@ -166,6 +166,26 @@
   background:linear-gradient(155deg,var(--green-100),var(--green-050));
   animation:ftBlob 9s ease-in-out infinite;
 }
+.blob-photos{position:absolute;inset:0;margin:auto;width:360px;height:360px;}
+.blob-photo{
+  position:absolute;overflow:hidden;
+  border:5px solid var(--white);border-radius:18px;
+  box-shadow:0 14px 30px rgba(18,51,40,.22);
+  background:var(--paper);
+  animation:ftFloat 5s ease-in-out infinite;
+}
+.blob-photo img{width:100%;height:100%;object-fit:cover;display:block;}
+.blob-photo.p1{top:24px;left:16px;width:150px;height:150px;z-index:3;transform:rotate(-5deg);animation-delay:.3s;}
+.blob-photo.p2{top:8px;right:8px;width:128px;height:128px;z-index:2;transform:rotate(6deg);animation-delay:1.3s;}
+.blob-photo.p3{bottom:10px;left:60px;width:172px;height:172px;z-index:4;transform:rotate(3deg);animation-delay:2.1s;}
+.blob-photo.p4{bottom:0;right:22px;width:104px;height:104px;z-index:1;transform:rotate(-7deg);animation-delay:.9s;}
+@media (max-width:480px){
+  .blob-photos{width:290px;height:290px;}
+  .blob-photo.p1{width:120px;height:120px;}
+  .blob-photo.p2{width:104px;height:104px;}
+  .blob-photo.p3{width:138px;height:138px;left:40px;}
+  .blob-photo.p4{width:84px;height:84px;}
+}
 @keyframes ftBlob{
   0%,100%{border-radius:44% 56% 62% 38% / 45% 40% 60% 55%;}
   50%{border-radius:58% 42% 40% 60% / 55% 60% 40% 45%;}
@@ -530,6 +550,25 @@
       </div>
       <div class="hero-art" aria-hidden="true">
         <div class="blob"></div>
+        @php
+          $blobProducts = $featured->take(4);
+          $blobSlots = ['p1', 'p2', 'p3', 'p4'];
+        @endphp
+        <div class="blob-photos">
+          @foreach($blobProducts as $i => $bp)
+            @php
+              $bpPrimary = $bp->images->firstWhere('is_primary', true);
+              $bpImage = $resolveImageUrl($bpPrimary?->image_path)
+                  ?? $resolveImageUrl($bp->images->first()?->image_path)
+                  ?? $resolveImageUrl($bp->image);
+            @endphp
+            @if($bpImage)
+              <div class="blob-photo {{ $blobSlots[$i] ?? 'p1' }}">
+                <img src="{{ $bpImage }}" alt="{{ $bp->name }}" loading="lazy">
+              </div>
+            @endif
+          @endforeach
+        </div>
         <svg class="float-icon" style="top:36px;left:52px;animation-delay:.2s;" width="58" height="58" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="13" r="7" fill="#e8720c"/><path d="M12 6c1.6 0 2-2 4-2" stroke="#1f5c43" stroke-width="2" stroke-linecap="round"/></svg>
         <svg class="float-icon" style="top:190px;left:6px;animation-delay:1.4s;" width="52" height="52" viewBox="0 0 24 24" fill="none"><rect x="7" y="4" width="10" height="16" rx="2" fill="#fff" stroke="#1f5c43" stroke-width="1.6"/><rect x="7" y="4" width="10" height="5" rx="2" fill="#26714f"/></svg>
         <svg class="float-icon" style="bottom:30px;right:52px;animation-delay:.8s;" width="66" height="66" viewBox="0 0 24 24" fill="none"><ellipse cx="12" cy="14" rx="6" ry="4" fill="#f2954a"/><path d="M7 12c1-4 4-8 7-9" stroke="#e8720c" stroke-width="2" stroke-linecap="round"/></svg>
