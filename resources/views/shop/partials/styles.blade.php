@@ -520,10 +520,16 @@ html.dark h1,html.dark h2,html.dark h3,html.dark h4{color:var(--ink);}
 .trust-item span{font-size:12.5px;color:var(--ink-soft);}
 
 /* ---------- CATEGORY CHIPS ---------- */
-.cat-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:26px;}
+.cat-row{
+  display:flex;gap:10px;flex-wrap:nowrap;overflow-x:auto;
+  margin-bottom:26px;padding:2px 2px 8px;
+  scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;
+  scrollbar-width:none;-ms-overflow-style:none;
+}
+.cat-row::-webkit-scrollbar{display:none;}
 .cat-chip{
   display:inline-flex;align-items:center;gap:8px;
-  padding:9px 16px;border-radius:999px;
+  padding:9px 16px;border-radius:999px;flex-shrink:0;scroll-snap-align:start;
   background:var(--paper);border:1.5px solid var(--line);
   font-size:13.5px;font-weight:700;color:var(--ink-soft);
   transition:.18s var(--ease);white-space:nowrap;
@@ -926,8 +932,7 @@ footer ul a:hover{color:#fff;}
   .product-grid,.rel-grid{grid-template-columns:1fr;}
   .p-media{height:190px;}
   .p-actions{flex-direction:row;}
-  .cat-row{flex-wrap:nowrap;overflow-x:auto;padding-bottom:6px;margin-left:-16px;margin-right:-16px;padding-left:16px;padding-right:16px;}
-  .cat-chip{flex-shrink:0;}
+  .cat-row{margin-left:-16px;margin-right:-16px;padding-left:16px;padding-right:16px;}
   .stats{grid-template-columns:1fr;}
   .search-bar{padding:7px 7px 7px 14px;}
   .btn{padding:12px 18px;}

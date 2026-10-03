@@ -453,7 +453,6 @@
     __('Bundle Offers') . ' ' . __('Save More'),
     __('Fresh Products') . ' ' . __('Quality Guaranteed'),
     __('Fast Checkout') . ' ' . __('Pay on Delivery'),
-    __('Free Delivery') . ' ' . __('On Orders Over TZS 50,000'),
   ];
 @endphp
 <div class="deals-band" aria-hidden="true">
