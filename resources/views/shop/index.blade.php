@@ -447,14 +447,14 @@
 @include('shop.partials.header', ['activeNav' => 'home'])
 
 @php
-  $marqueeItems = array_merge([
+  $marqueeItems = [
     __('New Arrivals') . ' ' . __('Every Day'),
     __('24 Hours Delivery') . ' ' . __('Within Moshi'),
     __('Bundle Offers') . ' ' . __('Save More'),
     __('Fresh Products') . ' ' . __('Quality Guaranteed'),
     __('Fast Checkout') . ' ' . __('Pay on Delivery'),
     __('Free Delivery') . ' ' . __('On Orders Over TZS 50,000'),
-  ], $deals->take(4)->map(fn($d) => $d->name . ' — TZS ' . number_format($d->selling_price, 0))->all());
+  ];
 @endphp
 <div class="deals-band" aria-hidden="true">
   <div class="deals-track">

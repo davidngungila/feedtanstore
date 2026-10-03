@@ -243,19 +243,13 @@ class OnlineOrderController extends Controller
 
         $categories = \App\Models\Category::where('is_active', true)->get();
 
-        $deals = \App\Models\Product::visibleInPublicShop()
-            ->with(['category', 'images'])
-            ->orderBy('selling_price')
-            ->take(8)
-            ->get();
-
         $featured = \App\Models\Product::visibleInPublicShop()
             ->with(['category', 'images'])
             ->inRandomOrder()
             ->take(8)
             ->get();
 
-        return view('shop.index', compact('products', 'slides', 'categories', 'selectedCategory', 'settings', 'deals', 'featured'));
+        return view('shop.index', compact('products', 'slides', 'categories', 'selectedCategory', 'settings', 'featured'));
     }
 
     public function showProduct(string $productKey)
