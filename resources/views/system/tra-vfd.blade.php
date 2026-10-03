@@ -226,7 +226,7 @@ async function testTraConnection() {
         await new Promise(r => setTimeout(r, 500));
         
         // Get XML preview
-        const xmlResponse = await fetch('{{ route("receipts.tra-xml", 1) }}', {
+        const xmlResponse = await fetch('{{ route("sales.receipts.tra-xml", 1) }}', {
             headers: { 'Accept': 'text/xml' }
         });
         if (xmlResponse.ok) {
@@ -254,7 +254,7 @@ async function testTraConnection() {
         }
         
         // Post to TRA
-        const testResponse = await fetch('{{ route("receipts.post-to-tra") }}', {
+        const testResponse = await fetch('{{ route("sales.receipts.post-to-tra") }}', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
